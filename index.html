@@ -8,7 +8,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Finanzía">
 <meta name="theme-color" content="#00D4AA">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%230A0F1E'/%3E%3Crect x='100' y='160' width='312' height='200' rx='24' fill='none' stroke='%2300D4AA' stroke-width='22'/%3E%3Ccircle cx='180' cy='260' r='28' fill='%2300D4AA'/%3E%3Crect x='220' y='245' width='80' height='14' rx='7' fill='%2300D4AA' opacity='.5'/%3E%3Crect x='220' y='270' width='50' height='10' rx='5' fill='%2300D4AA' opacity='.3'/%3E%3Crect x='100' y='195' width='312' height='38' fill='%2300D4AA' opacity='.15'/%3E%3C/svg%3E">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <title>Finanzía</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -2168,21 +2169,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   requestNotifPerm();
   checkAutoPayments();
   fetchExchangeRate();
-  // Register Service Worker for push notifications when deployed to HTTPS
+  // Register Service Worker - requires /sw.js file on the server
   if('serviceWorker'in navigator){
-    const swCode=`
-self.addEventListener('push',e=>{
-  const d=e.data?e.data.json():{title:'Finanzía',body:'Tienes pagos pendientes'};
-  self.registration.showNotification(d.title,{body:d.body,icon:'/icon-192.png',badge:'/icon-192.png',vibrate:[200,100,200]});
-});
-self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(clients.openWindow('/'));});
-self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)).catch(()=>caches.match('/')));});
-self.addEventListener('install',e=>{self.skipWaiting();});
-self.addEventListener('activate',e=>{e.waitUntil(clients.claim());});
-    `.trim();
-    const blob=new Blob([swCode],{type:'application/javascript'});
-    const swUrl=URL.createObjectURL(blob);
-    navigator.serviceWorker.register(swUrl).then(()=>{console.log('SW registered');}).catch(()=>{});
+    navigator.serviceWorker.register('/sw.js').then(reg=>{
+      console.log('SW registered');
+    }).catch(e=>console.log('SW error:',e));
   }
   // Swipe to open drawer
   let touchStartX=0;
