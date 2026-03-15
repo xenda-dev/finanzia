@@ -1396,7 +1396,7 @@ function renderAnalisis(){
       </div>
     </div>
     <div class="card" style="margin-bottom:12px"><div class="card-title">Evolución histórica</div>${barChart}</div>
-    <div class="card"><div class="card-title">Gastos por categoría · ${period}</div>
+    <div class="card"><div class="card-title">Gastos por categoría · ${S.analysisPeriodSub||'anual'} ${S.analysisYear||new Date().getFullYear()}</div>
     ${sortedCats.length?`<div style="display:flex;align-items:center;gap:16px">
       <svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="var(--surface3)" stroke-width="18"/>${donutPaths}</svg>
       <div style="flex:1">${legendItems}</div>
@@ -2069,6 +2069,18 @@ function deleteSubAccount(parentId,subId){
 }
 
 // ─── ACCOUNT MODAL ───
+function buildAccExtraFields(type,subtype,acc){
+  const dayOpts=DAYS_1_31.map(d=>`<option value="${d}" ${acc&&acc.cutDate==d?'selected':''}>${d}</option>`).join('');
+  const payOpts=DAYS_1_31.map(d=>`<option value="${d}" ${acc&&acc.paymentDate==d?'selected':''}>${d}</option>`).join('');
+  if(type==='pasivo'&&subtype==='tc'){
+    return`<div class="form-row"><div class="form-group"><label class="form-label">Límite de cupo</label><input class="form-input" type="number" id="acc-tc-limit" value="${acc&&acc.tcLimit?acc.tcLimit:''}" placeholder="Ej: 5000"></div><div class="form-group"><label class="form-label">TAE (%)</label><input class="form-input" type="number" id="acc-tae" value="${acc&&acc.tae?acc.tae:''}" placeholder="Ej: 24.5" step="0.01"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Día de corte</label><select class="form-select" id="acc-cut"><option value="">Seleccionar</option>${dayOpts}</select></div><div class="form-group"><label class="form-label">Día de pago</label><select class="form-select" id="acc-paydate"><option value="">Seleccionar</option>${payOpts}</select></div></div>`;
+  }else if(type==='pasivo'){
+    return`<div class="form-row"><div class="form-group"><label class="form-label">Monto total</label><input class="form-input" type="number" id="acc-credit-total" value="${acc&&acc.creditTotal?acc.creditTotal:''}" placeholder="Total crédito"></div><div class="form-group"><label class="form-label">Cuota mensual</label><input class="form-input" type="number" id="acc-monthly-payment" value="${acc&&acc.monthlyPayment?acc.monthlyPayment:''}" placeholder="Cuota"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Día de pago</label><select class="form-select" id="acc-paydate"><option value="">Seleccionar</option>${payOpts}</select></div><div class="form-group"><label class="form-label">Tasa (%)</label><input class="form-input" type="number" id="acc-tae" value="${acc&&acc.tae?acc.tae:''}" placeholder="Ej: 12" step="0.01"></div></div>`;
+  }
+  return'';
+}
 function buildAccountModal(data){
   const acc=data.id?S.accounts.find(a=>a.id===data.id):null;
   const isEdit=!!acc;
