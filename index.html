@@ -217,20 +217,20 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="drawer-logo">Finanz<span>ía</span></div>
     <div class="drawer-sub">Control financiero personal v3.0</div>
   </div>
-  <div class="drawer-group-label">Principal</div>
-  <button class="drawer-item active" data-page="dashboard"><div class="drawer-item-icon">🏠</div>Dashboard</button>
-  <button class="drawer-item" data-page="movimientos"><div class="drawer-item-icon">📋</div>Movimientos</button>
-  <button class="drawer-item" data-page="cuentas"><div class="drawer-item-icon">💳</div>Cuentas</button>
-  <button class="drawer-item" data-page="presupuestos"><div class="drawer-item-icon">📊</div>Presupuestos</button>
-  <div class="drawer-group-label">Planificación</div>
-  <button class="drawer-item" data-page="metas"><div class="drawer-item-icon">🎯</div>Metas de ahorro</button>
-  <button class="drawer-item" data-page="pagos"><div class="drawer-item-icon">🔔</div>Pagos programados</button>
-  <button class="drawer-item" data-page="deudas"><div class="drawer-item-icon">💸</div>Deudas</button>
-  <div class="drawer-group-label">Análisis</div>
-  <button class="drawer-item" data-page="analisis"><div class="drawer-item-icon">📈</div>Análisis financiero</button>
-  <div class="drawer-group-label">Gestión</div>
-  <button class="drawer-item" data-page="categorias"><div class="drawer-item-icon">🏷️</div>Categorías</button>
-  <button class="drawer-item" data-page="configuracion"><div class="drawer-item-icon">⚙️</div>Configuración</button>
+  <div class="drawer-group-label" id="dgl-principal">Principal</div>
+  <button class="drawer-item active" data-page="dashboard" id="dmi-dashboard"><div class="drawer-item-icon">🏠</div><span>Dashboard</span></button>
+  <button class="drawer-item" data-page="movimientos" id="dmi-movimientos"><div class="drawer-item-icon">📋</div><span>Movimientos</span></button>
+  <button class="drawer-item" data-page="cuentas" id="dmi-cuentas"><div class="drawer-item-icon">💳</div><span>Cuentas</span></button>
+  <button class="drawer-item" data-page="presupuestos" id="dmi-presupuestos"><div class="drawer-item-icon">📊</div><span>Presupuestos</span></button>
+  <div class="drawer-group-label" id="dgl-planificacion">Planificación</div>
+  <button class="drawer-item" data-page="metas" id="dmi-metas"><div class="drawer-item-icon">🎯</div><span>Metas</span></button>
+  <button class="drawer-item" data-page="pagos" id="dmi-pagos"><div class="drawer-item-icon">🔔</div><span>Pagos</span></button>
+  <button class="drawer-item" data-page="deudas" id="dmi-deudas"><div class="drawer-item-icon">💸</div><span>Deudas</span></button>
+  <div class="drawer-group-label" id="dgl-analisis">Análisis</div>
+  <button class="drawer-item" data-page="analisis" id="dmi-analisis"><div class="drawer-item-icon">📈</div><span>Análisis</span></button>
+  <div class="drawer-group-label" id="dgl-gestion">Gestión</div>
+  <button class="drawer-item" data-page="categorias" id="dmi-categorias"><div class="drawer-item-icon">🏷️</div><span>Categorías</span></button>
+  <button class="drawer-item" data-page="configuracion" id="dmi-configuracion"><div class="drawer-item-icon">⚙️</div><span>Configuración</span></button>
 </nav>
 <div class="header">
   <button class="btn-icon" onclick="openDrawer()">
@@ -537,6 +537,10 @@ function loadState(){
     S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));
     S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));
   }
+  // Ensure protected Efectivo account exists
+  if(!S.accounts.find(a=>a.id==='efectivo-default')){
+    S.accounts.unshift({id:'efectivo-default',name:'Efectivo',type:'activo',subtype:'efectivo',currency:'PLN',bankEntity:'',initialBalance:0,icon:'💵',color:'#10B981',protected:true});
+  }
   if(!S.movFilter)S.movFilter={tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''};
   if(!S.analysisPeriod)S.analysisPeriod='Mensual';
   if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
@@ -694,8 +698,8 @@ const CURRENCY_META={
 };
 function buildCurrencyOptions(selected){
   const curs=S.currencies&&S.currencies.length?S.currencies:['PLN'];
-  if(curs.length===1)return `<option value="${curs[0]}">${curs[0]} ${getCurrencyMeta(curs[0]).sym}</option>`;
-  return curs.map(c=>`<option value="${c}" ${c===selected?'selected':''}>${c} ${getCurrencyMeta(c).sym}</option>`).join('');
+  if(curs.length===1)return `<option value="${curs[0]}">${curs[0]}</option>`;
+  return curs.map(c=>`<option value="${c}" ${c===selected?'selected':''}>${c}</option>`).join('');
 }
 function getCurrencyMeta(code){return CURRENCY_META[code]||{sym:code,locale:'en-US',pos:'before'};}
 function fmt(amount,cur){
@@ -902,8 +906,14 @@ function getMonthTotals(period){
     const d=new Date(t.date);
     return t.currency===S.currency&&d>=from&&d<=to;
   });
-  const inc=txs.filter(t=>t.type==='ingreso').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
-  const exp=txs.filter(t=>t.type==='gasto').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+  // Exclude internal transfers: transactions whose description starts with 'Ahorro →'/'Ahorro:' or are paired transfers
+  const isInternal=(t)=>{
+    if(!t.description)return false;
+    const d=t.description;
+    return d.startsWith('Ahorro →')||d.startsWith('Ahorro:')||d.startsWith('AUTO:')||d.startsWith('Pago deuda:')||d.startsWith('Abono:');
+  };
+  const inc=txs.filter(t=>t.type==='ingreso'&&!isInternal(t)).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+  const exp=txs.filter(t=>t.type==='gasto'&&!isInternal(t)).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
   return{inc,exp};
 }
 
@@ -936,11 +946,11 @@ function accountOptions(filterCur){
   const accs=S.accounts.filter(a=>(a.currency||S.currency)===cur);
   return '<option value="">Seleccionar cuenta</option>'+accs.map(a=>`<option value="${a.id}">${a.icon||'💳'} ${a.name}</option>`).join('');
 }
-function catOptions(type){
+function catOptions(type,selectedId){
   let cats=S.categories;
   if(type==='gasto')cats=cats.filter(c=>c.type!=='ingreso');
   if(type==='ingreso')cats=cats.filter(c=>c.type!=='gasto');
-  return '<option value="">Categoría</option>'+cats.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+  return '<option value="">Categoría</option>'+cats.map(c=>`<option value="${c.id}" ${c.id===selectedId?'selected':''}>${c.icon} ${c.name}</option>`).join('');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1043,23 +1053,23 @@ function renderDashboard(){
       <div class="kpi-card" style="cursor:pointer" onclick="navigate('metas')">
         <div class="kpi-label">🎯 Total ahorrado</div>
         <div class="kpi-val" style="font-size:13px;color:var(--success)">${fmt(totalGoalSavings)}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">${S.goals.filter(g=>(g.currency||S.currency)===S.currency).length} metas · toca para ver</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">${S.goals.filter(g=>(g.currency||S.currency)===S.currency).length} metas · ${t('tapOptions')||'toca para ver'}</div>
       </div>
       <div class="kpi-card"><div class="kpi-label">Tasa ahorro</div><div class="kpi-val" style="font-size:15px;color:${savingsRate<=0?'var(--text2)':savingsRate>=20?'var(--success)':savingsRate>=10?'var(--warning)':'var(--danger)'}">${savingsRate<=0?'0%':savingsRate+'%'}</div></div>
       <div class="kpi-card" style="cursor:pointer" onclick="navigate('cuentas')">
         <div class="kpi-label">💳 Cuentas activas</div>
         <div class="kpi-val">${S.accounts.filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency).length}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">toca para ver</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">${t('tapOptions')||'toca para ver'}</div>
       </div>
       <div class="kpi-card" style="cursor:pointer" onclick="navigate('deudas')">
         <div class="kpi-label">💸 Total deudas</div>
         <div class="kpi-val" style="font-size:13px;color:var(--danger)">${fmt(S.accounts.filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency).reduce((s,a)=>s+Math.abs(getBalance(a.id)),0))}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">toca para ver</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">${t('tapOptions')||'toca para ver'}</div>
       </div>
     </div>
-    <div class="section-header"><div class="section-title">📊 Presupuestos</div><button class="btn-text" onclick="navigate('presupuestos')">Ver todos</button></div>
+    <div class="section-header"><div class="section-title">📊 ${t('budgets')}</div><button class="btn-text" onclick="navigate('presupuestos')">Ver todos</button></div>
     <div class="card">${budgetHtml}</div>
-    <div class="section-header"><div class="section-title">📋 Últimos movimientos</div><button class="btn-text" onclick="navigate('movimientos')">Ver todos</button></div>
+    <div class="section-header"><div class="section-title">📋 ${t('recentMovements')}</div><button class="btn-text" onclick="navigate('movimientos')">Ver todos</button></div>
     ${recentTxs.length?recentTxs.map(txRow).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Sin movimientos</div><div class="empty-desc">Toca + para registrar</div></div>'}
   `;
 }
@@ -1179,7 +1189,7 @@ function renderCuentas(){
       <div class="summary-total-item"><div class="summary-total-label">💎 Patrimonio</div><div class="summary-total-val" style="color:${net>=0?'var(--primary)':'var(--danger)'}">${fmt(net)}</div></div>
     </div>
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-      <button class="btn btn-primary btn-sm" onclick="openModal('account',{})">+ Nueva cuenta</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('account',{})">+ ${t('newAccount')||'Nueva cuenta'}</button>
     </div>
     ${activos.length===0&&pasivos.length===0?'<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-title">Sin cuentas en '+cur+'</div><div class="empty-desc">Crea tu primera cuenta</div></div>':''}
     ${activos.length?`<div class="section-header"><div class="section-title">💚 Activos · ${fmt(assets)}</div></div>${activos.map(accCard).join('')}`:''}
@@ -1190,6 +1200,57 @@ function renderCuentas(){
 // ════════════════════════════════════════════════════════════
 // PRESUPUESTOS
 // ════════════════════════════════════════════════════════════
+function renderBudgetGroups(budgets){
+  // Group budgets by category
+  const groups={};
+  budgets.forEach(b=>{
+    const catId=b.categoryId||'none';
+    if(!groups[catId])groups[catId]=[];
+    groups[catId].push(b);
+  });
+  return Object.entries(groups).map(([catId,grpBudgets])=>{
+    const cat=getCat(catId);
+    const totalAmt=grpBudgets.reduce((s,b)=>s+(parseFloat(b.amount)||0),0);
+    const totalSpent=grpBudgets.reduce((s,b)=>s+getBudgetSpent(b),0);
+    const totalPct=Math.min(100,totalAmt>0?Math.round(totalSpent/totalAmt*100):0);
+    const color=totalPct>=90?'var(--danger)':totalPct>=70?'var(--warning)':'var(--primary)';
+    const bColor=grpBudgets[0].color||'var(--primary)';
+    const hasMultiple=grpBudgets.length>1||(grpBudgets.length===1&&grpBudgets[0].subcategoryId);
+    const gId='bgrp-'+catId;
+    return`<div class="card" style="border-left:4px solid ${bColor};margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer" onclick="${hasMultiple?`document.getElementById('${gId}').classList.toggle('hidden');this.querySelector('.bgrp-arrow').textContent=document.getElementById('${gId}').classList.contains('hidden')?'▶':'▼'`:`openModal('budget',{id:'${grpBudgets[0].id}'})`}">
+        <div style="width:40px;height:40px;border-radius:10px;background:${bColor}22;display:flex;align-items:center;justify-content:center;font-size:20px">${cat?cat.icon:'📦'}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700">${cat?cat.name:'Sin categoría'}</div>
+          <div style="font-size:11px;color:var(--text2)">${grpBudgets.length} presupuesto${grpBudgets.length>1?'s':''} · ${grpBudgets[0].currency||S.currency}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="badge" style="background:${color}22;color:${color}">${totalPct}%</span>
+          ${hasMultiple?`<span class="bgrp-arrow" style="color:var(--text3);font-size:12px">▶</span>`:''}
+        </div>
+      </div>
+      <div class="progress-bar" style="height:8px;margin-bottom:8px"><div class="progress-fill" style="width:${totalPct}%;background:${color}"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11px;text-align:center;margin-bottom:${hasMultiple?'8':'0'}px">
+        <div><div style="color:var(--text2)">Gastado</div><div style="font-weight:700;color:var(--danger)">${fmt(totalSpent)}</div></div>
+        <div><div style="color:var(--text2)">Restante</div><div style="font-weight:700;color:${totalAmt-totalSpent>=0?'var(--success)':'var(--danger)'}">${fmt(Math.max(0,totalAmt-totalSpent))}</div></div>
+        <div><div style="color:var(--text2)">Límite</div><div style="font-weight:700">${fmt(totalAmt)}</div></div>
+      </div>
+      ${hasMultiple?`<div id="${gId}" class="hidden" style="border-top:1px solid var(--border);padding-top:8px">
+        ${grpBudgets.map(b=>{
+          const sub=getSub(b.subcategoryId);
+          const bSpent=getBudgetSpent(b);
+          const bPct=Math.min(100,b.amount>0?Math.round(bSpent/b.amount*100):0);
+          const bColor2=bPct>=90?'var(--danger)':bPct>=70?'var(--warning)':'var(--primary)';
+          return`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openModal('budget',{id:'${b.id}'})">
+            <span style="font-size:12px;flex:1;color:var(--text2)">${sub?sub.icon+' '+sub.name:'General'}</span>
+            <span style="font-size:11px;color:var(--text2)">${fmt(bSpent)}/${fmt(b.amount)}</span>
+            <span class="badge" style="background:${bColor2}22;color:${bColor2};font-size:10px">${bPct}%</span>
+          </div>`;
+        }).join('')}
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
 function renderPresupuestos(){
   const budgets=S.budgets.filter(b=>(b.currency||S.currency)===S.currency);
   const totalLimit=budgets.reduce((s,b)=>s+(parseFloat(b.amount)||0),0);
@@ -1211,30 +1272,9 @@ function renderPresupuestos(){
       </div>
     </div>`:''}
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-      <button class="btn btn-primary btn-sm" onclick="openModal('budget',{})">+ Nuevo presupuesto</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('budget',{})">+ ${t('newBudget')||'Nuevo presupuesto'}</button>
     </div>
-    ${!budgets.length?'<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Sin presupuestos</div><div class="empty-desc">Define límites por categoría</div></div>':
-    budgets.map(b=>{
-      const spent=getBudgetSpent(b);
-      const pct=Math.min(100,b.amount>0?Math.round(spent/b.amount*100):0);
-      const cat=getCat(b.categoryId);const sub=getSub(b.subcategoryId);
-      const color=pct>=90?'var(--danger)':pct>=70?'var(--warning)':'var(--primary)';
-      const rem=Math.max(0,b.amount-spent);
-      const bColor=b.color||'var(--primary)';
-      return`<div class="card" style="border-left:4px solid ${bColor};margin-bottom:12px;cursor:pointer" onclick="openModal('budget',{id:'${b.id}'})">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <div style="width:42px;height:42px;border-radius:12px;background:${bColor}22;display:flex;align-items:center;justify-content:center;font-size:22px">${cat?cat.icon:'📦'}</div>
-          <div style="flex:1"><div style="font-size:14px;font-weight:700">${cat?cat.name:'Sin cat.'}${sub?' / '+sub.name:''}</div><div style="font-size:11px;color:var(--text2)">Mensual · ${b.currency||S.currency}</div></div>
-          <div class="badge" style="background:${color}22;color:${color}">${pct}%</div>
-        </div>
-        <div class="progress-bar" style="height:10px;margin-bottom:8px"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:11px;text-align:center">
-          <div><div style="color:var(--text2)">Gastado</div><div style="font-weight:700;color:var(--danger)">${fmt(spent)}</div></div>
-          <div><div style="color:var(--text2)">Restante</div><div style="font-weight:700;color:${rem>0?'var(--success)':'var(--danger)'}">${fmt(rem)}</div></div>
-          <div><div style="color:var(--text2)">Límite</div><div style="font-weight:700">${fmt(b.amount)}</div></div>
-        </div>
-      </div>`;
-    }).join('')}
+    ${!budgets.length?'<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Sin presupuestos</div><div class="empty-desc">Define límites por categoría</div></div>':renderBudgetGroups(budgets)}
   `;
 }
 
@@ -1261,7 +1301,7 @@ function renderMetas(){
       <div class="progress-bar" style="height:8px"><div class="progress-fill" style="width:${Math.min(100,totalTarget>0?Math.round(totalSaved/totalTarget*100):0)}%;background:var(--primary)"></div></div>
     </div>`:''}
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-      <button class="btn btn-primary btn-sm" onclick="openModal('goal',{})">+ Nueva meta</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('goal',{})">+ ${t('newGoal')||'Nueva meta'}</button>
     </div>
     ${!goals.length?'<div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-title">Sin metas</div><div class="empty-desc">Define tus objetivos de ahorro</div></div>':
     goals.map(g=>{
@@ -1305,7 +1345,7 @@ function renderMetas(){
 function renderPagos(){
   return`
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-      <button class="btn btn-primary btn-sm" onclick="openModal('payment',{})">+ Nuevo pago</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('payment',{})">+ ${t('newPayment')||'Nuevo pago'}</button>
     </div>
     ${!S.scheduledPayments.length?'<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-title">Sin pagos programados</div><div class="empty-desc">Programa tus pagos recurrentes</div></div>':
     S.scheduledPayments.map(p=>{
@@ -1326,7 +1366,7 @@ function renderPagos(){
           </div>
           <div style="text-align:right">${statusBadge}<div style="font-size:16px;font-weight:700;color:var(--danger);margin-top:4px">${fmt(p.amount,p.currency)}</div></div>
         </div>
-        ${days<=3?`<button class="btn btn-primary btn-sm" style="width:100%" onclick="event.stopPropagation();registerPaymentManual('${p.id}')">✓ Registrar pago ahora</button>`:''}
+        ${days<=5?`<button class="btn btn-primary btn-sm" style="width:100%" onclick="event.stopPropagation();registerPaymentManual('${p.id}')">✓ Registrar pago${days===0?' HOY':days<0?' (vencido)':' ('+days+'d)'}</button>`:''}
       </div>`;
     }).join('')}
   `;
@@ -1354,7 +1394,7 @@ function renderDeudas(){
       <div style="margin-top:8px;font-size:13px;color:rgba(255,255,255,.5)">${pasivos.length} ${pasivos.length===1?'deuda':'deudas'} registradas</div>
     </div>`:''}
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-      <button class="btn btn-primary btn-sm" onclick="openModal('account',{defaultType:'pasivo'})">+ Nueva deuda</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('account',{defaultType:'pasivo'})">+ ${t('newDebt')||'Nueva deuda'}</button>
     </div>
     ${!pasivos.length?'<div class="empty-state"><div class="empty-icon">💸</div><div class="empty-title">Sin deudas en '+S.currency+'</div><div class="empty-desc">Las cuentas pasivas aparecerán aquí</div></div>':
     pasivos.map(a=>{
@@ -1480,7 +1520,7 @@ function renderAnalisis(){
         <div class="kpi-card"><div class="kpi-label">Ingresos</div><div class="kpi-val" style="font-size:13px;color:var(--success)">${fmt(inc)}</div></div>
         <div class="kpi-card"><div class="kpi-label">Gastos</div><div class="kpi-val" style="font-size:13px;color:var(--danger)">${fmt(exp)}</div></div>
         <div class="kpi-card"><div class="kpi-label">Balance</div><div class="kpi-val" style="font-size:13px;color:${savings>=0?'var(--success)':'var(--danger)'}">${fmt(savings)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">Ahorro</div><div class="kpi-val" style="font-size:14px;color:${savingsRate<=0?'var(--text2)':savingsRate>=20?'var(--success)':savingsRate>=10?'var(--warning)':'var(--danger)'}">${savingsRate<=0?'0%':savingsRate+'%'}</div></div>
+        <div class="kpi-card"><div class="kpi-label">💰 Ahorro</div><div class="kpi-val" style="font-size:12px;color:${savingsRate<=0?'var(--text2)':savingsRate>=20?'var(--success)':savingsRate>=10?'var(--warning)':'var(--danger)'}">${fmt(savings)}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${savingsRate<=0?'0%':savingsRate+'%'} del ingreso</div></div>
       </div>
     </div>
     <div class="card" style="margin-bottom:12px"><div class="card-title">Evolución histórica</div>${barChart}</div>
@@ -1499,7 +1539,7 @@ function renderAnalisis(){
 function renderCategorias(){
   return`
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-      <button class="btn btn-primary btn-sm" onclick="openModal('category',{})">+ Nueva categoría</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('category',{})">+ ${t('newCategory')||'Nueva categoría'}</button>
     </div>
     ${!S.categories.length?'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>':
     S.categories.map(cat=>{
@@ -1583,6 +1623,20 @@ const TRANSLATIONS = {
     installments:'¿A cuántas cuotas?',tcDetected:'(TC detectada)',
     tapOptions:'👆 opciones',
     version:'Finanzía v3.3 · Datos locales · Hecho con ❤️',
+    grpMain:'Principal',grpPlan:'Planificación',grpAnalysis:'Análisis',grpManage:'Gestión',
+    noEntity:'Sin entidad',accActive:'Activo',accPassive:'Pasivo',
+    newCategory:'Nueva categoría',newSubcategory:'Nueva subcategoría',
+    pocket:'Bolsillo',addPocket:'＋ Bolsillo',editAccount:'✏️ Editar',
+    showMovements:'📋 Movimientos',
+    spent:'Gastado',remaining:'Restante',limit:'Límite',
+    monthly:'Mensual',
+    noSubcategory:'Sin subcategoría',
+    goToSettings:'Configuración',
+    goal_saved:'Ahorrado',goal_target:'Meta',
+    transfer_from:'Cuenta origen',transfer_to:'Cuenta destino',
+    add_savings:'Agregar ahorro',register_payment:'Registrar pago',
+    budget_group_budgets:'presupuesto',
+    scheduled_auto:'🤖 Auto',today:'HOY',overdue:'vencido',
   },
   en:{
     dashboard:'Home',movements:'Transactions',accounts:'Accounts',budgets:'Budgets',
@@ -1624,6 +1678,8 @@ const TRANSLATIONS = {
     installments:'How many installments?',tcDetected:'(Credit card detected)',
     tapOptions:'👆 options',
     version:'Finanzía v3.3 · Local data · Made with ❤️',
+    grpMain:'Main',grpPlan:'Planning',grpAnalysis:'Analysis',grpManage:'Management',
+    noEntity:'No entity',accActive:'Asset',accPassive:'Liability',newCategory:'New category',newSubcategory:'New subcategory',pocket:'Pocket',addPocket:'＋ Pocket',editAccount:'✏️ Edit',showMovements:'📋 Transactions',spent:'Spent',remaining:'Remaining',limit:'Limit',monthly:'Monthly',noSubcategory:'No subcategory',goToSettings:'Settings',goal_saved:'Saved',goal_target:'Target',transfer_from:'From account',transfer_to:'To account',add_savings:'Add savings',register_payment:'Register payment',today:'TODAY',overdue:'overdue',
   },
   pl:{
     dashboard:'Główna',movements:'Transakcje',accounts:'Konta',budgets:'Budżety',
@@ -1665,14 +1721,24 @@ const TRANSLATIONS = {
     installments:'Na ile rat?',tcDetected:'(Karta kredytowa)',
     tapOptions:'👆 opcje',
     version:'Finanzía v3.3 · Dane lokalne · Zrobione z ❤️',
+    grpMain:'Główne',grpPlan:'Planowanie',grpAnalysis:'Analiza',grpManage:'Zarządzanie',
+    noEntity:'Brak podmiotu',accActive:'Aktyw',accPassive:'Zobowiązanie',newCategory:'Nowa kategoria',pocket:'Skarbonka',addPocket:'＋ Skarbonka',editAccount:'✏️ Edytuj',showMovements:'📋 Transakcje',spent:'Wydano',remaining:'Pozostało',limit:'Limit',monthly:'Miesięcznie',noSubcategory:'Bez podkategorii',goal_saved:'Zaoszczędzone',goal_target:'Cel',today:'DZIŚ',overdue:'przeterminowane',
   },
   pt:{dashboard:'Início',movements:'Transações',accounts:'Contas',budgets:'Orçamentos',goals:'Metas',payments:'Pagamentos',debts:'Dívidas',analysis:'Análise',categories:'Categorias',settings:'Configurações',income:'Receitas',expenses:'Despesas',savings:'Poupança',savingsRate:'Taxa de poupança',balance:'Saldo total',activeAccounts:'Contas ativas',totalDebts:'Total dívidas',totalSaved:'Total poupado',recentMovements:'Transações recentes',seeAll:'Ver tudo',save:'Salvar',cancel:'Cancelar',delete:'Excluir',edit:'Editar',create:'Criar',income_type:'Receita',expense_type:'Despesa',transfer_type:'Transferência',name:'Nome',amount:'Valor',date:'Data',description:'Descrição',category:'Categoria',subcategory:'Subcategoria',paymentMethod:'Forma de pagamento',currency:'Moeda',account:'Conta',noMovements:'Sem transações',noAccounts:'Sem contas',noGoals:'Sem metas',preferences:'Preferências',appearance:'Aparência',system:'Sistema',language:'Idioma',weekStart:'Início da semana',activeCurrencies:'Moedas ativas',theme:'Tema',dark:'Escuro',light:'Claro',changeTo:'Mudar para',notifications:'Notificações',export:'Exportar',import:'Importar',reset:'Restaurar',resetDesc:'Apaga TODOS os dados',monday:'Segunda',sunday:'Domingo',search:'Buscar...',selected:'selecionadas',spent:'Gasto',remaining:'Restante',addSavings:'Adicionar poupança',registerPayment:'Registrar pagamento',tapOptions:'👆 opções',version:'Finanzía v3.3 · Feito com ❤️',
+    grpMain:'Principal',grpPlan:'Planejamento',grpAnalysis:'Análise',grpManage:'Gestão',
+    noEntity:'Sem entidade',pocket:'Bolso',editAccount:'✏️ Editar',showMovements:'📋 Transações',spent:'Gasto',remaining:'Restante',limit:'Limite',monthly:'Mensal',noSubcategory:'Sem subcategoria',today:'HOJE',overdue:'vencido',
   },
   fr:{dashboard:'Accueil',movements:'Transactions',accounts:'Comptes',budgets:'Budgets',goals:'Objectifs',payments:'Paiements',debts:'Dettes',analysis:'Analyse',categories:'Catégories',settings:'Paramètres',income:'Revenus',expenses:'Dépenses',savings:'Épargne',savingsRate:"Taux d'épargne",balance:'Solde total',activeAccounts:'Comptes actifs',totalDebts:'Total dettes',totalSaved:'Total épargné',recentMovements:'Transactions récentes',seeAll:'Voir tout',save:'Enregistrer',cancel:'Annuler',delete:'Supprimer',edit:'Modifier',create:'Créer',income_type:'Revenu',expense_type:'Dépense',transfer_type:'Virement',name:'Nom',amount:'Montant',date:'Date',description:'Description',category:'Catégorie',subcategory:'Sous-catégorie',paymentMethod:'Moyen de paiement',currency:'Devise',account:'Compte',noMovements:'Aucune transaction',noAccounts:'Aucun compte',noGoals:'Aucun objectif',preferences:'Préférences',appearance:'Apparence',system:'Système',language:'Langue',weekStart:'Début de semaine',activeCurrencies:'Devises actives',theme:'Thème',dark:'Sombre',light:'Clair',changeTo:'Passer en',notifications:'Notifications',export:'Exporter',import:'Importer',reset:'Réinitialiser',resetDesc:'Supprime TOUTES les données',monday:'Lundi',sunday:'Dimanche',search:'Rechercher...',selected:'sélectionnées',spent:'Dépensé',remaining:'Restant',addSavings:'Ajouter épargne',registerPayment:'Enregistrer paiement',tapOptions:'👆 options',version:'Finanzía v3.3 · Fait avec ❤️',
+    grpMain:'Principal',grpPlan:'Planification',grpAnalysis:'Analyse',grpManage:'Gestion',
+    noEntity:'Sans entité',pocket:'Poche',editAccount:'✏️ Modifier',showMovements:'📋 Transactions',spent:'Dépensé',remaining:'Restant',limit:'Limite',monthly:'Mensuel',noSubcategory:'Sans sous-catégorie',today:'AUJOURD\'HUI',overdue:'expiré',
   },
   de:{dashboard:'Übersicht',movements:'Transaktionen',accounts:'Konten',budgets:'Budgets',goals:'Ziele',payments:'Zahlungen',debts:'Schulden',analysis:'Analyse',categories:'Kategorien',settings:'Einstellungen',income:'Einnahmen',expenses:'Ausgaben',savings:'Ersparnisse',savingsRate:'Sparquote',balance:'Gesamtguthaben',activeAccounts:'Aktive Konten',totalDebts:'Gesamtschulden',totalSaved:'Gespart',recentMovements:'Letzte Transaktionen',seeAll:'Alle sehen',save:'Speichern',cancel:'Abbrechen',delete:'Löschen',edit:'Bearbeiten',create:'Erstellen',income_type:'Einnahme',expense_type:'Ausgabe',transfer_type:'Überweisung',name:'Name',amount:'Betrag',date:'Datum',description:'Beschreibung',category:'Kategorie',subcategory:'Unterkategorie',paymentMethod:'Zahlungsmethode',currency:'Währung',account:'Konto',noMovements:'Keine Transaktionen',noAccounts:'Keine Konten',noGoals:'Keine Ziele',preferences:'Einstellungen',appearance:'Erscheinungsbild',system:'System',language:'Sprache',weekStart:'Wochenstart',activeCurrencies:'Aktive Währungen',theme:'Design',dark:'Dunkel',light:'Hell',changeTo:'Wechseln zu',notifications:'Benachrichtigungen',export:'Exportieren',import:'Importieren',reset:'Zurücksetzen',resetDesc:'Löscht ALLE Daten',monday:'Montag',sunday:'Sonntag',search:'Suchen...',selected:'ausgewählt',spent:'Ausgegeben',remaining:'Verbleibend',addSavings:'Ersparnis hinzufügen',registerPayment:'Zahlung registrieren',tapOptions:'👆 Optionen',version:'Finanzía v3.3 · Mit ❤️ gemacht',
+    grpMain:'Hauptmenü',grpPlan:'Planung',grpAnalysis:'Analyse',grpManage:'Verwaltung',
+    noEntity:'Kein Institut',pocket:'Sparkässchen',editAccount:'✏️ Bearbeiten',showMovements:'📋 Transaktionen',spent:'Ausgegeben',remaining:'Verbleibend',limit:'Limit',monthly:'Monatlich',noSubcategory:'Keine Unterkategorie',today:'HEUTE',overdue:'überfällig',
   },
   it:{dashboard:'Dashboard',movements:'Transazioni',accounts:'Conti',budgets:'Budget',goals:'Obiettivi',payments:'Pagamenti',debts:'Debiti',analysis:'Analisi',categories:'Categorie',settings:'Impostazioni',income:'Entrate',expenses:'Uscite',savings:'Risparmi',savingsRate:'Tasso di risparmio',balance:'Saldo totale',activeAccounts:'Conti attivi',totalDebts:'Totale debiti',totalSaved:'Totale risparmiato',recentMovements:'Transazioni recenti',seeAll:'Vedi tutto',save:'Salva',cancel:'Annulla',delete:'Elimina',edit:'Modifica',create:'Crea',income_type:'Entrata',expense_type:'Uscita',transfer_type:'Trasferimento',name:'Nome',amount:'Importo',date:'Data',description:'Descrizione',category:'Categoria',subcategory:'Sottocategoria',paymentMethod:'Metodo di pagamento',currency:'Valuta',account:'Conto',noMovements:'Nessuna transazione',noAccounts:'Nessun conto',noGoals:'Nessun obiettivo',preferences:'Preferenze',appearance:'Aspetto',system:'Sistema',language:'Lingua',weekStart:'Inizio settimana',activeCurrencies:'Valute attive',theme:'Tema',dark:'Scuro',light:'Chiaro',changeTo:'Passa a',notifications:'Notifiche',export:'Esporta',import:'Importa',reset:'Ripristina',resetDesc:'Elimina TUTTI i dati',monday:'Lunedì',sunday:'Domenica',search:'Cerca...',selected:'selezionate',spent:'Speso',remaining:'Rimanente',addSavings:'Aggiungi risparmio',registerPayment:'Registra pagamento',tapOptions:'👆 opzioni',version:'Finanzía v3.3 · Fatto con ❤️',
+    grpMain:'Principale',grpPlan:'Pianificazione',grpAnalysis:'Analisi',grpManage:'Gestione',
+    noEntity:'Nessun istituto',pocket:'Salvadanaio',editAccount:'✏️ Modifica',showMovements:'📋 Transazioni',spent:'Speso',remaining:'Rimanente',limit:'Limite',monthly:'Mensile',noSubcategory:'Nessuna sottocategoria',today:'OGGI',overdue:'scaduto',
   },
 };
 function t(key){const lang=S.language||'es';return(TRANSLATIONS[lang]||TRANSLATIONS.es)[key]||TRANSLATIONS.es[key]||key;}
@@ -1805,17 +1871,42 @@ function filterCurs(q){
 }
 function saveLanguage(v){
   S.language=v;saveState();
-  // Re-render entire UI with new language
-  renderPage('configuracion');
+  applyLanguage();
   renderPage(S.currentPage);
-  // Update drawer labels
-  document.querySelectorAll('.drawer-item').forEach(el=>{
-    const page=el.dataset.page;
-    const icons={'dashboard':'🏠','movimientos':'📋','cuentas':'💳','presupuestos':'📊','metas':'🎯','pagos':'🔔','deudas':'💸','analisis':'📈','categorias':'🏷️','configuracion':'⚙️'};
-    const keys={'dashboard':'dashboard','movimientos':'movements','cuentas':'accounts','presupuestos':'budgets','metas':'goals','pagos':'payments','deudas':'debts','analisis':'analysis','categorias':'categories','configuracion':'settings'};
-    if(page&&keys[page]){el.innerHTML=`<div class="drawer-item-icon">${icons[page]}</div>${t(keys[page])}`;}
+  renderPage('configuracion');
+  toast('✓');
+}
+function applyLanguage(){
+  // Update drawer group labels
+  const grps={
+    'dgl-principal':'grpMain','dgl-planificacion':'grpPlan',
+    'dgl-analisis':'grpAnalysis','dgl-gestion':'grpManage'
+  };
+  Object.entries(grps).forEach(([id,key])=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent=t(key)||el.textContent;
   });
-  toast('✓ Idioma actualizado');
+  // Update drawer menu items
+  const pages={
+    'dmi-dashboard':'dashboard','dmi-movimientos':'movements','dmi-cuentas':'accounts',
+    'dmi-presupuestos':'budgets','dmi-metas':'goals','dmi-pagos':'payments',
+    'dmi-deudas':'debts','dmi-analisis':'analysis','dmi-categorias':'categories',
+    'dmi-configuracion':'settings'
+  };
+  const icons={
+    'dmi-dashboard':'🏠','dmi-movimientos':'📋','dmi-cuentas':'💳','dmi-presupuestos':'📊',
+    'dmi-metas':'🎯','dmi-pagos':'🔔','dmi-deudas':'💸','dmi-analisis':'📈',
+    'dmi-categorias':'🏷️','dmi-configuracion':'⚙️'
+  };
+  Object.entries(pages).forEach(([id,key])=>{
+    const el=document.getElementById(id);
+    if(el){const span=el.querySelector('span');if(span)span.textContent=t(key)||span.textContent;}
+  });
+  // Re-render all pages that are currently visible
+  ['dashboard','movimientos','cuentas','presupuestos','metas','pagos','deudas','analisis','categorias'].forEach(pg=>{
+    const el=document.getElementById('page-'+pg);
+    if(el&&el.classList.contains('active'))renderPage(pg);
+  });
 }
 function saveWeekStart(v){S.weekStart=v;saveState();renderPage('configuracion');}
 function toggleCurrency(c,checked){
@@ -2253,7 +2344,7 @@ function saveAccount(){
   else{S.accounts.push(acc);toast('Cuenta creada ✓');}
   saveState();closeModal();renderPage(S.currentPage);
 }
-function deleteAccount(id){confirmDialog('🗑️','¿Eliminar cuenta?','Los movimientos asociados quedarán sin cuenta.',()=>{S.accounts=S.accounts.filter(a=>a.id!==id);saveState();closeModal();renderPage('cuentas');toast('Cuenta eliminada');});}
+function deleteAccount(id){const acc=S.accounts.find(a=>a.id===id);if(acc&&acc.protected){toast('Esta cuenta no puede eliminarse');return;}confirmDialog('🗑️','¿Eliminar cuenta?','Los movimientos asociados quedarán sin cuenta.',()=>{S.accounts=S.accounts.filter(a=>a.id!==id);saveState();closeModal();renderPage('cuentas');toast('Cuenta eliminada');});}
 
 // ─── BUDGET MODAL ───
 function buildBudgetModal(data){
@@ -2261,7 +2352,7 @@ function buildBudgetModal(data){
   return`<div class="modal-header"><div class="modal-title">${isEdit?'Editar':'Nuevo'} presupuesto</div><button class="modal-close" onclick="closeModal()">×</button></div>
   <div class="modal-body">
     <input type="hidden" id="bud-id" value="${b?b.id:''}">
-    <div class="form-row"><div class="form-group"><label class="form-label">Categoría</label><select class="form-select" id="bud-cat" onchange="updateSubs(this.value,'bud-sub')">${catOptions('gasto')}</select></div><div class="form-group"><label class="form-label">Subcategoría</label><select class="form-select" id="bud-sub">${b?subOptions(b.categoryId,b.subcategoryId):'<option value="">Sin subcategoría</option>'}</select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Categoría</label><select class="form-select" id="bud-cat" onchange="updateSubs(this.value,'bud-sub')">${catOptions('gasto',b?b.categoryId:'')}</select></div><div class="form-group"><label class="form-label">Subcategoría</label><select class="form-select" id="bud-sub">${b?subOptions(b.categoryId,b.subcategoryId):'<option value="">Sin subcategoría</option>'}</select></div></div>
     <div class="form-row"><div class="form-group"><label class="form-label">Límite mensual</label><input class="form-input" type="number" id="bud-amount" placeholder="0.00" value="${b?b.amount:''}" step="0.01"></div><div class="form-group"><label class="form-label">Moneda</label><select class="form-select" id="bud-currency">${buildCurrencyOptions(b?b.currency:S.currency)}</select></div></div>
     <div class="form-group"><label class="form-label">Color</label>${colorPickerHtml(b?b.color:COLORS_PALETTE[0],'bud-color-val')}</div>
     ${b?`<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:13px">Gastado este mes: <strong>${fmt(getBudgetSpent(b))}</strong> de <strong>${fmt(b.amount)}</strong></div>`:''}
@@ -2310,6 +2401,10 @@ function buildGoalModal(data){
       <select class="form-select" id="goal-account">${goalAccountOptions(gCur,g?g.accountId||'':'')}</select>
       <div style="font-size:11px;color:var(--text2);margin-top:4px">Si la cuenta tiene bolsillos, puedes elegir guardar en uno específico</div>
     </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Categoría del ahorro</label><select class="form-select" id="goal-cat" onchange="updateSubs(this.value,'goal-sub')">${catOptions('gasto',g?g.categoryId:'')}</select></div>
+      <div class="form-group"><label class="form-label">Subcategoría</label><select class="form-select" id="goal-sub">${g&&g.categoryId?subOptions(g.categoryId,g.subcategoryId):'<option value="">Sin subcategoría</option>'}</select></div>
+    </div>
     <div class="form-group"><label class="form-label">Ícono</label>${iconPickerHtml(g?g.icon||'🎯':'🎯','goal-icon-val')}</div>
     <div class="form-group"><label class="form-label">Color</label>${colorPickerHtml(g?g.color:COLORS_PALETTE[16],'goal-color-val')}</div>
     <div class="btn-row">${isEdit?`<button class="btn btn-danger" onclick="deleteGoal('${g.id}')">Eliminar</button>`:''}<button class="btn btn-primary" onclick="saveGoal()">Guardar</button></div>
@@ -2319,7 +2414,7 @@ function saveGoal(){
   const name=document.getElementById('goal-name')?.value?.trim();const target=parseFloat(document.getElementById('goal-target')?.value);
   if(!name){toast('Ingresa un nombre');return;}if(!target||target<=0){toast('Ingresa una meta válida');return;}
   const id=document.getElementById('goal-id')?.value;const existing=id?S.goals.find(g=>g.id===id):null;
-  const goal={id:existing?existing.id:uid(),name,target,current:parseFloat(document.getElementById('goal-current')?.value)||0,currency:document.getElementById('goal-currency')?.value||S.currency,deadline:document.getElementById('goal-deadline')?.value||'',icon:document.getElementById('goal-icon-val')?.value||'🎯',color:document.getElementById('goal-color-val')?.value||COLORS_PALETTE[16],accountId:document.getElementById('goal-account')?.value||''};
+  const goal={id:existing?existing.id:uid(),name,target,current:parseFloat(document.getElementById('goal-current')?.value)||0,currency:document.getElementById('goal-currency')?.value||S.currency,deadline:document.getElementById('goal-deadline')?.value||'',icon:document.getElementById('goal-icon-val')?.value||'🎯',color:document.getElementById('goal-color-val')?.value||COLORS_PALETTE[16],accountId:document.getElementById('goal-account')?.value||'',categoryId:document.getElementById('goal-cat')?.value||'',subcategoryId:document.getElementById('goal-sub')?.value||''};
   if(existing){const idx=S.goals.findIndex(g=>g.id===id);S.goals[idx]=goal;toast('Meta actualizada ✓');}else{S.goals.push(goal);toast('Meta creada ✓');}
   saveState();closeModal();renderPage(S.currentPage);
 }
@@ -2373,8 +2468,9 @@ function saveAddToGoal(){
   if(fromAccId===toAccId){toast('Las cuentas deben ser diferentes');return;}
   const g=S.goals.find(x=>x.id===goalId);if(!g)return;
   const cur=g.currency||S.currency;
-  const catId=document.getElementById('atg-cat')?.value||getAutoCategory('Ahorros','gasto')?.id||'';
-  const subId=document.getElementById('atg-sub')?.value||'';
+  // Use goal's preset category, or fall back to atg-cat selector
+  const catId=(g.categoryId)||document.getElementById('atg-cat')?.value||getAutoCategory('Ahorros','gasto')?.id||'';
+  const subId=(g.subcategoryId)||document.getElementById('atg-sub')?.value||'';
   S.transactions.push({id:uid(),type:'gasto',accountId:fromAccId,categoryId:catId,subcategoryId:subId,amount,currency:cur,date,description:'Ahorro → '+g.name,paymentMethod:''});
   S.transactions.push({id:uid(),type:'ingreso',accountId:toAccId,categoryId:catId,subcategoryId:subId,amount,currency:cur,date,description:'Ahorro: '+g.name,paymentMethod:''});
   g.current=(parseFloat(g.current)||0)+amount;
@@ -2424,6 +2520,12 @@ function updatePayAccounts(cur){
 // Toggle account card actions panel
 function editAcc(id){event&&event.stopPropagation();setTimeout(()=>openModal('account',{id:id}),10);}
 function newAcc(defaultType){setTimeout(()=>openModal('account',defaultType?{defaultType}:{}),10);}
+function viewAccountMovements(accId){
+  S.movFilter={...S.movFilter,accountId:accId,tab:'todos'};
+  saveState();
+  navigate('movimientos');
+  setTimeout(()=>renderPage('movimientos'),50);
+}
 function toggleAccCard(cardId,event){
   // Don't toggle if clicking inside actions panel or on a button
   if(event&&(event.target.tagName==='BUTTON'||event.target.tagName==='SELECT'||event.target.closest('#'+cardId+'-actions')))return;
@@ -2433,12 +2535,23 @@ function toggleAccCard(cardId,event){
   document.querySelectorAll('[id$="-actions"]').forEach(e=>e.style.display='none');
   if(!isOpen)el.style.display='block';
 }
+function getAccIcon(a){
+  if(!a)return '💳';
+  if(a.id==='efectivo-default'||a.subtype==='efectivo')return '💵';
+  if(a.subtype==='digital')return '📱';
+  if(a.subtype==='inversion')return '📈';
+  if(a.subtype==='tc')return '💳';
+  if(a.subtype==='credito')return '💰';
+  if(a.subtype==='prestamo')return '🏦';
+  if(a.type==='activo')return '🏦';
+  return '💸';
+}
 function accountOptionsByCur(cur,selectedId){
   const accs=S.accounts.filter(a=>(a.currency||S.currency)===cur);
   let opts='<option value="">Seleccionar cuenta</option>';
   accs.forEach(a=>{
-    opts+=`<option value="${a.id}" ${a.id===selectedId?'selected':''}>${a.icon||'💳'} ${a.name}</option>`;
-    // Include sub-accounts (bolsillos) for active accounts
+    const icon=getAccIcon(a);
+    opts+=`<option value="${a.id}" ${a.id===selectedId?'selected':''}>${icon} ${a.name}</option>`;
     if(a.type==='activo'&&a.subAccounts&&a.subAccounts.length){
       a.subAccounts.forEach(sb=>{
         const key=a.id+'|'+sb.id;
@@ -2526,6 +2639,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   loadState();
   document.querySelectorAll('[data-page]').forEach(el=>el.addEventListener('click',()=>navigate(el.dataset.page)));
   refreshCurrencyToggle();
+  applyLanguage();
   navigate(S.currentPage||'dashboard');
   requestNotifPerm();
   checkAutoPayments();
