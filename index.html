@@ -569,56 +569,144 @@ function toggleTheme(){
 // ════════════════════════════════════════════════════════════
 async function fetchExchangeRate(){
   try{
-    const r=await fetch('https://open.er-api.com/v6/latest/PLN');
+    const curs=S.currencies||['PLN','COP'];
+    if(curs.length<2){
+      const el=document.getElementById('exchange-widget');
+      if(el)renderExchangeWidget(el);
+      return;
+    }
+    const base=curs[0];
+    const r=await fetch(`https://open.er-api.com/v6/latest/${base}`);
     if(!r.ok)throw new Error();
     const d=await r.json();
-    if(d.rates&&d.rates.COP){
-      S.exchangeRate.PLN_COP=Math.round(d.rates.COP*100)/100;
-      S.exchangeRate.COP_PLN=Math.round((1/d.rates.COP)*1000000)/1000000;
+    if(d.rates){
+      if(!S.exchangeRate)S.exchangeRate={};
+      S.exchangeRate.base=base;
+      S.exchangeRate.rates=d.rates;
       S.exchangeRate.lastUpdated=new Date().toLocaleString('es');
       saveState();
       const el=document.getElementById('exchange-widget');
       if(el)renderExchangeWidget(el);
     }
-  }catch(e){}
+  }catch(e){
+    const el=document.getElementById('exchange-widget');
+    if(el)renderExchangeWidget(el);
+  }
 }
 
 function renderExchangeWidget(el){
   if(!el)return;
-  // Only show rate when 2 currencies selected
-  if(!S.currencies||S.currencies.length<2){
-    el.innerHTML=`<div class="exchange-widget-row"><span style="font-size:14px">💱</span><span style="font-size:11px;color:var(--text2)">Para ver el tipo de cambio en tiempo real, selecciona una segunda moneda en <button onclick="navigate('configuracion')" style="background:none;border:none;color:var(--primary);font-weight:700;cursor:pointer;font-family:var(--font);font-size:11px">Configuración</button></span></div>`;
+  const curs=S.currencies||['PLN','COP'];
+  if(curs.length<2){
+    el.innerHTML=`<div class="exchange-widget-row"><span style="font-size:14px">💱</span><span style="font-size:11px;color:var(--text2)">Para ver tipo de cambio, selecciona 2 monedas en <button onclick="navigate('configuracion')" style="background:none;border:none;color:var(--primary);font-weight:700;cursor:pointer;font-family:var(--font);font-size:11px">Configuración</button></span></div>`;
     return;
   }
-  const r=S.exchangeRate;
-  const other=S.currency==='PLN'?'COP':'PLN';
-  if(!S.currencies.includes(other)){
-    el.innerHTML=`<div class="exchange-widget-row"><span style="font-size:14px">💱</span><span style="font-size:11px;color:var(--text2)">Para ver el tipo de cambio frente a otra moneda, selecciona una más en <button onclick="navigate('configuracion')" style="background:none;border:none;color:var(--primary);font-weight:700;cursor:pointer;font-family:var(--font);font-size:11px">Configuración</button></span></div>`;
+  const r=S.exchangeRate||{};
+  if(!r.rates||!r.base){
+    el.innerHTML=`<div class="exchange-widget-row"><span>💱</span><span style="font-size:12px;color:var(--text2)">⏳ Consultando tipo de cambio...</span></div>`;
     return;
   }
-  const txt=S.currency==='PLN'
-    ?`1 PLN = <strong style="color:var(--primary)">${r.PLN_COP.toLocaleString('es-CO',{maximumFractionDigits:2})} COP</strong>`
-    :`1 COP = <strong style="color:var(--primary)">${r.COP_PLN.toFixed(6)} PLN</strong>`;
-  const rev=S.currency==='PLN'
-    ?`1 COP = ${r.COP_PLN.toFixed(6)} PLN`
-    :`1 PLN = ${r.PLN_COP.toLocaleString('es-CO',{maximumFractionDigits:2})} COP`;
+  // Get the two selected currencies  
+  const cur1=S.currency;
+  const cur2=curs.find(c=>c!==cur1)||curs[0];
+  // Calculate rates from base
+  const base=r.base;
+  const rates=r.rates;
+  let rate1to2,rate2to1;
+  if(cur1===base){
+    rate1to2=rates[cur2]||1;
+  } else if(cur2===base){
+    rate1to2=1/(rates[cur1]||1);
+  } else {
+    // Cross rate
+    rate1to2=(rates[cur2]||1)/(rates[cur1]||1);
+  }
+  rate2to1=rate1to2?1/rate1to2:0;
+  const m1=getCurrencyMeta(cur1);
+  const m2=getCurrencyMeta(cur2);
+  const r1str=rate1to2>=1?rate1to2.toLocaleString('es',{maximumFractionDigits:4}):rate1to2.toFixed(6);
+  const r2str=rate2to1>=1?rate2to1.toLocaleString('es',{maximumFractionDigits:4}):rate2to1.toFixed(6);
   el.innerHTML=`
     <div class="exchange-widget-row">
       <span style="font-size:13px">💱</span>
-      <span style="font-size:12px;color:var(--text)">${txt}</span>
-      <span style="font-size:10px;color:var(--text3);margin-left:2px">(${rev})</span>
+      <span style="font-size:12px;color:var(--text)">1 <strong>${cur1}</strong> = <strong style="color:var(--primary)">${r1str} ${cur2}</strong></span>
+      <span style="font-size:10px;color:var(--text3);margin-left:4px">(1 ${cur2} = ${r2str} ${cur1})</span>
     </div>
-    <div class="exchange-widget-time">${r.lastUpdated?'🕐 Actualizado: '+r.lastUpdated:'⏳ Consultando tipo de cambio...'}</div>`;
+    <div class="exchange-widget-time">${r.lastUpdated?'🕐 '+r.lastUpdated:'⏳ Sin datos'}</div>`;
 }
 
 // ════════════════════════════════════════════════════════════
 // CURRENCY
 // ════════════════════════════════════════════════════════════
+// Currency metadata: symbol, locale, position
+const CURRENCY_META={
+  PLN:{sym:'zł',locale:'pl-PL',pos:'after'},
+  COP:{sym:'$',locale:'es-CO',pos:'before'},
+  USD:{sym:'$',locale:'en-US',pos:'before'},
+  EUR:{sym:'€',locale:'de-DE',pos:'after'},
+  GBP:{sym:'£',locale:'en-GB',pos:'before'},
+  MXN:{sym:'$',locale:'es-MX',pos:'before'},
+  ARS:{sym:'$',locale:'es-AR',pos:'before'},
+  BRL:{sym:'R$',locale:'pt-BR',pos:'before'},
+  CLP:{sym:'$',locale:'es-CL',pos:'before'},
+  PEN:{sym:'S/',locale:'es-PE',pos:'before'},
+  BOB:{sym:'Bs',locale:'es-BO',pos:'before'},
+  PYG:{sym:'₲',locale:'es-PY',pos:'before'},
+  CAD:{sym:'$',locale:'en-CA',pos:'before'},
+  AUD:{sym:'$',locale:'en-AU',pos:'before'},
+  CHF:{sym:'Fr',locale:'de-CH',pos:'before'},
+  JPY:{sym:'¥',locale:'ja-JP',pos:'before'},
+  CNY:{sym:'¥',locale:'zh-CN',pos:'before'},
+  KRW:{sym:'₩',locale:'ko-KR',pos:'before'},
+  INR:{sym:'₹',locale:'hi-IN',pos:'before'},
+  RUB:{sym:'₽',locale:'ru-RU',pos:'after'},
+  TRY:{sym:'₺',locale:'tr-TR',pos:'after'},
+  NOK:{sym:'kr',locale:'nb-NO',pos:'after'},
+  SEK:{sym:'kr',locale:'sv-SE',pos:'after'},
+  DKK:{sym:'kr',locale:'da-DK',pos:'after'},
+  CZK:{sym:'Kč',locale:'cs-CZ',pos:'after'},
+  HUF:{sym:'Ft',locale:'hu-HU',pos:'after'},
+  RON:{sym:'lei',locale:'ro-RO',pos:'after'},
+  HKD:{sym:'$',locale:'zh-HK',pos:'before'},
+  SGD:{sym:'$',locale:'en-SG',pos:'before'},
+  TWD:{sym:'$',locale:'zh-TW',pos:'before'},
+  NZD:{sym:'$',locale:'en-NZ',pos:'before'},
+  ZAR:{sym:'R',locale:'en-ZA',pos:'before'},
+  SAR:{sym:'﷼',locale:'ar-SA',pos:'after'},
+  AED:{sym:'د.إ',locale:'ar-AE',pos:'after'},
+  EGP:{sym:'£',locale:'ar-EG',pos:'before'},
+  NGN:{sym:'₦',locale:'en-NG',pos:'before'},
+  UAH:{sym:'₴',locale:'uk-UA',pos:'after'},
+  IDR:{sym:'Rp',locale:'id-ID',pos:'before'},
+  MYR:{sym:'RM',locale:'ms-MY',pos:'before'},
+  THB:{sym:'฿',locale:'th-TH',pos:'before'},
+  PHP:{sym:'₱',locale:'fil-PH',pos:'before'},
+  PKR:{sym:'₨',locale:'ur-PK',pos:'before'},
+  VND:{sym:'₫',locale:'vi-VN',pos:'after'},
+  CRC:{sym:'₡',locale:'es-CR',pos:'before'},
+  GTQ:{sym:'Q',locale:'es-GT',pos:'before'},
+  HNL:{sym:'L',locale:'es-HN',pos:'before'},
+  DOP:{sym:'$',locale:'es-DO',pos:'before'},
+  UYU:{sym:'$',locale:'es-UY',pos:'before'},
+  VES:{sym:'Bs',locale:'es-VE',pos:'before'},
+  ILS:{sym:'₪',locale:'he-IL',pos:'before'},
+  CLP:{sym:'$',locale:'es-CL',pos:'before'},
+};
+function buildCurrencyOptions(selected){
+  const curs=S.currencies&&S.currencies.length?S.currencies:['PLN'];
+  if(curs.length===1)return `<option value="${curs[0]}">${curs[0]} ${getCurrencyMeta(curs[0]).sym}</option>`;
+  return curs.map(c=>`<option value="${c}" ${c===selected?'selected':''}>${c} ${getCurrencyMeta(c).sym}</option>`).join('');
+}
+function getCurrencyMeta(code){return CURRENCY_META[code]||{sym:code,locale:'en-US',pos:'before'};}
 function fmt(amount,cur){
-  const c=cur||S.currency;
+  const code=cur||S.currency;
   const n=parseFloat(amount)||0;
-  if(c==='PLN')return n.toLocaleString('pl-PL',{minimumFractionDigits:2,maximumFractionDigits:2})+' zł';
-  return '$ '+n.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const meta=getCurrencyMeta(code);
+  const decimals=(['JPY','KRW','CLP','PYG'].includes(code))?0:2;
+  let numStr;
+  try{numStr=n.toLocaleString(meta.locale,{minimumFractionDigits:decimals,maximumFractionDigits:decimals});}
+  catch(e){numStr=n.toFixed(decimals);}
+  return meta.pos==='before'?meta.sym+numStr:numStr+' '+meta.sym;
 }
 function setCurrency(c){
   S.currency=c;
@@ -954,7 +1042,7 @@ function renderDashboard(){
     <div class="kpi-row">
       <div class="kpi-card" style="cursor:pointer" onclick="navigate('metas')">
         <div class="kpi-label">🎯 Total ahorrado</div>
-        <div class="kpi-val" style="color:var(--success)">${fmt(totalGoalSavings)}</div>
+        <div class="kpi-val" style="font-size:13px;color:var(--success)">${fmt(totalGoalSavings)}</div>
         <div style="font-size:10px;color:var(--text3);margin-top:2px">${S.goals.filter(g=>(g.currency||S.currency)===S.currency).length} metas · toca para ver</div>
       </div>
       <div class="kpi-card"><div class="kpi-label">Tasa ahorro</div><div class="kpi-val" style="font-size:15px;color:${savingsRate<=0?'var(--text2)':savingsRate>=20?'var(--success)':savingsRate>=10?'var(--warning)':'var(--danger)'}">${savingsRate<=0?'0%':savingsRate+'%'}</div></div>
@@ -1167,7 +1255,7 @@ function renderMetas(){
   return`
     ${goals.length>0?`<div class="card" style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-        <div><div style="font-size:12px;color:var(--text2)">Total ahorrado</div><div style="font-size:20px;font-weight:800;color:var(--success)">${fmt(totalSaved)}</div></div>
+        <div><div style="font-size:12px;color:var(--text2)">Total ahorrado</div><div style="font-size:14px;font-weight:800;color:var(--success)">${fmt(totalSaved)}</div></div>
         <div style="text-align:right"><div style="font-size:12px;color:var(--text2)">Objetivo total</div><div style="font-size:20px;font-weight:800">${fmt(totalTarget)}</div></div>
       </div>
       <div class="progress-bar" style="height:8px"><div class="progress-fill" style="width:${Math.min(100,totalTarget>0?Math.round(totalSaved/totalTarget*100):0)}%;background:var(--primary)"></div></div>
@@ -1577,7 +1665,15 @@ const TRANSLATIONS = {
     installments:'Na ile rat?',tcDetected:'(Karta kredytowa)',
     tapOptions:'👆 opcje',
     version:'Finanzía v3.3 · Dane lokalne · Zrobione z ❤️',
-  }
+  },
+  pt:{dashboard:'Início',movements:'Transações',accounts:'Contas',budgets:'Orçamentos',goals:'Metas',payments:'Pagamentos',debts:'Dívidas',analysis:'Análise',categories:'Categorias',settings:'Configurações',income:'Receitas',expenses:'Despesas',savings:'Poupança',savingsRate:'Taxa de poupança',balance:'Saldo total',activeAccounts:'Contas ativas',totalDebts:'Total dívidas',totalSaved:'Total poupado',recentMovements:'Transações recentes',seeAll:'Ver tudo',save:'Salvar',cancel:'Cancelar',delete:'Excluir',edit:'Editar',create:'Criar',income_type:'Receita',expense_type:'Despesa',transfer_type:'Transferência',name:'Nome',amount:'Valor',date:'Data',description:'Descrição',category:'Categoria',subcategory:'Subcategoria',paymentMethod:'Forma de pagamento',currency:'Moeda',account:'Conta',noMovements:'Sem transações',noAccounts:'Sem contas',noGoals:'Sem metas',preferences:'Preferências',appearance:'Aparência',system:'Sistema',language:'Idioma',weekStart:'Início da semana',activeCurrencies:'Moedas ativas',theme:'Tema',dark:'Escuro',light:'Claro',changeTo:'Mudar para',notifications:'Notificações',export:'Exportar',import:'Importar',reset:'Restaurar',resetDesc:'Apaga TODOS os dados',monday:'Segunda',sunday:'Domingo',search:'Buscar...',selected:'selecionadas',spent:'Gasto',remaining:'Restante',addSavings:'Adicionar poupança',registerPayment:'Registrar pagamento',tapOptions:'👆 opções',version:'Finanzía v3.3 · Feito com ❤️',
+  },
+  fr:{dashboard:'Accueil',movements:'Transactions',accounts:'Comptes',budgets:'Budgets',goals:'Objectifs',payments:'Paiements',debts:'Dettes',analysis:'Analyse',categories:'Catégories',settings:'Paramètres',income:'Revenus',expenses:'Dépenses',savings:'Épargne',savingsRate:"Taux d'épargne",balance:'Solde total',activeAccounts:'Comptes actifs',totalDebts:'Total dettes',totalSaved:'Total épargné',recentMovements:'Transactions récentes',seeAll:'Voir tout',save:'Enregistrer',cancel:'Annuler',delete:'Supprimer',edit:'Modifier',create:'Créer',income_type:'Revenu',expense_type:'Dépense',transfer_type:'Virement',name:'Nom',amount:'Montant',date:'Date',description:'Description',category:'Catégorie',subcategory:'Sous-catégorie',paymentMethod:'Moyen de paiement',currency:'Devise',account:'Compte',noMovements:'Aucune transaction',noAccounts:'Aucun compte',noGoals:'Aucun objectif',preferences:'Préférences',appearance:'Apparence',system:'Système',language:'Langue',weekStart:'Début de semaine',activeCurrencies:'Devises actives',theme:'Thème',dark:'Sombre',light:'Clair',changeTo:'Passer en',notifications:'Notifications',export:'Exporter',import:'Importer',reset:'Réinitialiser',resetDesc:'Supprime TOUTES les données',monday:'Lundi',sunday:'Dimanche',search:'Rechercher...',selected:'sélectionnées',spent:'Dépensé',remaining:'Restant',addSavings:'Ajouter épargne',registerPayment:'Enregistrer paiement',tapOptions:'👆 options',version:'Finanzía v3.3 · Fait avec ❤️',
+  },
+  de:{dashboard:'Übersicht',movements:'Transaktionen',accounts:'Konten',budgets:'Budgets',goals:'Ziele',payments:'Zahlungen',debts:'Schulden',analysis:'Analyse',categories:'Kategorien',settings:'Einstellungen',income:'Einnahmen',expenses:'Ausgaben',savings:'Ersparnisse',savingsRate:'Sparquote',balance:'Gesamtguthaben',activeAccounts:'Aktive Konten',totalDebts:'Gesamtschulden',totalSaved:'Gespart',recentMovements:'Letzte Transaktionen',seeAll:'Alle sehen',save:'Speichern',cancel:'Abbrechen',delete:'Löschen',edit:'Bearbeiten',create:'Erstellen',income_type:'Einnahme',expense_type:'Ausgabe',transfer_type:'Überweisung',name:'Name',amount:'Betrag',date:'Datum',description:'Beschreibung',category:'Kategorie',subcategory:'Unterkategorie',paymentMethod:'Zahlungsmethode',currency:'Währung',account:'Konto',noMovements:'Keine Transaktionen',noAccounts:'Keine Konten',noGoals:'Keine Ziele',preferences:'Einstellungen',appearance:'Erscheinungsbild',system:'System',language:'Sprache',weekStart:'Wochenstart',activeCurrencies:'Aktive Währungen',theme:'Design',dark:'Dunkel',light:'Hell',changeTo:'Wechseln zu',notifications:'Benachrichtigungen',export:'Exportieren',import:'Importieren',reset:'Zurücksetzen',resetDesc:'Löscht ALLE Daten',monday:'Montag',sunday:'Sonntag',search:'Suchen...',selected:'ausgewählt',spent:'Ausgegeben',remaining:'Verbleibend',addSavings:'Ersparnis hinzufügen',registerPayment:'Zahlung registrieren',tapOptions:'👆 Optionen',version:'Finanzía v3.3 · Mit ❤️ gemacht',
+  },
+  it:{dashboard:'Dashboard',movements:'Transazioni',accounts:'Conti',budgets:'Budget',goals:'Obiettivi',payments:'Pagamenti',debts:'Debiti',analysis:'Analisi',categories:'Categorie',settings:'Impostazioni',income:'Entrate',expenses:'Uscite',savings:'Risparmi',savingsRate:'Tasso di risparmio',balance:'Saldo totale',activeAccounts:'Conti attivi',totalDebts:'Totale debiti',totalSaved:'Totale risparmiato',recentMovements:'Transazioni recenti',seeAll:'Vedi tutto',save:'Salva',cancel:'Annulla',delete:'Elimina',edit:'Modifica',create:'Crea',income_type:'Entrata',expense_type:'Uscita',transfer_type:'Trasferimento',name:'Nome',amount:'Importo',date:'Data',description:'Descrizione',category:'Categoria',subcategory:'Sottocategoria',paymentMethod:'Metodo di pagamento',currency:'Valuta',account:'Conto',noMovements:'Nessuna transazione',noAccounts:'Nessun conto',noGoals:'Nessun obiettivo',preferences:'Preferenze',appearance:'Aspetto',system:'Sistema',language:'Lingua',weekStart:'Inizio settimana',activeCurrencies:'Valute attive',theme:'Tema',dark:'Scuro',light:'Chiaro',changeTo:'Passa a',notifications:'Notifiche',export:'Esporta',import:'Importa',reset:'Ripristina',resetDesc:'Elimina TUTTI i dati',monday:'Lunedì',sunday:'Domenica',search:'Cerca...',selected:'selezionate',spent:'Speso',remaining:'Rimanente',addSavings:'Aggiungi risparmio',registerPayment:'Registra pagamento',tapOptions:'👆 opzioni',version:'Finanzía v3.3 · Fatto con ❤️',
+  },
 };
 function t(key){const lang=S.language||'es';return(TRANSLATIONS[lang]||TRANSLATIONS.es)[key]||TRANSLATIONS.es[key]||key;}
 
@@ -1724,8 +1820,10 @@ function saveLanguage(v){
 function saveWeekStart(v){S.weekStart=v;saveState();renderPage('configuracion');}
 function toggleCurrency(c,checked){
   if(!S.currencies)S.currencies=[];
-  if(checked){if(!S.currencies.includes(c))S.currencies.push(c);}
-  else{
+  if(checked){
+    if(S.currencies.length>=2){toast('Solo puedes tener máximo 2 monedas activas. Desactiva una primero.');renderPage('configuracion');return;}
+    if(!S.currencies.includes(c))S.currencies.push(c);
+  } else {
     if(S.currencies.length<=1){toast('Debes tener al menos 1 moneda activa');renderPage('configuracion');return;}
     S.currencies=S.currencies.filter(x=>x!==c);
     if(!S.currencies.includes(S.currency))S.currency=S.currencies[0];
@@ -1828,7 +1926,7 @@ function buildTransactionModal(data){
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Monto</label><input class="form-input" type="number" id="tx-amount" placeholder="0.00" step="0.01" value="${tx?tx.amount:''}"></div>
-      <div class="form-group"><label class="form-label">Moneda</label><select class="form-select" id="tx-currency" onchange="updateTxAccountsByCur(this.value)"><option value="PLN" ${(tx?tx.currency:S.currency)==='PLN'?'selected':''}>PLN zł</option><option value="COP" ${(tx?tx.currency:S.currency)==='COP'?'selected':''}>COP $</option></select></div>
+      <div class="form-group"><label class="form-label">Moneda</label><select class="form-select" id="tx-currency" onchange="updateTxAccountsByCur(this.value)">${buildCurrencyOptions(tx?tx.currency:S.currency)}</select></div>
     </div>
     <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" type="date" id="tx-date" value="${tx?tx.date:todayStr()}"></div>
     <div class="form-group"><label class="form-label">Descripción</label><input class="form-input" type="text" id="tx-desc" placeholder="Nota opcional" value="${tx?tx.description||'':''}"></div>
@@ -1896,7 +1994,26 @@ function saveTx(){
   else{S.transactions.push(tx);toast('Registrado ✓');}
   saveState();closeModal();renderPage(S.currentPage);
 }
-function deleteTx(id){confirmDialog('🗑️','¿Eliminar movimiento?','Esta acción no se puede deshacer.',()=>{S.transactions=S.transactions.filter(t=>t.id!==id);saveState();closeModal();renderPage(S.currentPage);toast('Eliminado');});}
+function deleteTx(id){
+  confirmDialog('🗑️','¿Eliminar movimiento?','Esta acción no se puede deshacer.',()=>{
+    const tx=S.transactions.find(t=>t.id===id);
+    if(tx){
+      // If this transaction was a goal savings deposit, reduce goal.current
+      if(tx.type==='ingreso'&&tx.description&&tx.description.startsWith('Ahorro:')){
+        const gName=tx.description.replace('Ahorro:','').trim();
+        const g=S.goals.find(g=>g.name===gName||(tx.description&&tx.description.includes(g.name)));
+        if(g)g.current=Math.max(0,(parseFloat(g.current)||0)-(parseFloat(tx.amount)||0));
+      }
+      if(tx.type==='gasto'&&tx.description&&tx.description.startsWith('Ahorro →')){
+        const gName=tx.description.replace('Ahorro →','').trim();
+        const g=S.goals.find(g=>g.name===gName);
+        if(g)g.current=Math.max(0,(parseFloat(g.current)||0)-(parseFloat(tx.amount)||0));
+      }
+    }
+    S.transactions=S.transactions.filter(t=>t.id!==id);
+    saveState();closeModal();renderPage(S.currentPage);toast('Eliminado');
+  });
+}
 
 // ─── VIEW TX MODAL ───
 function buildViewTxModal(data){
@@ -2145,7 +2262,7 @@ function buildBudgetModal(data){
   <div class="modal-body">
     <input type="hidden" id="bud-id" value="${b?b.id:''}">
     <div class="form-row"><div class="form-group"><label class="form-label">Categoría</label><select class="form-select" id="bud-cat" onchange="updateSubs(this.value,'bud-sub')">${catOptions('gasto')}</select></div><div class="form-group"><label class="form-label">Subcategoría</label><select class="form-select" id="bud-sub">${b?subOptions(b.categoryId,b.subcategoryId):'<option value="">Sin subcategoría</option>'}</select></div></div>
-    <div class="form-row"><div class="form-group"><label class="form-label">Límite mensual</label><input class="form-input" type="number" id="bud-amount" placeholder="0.00" value="${b?b.amount:''}" step="0.01"></div><div class="form-group"><label class="form-label">Moneda</label><select class="form-select" id="bud-currency"><option value="PLN" ${(b?b.currency:S.currency)==='PLN'?'selected':''}>PLN</option><option value="COP" ${(b?b.currency:S.currency)==='COP'?'selected':''}>COP</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Límite mensual</label><input class="form-input" type="number" id="bud-amount" placeholder="0.00" value="${b?b.amount:''}" step="0.01"></div><div class="form-group"><label class="form-label">Moneda</label><select class="form-select" id="bud-currency">${buildCurrencyOptions(b?b.currency:S.currency)}</select></div></div>
     <div class="form-group"><label class="form-label">Color</label>${colorPickerHtml(b?b.color:COLORS_PALETTE[0],'bud-color-val')}</div>
     ${b?`<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:13px">Gastado este mes: <strong>${fmt(getBudgetSpent(b))}</strong> de <strong>${fmt(b.amount)}</strong></div>`:''}
     <div class="btn-row">${isEdit?`<button class="btn btn-danger" onclick="deleteBudget('${b.id}')">Eliminar</button>`:''}<button class="btn btn-primary" onclick="saveBudget()">Guardar</button></div>
@@ -2185,7 +2302,7 @@ function buildGoalModal(data){
     <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" id="goal-name" placeholder="Ej: Vacaciones en Europa" value="${g?g.name:''}"></div>
     <div class="form-row"><div class="form-group"><label class="form-label">Meta</label><input class="form-input" type="number" id="goal-target" placeholder="0.00" value="${g?g.target:''}" step="0.01"></div><div class="form-group"><label class="form-label">Ahorrado</label><input class="form-input" type="number" id="goal-current" placeholder="0.00" value="${g?g.current:0}" step="0.01"></div></div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Moneda</label><select class="form-select" id="goal-currency" onchange="document.getElementById('goal-account').innerHTML=goalAccountOptions(this.value,'')"><option value="PLN" ${gCur==='PLN'?'selected':''}>PLN</option><option value="COP" ${gCur==='COP'?'selected':''}>COP</option></select></div>
+      <div class="form-group"><label class="form-label">Moneda</label><select class="form-select" id="goal-currency" onchange="document.getElementById('goal-account').innerHTML=goalAccountOptions(this.value,'')">${buildCurrencyOptions(gCur)}</select></div>
       <div class="form-group"><label class="form-label">Fecha límite</label><input class="form-input" type="date" id="goal-deadline" value="${g?g.deadline||'':''}"></div>
     </div>
     <div class="form-group">
@@ -2233,6 +2350,10 @@ function buildAddToGoalModal(data){
       <select class="form-select" id="atg-to-account">${destOpts}</select>
       ${linkedAcc?`<div style="font-size:11px;color:var(--primary);margin-top:4px">⭐ Vinculada: ${linkedAcc.name}</div>`:''}
     </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Categoría</label><select class="form-select" id="atg-cat" onchange="updateSubs(this.value,'atg-sub')">${catOptions('gasto')}</select></div>
+      <div class="form-group"><label class="form-label">Subcategoría</label><select class="form-select" id="atg-sub"><option value="">Sin subcategoría</option></select></div>
+    </div>
     <div style="background:rgba(0,212,170,.07);border:1px solid rgba(0,212,170,.2);border-radius:var(--radius-sm);padding:10px;margin-bottom:14px;font-size:12px;color:var(--text2)">
       ℹ️ Genera un <strong>gasto</strong> en la cuenta origen y un <strong>ingreso</strong> en la cuenta destino. Los saldos se actualizan automáticamente.
     </div>
@@ -2252,10 +2373,10 @@ function saveAddToGoal(){
   if(fromAccId===toAccId){toast('Las cuentas deben ser diferentes');return;}
   const g=S.goals.find(x=>x.id===goalId);if(!g)return;
   const cur=g.currency||S.currency;
-  const savCat=getAutoCategory('Ahorros','gasto');
-  const savSub=savCat?getAutoSubcategory(savCat.id,'Metas')||getAutoSubcategory(savCat.id,'Ahorro')||null:null;
-  S.transactions.push({id:uid(),type:'gasto',accountId:fromAccId,categoryId:savCat?savCat.id:'',subcategoryId:savSub?savSub.id:'',amount,currency:cur,date,description:'Ahorro → '+g.name,paymentMethod:''});
-  S.transactions.push({id:uid(),type:'ingreso',accountId:toAccId,categoryId:savCat?savCat.id:'',subcategoryId:savSub?savSub.id:'',amount,currency:cur,date,description:'Ahorro: '+g.name,paymentMethod:''});
+  const catId=document.getElementById('atg-cat')?.value||getAutoCategory('Ahorros','gasto')?.id||'';
+  const subId=document.getElementById('atg-sub')?.value||'';
+  S.transactions.push({id:uid(),type:'gasto',accountId:fromAccId,categoryId:catId,subcategoryId:subId,amount,currency:cur,date,description:'Ahorro → '+g.name,paymentMethod:''});
+  S.transactions.push({id:uid(),type:'ingreso',accountId:toAccId,categoryId:catId,subcategoryId:subId,amount,currency:cur,date,description:'Ahorro: '+g.name,paymentMethod:''});
   g.current=(parseFloat(g.current)||0)+amount;
   saveState();closeModal();renderPage('metas');
   toast(`+${fmt(amount,cur)} agregado a "${g.name}" ✓`);
@@ -2274,7 +2395,7 @@ function buildPaymentModal(data){
     <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" id="pay-name" placeholder="Ej: Netflix, Arriendo..." value="${p?p.name:''}"></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Monto</label><input class="form-input" type="number" id="pay-amount" placeholder="0.00" value="${p?p.amount:''}" step="0.01"></div>
-      <div class="form-group"><label class="form-label">Moneda</label><select class="form-select" id="pay-currency" onchange="updatePayAccounts(this.value)"><option value="PLN" ${pCur==='PLN'?'selected':''}>PLN zł</option><option value="COP" ${pCur==='COP'?'selected':''}>COP $</option></select></div>
+      <div class="form-group"><label class="form-label">Moneda</label><select class="form-select" id="pay-currency" onchange="updatePayAccounts(this.value)">${buildCurrencyOptions(pCur)}</select></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Categoría</label><select class="form-select" id="pay-cat" onchange="updateSubs(this.value,'pay-sub')"><option value="">Categoría</option>${catOptsPrefilled}</select></div>
