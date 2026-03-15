@@ -1,70 +1,58 @@
-// Finanzía Service Worker v1.0
-const CACHE_NAME = 'finanzía-v1';
+// Finanzía Service Worker v2.0
+// ⚡ Network-first: always tries to load fresh from server
+const CACHE_NAME = 'finanzía-v2';
 const ASSETS = ['/'];
 
-// Install: cache the app shell
 self.addEventListener('install', e => {
   self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
-  );
+  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
 });
 
-// Activate: clean old caches
+// Activate: DELETE all old caches and take control immediately
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => clients.claim())
+    ).then(() => {
+      console.log('[SW] v2.0 activated - old caches cleared');
+      return clients.claim();
+    })
   );
 });
 
-// Fetch: serve from cache, fallback to network
+// NETWORK FIRST — always tries server, falls back to cache
 self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(response => {
-        if (response && response.status === 200 && e.request.method === 'GET') {
+    fetch(e.request)
+      .then(response => {
+        if (response && response.status === 200) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
         }
         return response;
-      });
-    }).catch(() => caches.match('/'))
+      })
+      .catch(() =>
+        caches.match(e.request).then(cached => cached || caches.match('/'))
+      )
   );
 });
 
-// Push notifications
 self.addEventListener('push', e => {
-  const data = e.data ? e.data.json() : {
-    title: 'Finanzía 💰',
-    body: 'Tienes pagos pendientes por revisar'
-  };
-  const options = {
-    body: data.body,
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    vibrate: [200, 100, 200, 100, 200],
-    data: { url: data.url || '/' },
-    actions: [
-      { action: 'open', title: 'Abrir app' },
-      { action: 'close', title: 'Cerrar' }
-    ]
-  };
-  e.waitUntil(self.registration.showNotification(data.title, options));
+  const data = e.data ? e.data.json() : {title:'Finanzía 💰',body:'Tienes pagos pendientes'};
+  e.waitUntil(self.registration.showNotification(data.title, {
+    body: data.body, icon: '/icon-192.png', badge: '/icon-192.png',
+    vibrate: [200,100,200], data: {url: '/'}
+  }));
 });
 
-// Notification click
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   if (e.action === 'close') return;
   e.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
-      for (const client of clientList) {
-        if (client.url.includes(self.location.origin) && 'focus' in client) {
-          return client.focus();
-        }
+    clients.matchAll({type:'window',includeUncontrolled:true}).then(list => {
+      for (const c of list) {
+        if (c.url.includes(self.location.origin) && 'focus' in c) return c.focus();
       }
       if (clients.openWindow) return clients.openWindow('/');
     })
