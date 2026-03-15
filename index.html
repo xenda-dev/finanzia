@@ -511,6 +511,21 @@ const DEFAULT_SUBS = [
   // Recargas (dc51)
   {id:'ds5101',categoryId:'dc51',name:'Recarga móvil',icon:'📱'},{id:'ds5102',categoryId:'dc51',name:'Recarga billetera digital',icon:'💳'},
 ];
+
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
+let S = {
+  currency:'PLN', currentPage:'dashboard', theme:'dark',
+  language:'es', weekStart:'lunes', currencies:['PLN','COP'],
+  accounts:[], transactions:[], categories:[], subcategories:[],
+  budgets:[], goals:[], scheduledPayments:[],
+  movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},
+  analysisPeriod:'Mensual', analysisPeriodSub:'anual',
+  analysisYear:new Date().getFullYear(),
+  exchangeRate:{PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''},
+};
+
 function loadState(){
   try{
     const saved=localStorage.getItem('finanziaState3');
