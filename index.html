@@ -532,6 +532,11 @@ function loadState(){
     if(saved){const p=JSON.parse(saved);Object.assign(S,p);}
     else{S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));}
   }catch(e){S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));}
+  // Migrate: if categories use old IDs (c1,c2...) replace with new DEFAULT_CATS
+  if(!S.categories||!S.categories.length||(S.categories[0]&&S.categories[0].id&&S.categories[0].id.match(/^c\d+$/))){
+    S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));
+    S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));
+  }
   if(!S.movFilter)S.movFilter={tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''};
   if(!S.analysisPeriod)S.analysisPeriod='Mensual';
   if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
@@ -1086,7 +1091,7 @@ function renderCuentas(){
       <div class="summary-total-item"><div class="summary-total-label">💎 Patrimonio</div><div class="summary-total-val" style="color:${net>=0?'var(--primary)':'var(--danger)'}">${fmt(net)}</div></div>
     </div>
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-      <button class="btn btn-primary btn-sm" onclick="newAcc()">+ Nueva cuenta</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('account',{})">+ Nueva cuenta</button>
     </div>
     ${activos.length===0&&pasivos.length===0?'<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-title">Sin cuentas en '+cur+'</div><div class="empty-desc">Crea tu primera cuenta</div></div>':''}
     ${activos.length?`<div class="section-header"><div class="section-title">💚 Activos · ${fmt(assets)}</div></div>${activos.map(accCard).join('')}`:''}
@@ -1261,7 +1266,7 @@ function renderDeudas(){
       <div style="margin-top:8px;font-size:13px;color:rgba(255,255,255,.5)">${pasivos.length} ${pasivos.length===1?'deuda':'deudas'} registradas</div>
     </div>`:''}
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-      <button class="btn btn-primary btn-sm" onclick="newAcc('pasivo')">+ Nueva deuda</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('account',{defaultType:'pasivo'})">+ Nueva deuda</button>
     </div>
     ${!pasivos.length?'<div class="empty-state"><div class="empty-icon">💸</div><div class="empty-title">Sin deudas en '+S.currency+'</div><div class="empty-desc">Las cuentas pasivas aparecerán aquí</div></div>':
     pasivos.map(a=>{
@@ -1414,7 +1419,7 @@ function renderCategorias(){
       const typeBadge=cat.type==='ingreso'?'badge-success':cat.type==='gasto'?'badge-danger':'badge-info';
       const catDomId='catg-'+cat.id;
       return`<div class="cat-group" style="border-left:4px solid ${cat.color||'var(--border)'}">
-        <div class="cat-group-header" onclick="document.getElementById('${catDomId}').classList.toggle('hidden')" style="cursor:pointer">
+        <div class="cat-group-header" onclick="toggleCatGroup('${catDomId}',this)" style="cursor:pointer">
           <div class="cat-group-left">
             <div style="width:38px;height:38px;border-radius:10px;background:${cat.color||'#64748B'}22;display:flex;align-items:center;justify-content:center;font-size:18px">${cat.icon}</div>
             <div>
@@ -1426,7 +1431,7 @@ function renderCategorias(){
           <div style="display:flex;gap:6px;align-items:center">
             <button class="btn-text" style="font-size:12px" onclick="event.stopPropagation();openModal('subcategory',{categoryId:'${cat.id}'})">+ Sub</button>
             <button class="btn-del" onclick="event.stopPropagation();deleteCat('${cat.id}')">🗑</button>
-            <span style="color:var(--text3);font-size:12px">▼</span>
+            <span class="cat-arrow" style="color:var(--text3);font-size:12px">▶</span>
           </div>
         </div>
         <div id="${catDomId}" class="hidden">
@@ -1435,6 +1440,13 @@ function renderCategorias(){
       </div>`;
     }).join('')}
   `;
+}
+function toggleCatGroup(id,header){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.toggle('hidden');
+  const arrow=header.querySelector('.cat-arrow');
+  if(arrow)arrow.textContent=el.classList.contains('hidden')?'▶':'▼';
 }
 function deleteCat(id){confirmDialog('🗑️','¿Eliminar categoría?','Se eliminarán sus subcategorías y los movimientos perderán la categoría.',()=>{S.categories=S.categories.filter(c=>c.id!==id);S.subcategories=S.subcategories.filter(s=>s.categoryId!==id);saveState();renderPage('categorias');toast('Eliminada');});}
 function deleteSub(id){confirmDialog('🗑️','¿Eliminar subcategoría?','',()=>{S.subcategories=S.subcategories.filter(s=>s.id!==id);saveState();renderPage('categorias');toast('Eliminada');});}
@@ -1614,10 +1626,7 @@ function renderConfiguracion(){
     Notification.permission==='granted'?t('notifGranted'):
     Notification.permission==='denied'?t('notifDenied'):t('notifDefault');
   const activeCurs=S.currencies||['PLN'];
-  const curList=ALL_CURRENCIES.map(c=>`<label style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:6px;cursor:pointer;background:${activeCurs.includes(c.code)?'rgba(0,212,170,.1)':'var(--surface2)'}">
-    <input type="checkbox" ${activeCurs.includes(c.code)?'checked':''} onchange="toggleCurrency('${c.code}',this.checked)" style="width:16px;height:16px;accent-color:var(--primary)">
-    <span style="font-size:12px;font-weight:700;min-width:32px">${c.code}</span><span style="font-size:10px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</span>
-  </label>`).join('');
+    const curList=ALL_CURRENCIES.map(c=>`<label style="display:flex;align-items:center;gap:4px;padding:4px 6px;border-radius:6px;cursor:pointer;background:${activeCurs.includes(c.code)?'rgba(0,212,170,.1)':'var(--surface2)'}"><input type="checkbox" ${activeCurs.includes(c.code)?'checked':''} onchange="toggleCurrency('${c.code}',this.checked)" style="width:14px;height:14px;accent-color:var(--primary);flex-shrink:0"><span style="font-size:11px;font-weight:700;min-width:28px">${c.code}</span><span style="font-size:9px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</span></label>`).join('');
   const curSelected=`${activeCurs.length} ${t('selected')}`;
   const langCurrent=ALL_LANGUAGES.find(l=>l.id===(S.language||'es'))||ALL_LANGUAGES[0];
   const langList=ALL_LANGUAGES.map(l=>`<div onclick="saveLanguage('${l.id}')" style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;border-radius:8px;background:${l.id===(S.language||'es')?'rgba(0,212,170,.12)':'transparent'};margin-bottom:2px">
