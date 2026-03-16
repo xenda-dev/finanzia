@@ -1193,8 +1193,8 @@ function renderCuentas(){
           </div>`:''}
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             <button style="flex:1;min-width:80px;padding:9px 6px;border-radius:10px;border:none;background:rgba(59,130,246,.4);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="viewAccountMovements('${a.id}')">📋 Movimientos</button>
-            ${(a.subtype!=='efectivo'&&!a.protected)?`<button style="flex:1;min-width:70px;padding:9px 6px;border-radius:10px;border:none;background:rgba(255,255,255,.2);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="event.stopPropagation();editAcc('${a.id}')">✏️ Editar</button>
-            <button style="flex:1;min-width:80px;padding:9px 6px;border-radius:10px;border:none;background:rgba(0,212,170,.25);color:#6FFFDF;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="openModal('subAccount',{parentId:'${a.id}'})">＋ Bolsillo</button>`:'<button style="flex:1;min-width:70px;padding:9px 6px;border-radius:10px;border:none;background:rgba(255,255,255,.2);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="event.stopPropagation();editAcc(\"${a.id}\")">✏️ Editar</button>'}
+            <button style="flex:1;min-width:70px;padding:9px 6px;border-radius:10px;border:none;background:rgba(255,255,255,.2);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="event.stopPropagation();editAcc('${a.id}')">✏️ Editar</button>
+            ${(a.subtype!=='efectivo'&&!a.protected)?`<button style="flex:1;min-width:80px;padding:9px 6px;border-radius:10px;border:none;background:rgba(0,212,170,.25);color:#6FFFDF;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="openModal('subAccount',{parentId:'${a.id}'})">＋ Bolsillo</button>`:''}
           </div>`:`
           <div style="display:flex;gap:6px">
             <button style="flex:1;padding:9px;border-radius:10px;border:none;background:rgba(59,130,246,.4);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="viewAccountMovements('${a.id}')">📋 Movimientos</button>
@@ -1542,7 +1542,7 @@ function renderAnalisis(){
       <div class="kpi-row" style="margin:0">
         <div class="kpi-card"><div class="kpi-label">Ingresos</div><div class="kpi-val" style="font-size:13px;color:var(--success)">${fmt(inc)}</div></div>
         <div class="kpi-card"><div class="kpi-label">Gastos</div><div class="kpi-val" style="font-size:13px;color:var(--danger)">${fmt(exp)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">Balance</div><div class="kpi-val" style="font-size:13px;color:${savings>=0?'var(--success)':'var(--danger)'}">${fmt(savings)}</div></div>
+        <div class="kpi-card"><div class="kpi-label">💸 Deudas</div><div class="kpi-val" style="font-size:13px;color:var(--danger)">${fmt(S.accounts.filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency).reduce((s,a)=>s+Math.abs(getBalance(a.id)),0))}</div></div>
         <div class="kpi-card"><div class="kpi-label">💰 Ahorro</div><div class="kpi-val" style="font-size:12px;color:${savingsRate<=0?'var(--text2)':savingsRate>=20?'var(--success)':savingsRate>=10?'var(--warning)':'var(--danger)'}">${fmt(savings)}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${savingsRate<=0?'0%':savingsRate+'%'} del ingreso</div></div>
       </div>
     </div>
@@ -2109,12 +2109,9 @@ function saveTx(){
   saveState();closeModal();renderPage(S.currentPage);
 }
 function editTx(id){
-  // Close current modal by clearing the backdrop, then open edit
-  const root=document.getElementById('modal-root');
-  const sheet=document.getElementById('modal-sheet');
-  if(root)root.classList.remove('open');
-  if(sheet)sheet.innerHTML='';
-  setTimeout(()=>openModal('transaction',{id:id}),150);
+  // Close current modal then open edit modal
+  closeModal();
+  setTimeout(()=>openModal('transaction',{id:id}),200);
 }
 function deleteTx(id){
   confirmDialog('🗑️','¿Eliminar movimiento?','Esta acción no se puede deshacer.',()=>{
