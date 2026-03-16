@@ -2024,7 +2024,7 @@ function buildTransactionModal(data){
     <div id="tx-fields-normal" ${type==='transferencia'?'class="hidden"':''}>
       <div class="form-group"><label class="form-label">Cuenta</label><select class="form-select" id="tx-account" onchange="checkTcAccount(this.value,'${type}')">${accountOptionsByCur(tx?tx.currency:S.currency,tx?tx.accountId:'')}</select></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Categoría</label><select class="form-select" id="tx-cat" onchange="updateSubs(this.value,'tx-sub')">${catOptions(type)}</select></div>
+        <div class="form-group"><label class="form-label">Categoría</label><select class="form-select" id="tx-cat" onchange="updateSubs(this.value,'tx-sub')">${catOptions(type,catId)}</select></div>
         <div class="form-group"><label class="form-label">Subcategoría</label><select class="form-select" id="tx-sub">${catId?subOptions(catId,tx?tx.subcategoryId:''):'<option value="">Sin subcategoría</option>'}</select></div>
       </div>
       <div class="form-group"><label class="form-label">Medio de pago</label><select class="form-select" id="tx-payment"><option value="">Sin especificar</option>${PAYMENT_METHODS.map(m=>`<option value="${m}" ${tx&&tx.paymentMethod===m?'selected':''}>${m}</option>`).join('')}</select></div>
