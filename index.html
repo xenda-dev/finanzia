@@ -49,15 +49,26 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 #drawer.open{left:0;box-shadow:4px 0 32px rgba(0,0,0,.6)}
 #overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:190;opacity:0;pointer-events:none;transition:.3s}
 #overlay.active{opacity:1;pointer-events:all}
-.drawer-header{padding:56px 20px 20px;background:linear-gradient(160deg,var(--surface2),var(--surface));border-bottom:1px solid var(--border)}
-.drawer-logo{font-size:24px;font-weight:800;margin-bottom:2px}
-.drawer-logo span{color:var(--primary)}
-.drawer-sub{font-size:12px;color:var(--text2)}
-.drawer-group-label{font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--text3);padding:16px 20px 6px;text-transform:uppercase}
+.drawer-header{padding:52px 16px 16px;background:linear-gradient(160deg,var(--surface2),var(--surface));border-bottom:1px solid var(--border);flex-shrink:0;cursor:pointer}
+.drawer-profile{display:flex;align-items:center;gap:12px}
+.drawer-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;border:2px solid var(--primary)}
+.drawer-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.drawer-profile-info{flex:1;min-width:0}
+.drawer-profile-name{font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drawer-profile-email{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.drawer-nav{flex:1;overflow-y:auto;padding-bottom:8px}
+.drawer-footer{padding:10px 20px 16px;border-top:1px solid var(--border);text-align:center;flex-shrink:0}
+.drawer-footer-brand{font-size:14px;font-weight:800;color:var(--primary)}
+.drawer-footer-brand span{color:var(--text)}
+.drawer-footer-version{font-size:10px;color:var(--text3);margin-top:2px}
+.drawer-group-label{font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--text3);padding:14px 20px 4px;text-transform:uppercase}
 .drawer-item{display:flex;align-items:center;gap:12px;padding:12px 20px;color:var(--text2);cursor:pointer;transition:.15s;font-size:14px;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
 .drawer-item:hover,.drawer-item.active{color:var(--text);background:var(--surface2)}
 .drawer-item.active{border-left:3px solid var(--primary);padding-left:17px}
 .drawer-item-icon{width:30px;height:30px;border-radius:8px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ai-msg{max-width:85%;padding:10px 13px;border-radius:16px;font-size:13px;line-height:1.5}
+.ai-msg-bot{align-self:flex-start;background:var(--surface2);border-radius:4px 16px 16px 16px}
+.ai-msg-user{align-self:flex-end;background:var(--primary);color:white;border-radius:16px 4px 16px 16px}
 .card{background:var(--surface);border-radius:var(--radius);padding:16px;border:1px solid var(--border);box-shadow:var(--card-shadow)}
 .card+.card{margin-top:12px}
 .card-title{font-size:13px;color:var(--text2);margin-bottom:12px;font-weight:600}
@@ -213,24 +224,43 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div id="app">
 <div id="overlay" onclick="closeDrawer()"></div>
 <nav id="drawer">
-  <div class="drawer-header">
-    <div class="drawer-logo">Finanz<span>ía</span></div>
-    <div class="drawer-sub">Control financiero personal v3.0</div>
+  <!-- Profile header -->
+  <div class="drawer-header" onclick="navigate('configuracion');closeDrawer()">
+    <div class="drawer-profile">
+      <div class="drawer-avatar" id="drawer-avatar">👤</div>
+      <div class="drawer-profile-info">
+        <div class="drawer-profile-name" id="drawer-profile-name">Mi Perfil</div>
+        <div class="drawer-profile-email" id="drawer-profile-email">Toca para configurar</div>
+      </div>
+    </div>
   </div>
-  <div class="drawer-group-label" id="dgl-principal">Principal</div>
-  <button class="drawer-item active" data-page="dashboard" id="dmi-dashboard"><div class="drawer-item-icon">🏠</div><span>Dashboard</span></button>
-  <button class="drawer-item" data-page="movimientos" id="dmi-movimientos"><div class="drawer-item-icon">📋</div><span>Movimientos</span></button>
-  <button class="drawer-item" data-page="cuentas" id="dmi-cuentas"><div class="drawer-item-icon">💳</div><span>Cuentas</span></button>
-  <button class="drawer-item" data-page="presupuestos" id="dmi-presupuestos"><div class="drawer-item-icon">📊</div><span>Presupuestos</span></button>
-  <div class="drawer-group-label" id="dgl-planificacion">Planificación</div>
-  <button class="drawer-item" data-page="metas" id="dmi-metas"><div class="drawer-item-icon">🎯</div><span>Metas</span></button>
-  <button class="drawer-item" data-page="pagos" id="dmi-pagos"><div class="drawer-item-icon">🔔</div><span>Pagos</span></button>
-  <button class="drawer-item" data-page="deudas" id="dmi-deudas"><div class="drawer-item-icon">💸</div><span>Deudas</span></button>
-  <div class="drawer-group-label" id="dgl-analisis">Análisis</div>
-  <button class="drawer-item" data-page="analisis" id="dmi-analisis"><div class="drawer-item-icon">📈</div><span>Análisis</span></button>
-  <div class="drawer-group-label" id="dgl-gestion">Gestión</div>
-  <button class="drawer-item" data-page="categorias" id="dmi-categorias"><div class="drawer-item-icon">🏷️</div><span>Categorías</span></button>
-  <button class="drawer-item" data-page="configuracion" id="dmi-configuracion"><div class="drawer-item-icon">⚙️</div><span>Configuración</span></button>
+  <!-- Navigation -->
+  <div class="drawer-nav">
+    <div class="drawer-group-label" id="dgl-principal">Principal</div>
+    <button class="drawer-item active" data-page="dashboard" id="dmi-dashboard"><div class="drawer-item-icon">🏠</div><span>Inicio</span></button>
+    <div class="drawer-group-label" id="dgl-midinero">Mi Dinero</div>
+    <button class="drawer-item" data-page="cuentas" id="dmi-cuentas"><div class="drawer-item-icon">💳</div><span>Cuentas</span></button>
+    <button class="drawer-item" data-page="movimientos" id="dmi-movimientos"><div class="drawer-item-icon">📋</div><span>Movimientos</span></button>
+    <button class="drawer-item" data-page="deudas" id="dmi-deudas"><div class="drawer-item-icon">💸</div><span>Deudas</span></button>
+    <div class="drawer-group-label" id="dgl-planificacion">Planificación</div>
+    <button class="drawer-item" data-page="presupuestos" id="dmi-presupuestos"><div class="drawer-item-icon">📊</div><span>Presupuestos</span></button>
+    <button class="drawer-item" data-page="metas" id="dmi-metas"><div class="drawer-item-icon">🎯</div><span>Metas de ahorro</span></button>
+    <button class="drawer-item" data-page="pagos" id="dmi-pagos"><div class="drawer-item-icon">🔔</div><span>Pagos programados</span></button>
+    <div class="drawer-group-label" id="dgl-reportes">Reportes</div>
+    <button class="drawer-item" data-page="analisis" id="dmi-analisis"><div class="drawer-item-icon">📈</div><span>Análisis financiero</span></button>
+    <div class="drawer-group-label" id="dgl-herramientas">Herramientas</div>
+    <button class="drawer-item" data-page="herramientas" id="dmi-herramientas"><div class="drawer-item-icon">🤖</div><span>Asistente IA</span></button>
+    <button class="drawer-item" data-page="calculadora" id="dmi-calculadora"><div class="drawer-item-icon">📐</div><span>Calculadora préstamo</span></button>
+    <button class="drawer-item" data-page="simulador" id="dmi-simulador"><div class="drawer-item-icon">💹</div><span>Simulador de ahorro</span></button>
+    <div class="drawer-group-label" id="dgl-configuracion">Configuración</div>
+    <button class="drawer-item" data-page="categorias" id="dmi-categorias"><div class="drawer-item-icon">🏷️</div><span>Categorías</span></button>
+    <button class="drawer-item" data-page="configuracion" id="dmi-configuracion"><div class="drawer-item-icon">⚙️</div><span>Ajustes</span></button>
+  </div>
+  <!-- Footer -->
+  <div class="drawer-footer">
+    <div class="drawer-footer-brand">Finanz<span>ía</span></div>
+    <div class="drawer-footer-version">v3.3 · Datos locales</div>
+  </div>
 </nav>
 <div class="header">
   <button class="btn-icon" onclick="openDrawer()">
@@ -256,6 +286,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div id="page-analisis" class="page"></div>
   <div id="page-categorias" class="page"></div>
   <div id="page-configuracion" class="page"></div>
+  <div id="page-herramientas" class="page"></div>
+  <div id="page-calculadora" class="page"></div>
+  <div id="page-simulador" class="page"></div>
 </div>
 <nav class="bottom-nav">
   <button class="nav-item active" data-page="dashboard">
@@ -517,7 +550,7 @@ const DEFAULT_SUBS = [
 // ════════════════════════════════════════════════════════════
 let S = {
   currency:'PLN', currentPage:'dashboard', theme:'dark',
-  language:'es', weekStart:'lunes', currencies:['PLN','COP'],
+  language:'es', weekStart:'lunes', currencies:['PLN','COP'], profile:{name:'',email:'',photo:''},
   accounts:[], transactions:[], categories:[], subcategories:[],
   budgets:[], goals:[], scheduledPayments:[],
   movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},
@@ -559,6 +592,22 @@ function loadState(){
   if(!S.currencies||!S.currencies.length)S.currencies=['PLN','COP'];
   document.documentElement.setAttribute('data-theme',S.theme);
   document.getElementById('theme-btn').textContent=S.theme==='dark'?'☀️':'🌙';
+  // Update drawer profile
+  updateDrawerProfile();
+}
+function updateDrawerProfile(){
+  const name=S.profile&&S.profile.name?S.profile.name:'Mi Perfil';
+  const email=S.profile&&S.profile.email?S.profile.email:'Toca para configurar';
+  const photo=S.profile&&S.profile.photo?S.profile.photo:'';
+  const nameEl=document.getElementById('drawer-profile-name');
+  const emailEl=document.getElementById('drawer-profile-email');
+  const avatarEl=document.getElementById('drawer-avatar');
+  if(nameEl)nameEl.textContent=name;
+  if(emailEl)emailEl.textContent=email;
+  if(avatarEl){
+    if(photo){avatarEl.innerHTML=`<img src="${photo}" alt="foto">`;}
+    else{const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);avatarEl.innerHTML=`<span style="font-size:16px;font-weight:700;color:white">${initials!=='MI'?initials:'👤'}</span>`;}
+  }
 }
 
 function saveState(){try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}}
@@ -761,6 +810,9 @@ function renderPage(page){
     case'analisis':el.innerHTML=renderAnalisis();break;
     case'categorias':el.innerHTML=renderCategorias();break;
     case'configuracion':el.innerHTML=renderConfiguracion();break;
+    case'herramientas':el.innerHTML=renderHerramientas();break;
+    case'calculadora':el.innerHTML=renderCalculadora();break;
+    case'simulador':el.innerHTML=renderSimulador();break;
   }
 }
 function initExchangeWidget(){
@@ -1031,6 +1083,85 @@ function advancePayment(p){
 }
 
 // ════════════════════════════════════════════════════════════
+// REGLA 50/30/20
+// ════════════════════════════════════════════════════════════
+function renderRule502030(){
+  const{inc}=getMonthTotals();
+  if(inc<=0)return`<div class="card" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="card-title" style="margin:0">📊 Regla 50/30/20</div>
+      <div style="font-size:10px;color:var(--text3)">este mes</div>
+    </div>
+    <div style="font-size:12px;color:var(--text2);padding:8px 0">Registra ingresos este mes para ver tu distribución ideal vs. real.</div>
+  </div>`;
+
+  // Classify transactions by nature
+  const txs=S.transactions.filter(t=>{
+    const d=new Date(t.date);const now=new Date();
+    return t.currency===S.currency&&t.type==='gasto'&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  });
+  let nec=0,des=0,aho=0;
+  txs.forEach(t=>{
+    const cat=getCat(t.categoryId);
+    const nature=cat?cat.nature:'deseos';
+    const amt=parseFloat(t.amount)||0;
+    if(nature==='necesidades')nec+=amt;
+    else if(nature==='deseos')des+=amt;
+    else if(nature==='ahorros')aho+=amt;
+  });
+
+  const idealNec=inc*0.5, idealDes=inc*0.3, idealAho=inc*0.2;
+  const rows=[
+    {label:'🔴 NECESIDADES',ideal:idealNec,real:nec,idealPct:50,color:'#EF4444'},
+    {label:'🟡 DESEOS',ideal:idealDes,real:des,idealPct:30,color:'#F59E0B'},
+    {label:'🟢 AHORROS',ideal:idealAho,real:aho,idealPct:20,color:'#10B981'},
+  ];
+
+  const rowsHtml=rows.map(r=>{
+    const realPct=inc>0?Math.round(r.real/inc*100):0;
+    const diff=r.ideal-r.real;
+    const over=diff<0;
+    const obsLabel=over?`⚠ +${fmt(Math.abs(diff))}`:diff===0?'✓ Exacto':`✓ −${fmt(diff)}`;
+    const obsColor=over?'var(--danger)':'var(--success)';
+    const barPct=Math.min(100,r.ideal>0?Math.round(r.real/r.ideal*100):0);
+    const barColor=over?'var(--danger)':realPct>=r.idealPct*0.9?'var(--success)':'var(--warning)';
+    return`<div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-size:12px;font-weight:700">${r.label}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;text-align:center">
+        <div>
+          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">IDEAL</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text)">${r.idealPct}%</div>
+          <div style="font-size:10px;color:var(--text2)">${fmt(r.ideal)}</div>
+        </div>
+        <div>
+          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">REAL</div>
+          <div style="font-size:12px;font-weight:700;color:${r.color}">${realPct}%</div>
+          <div style="font-size:10px;color:var(--text2)">${fmt(r.real)}</div>
+        </div>
+        <div>
+          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">OBSERVACIÓN</div>
+          <div style="font-size:11px;font-weight:700;color:${obsColor}">${obsLabel}</div>
+          <div style="font-size:10px;color:var(--text2)">${over?'Excedido':'Disponible'}</div>
+        </div>
+      </div>
+      <div style="height:8px;background:var(--surface3);border-radius:99px;overflow:hidden">
+        <div style="height:100%;border-radius:99px;background:${barColor};width:${barPct}%;transition:width .4s"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return`<div class="card" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="card-title" style="margin:0">📊 Regla 50/30/20</div>
+      <div style="font-size:10px;color:var(--text3)">Ingresos: ${fmt(inc)}</div>
+    </div>
+    ${rowsHtml}
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════════════
 // DASHBOARD
 // ════════════════════════════════════════════════════════════
 function renderDashboard(){
@@ -1090,6 +1221,7 @@ function renderDashboard(){
         <div style="font-size:10px;color:var(--text3);margin-top:2px">👆 ver cuentas</div>
       </div>
     </div>
+    ${renderRule502030()}
     <div class="section-header"><div class="section-title">📊 ${t('budgets')}</div><button class="btn-text" onclick="navigate('presupuestos')">Ver todos</button></div>
     <div class="card">${budgetHtml}</div>
     <div class="section-header"><div class="section-title">📋 ${t('recentMovements')}</div><button class="btn-text" onclick="navigate('movimientos')">Ver todos</button></div>
@@ -1651,6 +1783,7 @@ const TRANSLATIONS = {
     tapOptions:'👆 opciones',
     version:'Finanzía v3.3 · Datos locales · Hecho con ❤️',
     grpMain:'Principal',grpPlan:'Planificación',grpAnalysis:'Análisis',grpManage:'Gestión',
+    grpMoney:'Mi Dinero',grpReports:'Reportes',grpTools:'Herramientas',grpConfig:'Configuración',aiAssistant:'Asistente IA',loanCalc:'Calculadora préstamo',savingsSim:'Simulador de ahorro',
     noEntity:'Sin entidad',accActive:'Activo',accPassive:'Pasivo',
     newCategory:'Nueva categoría',newSubcategory:'Nueva subcategoría',
     pocket:'Bolsillo',addPocket:'＋ Bolsillo',editAccount:'✏️ Editar',
@@ -1706,6 +1839,7 @@ const TRANSLATIONS = {
     tapOptions:'👆 options',
     version:'Finanzía v3.3 · Local data · Made with ❤️',
     grpMain:'Main',grpPlan:'Planning',grpAnalysis:'Analysis',grpManage:'Management',
+    grpMoney:'My Money',grpReports:'Reports',grpTools:'Tools',grpConfig:'Settings',aiAssistant:'AI Assistant',loanCalc:'Loan calculator',savingsSim:'Savings simulator',
     noEntity:'No entity',accActive:'Asset',accPassive:'Liability',newCategory:'New category',newSubcategory:'New subcategory',pocket:'Pocket',addPocket:'＋ Pocket',editAccount:'✏️ Edit',showMovements:'📋 Transactions',spent:'Spent',remaining:'Remaining',limit:'Limit',monthly:'Monthly',noSubcategory:'No subcategory',goToSettings:'Settings',goal_saved:'Saved',goal_target:'Target',transfer_from:'From account',transfer_to:'To account',add_savings:'Add savings',register_payment:'Register payment',today:'TODAY',overdue:'overdue',
   },
   pl:{
@@ -1749,26 +1883,201 @@ const TRANSLATIONS = {
     tapOptions:'👆 opcje',
     version:'Finanzía v3.3 · Dane lokalne · Zrobione z ❤️',
     grpMain:'Główne',grpPlan:'Planowanie',grpAnalysis:'Analiza',grpManage:'Zarządzanie',
+    grpMoney:'Moje Pieniądze',grpReports:'Raporty',grpTools:'Narzędzia',grpConfig:'Ustawienia',aiAssistant:'Asystent AI',loanCalc:'Kalkulator kredytu',savingsSim:'Symulator oszczędności',
     noEntity:'Brak podmiotu',accActive:'Aktyw',accPassive:'Zobowiązanie',newCategory:'Nowa kategoria',pocket:'Skarbonka',addPocket:'＋ Skarbonka',editAccount:'✏️ Edytuj',showMovements:'📋 Transakcje',spent:'Wydano',remaining:'Pozostało',limit:'Limit',monthly:'Miesięcznie',noSubcategory:'Bez podkategorii',goal_saved:'Zaoszczędzone',goal_target:'Cel',today:'DZIŚ',overdue:'przeterminowane',
   },
   pt:{dashboard:'Início',movements:'Transações',accounts:'Contas',budgets:'Orçamentos',goals:'Metas',payments:'Pagamentos',debts:'Dívidas',analysis:'Análise',categories:'Categorias',settings:'Configurações',income:'Receitas',expenses:'Despesas',savings:'Poupança',savingsRate:'Taxa de poupança',balance:'Saldo total',activeAccounts:'Contas ativas',totalDebts:'Total dívidas',totalSaved:'Total poupado',recentMovements:'Transações recentes',seeAll:'Ver tudo',save:'Salvar',cancel:'Cancelar',delete:'Excluir',edit:'Editar',create:'Criar',income_type:'Receita',expense_type:'Despesa',transfer_type:'Transferência',name:'Nome',amount:'Valor',date:'Data',description:'Descrição',category:'Categoria',subcategory:'Subcategoria',paymentMethod:'Forma de pagamento',currency:'Moeda',account:'Conta',noMovements:'Sem transações',noAccounts:'Sem contas',noGoals:'Sem metas',preferences:'Preferências',appearance:'Aparência',system:'Sistema',language:'Idioma',weekStart:'Início da semana',activeCurrencies:'Moedas ativas',theme:'Tema',dark:'Escuro',light:'Claro',changeTo:'Mudar para',notifications:'Notificações',export:'Exportar',import:'Importar',reset:'Restaurar',resetDesc:'Apaga TODOS os dados',monday:'Segunda',sunday:'Domingo',search:'Buscar...',selected:'selecionadas',spent:'Gasto',remaining:'Restante',addSavings:'Adicionar poupança',registerPayment:'Registrar pagamento',tapOptions:'👆 opções',version:'Finanzía v3.3 · Feito com ❤️',
     grpMain:'Principal',grpPlan:'Planejamento',grpAnalysis:'Análise',grpManage:'Gestão',
+    grpMoney:'Meu Dinheiro',grpReports:'Relatórios',grpTools:'Ferramentas',grpConfig:'Configurações',aiAssistant:'Assistente IA',loanCalc:'Calculadora empréstimo',savingsSim:'Simulador poupança',
     noEntity:'Sem entidade',pocket:'Bolso',editAccount:'✏️ Editar',showMovements:'📋 Transações',spent:'Gasto',remaining:'Restante',limit:'Limite',monthly:'Mensal',noSubcategory:'Sem subcategoria',today:'HOJE',overdue:'vencido',
   },
   fr:{dashboard:'Accueil',movements:'Transactions',accounts:'Comptes',budgets:'Budgets',goals:'Objectifs',payments:'Paiements',debts:'Dettes',analysis:'Analyse',categories:'Catégories',settings:'Paramètres',income:'Revenus',expenses:'Dépenses',savings:'Épargne',savingsRate:"Taux d'épargne",balance:'Solde total',activeAccounts:'Comptes actifs',totalDebts:'Total dettes',totalSaved:'Total épargné',recentMovements:'Transactions récentes',seeAll:'Voir tout',save:'Enregistrer',cancel:'Annuler',delete:'Supprimer',edit:'Modifier',create:'Créer',income_type:'Revenu',expense_type:'Dépense',transfer_type:'Virement',name:'Nom',amount:'Montant',date:'Date',description:'Description',category:'Catégorie',subcategory:'Sous-catégorie',paymentMethod:'Moyen de paiement',currency:'Devise',account:'Compte',noMovements:'Aucune transaction',noAccounts:'Aucun compte',noGoals:'Aucun objectif',preferences:'Préférences',appearance:'Apparence',system:'Système',language:'Langue',weekStart:'Début de semaine',activeCurrencies:'Devises actives',theme:'Thème',dark:'Sombre',light:'Clair',changeTo:'Passer en',notifications:'Notifications',export:'Exporter',import:'Importer',reset:'Réinitialiser',resetDesc:'Supprime TOUTES les données',monday:'Lundi',sunday:'Dimanche',search:'Rechercher...',selected:'sélectionnées',spent:'Dépensé',remaining:'Restant',addSavings:'Ajouter épargne',registerPayment:'Enregistrer paiement',tapOptions:'👆 options',version:'Finanzía v3.3 · Fait avec ❤️',
     grpMain:'Principal',grpPlan:'Planification',grpAnalysis:'Analyse',grpManage:'Gestion',
+    grpMoney:'Mon Argent',grpReports:'Rapports',grpTools:'Outils',grpConfig:'Paramètres',aiAssistant:'Assistant IA',loanCalc:'Calculateur prêt',savingsSim:'Simulateur épargne',
     noEntity:'Sans entité',pocket:'Poche',editAccount:'✏️ Modifier',showMovements:'📋 Transactions',spent:'Dépensé',remaining:'Restant',limit:'Limite',monthly:'Mensuel',noSubcategory:'Sans sous-catégorie',today:'AUJOURD\'HUI',overdue:'expiré',
   },
   de:{dashboard:'Übersicht',movements:'Transaktionen',accounts:'Konten',budgets:'Budgets',goals:'Ziele',payments:'Zahlungen',debts:'Schulden',analysis:'Analyse',categories:'Kategorien',settings:'Einstellungen',income:'Einnahmen',expenses:'Ausgaben',savings:'Ersparnisse',savingsRate:'Sparquote',balance:'Gesamtguthaben',activeAccounts:'Aktive Konten',totalDebts:'Gesamtschulden',totalSaved:'Gespart',recentMovements:'Letzte Transaktionen',seeAll:'Alle sehen',save:'Speichern',cancel:'Abbrechen',delete:'Löschen',edit:'Bearbeiten',create:'Erstellen',income_type:'Einnahme',expense_type:'Ausgabe',transfer_type:'Überweisung',name:'Name',amount:'Betrag',date:'Datum',description:'Beschreibung',category:'Kategorie',subcategory:'Unterkategorie',paymentMethod:'Zahlungsmethode',currency:'Währung',account:'Konto',noMovements:'Keine Transaktionen',noAccounts:'Keine Konten',noGoals:'Keine Ziele',preferences:'Einstellungen',appearance:'Erscheinungsbild',system:'System',language:'Sprache',weekStart:'Wochenstart',activeCurrencies:'Aktive Währungen',theme:'Design',dark:'Dunkel',light:'Hell',changeTo:'Wechseln zu',notifications:'Benachrichtigungen',export:'Exportieren',import:'Importieren',reset:'Zurücksetzen',resetDesc:'Löscht ALLE Daten',monday:'Montag',sunday:'Sonntag',search:'Suchen...',selected:'ausgewählt',spent:'Ausgegeben',remaining:'Verbleibend',addSavings:'Ersparnis hinzufügen',registerPayment:'Zahlung registrieren',tapOptions:'👆 Optionen',version:'Finanzía v3.3 · Mit ❤️ gemacht',
     grpMain:'Hauptmenü',grpPlan:'Planung',grpAnalysis:'Analyse',grpManage:'Verwaltung',
+    grpMoney:'Mein Geld',grpReports:'Berichte',grpTools:'Werkzeuge',grpConfig:'Einstellungen',aiAssistant:'KI-Assistent',loanCalc:'Kreditrechner',savingsSim:'Sparrechner',
     noEntity:'Kein Institut',pocket:'Sparkässchen',editAccount:'✏️ Bearbeiten',showMovements:'📋 Transaktionen',spent:'Ausgegeben',remaining:'Verbleibend',limit:'Limit',monthly:'Monatlich',noSubcategory:'Keine Unterkategorie',today:'HEUTE',overdue:'überfällig',
   },
   it:{dashboard:'Dashboard',movements:'Transazioni',accounts:'Conti',budgets:'Budget',goals:'Obiettivi',payments:'Pagamenti',debts:'Debiti',analysis:'Analisi',categories:'Categorie',settings:'Impostazioni',income:'Entrate',expenses:'Uscite',savings:'Risparmi',savingsRate:'Tasso di risparmio',balance:'Saldo totale',activeAccounts:'Conti attivi',totalDebts:'Totale debiti',totalSaved:'Totale risparmiato',recentMovements:'Transazioni recenti',seeAll:'Vedi tutto',save:'Salva',cancel:'Annulla',delete:'Elimina',edit:'Modifica',create:'Crea',income_type:'Entrata',expense_type:'Uscita',transfer_type:'Trasferimento',name:'Nome',amount:'Importo',date:'Data',description:'Descrizione',category:'Categoria',subcategory:'Sottocategoria',paymentMethod:'Metodo di pagamento',currency:'Valuta',account:'Conto',noMovements:'Nessuna transazione',noAccounts:'Nessun conto',noGoals:'Nessun obiettivo',preferences:'Preferenze',appearance:'Aspetto',system:'Sistema',language:'Lingua',weekStart:'Inizio settimana',activeCurrencies:'Valute attive',theme:'Tema',dark:'Scuro',light:'Chiaro',changeTo:'Passa a',notifications:'Notifiche',export:'Esporta',import:'Importa',reset:'Ripristina',resetDesc:'Elimina TUTTI i dati',monday:'Lunedì',sunday:'Domenica',search:'Cerca...',selected:'selezionate',spent:'Speso',remaining:'Rimanente',addSavings:'Aggiungi risparmio',registerPayment:'Registra pagamento',tapOptions:'👆 opzioni',version:'Finanzía v3.3 · Fatto con ❤️',
     grpMain:'Principale',grpPlan:'Pianificazione',grpAnalysis:'Analisi',grpManage:'Gestione',
+    grpMoney:'I Miei Soldi',grpReports:'Rapporti',grpTools:'Strumenti',grpConfig:'Impostazioni',aiAssistant:'Assistente IA',loanCalc:'Calcolatore prestito',savingsSim:'Simulatore risparmio',
     noEntity:'Nessun istituto',pocket:'Salvadanaio',editAccount:'✏️ Modifica',showMovements:'📋 Transazioni',spent:'Speso',remaining:'Rimanente',limit:'Limite',monthly:'Mensile',noSubcategory:'Nessuna sottocategoria',today:'OGGI',overdue:'scaduto',
   },
 };
 function t(key){const lang=S.language||'es';return(TRANSLATIONS[lang]||TRANSLATIONS.es)[key]||TRANSLATIONS.es[key]||key;}
+
+// ════════════════════════════════════════════════════════════
+// HERRAMIENTAS
+// ════════════════════════════════════════════════════════════
+function renderHerramientas(){
+  return`
+    <div class="balance-card" style="cursor:default;margin-bottom:16px">
+      <div style="font-size:32px;margin-bottom:8px">🤖</div>
+      <div style="font-size:18px;font-weight:800;color:white;margin-bottom:4px">Asistente Financiero IA</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.7)">Tu Wealth Manager personal con 20 años de experiencia</div>
+    </div>
+    <div id="ai-chat-container" style="display:flex;flex-direction:column;gap:0">
+      <div id="ai-messages" style="min-height:200px;max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px">
+        <div class="ai-msg ai-msg-bot">
+          <div>👋 ¡Hola! Soy tu Asistente Financiero. Tengo acceso a tus datos financieros y puedo ayudarte con análisis, consejos y estrategias personalizadas.<br><br>
+          ¿En qué te puedo ayudar hoy?</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+          ${['📊 ¿Cómo está mi salud financiera?','💸 ¿En qué gasto más?','🎯 ¿Cómo voy con mis metas?','⚠️ ¿Puedo pagar mis deudas?'].map(q=>`<button onclick="aiQuickQuestion('${q}')" style="background:var(--surface2);border:1px solid var(--border);color:var(--primary);padding:6px 10px;border-radius:20px;font-size:11px;cursor:pointer;font-family:var(--font)">${q}</button>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input id="ai-input" class="form-input" placeholder="Escribe tu pregunta..." style="flex:1;font-size:14px" onkeydown="if(event.key==='Enter')sendAiMessage()">
+        <button class="btn btn-primary" onclick="sendAiMessage()" style="padding:10px 14px;flex-shrink:0">➤</button>
+      </div>
+    </div>
+  `;
+}
+function renderCalculadora(){
+  return`
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">📐 Calculadora de Préstamo</div>
+      <div class="form-group"><label class="form-label">Monto del préstamo</label><input class="form-input" type="number" id="loan-amount" placeholder="Ej: 10.000.000" oninput="calcLoan()"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Tasa anual (%)</label><input class="form-input" type="number" id="loan-rate" placeholder="Ej: 18" step="0.1" oninput="calcLoan()"></div>
+        <div class="form-group"><label class="form-label">Plazo (meses)</label><input class="form-input" type="number" id="loan-months" placeholder="Ej: 24" oninput="calcLoan()"></div>
+      </div>
+      <div id="loan-result" style="display:none;background:var(--surface2);border-radius:var(--radius);padding:14px;margin-top:4px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Cuota mensual</div><div style="font-size:20px;font-weight:800;color:var(--primary)" id="loan-cuota">—</div></div>
+          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Total a pagar</div><div style="font-size:20px;font-weight:800" id="loan-total">—</div></div>
+          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Total intereses</div><div style="font-size:20px;font-weight:800;color:var(--danger)" id="loan-interest">—</div></div>
+          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Costo financiero</div><div style="font-size:20px;font-weight:800;color:var(--warning)" id="loan-cost-pct">—</div></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function calcLoan(){
+  const P=parseFloat(document.getElementById('loan-amount')?.value)||0;
+  const r=parseFloat(document.getElementById('loan-rate')?.value)||0;
+  const n=parseInt(document.getElementById('loan-months')?.value)||0;
+  const res=document.getElementById('loan-result');
+  if(!P||!r||!n){if(res)res.style.display='none';return;}
+  const rm=r/100/12;
+  const cuota=rm===0?P/n:P*rm*Math.pow(1+rm,n)/(Math.pow(1+rm,n)-1);
+  const total=cuota*n;
+  const interest=total-P;
+  if(res)res.style.display='block';
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('loan-cuota',fmt(cuota));set('loan-total',fmt(total));
+  set('loan-interest',fmt(interest));set('loan-cost-pct',Math.round(interest/P*100)+'%');
+}
+function renderSimulador(){
+  return`
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">💹 Simulador de Ahorro</div>
+      <div class="form-group"><label class="form-label">Ahorro mensual</label><input class="form-input" type="number" id="sim-monthly" placeholder="Ej: 500.000" oninput="calcSim()"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Plazo (años)</label><input class="form-input" type="number" id="sim-years" placeholder="Ej: 5" oninput="calcSim()"></div>
+        <div class="form-group"><label class="form-label">Rendimiento anual (%)</label><input class="form-input" type="number" id="sim-rate" placeholder="Ej: 8" step="0.1" oninput="calcSim()"></div>
+      </div>
+      <div id="sim-result" style="display:none;background:var(--surface2);border-radius:var(--radius);padding:14px;margin-top:4px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Total acumulado</div><div style="font-size:18px;font-weight:800;color:var(--success)" id="sim-total">—</div></div>
+          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Lo que pusiste</div><div style="font-size:18px;font-weight:800" id="sim-invested">—</div></div>
+          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Ganancias</div><div style="font-size:18px;font-weight:800;color:var(--primary)" id="sim-gains">—</div></div>
+          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Multiplicador</div><div style="font-size:18px;font-weight:800;color:var(--warning)" id="sim-mult">—</div></div>
+        </div>
+        <div id="sim-bars" style="display:flex;align-items:flex-end;gap:4px;height:80px;margin-top:8px"></div>
+        <div style="font-size:10px;color:var(--text3);text-align:center;margin-top:4px">Proyección año por año</div>
+      </div>
+    </div>
+  `;
+}
+function calcSim(){
+  const monthly=parseFloat(document.getElementById('sim-monthly')?.value)||0;
+  const years=parseInt(document.getElementById('sim-years')?.value)||0;
+  const rate=parseFloat(document.getElementById('sim-rate')?.value)||0;
+  const res=document.getElementById('sim-result');
+  if(!monthly||!years){if(res)res.style.display='none';return;}
+  const rm=rate/100/12;
+  const n=years*12;
+  const total=rm===0?monthly*n:monthly*(Math.pow(1+rm,n)-1)/rm*(1+rm);
+  const invested=monthly*n;
+  const gains=total-invested;
+  if(res)res.style.display='block';
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('sim-total',fmt(total));set('sim-invested',fmt(invested));
+  set('sim-gains',fmt(gains));set('sim-mult',total>0?(total/invested).toFixed(2)+'x':'—');
+  // Yearly bars
+  const barsEl=document.getElementById('sim-bars');
+  if(barsEl){
+    const yr=[];for(let y=1;y<=Math.min(years,12);y++){const nn=y*12;const v=rm===0?monthly*nn:monthly*(Math.pow(1+rm,nn)-1)/rm*(1+rm);yr.push(v);}
+    const maxV=Math.max(...yr);
+    barsEl.innerHTML=yr.map((v,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px"><div style="width:100%;background:var(--primary);border-radius:3px 3px 0 0;height:${Math.round(v/maxV*70)}px;opacity:${0.4+0.6*(i+1)/yr.length}"></div><div style="font-size:8px;color:var(--text3)">${i+1}a</div></div>`).join('');
+  }
+}
+
+// ── AI Chat ──
+let aiHistory=[];
+async function sendAiMessage(){
+  const input=document.getElementById('ai-input');
+  if(!input)return;
+  const msg=input.value.trim();
+  if(!msg)return;
+  input.value='';
+  appendAiMsg(msg,'user');
+  await callAI(msg);
+}
+function aiQuickQuestion(q){
+  const input=document.getElementById('ai-input');
+  if(input){input.value=q;sendAiMessage();}
+}
+function appendAiMsg(text,role){
+  const container=document.getElementById('ai-messages');
+  if(!container)return;
+  const div=document.createElement('div');
+  div.className=`ai-msg ai-msg-${role==='user'?'user':'bot'}`;
+  div.innerHTML=`<div>${text}</div>`;
+  container.appendChild(div);
+  container.scrollTop=container.scrollHeight;
+}
+async function callAI(userMsg){
+  const loadId='ai-load-'+Date.now();
+  appendAiMsg('⏳ Analizando tus datos...','bot');
+  // Build financial context from user's data
+  const cur=S.currency;
+  const{inc,exp}=getMonthTotals();
+  const bal=getTotalBalance();
+  const debts=S.accounts.filter(a=>a.type==='pasivo'&&(a.currency||cur)===cur).reduce((s,a)=>s+Math.abs(getBalance(a.id)),0);
+  const goals=S.goals.filter(g=>(g.currency||cur)===cur);
+  const topCats=Object.entries(S.transactions.filter(t=>t.type==='gasto'&&t.currency===cur).reduce((acc,t)=>{const cat=getCat(t.categoryId);const n=cat?cat.name:'Otros';acc[n]=(acc[n]||0)+(parseFloat(t.amount)||0);return acc;},{})).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,v])=>n+': '+fmt(v)).join(', ');
+  const context='Eres un Wealth Manager experto con 20 años de experiencia. Analiza estos datos financieros reales del usuario y responde de forma clara, concisa y personalizada en español.\n\nDATOS FINANCIEROS ACTUALES ('+cur+'):\n- Balance total: '+fmt(bal)+'\n- Ingresos este mes: '+fmt(inc)+'\n- Gastos este mes: '+fmt(exp)+'\n- Total deudas: '+fmt(debts)+'\n- Cuentas activas: '+S.accounts.filter(function(a){return a.type==="activo";}).length+'\n- Metas de ahorro: '+goals.length+' metas, total ahorrado: '+fmt(goals.reduce((s,g)=>s+(parseFloat(g.current)||0),0))+'\n- Top gastos por categoría este mes: '+(topCats||'Sin datos')+'\n- Tasa de ahorro: '+(inc>0?Math.round((inc-exp)/inc*100):0)+'%\n\nResponde de forma directa y útil. Máximo 3-4 párrafos. Usa datos concretos del usuario.'
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:context,
+        messages:[...aiHistory,{role:'user',content:userMsg}]
+      })
+    });
+    const data=await res.json();
+    const reply=data.content?data.content.map(b=>b.text||'').join(''):'No pude obtener respuesta.';
+    // Remove loading message
+    const msgs=document.getElementById('ai-messages');
+    if(msgs){const last=msgs.lastElementChild;if(last&&last.textContent.includes('Analizando'))last.remove();}
+    appendAiMsg(reply,'bot');
+    aiHistory=[...aiHistory,{role:'user',content:userMsg},{role:'assistant',content:reply}];
+    if(aiHistory.length>20)aiHistory=aiHistory.slice(-20);
+  }catch(e){
+    const msgs=document.getElementById('ai-messages');
+    if(msgs){const last=msgs.lastElementChild;if(last&&last.textContent.includes('Analizando'))last.remove();}
+    appendAiMsg('⚠️ Error al conectar con el asistente. Verifica tu conexión.','bot');
+  }
+}
 
 // ════════════════════════════════════════════════════════════
 // CONFIGURACIÓN
@@ -1906,8 +2215,9 @@ function saveLanguage(v){
 function applyLanguage(){
   // Update drawer group labels
   const grps={
-    'dgl-principal':'grpMain','dgl-planificacion':'grpPlan',
-    'dgl-analisis':'grpAnalysis','dgl-gestion':'grpManage'
+    'dgl-principal':'grpMain','dgl-midinero':'grpMoney',
+    'dgl-planificacion':'grpPlan','dgl-reportes':'grpReports',
+    'dgl-herramientas':'grpTools','dgl-configuracion':'grpConfig'
   };
   Object.entries(grps).forEach(([id,key])=>{
     const el=document.getElementById(id);
@@ -1918,12 +2228,14 @@ function applyLanguage(){
     'dmi-dashboard':'dashboard','dmi-movimientos':'movements','dmi-cuentas':'accounts',
     'dmi-presupuestos':'budgets','dmi-metas':'goals','dmi-pagos':'payments',
     'dmi-deudas':'debts','dmi-analisis':'analysis','dmi-categorias':'categories',
-    'dmi-configuracion':'settings'
+    'dmi-configuracion':'settings','dmi-herramientas':'aiAssistant',
+    'dmi-calculadora':'loanCalc','dmi-simulador':'savingsSim'
   };
   const icons={
     'dmi-dashboard':'🏠','dmi-movimientos':'📋','dmi-cuentas':'💳','dmi-presupuestos':'📊',
     'dmi-metas':'🎯','dmi-pagos':'🔔','dmi-deudas':'💸','dmi-analisis':'📈',
-    'dmi-categorias':'🏷️','dmi-configuracion':'⚙️'
+    'dmi-categorias':'🏷️','dmi-configuracion':'⚙️','dmi-herramientas':'🤖',
+    'dmi-calculadora':'📐','dmi-simulador':'💹'
   };
   Object.entries(pages).forEach(([id,key])=>{
     const el=document.getElementById(id);
