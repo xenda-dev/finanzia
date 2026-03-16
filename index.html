@@ -538,8 +538,15 @@ function loadState(){
     S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));
   }
   // Ensure protected Efectivo account exists
-  if(!S.accounts.find(a=>a.id==='efectivo-default')){
-    S.accounts.unshift({id:'efectivo-default',name:'Efectivo',type:'activo',subtype:'efectivo',currency:'PLN',bankEntity:'',initialBalance:0,icon:'💵',color:'#10B981',protected:true});
+  // Ensure efectivo-default exists and is always protected
+  const efAcc=S.accounts.find(a=>a.id==='efectivo-default');
+  if(!efAcc){
+    S.accounts.unshift({id:'efectivo-default',name:'Efectivo',type:'activo',subtype:'efectivo',currency:'PLN',bankEntity:'',initialBalance:0,icon:'💵',color:'#10B981',protected:true,subAccounts:[]});
+  } else {
+    // Re-stamp protected in case it was lost during import/load
+    efAcc.protected=true;
+    efAcc.subtype='efectivo';
+    efAcc.subAccounts=[];// efectivo never has sub-accounts
   }
   if(!S.movFilter)S.movFilter={tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''};
   if(!S.analysisPeriod)S.analysisPeriod='Mensual';
@@ -1030,7 +1037,7 @@ function renderDashboard(){
   const urgentPayments=S.scheduledPayments.filter(p=>daysUntil(p.nextDate)<=3&&daysUntil(p.nextDate)>=0);
   const overduePayments=S.scheduledPayments.filter(p=>daysUntil(p.nextDate)<0);
   const budgets=S.budgets.filter(b=>(b.currency||S.currency)===S.currency).slice(0,3);
-  const recentTxs=[...S.transactions].filter(t=>t.currency===S.currency).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  const recentTxs=[...S.transactions].filter(t=>t.currency===S.currency).sort((a,b)=>{const dd=new Date(b.date)-new Date(a.date);if(dd!==0)return dd;return b.id>a.id?1:-1;}).slice(0,5);
 
   const budgetHtml=budgets.length?budgets.map(b=>{
     const spent=getBudgetSpent(b);
@@ -1109,7 +1116,7 @@ function txRow(t){
 // ════════════════════════════════════════════════════════════
 function renderMovimientos(){
   const f=S.movFilter;
-  let txs=[...S.transactions].filter(t=>t.currency===S.currency).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  let txs=[...S.transactions].filter(t=>t.currency===S.currency).sort((a,b)=>{const dd=new Date(b.date)-new Date(a.date);if(dd!==0)return dd;return b.id>a.id?1:-1;});
   if(f.tab!=='todos')txs=txs.filter(t=>t.type===f.tab);
   if(f.search){const q=f.search.toLowerCase();txs=txs.filter(t=>{const cat=getCat(t.categoryId);const acc=getAcc(t.accountId);return(cat&&cat.name.toLowerCase().includes(q))||(acc&&acc.name.toLowerCase().includes(q))||(t.description&&t.description.toLowerCase().includes(q));});}
   if(f.dateFrom)txs=txs.filter(t=>t.date>=f.dateFrom);
@@ -1186,8 +1193,8 @@ function renderCuentas(){
           </div>`:''}
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             <button style="flex:1;min-width:80px;padding:9px 6px;border-radius:10px;border:none;background:rgba(59,130,246,.4);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="viewAccountMovements('${a.id}')">📋 Movimientos</button>
-            ${!a.protected?`<button style="flex:1;min-width:70px;padding:9px 6px;border-radius:10px;border:none;background:rgba(255,255,255,.2);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="event.stopPropagation();editAcc('${a.id}')">✏️ Editar</button>
-            <button style="flex:1;min-width:80px;padding:9px 6px;border-radius:10px;border:none;background:rgba(0,212,170,.25);color:#6FFFDF;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="openModal('subAccount',{parentId:'${a.id}'})">＋ Bolsillo</button>`:''}
+            ${(a.subtype!=='efectivo'&&!a.protected)?`<button style="flex:1;min-width:70px;padding:9px 6px;border-radius:10px;border:none;background:rgba(255,255,255,.2);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="event.stopPropagation();editAcc('${a.id}')">✏️ Editar</button>
+            <button style="flex:1;min-width:80px;padding:9px 6px;border-radius:10px;border:none;background:rgba(0,212,170,.25);color:#6FFFDF;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="openModal('subAccount',{parentId:'${a.id}'})">＋ Bolsillo</button>`:'<button style="flex:1;min-width:70px;padding:9px 6px;border-radius:10px;border:none;background:rgba(255,255,255,.2);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="event.stopPropagation();editAcc(\"${a.id}\")">✏️ Editar</button>'}
           </div>`:`
           <div style="display:flex;gap:6px">
             <button style="flex:1;padding:9px;border-radius:10px;border:none;background:rgba(59,130,246,.4);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="viewAccountMovements('${a.id}')">📋 Movimientos</button>
@@ -1991,7 +1998,7 @@ function buildModal(type,data){
     case'filterMovimientos':return drag+buildFilterModal();
     case'balanceDistribution':return drag+buildBalanceDistModal();
     case'debtPayment':return drag+buildDebtPaymentModal(data);
-    case'subAccount':return drag+buildSubAccountModal(data);
+    case'subAccount':{const parentAcc=S.accounts.find(a=>a.id===data.parentId);if(parentAcc&&(parentAcc.protected||parentAcc.subtype==='efectivo')){toast('Esta cuenta no puede tener bolsillos');return'';}return drag+buildSubAccountModal(data);}
     default:return drag+'<div class="modal-body">Sin contenido</div>';
   }
 }
@@ -2101,6 +2108,14 @@ function saveTx(){
   else{S.transactions.push(tx);toast('Registrado ✓');}
   saveState();closeModal();renderPage(S.currentPage);
 }
+function editTx(id){
+  // Close current modal by clearing the backdrop, then open edit
+  const root=document.getElementById('modal-root');
+  const sheet=document.getElementById('modal-sheet');
+  if(root)root.classList.remove('open');
+  if(sheet)sheet.innerHTML='';
+  setTimeout(()=>openModal('transaction',{id:id}),150);
+}
 function deleteTx(id){
   confirmDialog('🗑️','¿Eliminar movimiento?','Esta acción no se puede deshacer.',()=>{
     const tx=S.transactions.find(t=>t.id===id);
@@ -2148,43 +2163,83 @@ function buildViewTxModal(data){
       <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Fecha</span><span>${tx.date}</span></div>
       <div style="display:flex;justify-content:space-between;padding:10px 0"><span style="color:var(--text2)">Descripción</span><span style="max-width:60%;text-align:right">${tx.description||'–'}</span></div>
     </div>
-    <div class="btn-row" style="margin-top:16px"><button class="btn btn-secondary" onclick="closeModal();setTimeout(()=>openModal('transaction',{id:'${tx.id}'}),200)">✏️ Editar</button><button class="btn btn-danger" onclick="deleteTx('${tx.id}')">Eliminar</button></div>
+    <div class="btn-row" style="margin-top:16px"><button class="btn btn-secondary" onclick="editTx('${tx.id}')">✏️ Editar</button><button class="btn btn-danger" onclick="deleteTx('${tx.id}')">Eliminar</button></div>
   </div>`;
 }
 
 // ─── BALANCE DISTRIBUTION MODAL ───
 function buildBalanceDistModal(){
-  const accs=S.accounts.filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency);
+  const cur=S.currency;
+  const accs=S.accounts.filter(a=>a.type==='activo'&&(a.currency||cur)===cur);
+  // Total disponible = balance total - lo ahorrado en metas
+  const totalGoalSaved=S.goals.filter(g=>(g.currency||cur)===cur).reduce((s,g)=>s+(parseFloat(g.current)||0),0);
   const totalBal=accs.reduce((s,a)=>s+Math.max(0,getBalance(a.id)),0);
-  const sorted=[...accs].map(a=>({...a,bal:getBalance(a.id)})).sort((a,b)=>b.bal-a.bal);
+  const totalDisp=Math.max(0,totalBal-totalGoalSaved);
+
+  // For each account, calculate its "available" portion
+  // Strategy: subtract goal savings proportionally from accounts,
+  // but simpler: show each account balance minus its share of goal savings
+  // Actually simplest & most correct: show each account's real balance,
+  // but label the total as "Disponible" and note that savings are excluded.
+  // The disponible value is totalBal - totalGoalSaved.
+  // We show accounts at their real balances but the total shown = disponible.
+
+  const sorted=[...accs].map(a=>({...a,bal:Math.max(0,getBalance(a.id))}))
+    .sort((a,b)=>b.bal-a.bal)
+    .filter(a=>a.bal>0);
+
+  // Build goal savings note
+  const goalsNote=totalGoalSaved>0?
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);opacity:.7">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:10px;height:10px;border-radius:50%;background:var(--primary);flex-shrink:0"></div>
+        <div style="font-size:13px;font-weight:600;color:var(--text2)">🎯 Ahorrado en metas</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:14px;font-weight:700;color:var(--primary)">−${fmt(totalGoalSaved,cur)}</div>
+        <div style="font-size:11px;color:var(--text3)">no disponible</div>
+      </div>
+    </div>`:'';
 
   let donutPaths='',listItems='';let offset=0;
   const r=54,cx=64,cy=64,circ=2*Math.PI*r;
-  sorted.filter(a=>a.bal>0).forEach((a,i)=>{
+
+  // If there are goal savings, add them as a "locked" segment in the donut
+  if(totalGoalSaved>0&&totalBal>0){
+    const goalPct=Math.min(1,totalGoalSaved/totalBal);
+    const goalDash=goalPct*circ;
+    donutPaths+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--primary)" stroke-width="20" stroke-dasharray="${goalDash} ${circ-goalDash}" stroke-dashoffset="0" stroke-opacity="0.3" transform="rotate(-90 ${cx} ${cy})"/>`;
+    offset+=goalDash;
+  }
+
+  sorted.forEach((a,i)=>{
     const pct=totalBal>0?a.bal/totalBal:0;const dash=pct*circ;
-    const b=getBank(a.bankEntity,a.currency||S.currency);
+    const b=getBank(a.bankEntity,a.currency||cur);
     const color=b?b.color:COLORS_PALETTE[i%COLORS_PALETTE.length];
     donutPaths+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="20" stroke-dasharray="${dash} ${circ-dash}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"/>`;
     offset+=dash;
+    // Show % of disponible, not of total
+    const pctDisp=totalDisp>0?Math.round(a.bal/totalBal*(totalDisp>0?totalBal/totalDisp:1)*100):0;
     listItems+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
       <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></div>
-      ${bankBadge(a.bankEntity,a.currency||S.currency,36)}
+      ${bankBadge(a.bankEntity,a.currency||cur,36)}
       <div style="flex:1"><div style="font-size:13px;font-weight:600">${a.name}</div></div>
-      <div style="text-align:right"><div style="font-size:14px;font-weight:700">${fmt(a.bal,a.currency||S.currency)}</div><div style="font-size:11px;color:var(--text2)">${totalBal>0?Math.round(a.bal/totalBal*100):0}%</div></div>
+      <div style="text-align:right"><div style="font-size:14px;font-weight:700">${fmt(a.bal,a.currency||cur)}</div><div style="font-size:11px;color:var(--text2)">${totalBal>0?Math.round(a.bal/totalBal*100):0}%</div></div>
     </div>`;
   });
 
-  return`<div class="modal-header"><div class="modal-title">Distribución del balance</div><button class="modal-close" onclick="closeModal()">×</button></div>
+  return`<div class="modal-header"><div class="modal-title">💎 Total disponible</div><button class="modal-close" onclick="closeModal()">×</button></div>
   <div class="modal-body">
-    <div style="text-align:center;margin-bottom:4px">
+    <div style="text-align:center;margin-bottom:12px">
       <svg width="128" height="128" viewBox="0 0 128 128" style="display:block;margin:0 auto">
         <circle cx="64" cy="64" r="54" fill="none" stroke="var(--surface3)" stroke-width="20"/>
         ${donutPaths}
-        <text x="64" y="60" text-anchor="middle" fill="var(--text2)" font-size="10">Total</text>
-        <text x="64" y="76" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="bold">${S.currency}</text>
+        <text x="64" y="58" text-anchor="middle" fill="var(--text2)" font-size="9">Disponible</text>
+        <text x="64" y="74" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="bold">${fmt(totalDisp,cur)}</text>
       </svg>
-      <div style="font-size:24px;font-weight:800;margin:8px 0">${fmt(totalBal)}</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:4px">Balance: ${fmt(totalBal,cur)} · Ahorrado: ${fmt(totalGoalSaved,cur)}</div>
     </div>
+    ${goalsNote}
     ${listItems||'<div style="color:var(--text2);font-size:13px;text-align:center;padding:16px">Sin cuentas activas con saldo</div>'}
   </div>`;
 }
