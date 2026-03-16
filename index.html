@@ -907,13 +907,22 @@ function getMonthTotals(period){
     return t.currency===S.currency&&d>=from&&d<=to;
   });
   // Exclude internal transfers: transactions whose description starts with 'Ahorro →'/'Ahorro:' or are paired transfers
-  const isInternal=(t)=>{
+  // Exclude internal movements from INCOME (keep goal savings as EXPENSE - user is correct)
+  const isInternalIncome=(t)=>{
     if(!t.description)return false;
     const d=t.description;
-    return d.startsWith('Ahorro →')||d.startsWith('Ahorro:')||d.startsWith('AUTO:')||d.startsWith('Pago deuda:')||d.startsWith('Abono:');
+    // These are internal credits that don't represent real new money coming in
+    return d.startsWith('Ahorro:')||d.startsWith('AUTO:')||d.startsWith('Abono:');
   };
-  const inc=txs.filter(t=>t.type==='ingreso'&&!isInternal(t)).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
-  const exp=txs.filter(t=>t.type==='gasto'&&!isInternal(t)).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+  // Exclude from expense: only the paying side of debt payments (the income to the debt account)
+  // Goal savings expenses (Ahorro →) ARE real expenses - user is correct
+  const isInternalExpense=(t)=>{
+    if(!t.description)return false;
+    const d=t.description;
+    return d.startsWith('Pago deuda:')||d.startsWith('AUTO:');
+  };
+  const inc=txs.filter(t=>t.type==='ingreso'&&!isInternalIncome(t)).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+  const exp=txs.filter(t=>t.type==='gasto'&&!isInternalExpense(t)).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
   return{inc,exp};
 }
 
@@ -1040,8 +1049,7 @@ function renderDashboard(){
   return`
     ${alertHtml}
     <div id="exchange-widget" class="exchange-widget"></div>
-    <div class="balance-card" onclick="openModal('balanceDistribution',{})">
-      <div class="balance-tap-hint">👆 Toca para ver distribución</div>
+    <div class="balance-card">
       <div class="balance-label">Balance total (${S.currency})</div>
       <div class="balance-amount">${fmt(bal)}</div>
       <div class="balance-row">
@@ -1050,21 +1058,25 @@ function renderDashboard(){
       </div>
     </div>
     <div class="kpi-row">
+      <div class="kpi-card" style="cursor:pointer" onclick="openModal('balanceDistribution',{})">
+        <div class="kpi-label">💎 Total disponible</div>
+        <div class="kpi-val" style="font-size:13px;color:var(--primary)">${fmt(bal-totalGoalSavings>=0?bal-totalGoalSavings:0)}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">👆 ver distribución</div>
+      </div>
       <div class="kpi-card" style="cursor:pointer" onclick="navigate('metas')">
         <div class="kpi-label">🎯 Total ahorrado</div>
         <div class="kpi-val" style="font-size:13px;color:var(--success)">${fmt(totalGoalSavings)}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">${S.goals.filter(g=>(g.currency||S.currency)===S.currency).length} metas · ${t('tapOptions')||'toca para ver'}</div>
-      </div>
-      <div class="kpi-card"><div class="kpi-label">Tasa ahorro</div><div class="kpi-val" style="font-size:15px;color:${savingsRate<=0?'var(--text2)':savingsRate>=20?'var(--success)':savingsRate>=10?'var(--warning)':'var(--danger)'}">${savingsRate<=0?'0%':savingsRate+'%'}</div></div>
-      <div class="kpi-card" style="cursor:pointer" onclick="navigate('cuentas')">
-        <div class="kpi-label">💳 Cuentas activas</div>
-        <div class="kpi-val">${S.accounts.filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency).length}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">${t('tapOptions')||'toca para ver'}</div>
+        <div style="font-size:10px;color:${savingsRate<=0?'var(--text3)':savingsRate>=20?'var(--success)':savingsRate>=10?'var(--warning)':'var(--danger)'};margin-top:2px">${savingsRate<=0?'—':savingsRate+'% del ingreso'}</div>
       </div>
       <div class="kpi-card" style="cursor:pointer" onclick="navigate('deudas')">
         <div class="kpi-label">💸 Total deudas</div>
         <div class="kpi-val" style="font-size:13px;color:var(--danger)">${fmt(S.accounts.filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency).reduce((s,a)=>s+Math.abs(getBalance(a.id)),0))}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px">${t('tapOptions')||'toca para ver'}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">👆 ver deudas</div>
+      </div>
+      <div class="kpi-card" style="cursor:pointer" onclick="navigate('cuentas')">
+        <div class="kpi-label">💳 Cuentas activas</div>
+        <div class="kpi-val">${S.accounts.filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency).length}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">👆 ver cuentas</div>
       </div>
     </div>
     <div class="section-header"><div class="section-title">📊 ${t('budgets')}</div><button class="btn-text" onclick="navigate('presupuestos')">Ver todos</button></div>
@@ -1172,11 +1184,15 @@ function renderCuentas(){
             </div>`).join('')}
             <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px">Cuenta: ${fmt(mainBal,a.currency||cur)}</div>
           </div>`:''}
-          <div style="display:flex;gap:8px">
-            <button style="flex:1;padding:9px;border-radius:10px;border:none;background:rgba(255,255,255,.2);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="event.stopPropagation();editAcc('${a.id}')">✏️ Editar</button>
-            <button style="flex:1;padding:9px;border-radius:10px;border:none;background:rgba(0,212,170,.25);color:#6FFFDF;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="openModal('subAccount',{parentId:'${a.id}'})">＋ Bolsillo</button>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button style="flex:1;min-width:80px;padding:9px 6px;border-radius:10px;border:none;background:rgba(59,130,246,.4);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="viewAccountMovements('${a.id}')">📋 Movimientos</button>
+            ${!a.protected?`<button style="flex:1;min-width:70px;padding:9px 6px;border-radius:10px;border:none;background:rgba(255,255,255,.2);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="event.stopPropagation();editAcc('${a.id}')">✏️ Editar</button>
+            <button style="flex:1;min-width:80px;padding:9px 6px;border-radius:10px;border:none;background:rgba(0,212,170,.25);color:#6FFFDF;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="openModal('subAccount',{parentId:'${a.id}'})">＋ Bolsillo</button>`:''}
           </div>`:`
-          <button style="width:100%;padding:9px;border-radius:10px;border:none;background:rgba(255,255,255,.2);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="event.stopPropagation();editAcc('${a.id}')">✏️ Editar cuenta</button>
+          <div style="display:flex;gap:6px">
+            <button style="flex:1;padding:9px;border-radius:10px;border:none;background:rgba(59,130,246,.4);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="viewAccountMovements('${a.id}')">📋 Movimientos</button>
+            <button style="flex:1;padding:9px;border-radius:10px;border:none;background:rgba(255,255,255,.2);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="event.stopPropagation();editAcc('${a.id}')">✏️ Editar cuenta</button>
+          </div>
         `}
       </div>
     </div>`;
@@ -2132,7 +2148,7 @@ function buildViewTxModal(data){
       <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Fecha</span><span>${tx.date}</span></div>
       <div style="display:flex;justify-content:space-between;padding:10px 0"><span style="color:var(--text2)">Descripción</span><span style="max-width:60%;text-align:right">${tx.description||'–'}</span></div>
     </div>
-    <div class="btn-row" style="margin-top:16px"><button class="btn btn-secondary" onclick="openModal('transaction',{id:'${tx.id}'})">✏️ Editar</button><button class="btn btn-danger" onclick="deleteTx('${tx.id}')">Eliminar</button></div>
+    <div class="btn-row" style="margin-top:16px"><button class="btn btn-secondary" onclick="closeModal();setTimeout(()=>openModal('transaction',{id:'${tx.id}'}),200)">✏️ Editar</button><button class="btn btn-danger" onclick="deleteTx('${tx.id}')">Eliminar</button></div>
   </div>`;
 }
 
@@ -2427,32 +2443,34 @@ function buildAddToGoalModal(data){
   const cur=g.currency||S.currency;
   const allAccOpts=accountOptionsByCur(cur,'');
   const destOpts=accountOptionsByCur(cur,g.accountId||'');
+  // Pre-load category/subcategory from goal
+  const presetCat=g.categoryId?getCat(g.categoryId):null;
+  const presetSub=g.subcategoryId?getSub(g.subcategoryId):null;
+  const catDisplay=presetCat?`${presetCat.icon} ${presetCat.name}`:'Sin categoría';
+  const subDisplay=presetSub?`${presetSub.icon} ${presetSub.name}`:'';
+  const payOpts=PAYMENT_METHODS.map(m=>`<option value="${m}">${m}</option>`).join('');
   return`<div class="modal-header"><div class="modal-title">Agregar ahorro</div><button class="modal-close" onclick="closeModal()">×</button></div>
   <div class="modal-body">
     <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px">
       <div style="font-size:13px;font-weight:700">${g.icon||'🎯'} ${g.name}</div>
       <div style="font-size:12px;color:var(--text2);margin-top:4px">Ahorrado: <strong>${fmt(g.current,cur)}</strong> de <strong>${fmt(g.target,cur)}</strong></div>
+      ${presetCat?`<div style="font-size:11px;color:var(--primary);margin-top:4px">📂 ${catDisplay}${subDisplay?' · '+subDisplay:''}</div>`:''}
     </div>
     <input type="hidden" id="atg-goal-id" value="${g.id}">
     <div class="form-group"><label class="form-label">Monto a agregar</label><input class="form-input" type="number" id="atg-amount" placeholder="0.00" step="0.01"></div>
     <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" type="date" id="atg-date" value="${todayStr()}"></div>
     <div class="form-group">
-      <label class="form-label">Cuenta origen (de donde sale el dinero)</label>
+      <label class="form-label">Cuenta origen (de donde sale)</label>
       <select class="form-select" id="atg-from-account">${allAccOpts}</select>
     </div>
     <div class="form-group">
-      <label class="form-label">Cuenta destino (donde se guarda el ahorro)</label>
+      <label class="form-label">Cuenta destino (donde se guarda)</label>
       <select class="form-select" id="atg-to-account">${destOpts}</select>
       ${linkedAcc?`<div style="font-size:11px;color:var(--primary);margin-top:4px">⭐ Vinculada: ${linkedAcc.name}</div>`:''}
     </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Categoría</label><select class="form-select" id="atg-cat" onchange="updateSubs(this.value,'atg-sub')">${catOptions('gasto')}</select></div>
-      <div class="form-group"><label class="form-label">Subcategoría</label><select class="form-select" id="atg-sub"><option value="">Sin subcategoría</option></select></div>
-    </div>
-    <div style="background:rgba(0,212,170,.07);border:1px solid rgba(0,212,170,.2);border-radius:var(--radius-sm);padding:10px;margin-bottom:14px;font-size:12px;color:var(--text2)">
-      ℹ️ Genera un <strong>gasto</strong> en la cuenta origen y un <strong>ingreso</strong> en la cuenta destino. Los saldos se actualizan automáticamente.
-    </div>
-    <button class="btn btn-primary" onclick="saveAddToGoal()">Agregar ahorro</button>
+    <div class="form-group"><label class="form-label">Medio de pago</label><select class="form-select" id="atg-payment"><option value="">Sin especificar</option>${payOpts}</select></div>
+    ${(()=>{if(!presetCat)return'<div class="form-row"><div class="form-group"><label class="form-label">Categoría</label><select class="form-select" id="atg-cat" onchange="updateSubs(this.value,\'atg-sub\')">'+catOptions('gasto')+'</select></div><div class="form-group"><label class="form-label">Subcategoría</label><select class="form-select" id="atg-sub"><option value="">Sin subcategoría</option></select></div></div>';return '<input type="hidden" id="atg-cat" value="'+(g.categoryId||'')+'"><input type="hidden" id="atg-sub" value="'+(g.subcategoryId||'')+'">';})()}
+    <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="saveAddToGoal()">💰 Agregar ahorro</button>
   </div>`;
 }
 function saveAddToGoal(){
@@ -2471,8 +2489,9 @@ function saveAddToGoal(){
   // Use goal's preset category, or fall back to atg-cat selector
   const catId=(g.categoryId)||document.getElementById('atg-cat')?.value||getAutoCategory('Ahorros','gasto')?.id||'';
   const subId=(g.subcategoryId)||document.getElementById('atg-sub')?.value||'';
-  S.transactions.push({id:uid(),type:'gasto',accountId:fromAccId,categoryId:catId,subcategoryId:subId,amount,currency:cur,date,description:'Ahorro → '+g.name,paymentMethod:''});
-  S.transactions.push({id:uid(),type:'ingreso',accountId:toAccId,categoryId:catId,subcategoryId:subId,amount,currency:cur,date,description:'Ahorro: '+g.name,paymentMethod:''});
+  const payMethod=document.getElementById('atg-payment')?.value||'';
+  S.transactions.push({id:uid(),type:'gasto',accountId:fromAccId,categoryId:catId,subcategoryId:subId,amount,currency:cur,date,description:'Ahorro → '+g.name,paymentMethod:payMethod});
+  S.transactions.push({id:uid(),type:'ingreso',accountId:toAccId,categoryId:catId,subcategoryId:subId,amount,currency:cur,date,description:'Ahorro: '+g.name,paymentMethod:payMethod});
   g.current=(parseFloat(g.current)||0)+amount;
   saveState();closeModal();renderPage('metas');
   toast(`+${fmt(amount,cur)} agregado a "${g.name}" ✓`);
@@ -2521,10 +2540,9 @@ function updatePayAccounts(cur){
 function editAcc(id){event&&event.stopPropagation();setTimeout(()=>openModal('account',{id:id}),10);}
 function newAcc(defaultType){setTimeout(()=>openModal('account',defaultType?{defaultType}:{}),10);}
 function viewAccountMovements(accId){
-  S.movFilter={...S.movFilter,accountId:accId,tab:'todos'};
+  S.movFilter={tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:accId,payMethod:''};
   saveState();
   navigate('movimientos');
-  setTimeout(()=>renderPage('movimientos'),50);
 }
 function toggleAccCard(cardId,event){
   // Don't toggle if clicking inside actions panel or on a button
