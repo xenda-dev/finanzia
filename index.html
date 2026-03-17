@@ -73,7 +73,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .drawer-item:hover,.drawer-item.active{color:var(--text);background:var(--surface2)}
 .drawer-item.active{border-left:3px solid var(--primary);padding-left:17px}
 .drawer-item-icon{width:30px;height:30px;border-radius:8px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.ai-chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 180px);min-height:400px;background:var(--surface);border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border)}
+.ai-chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 56px);background:var(--surface);overflow:hidden;margin:-16px}
 .ai-chat-header{background:linear-gradient(135deg,#075E54,#128C7E);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
 .ai-chat-avatar{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .ai-chat-info{flex:1}
@@ -94,6 +94,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .ai-input-area:focus{border-color:var(--primary)}
 .ai-send-btn{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#075E54,#128C7E);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.2s}
 .ai-send-btn:active{transform:scale(.92)}
+.ai-attach-btn{width:36px;height:36px;border-radius:50%;background:none;border:none;color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0}
+.ai-input-area:empty:before{content:attr(data-placeholder);color:var(--text3);pointer-events:none}
 .ai-input-area:empty:before{content:attr(data-placeholder);color:var(--text3);pointer-events:none}
 .ai-quick-btns{display:flex;flex-wrap:wrap;gap:5px;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border)}
 .ai-quick-btn{background:var(--surface2);border:1px solid var(--border);color:var(--primary);padding:5px 10px;border-radius:16px;font-size:11px;cursor:pointer;font-family:var(--font);white-space:nowrap}
@@ -1990,48 +1992,46 @@ function t(key){const lang=S.language||'es';return(TRANSLATIONS[lang]||TRANSLATI
 // HERRAMIENTAS
 // ════════════════════════════════════════════════════════════
 function renderHerramientas(){
-  // Restore chat history if it exists
-  setTimeout(()=>{
-    const msgs=document.getElementById('ai-messages');
-    if(msgs&&aiHistory.length>0){msgs.scrollTop=msgs.scrollHeight;}
-    // Make contenteditable input work
-    const inp=document.getElementById('ai-input-div');
-    if(inp){inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAiMessage();}});}
+  setTimeout(function(){
+    var msgs=document.getElementById('ai-messages');
+    if(msgs&&aiHistory.length>0)msgs.scrollTop=msgs.scrollHeight;
   },50);
-  const now=new Date();
-  const timeStr=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
-  return`
-    <div class="ai-chat-wrap">
-      <!-- Header like WhatsApp -->
-      <div class="ai-chat-header">
-        <div class="ai-chat-avatar">🤖</div>
-        <div class="ai-chat-info">
-          <div class="ai-chat-name">Emiliano</div>
-          <div class="ai-chat-status">💼 Wealth Manager · FinanzIA</div>
-        </div>
-      </div>
-      <!-- Quick questions -->
-      <div class="ai-quick-btns">
-        ${['📊 Salud financiera','💸 ¿En qué gasto más?','🎯 Mis metas','⚠️ Mis deudas'].map(q=>`<button class="ai-quick-btn" onclick="aiQuickQuestion('${q}')">${q}</button>`).join('')}
-      </div>
-      <!-- Messages area -->
-      <div class="ai-messages" id="ai-messages">
-        <div class="ai-date-sep"><span>Hoy</span></div>
-        <div class="ai-msg ai-msg-bot">
-          <div>👋 ¡Hola! Soy <strong>Emiliano</strong>, tu Wealth Manager personal. Tengo acceso a tus datos financieros en tiempo real y puedo ayudarte con análisis, estrategias y consejos personalizados.<br><br>¿En qué te puedo ayudar hoy?</div>
-          <div class="ai-msg-time">${timeStr}</div>
-        </div>
-      </div>
-      <!-- Input bar like WhatsApp -->
-      <div class="ai-input-bar">
-        <div id="ai-input-div" class="ai-input-area" contenteditable="true" placeholder="Mensaje a Emiliano..." data-placeholder="Mensaje a Emiliano..."></div>
-        <button class="ai-send-btn" onclick="sendAiMessage()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
-        </button>
-      </div>
-    </div>
-  `;
+  var now=new Date();
+  var hh=now.getHours().toString().padStart(2,'0');
+  var mm=now.getMinutes().toString().padStart(2,'0');
+  var timeStr=hh+':'+mm;
+  var quickBtns=['📊 Salud financiera','💸 ¿En qué gasto más?','🎯 Mis metas','⚠️ Mis deudas'].map(function(q){
+    return '<button class="ai-quick-btn" onclick="aiQuickQuestion(\'' + q + '\')">'+q+'</button>';
+  }).join('');
+  return '<div class="ai-chat-wrap">'
+    +'<div class="ai-chat-header">'
+      +'<div class="ai-chat-avatar">🤖</div>'
+      +'<div class="ai-chat-info">'
+        +'<div class="ai-chat-name">Emiliano</div>'
+        +'<div class="ai-chat-status">💼 Wealth Manager · FinanzIA</div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="ai-quick-btns">'+quickBtns+'</div>'
+    +'<div class="ai-messages" id="ai-messages">'
+      +'<div class="ai-date-sep"><span>Hoy</span></div>'
+      +'<div class="ai-msg ai-msg-bot">'
+        +'<div>👋 ¡Hola! Soy <strong>Emiliano</strong>, tu Wealth Manager personal. Tengo acceso a tus datos financieros en tiempo real y puedo ayudarte con análisis, estrategias y consejos personalizados.<br><br>¿En qué te puedo ayudar hoy?</div>'
+        +'<div class="ai-msg-time">'+timeStr+'</div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="ai-input-bar">'
+      +'<button class="ai-attach-btn" onclick="aiAttach()" title="Adjuntar">'
+        +'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>'
+      +'</button>'
+      +'<div id="ai-input-div" class="ai-input-area" contenteditable="true" data-placeholder="Mensaje a Emiliano..." onkeydown="if(event.key===\'Enter\'&&(event.ctrlKey||event.metaKey)){event.preventDefault();sendAiMessage();}"></div>'
+      +'<button class="ai-send-btn" id="ai-send-btn" onclick="aiSendOrRecord()">'
+        +'<svg id="ai-send-icon" width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>'
+      +'</button>'
+    +'</div>'
+    +'<input type="file" id="ai-file-input" accept="image/*,application/pdf" style="display:none" onchange="aiHandleAttachment(event)">'
+  +'</div>';
 }
+
 function renderCalculadora(){
   return`
     <div class="card" style="margin-bottom:12px">
@@ -2050,14 +2050,7 @@ function renderCalculadora(){
             <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Costo financiero <span onclick="showToast('El costo financiero es el % adicional que pagas sobre el capital. Ej: pediste $10M y pagas $4M de intereses = 40% de costo financiero.')" style="cursor:pointer;color:var(--primary)">ℹ️</span></div><div style="font-size:17px;font-weight:800;color:var(--warning)" id="loan-cost-pct">—</div></div>
           </div>
         </div>
-        <div style="background:var(--surface2);border-radius:var(--radius);padding:14px;margin-bottom:12px">
-          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px">📊 Distribución capital vs interés</div>
-          <div id="loan-chart" style="display:flex;align-items:flex-end;gap:2px;height:90px"></div>
-          <div style="display:flex;gap:12px;font-size:10px;margin-top:6px">
-            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--success);border-radius:2px;display:inline-block"></span>Capital</span>
-            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--danger);border-radius:2px;display:inline-block"></span>Interés</span>
-          </div>
-        </div>
+
         <div style="background:var(--surface2);border-radius:var(--radius);padding:14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <div style="font-size:11px;font-weight:700;color:var(--text2)">📋 Plan de pagos</div>
@@ -2076,6 +2069,7 @@ function renderCalculadora(){
             </table>
           </div>
           <div id="loan-table-note" style="font-size:10px;color:var(--text3);margin-top:4px"></div>
+          <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:10px;color:var(--text2)">⚠️ <strong>Valores aproximados.</strong> Este plan no incluye seguros, comisiones ni otros cargos. Consulta con tu entidad financiera antes de tomar decisiones.</div>
         </div>
       </div>
     </div>
@@ -2106,25 +2100,7 @@ function calcLoan(){
     }
     tbody.innerHTML=rows.map(r=>`<tr style="border-bottom:1px solid var(--border)"><td style="text-align:right;padding:5px 6px;color:var(--text3)">${r.i}</td><td style="text-align:right;padding:5px 6px">${fmt(r.cuota)}</td><td style="text-align:right;padding:5px 6px;color:var(--success)">${fmt(r.cap)}</td><td style="text-align:right;padding:5px 6px;color:var(--danger)">${fmt(r.int)}</td><td style="text-align:right;padding:5px 6px;font-weight:600">${fmt(r.bal)}</td></tr>`).join('');
     if(note)note.textContent='Total: '+n+' cuotas';
-    const dlBtn=document.getElementById('loan-download-btn-top');if(dlBtn)dlBtn.style.display='block';
-    // Build chart — show every Nth bar to fit width
-    const chartEl=document.getElementById('loan-chart');
-    if(chartEl){
-      const step=Math.max(1,Math.floor(n/24));
-      const chartRows=rows.filter((_,i)=>i%step===0||i===n-1);
-      const maxBal=P;
-      chartEl.innerHTML=chartRows.map(r=>{
-        const capH=Math.round(r.cap/cuota*80);const intH=Math.round(r.int/cuota*80);
-        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px">
-          <div style="width:100%;display:flex;flex-direction:column;align-items:stretch;height:82px;justify-content:flex-end">
-            <div style="background:var(--success);height:${capH}px;border-radius:2px 2px 0 0;opacity:.9"></div>
-            <div style="background:var(--danger);height:${intH}px;opacity:.9"></div>
-          </div>
-          <div style="font-size:7px;color:var(--text3)">${r.i}</div>
-        </div>`;
-      }).join('');
-    }
-  }
+    const dlBtn=document.getElementById('loan-download-btn-top');if(dlBtn)dlBtn.style.display='block';  }
 }
 function renderSimulador(){
   return`
@@ -2193,25 +2169,57 @@ function calcSim(){
     const yr=[];for(let y=1;y<=Math.min(years,12);y++){const nn=y*12;const v=rm===0?monthly*nn:monthly*(Math.pow(1+rm,nn)-1)/rm*(1+rm);yr.push(v);}
     const maxV=Math.max(...yr);
     const formatK=(v)=>{if(v>=1000000)return(v/1000000).toFixed(1)+'M';if(v>=1000)return(v/1000).toFixed(0)+'K';return v.toFixed(0);};
-    barsEl.innerHTML=yr.map((v,i)=>{const h=Math.max(16,Math.round(v/maxV*95));return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px"><div style="width:100%;background:linear-gradient(to top,var(--primary),var(--secondary));border-radius:3px 3px 0 0;height:${h}px;opacity:${0.45+0.55*(i+1)/yr.length};display:flex;align-items:flex-start;justify-content:center;padding-top:2px"><span style="font-size:7px;color:white;font-weight:700;writing-mode:vertical-lr;transform:rotate(180deg);line-height:1">${formatK(v)}</span></div><div style="font-size:8px;color:var(--text3);margin-top:2px">${i+1}a</div></div>`;}).join('');
+    barsEl.innerHTML=yr.map((v,i)=>{const h=Math.max(20,Math.round(v/maxV*85));return`<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="font-size:7px;font-weight:700;color:var(--text2);margin-bottom:2px;text-align:center;white-space:nowrap;overflow:hidden;width:100%;text-overflow:ellipsis">${formatK(v)}</div><div style="width:100%;background:linear-gradient(to top,var(--primary),var(--secondary));border-radius:3px 3px 0 0;height:${h}px;opacity:${0.45+0.55*(i+1)/yr.length}"></div><div style="font-size:8px;color:var(--text3);margin-top:2px">${i+1}a</div></div>`;}).join('');
   }
 }
 
 // ── AI Chat ──
 let aiHistory=[];
 async function sendAiMessage(){
-  const inp=document.getElementById('ai-input-div');
+  var inp=document.getElementById('ai-input-div');
   if(!inp)return;
-  const msg=(inp.innerText||inp.textContent||'').trim();
+  var msg=(inp.innerText||inp.textContent||'').trim();
   if(!msg)return;
-  inp.innerHTML='';inp.textContent='';
+  inp.innerHTML='';
   appendAiMsg(msg,'user');
   await callAI(msg);
 }
-function aiQuickQuestion(q){
-  const inp=document.getElementById('ai-input-div');
-  if(inp){inp.textContent=q;sendAiMessage();}
+var aiRecording=false;
+function aiSendOrRecord(){
+  var inp=document.getElementById('ai-input-div');
+  var hasText=inp&&(inp.innerText||inp.textContent||'').trim().length>0;
+  if(hasText){sendAiMessage();return;}
+  aiRecording=!aiRecording;
+  var btn=document.getElementById('ai-send-btn');
+  if(btn){
+    btn.style.background=aiRecording?'var(--danger)':'linear-gradient(135deg,#075E54,#128C7E)';
+    btn.innerHTML=aiRecording
+      ?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v4M8 23h8"/></svg>'
+      :'<svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>';
+  }
+  if(aiRecording){
+    toast('🎙️ Grabando... Ctrl+toca para cancelar');
+    setTimeout(function(){
+      if(!aiRecording)return;
+      aiRecording=false;
+      if(btn){btn.style.background='linear-gradient(135deg,#075E54,#128C7E)';btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>';}
+      appendAiMsg('🎙️ [Audio]','user');
+      callAI('El usuario envió un mensaje de voz. Responde amablemente que la funcionalidad de audio estará disponible en la versión nativa de FinanzIA.');
+    },8000);
+  } else {
+    toast('Audio cancelado');
+  }
 }
+function aiAttach(){document.getElementById('ai-file-input')?.click();}
+function aiHandleAttachment(e){
+  var file=e.target.files[0];if(!file)return;
+  appendAiMsg((file.type.startsWith('image/')?'🖼️ ':'📎 ')+'['+file.name+']','user');
+  callAI('El usuario adjuntó un archivo llamado "'+file.name+'". Indica que el análisis de archivos estará disponible en la versión nativa de FinanzIA.');
+  e.target.value='';
+}
+
+function aiQuickQuestion(q){var inp=document.getElementById('ai-input-div');if(inp){inp.textContent=q;sendAiMessage();}}
+
 function appendAiMsg(text,role){
   const container=document.getElementById('ai-messages');
   if(!container)return;
@@ -2270,6 +2278,7 @@ async function callAI(userMsg){
 // ════════════════════════════════════════════════════════════
 // ESTRATEGIA DE DEUDAS
 // ════════════════════════════════════════════════════════════
+function calcEstrategia(){window._estrategiaExtra=document.getElementById('estrategia-extra')?.value||window._estrategiaExtra||0;var pg=document.getElementById('page-estrategia');if(pg)pg.innerHTML=renderEstrategia();}
 function renderEstrategia(){
   const debts=S.accounts.filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency);
   if(!debts.length)return`<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">¡Sin deudas!</div><div class="empty-desc">No tienes deudas registradas en ${S.currency}</div></div>`;
@@ -2282,7 +2291,7 @@ function renderEstrategia(){
   })).filter(d=>d.balance>0);
 
   // Extra payment input (optional)
-  const extra=parseFloat(document.getElementById('estrategia-extra')?.value)||0;
+  var extra=parseFloat(window._estrategiaExtra)||0;
 
   // Simulate payoff for a given order
   function simulate(ordered){
@@ -2340,22 +2349,36 @@ function renderEstrategia(){
 
   const savings=Math.abs(rAval.totalInt-rSnow.totalInt);
   const fasterMonths=Math.abs(rAval.months-rSnow.months);
-  const avalBetter=rAval.totalInt<rSnow.totalInt;
+  const allRatesZero=debtData.every(d=>d.rate===0);
+  let recTitle,recBody,recBorder;
+  if(allRatesZero||savings<1){
+    recTitle='❄️ Bola de Nieve recomendada';
+    recBody='Tus deudas tienen tasas muy similares o en 0%, por lo que el ahorro en intereses es igual en ambos métodos. Bola de Nieve es mejor psicológicamente: pagas primero las más pequeñas y eso da motivación.';
+    recBorder='var(--secondary)';
+  } else if(rAval.totalInt<=rSnow.totalInt){
+    recTitle='🌊 Avalancha recomendada';
+    recBody='Ahorras '+fmt(savings)+' en intereses'+(fasterMonths>0?' y terminas '+fasterMonths+' meses antes':'')+' comparado con Bola de Nieve. Óptima cuando las tasas son distintas.';
+    recBorder='var(--primary)';
+  } else {
+    recTitle='❄️ Bola de Nieve recomendada';
+    recBody='Terminas '+fasterMonths+' meses antes y la diferencia en intereses es mínima. La motivación de pagar deudas pequeñas rápido vale la pena.';
+    recBorder='var(--secondary)';
+  }
 
   return`
     <div style="background:var(--surface2);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:13px">
       💡 <strong>¿Cuánto dinero extra puedes destinar al mes?</strong>
       <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
-        <input class="form-input" type="number" id="estrategia-extra" placeholder="Ej: 200.000" style="flex:1" onchange="renderPage('estrategia')">
+        <input class="form-input" type="number" id="estrategia-extra" placeholder="Ej: 200.000" style="flex:1" value="${window._estrategiaExtra||''}" oninput="window._estrategiaExtra=this.value;calcEstrategia()">
         <span style="font-size:11px;color:var(--text2)">${S.currency}</span>
       </div>
       <div style="font-size:11px;color:var(--text2);margin-top:4px">Adicional a las cuotas mínimas de cada deuda</div>
     </div>
 
-    <div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,${avalBetter?'rgba(0,212,170,.15)':'rgba(59,130,246,.15)'},transparent);border:1px solid ${avalBetter?'var(--primary)':'var(--secondary)'}">
+    <div class="card" style="margin-bottom:16px;border-left:4px solid ${recBorder}">
       <div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:6px">⚡ RECOMENDACIÓN</div>
-      <div style="font-size:14px;font-weight:700">${avalBetter?'Usa Avalancha':'Los dos métodos son similares'}</div>
-      <div style="font-size:12px;color:var(--text2);margin-top:4px">Con Avalancha ahorras <strong style="color:var(--success)">${fmt(savings)}</strong> en intereses vs Bola de Nieve${fasterMonths>0?` y terminas ${fasterMonths} meses antes`:''}</div>
+      <div style="font-size:14px;font-weight:700">${recTitle}</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:6px;line-height:1.5">${recBody}</div>
     </div>
 
     ${methodCard('❄️ Bola de Nieve','❄️','Primero la deuda más pequeña — motivación rápida',rSnow,snowball,'#3B82F6')}
@@ -2432,20 +2455,7 @@ function renderConfiguracion(){
       </div>
       <!-- EXPANDED: full form -->
       <div id="profile-form" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
-        <!-- Avatar with photo options -->
-        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:16px">
-          <div id="cfg-avatar" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:32px;border:3px solid var(--primary);overflow:hidden;margin-bottom:10px">
-            ${(S.profile&&S.profile.photo)?`<img src="${S.profile.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.profile&&S.profile.name?`<span style="font-size:26px;font-weight:700;color:white">${S.profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</span>`:'<span>👤</span>')}
-          </div>
-          <div style="display:flex;gap:8px">
-            <button onclick="document.getElementById('profile-camera').click()" class="btn btn-secondary btn-sm">📷 Cámara</button>
-            <button onclick="document.getElementById('profile-gallery').click()" class="btn btn-secondary btn-sm">🖼️ Galería</button>
-            ${(S.profile&&S.profile.photo)?`<button onclick="removeProfilePhoto()" class="btn btn-secondary btn-sm" style="color:var(--danger)">🗑️ Quitar</button>`:''}
-          </div>
-          <input type="file" id="profile-camera" accept="image/*" capture="environment" style="display:none" onchange="handleProfilePhoto(event)">
-          <input type="file" id="profile-gallery" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">
-        </div>
-        <!-- Photo section - single icon -->
+        <!-- Photo section -->
         <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:16px">
           <div style="position:relative;display:inline-block">
             <div id="cfg-avatar" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:32px;border:3px solid var(--primary);overflow:hidden">
@@ -2455,7 +2465,8 @@ function renderConfiguracion(){
               <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4" fill="none" stroke="white" stroke-width="2"/></svg>
             </button>
           </div>
-          <input type="file" id="profile-photo-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">
+          <input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">
+          <input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">
           ${(S.profile&&S.profile.photo)?`<button onclick="removeProfilePhoto()" style="background:none;border:none;color:var(--danger);font-size:11px;cursor:pointer;margin-top:6px;font-family:var(--font)">🗑️ Quitar foto</button>`:''}
         </div>
         <!-- Single column form -->
@@ -2463,7 +2474,7 @@ function renderConfiguracion(){
         <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="cfg-email" value="${(S.profile&&S.profile.email)||''}" placeholder="tu@email.com"></div>
         <div class="form-group"><label class="form-label">Teléfono</label>
           <div style="display:flex;gap:6px">
-            <select class="form-select" id="cfg-phone-code" style="width:auto;min-width:90px;flex-shrink:0">
+            <select class="form-select" id="cfg-phone-code" style="width:76px;flex-shrink:0;padding:8px 2px;font-size:12px" onchange="updatePhoneLen(this.value)">
               <option value="">+</option>
               <option value="+57" ${(S.profile&&S.profile.phoneCode)==="+57"?'selected':''}>+57 🇨🇴 Colombia</option>
 <option value="+48" ${(S.profile&&S.profile.phoneCode)==="+48"?'selected':''}>+48 🇵🇱 Polonia</option>
@@ -2487,12 +2498,12 @@ function renderConfiguracion(){
 <option value="+81" ${(S.profile&&S.profile.phoneCode)==="+81"?'selected':''}>+81 🇯🇵 Japón</option>
 <option value="+82" ${(S.profile&&S.profile.phoneCode)==="+82"?'selected':''}>+82 🇰🇷 Corea del Sur</option>
             </select>
-            <input class="form-input" type="tel" id="cfg-phone" value="${(S.profile&&S.profile.phone)||''}" placeholder="300 000 0000" style="flex:1">
+            <input class="form-input" type="tel" id="cfg-phone" value="${(S.profile&&S.profile.phone)||''}" placeholder="300 000 0000" style="flex:1;font-size:15px" maxlength="15">
           </div>
         </div>
         <div class="form-group"><label class="form-label">País</label>
-          <select class="form-select" id="cfg-country">
-            <option value="">Seleccionar país</option>
+          <input class="form-input" id="cfg-country" list="cfg-cl" value="${(S.profile&&S.profile.country)||''}" placeholder="Buscar país..." autocomplete="off">
+          <datalist id="cfg-cl"><option value="">Seleccionar país</option>
             <option value="Afganistán" ${(S.profile&&S.profile.country)==="Afganistán"?'selected':''}>Afganistán</option>
 <option value="Albania" ${(S.profile&&S.profile.country)==="Albania"?'selected':''}>Albania</option>
 <option value="Alemania" ${(S.profile&&S.profile.country)==="Alemania"?'selected':''}>Alemania</option>
@@ -2630,10 +2641,11 @@ function renderConfiguracion(){
 <option value="Yemen" ${(S.profile&&S.profile.country)==="Yemen"?'selected':''}>Yemen</option>
 <option value="Zambia" ${(S.profile&&S.profile.country)==="Zambia"?'selected':''}>Zambia</option>
 <option value="Zimbabue" ${(S.profile&&S.profile.country)==="Zimbabue"?'selected':''}>Zimbabue</option>
-          </select>
+          </datalist>
         </div>
         <div class="form-group"><label class="form-label">Ocupación</label>
-          <select class="form-select" id="cfg-occupation">
+          <input class="form-input" id="cfg-occupation" list="cfg-ol" value="${(S.profile&&S.profile.occupation)||''}" placeholder="Buscar ocupación..." autocomplete="off">
+          <datalist id="cfg-ol">
             <option value="">Seleccionar ocupación</option>
             <option value="Abogado/a" ${(S.profile&&S.profile.occupation)==="Abogado/a"?'selected':''}>Abogado/a</option>
 <option value="Administrador/a" ${(S.profile&&S.profile.occupation)==="Administrador/a"?'selected':''}>Administrador/a</option>
@@ -2686,10 +2698,6 @@ function renderConfiguracion(){
         <div class="form-group"><label class="form-label">Estado civil</label><select class="form-select" id="cfg-marital">
           <option value="">Seleccionar</option>
           ${['Soltero/a','Casado/a','Unión libre','Separado/a','Divorciado/a','Viudo/a'].map(v=>`<option value="${v}" ${(S.profile&&S.profile.marital)===v?'selected':''}>${v}</option>`).join('')}
-        </select></div>
-        <div class="form-group"><label class="form-label">Rango de ingresos</label><select class="form-select" id="cfg-income">
-          <option value="">Seleccionar</option>
-          ${['Menos de 1.000.000','1.000.000 – 3.000.000','3.000.000 – 6.000.000','6.000.000 – 10.000.000','Más de 10.000.000'].map(v=>`<option value="${v}" ${(S.profile&&S.profile.income)===v?'selected':''}>${v}</option>`).join('')}
         </select></div>
         <div class="form-group"><label class="form-label">Objetivo financiero</label><select class="form-select" id="cfg-goal">
           <option value="">Seleccionar</option>
@@ -2770,13 +2778,14 @@ function filterCurs(q){
     el.style.display=el.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
   });
 }
+function updatePhoneLen(code){var m={'+57':10,'+48':9,'+1':10,'+34':9,'+52':10,'+54':10,'+55':11,'+56':9,'+51':9,'+58':11,'+593':9,'+502':8,'+44':10,'+49':11,'+33':9,'+39':10,'+7':10,'+86':11,'+91':10,'+81':11,'+82':11};var i=document.getElementById('cfg-phone');if(i)i.maxLength=m[code]||15;}
 function saveProfile(){
   if(!S.profile)S.profile={};
   const g=(id)=>document.getElementById(id)?.value||'';
   S.profile.name=g('cfg-name');S.profile.email=g('cfg-email');
   S.profile.phone=g('cfg-phone');S.profile.phoneCode=g('cfg-phone-code');
   S.profile.country=g('cfg-country');S.profile.occupation=g('cfg-occupation');S.profile.marital=g('cfg-marital');
-  S.profile.income=g('cfg-income');S.profile.financialGoal=g('cfg-goal');
+  S.profile.financialGoal=g('cfg-goal');
   saveState();updateDrawerProfile();
   toast('Perfil guardado ✓');
   // Collapse card after saving
@@ -2798,7 +2807,20 @@ function toggleProfileCard(){
   form.style.display=isOpen?'none':'block';
   if(arrow)arrow.textContent=isOpen?'▶':'▼';
 }
-function pickProfilePhoto(){document.getElementById('profile-photo-input')?.click();}
+function pickProfilePhoto(){
+  var s=document.createElement('div');
+  s.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;justify-content:flex-end';
+  var hasPhoto=!!(S.profile&&S.profile.photo);
+  s.innerHTML='<div style="flex:1;background:rgba(0,0,0,.5)" onclick="this.parentElement.remove()"></div>'
+    +'<div style="background:var(--surface);border-radius:16px 16px 0 0;padding:16px;display:flex;flex-direction:column;gap:8px">'
+    +'<div style="font-size:11px;font-weight:700;color:var(--text3);text-align:center;padding-bottom:4px">FOTO DE PERFIL</div>'
+    +'<button onclick="document.getElementById(\'profile-cam-input\').click();this.closest(\'[style*=fixed]\').remove()" style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--surface2);color:var(--text);font-size:15px;cursor:pointer;font-family:var(--font);text-align:left">📷 Tomar foto</button>'
+    +'<button onclick="document.getElementById(\'profile-gal-input\').click();this.closest(\'[style*=fixed]\').remove()" style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--surface2);color:var(--text);font-size:15px;cursor:pointer;font-family:var(--font);text-align:left">🖼️ Elegir de galería</button>'
+    +(hasPhoto?'<button onclick="removeProfilePhoto();this.closest(\'[style*=fixed]\').remove()" style="width:100%;padding:14px;border-radius:12px;border:none;background:rgba(239,68,68,.1);color:var(--danger);font-size:15px;cursor:pointer;font-family:var(--font)">🗑️ Quitar foto</button>':'')
+    +'<button onclick="this.closest(\'[style*=fixed]\').remove()" style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--surface3);color:var(--text2);font-size:15px;cursor:pointer;font-family:var(--font);margin-top:4px">Cancelar</button>'
+    +'</div>';
+  document.body.appendChild(s);
+}
 function handleProfilePhoto(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
