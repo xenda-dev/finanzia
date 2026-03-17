@@ -99,10 +99,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .ai-input-area:empty:before{content:attr(data-placeholder);color:var(--text3);pointer-events:none}
 .ai-input-area{-webkit-user-select:text;user-select:text}
 .ppick-item{padding:10px 12px;cursor:pointer;font-size:13px;border-radius:4px}
+#profile-form .form-input,#profile-form .form-select{background:var(--surface)}
 .ppick-item:hover{background:rgba(0,212,170,.1)}
 .ai-input-area:empty:before{content:attr(data-placeholder);color:var(--text3);pointer-events:none}
 .ai-input-area{-webkit-user-select:text;user-select:text}
 .ppick-item{padding:10px 12px;cursor:pointer;font-size:13px;border-radius:4px}
+#profile-form .form-input,#profile-form .form-select{background:var(--surface)}
 .ppick-item:hover{background:rgba(0,212,170,.1)}
 .ai-quick-btns{display:flex;flex-wrap:wrap;gap:5px;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border)}
 .ai-quick-btn{background:var(--surface2);border:1px solid var(--border);color:var(--primary);padding:5px 10px;border-radius:16px;font-size:11px;cursor:pointer;font-family:var(--font);white-space:nowrap}
@@ -2481,12 +2483,12 @@ function renderConfiguracion(){
   const activeCurs=S.currencies||['PLN'];
     const curList=ALL_CURRENCIES.map(c=>{const meta=getCurrencyMeta(c.code);return`<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;background:${activeCurs.includes(c.code)?'rgba(0,212,170,.12)':'var(--surface2)'}"><input type="checkbox" ${activeCurs.includes(c.code)?'checked':''} onchange="toggleCurrency('${c.code}',this.checked)" style="width:16px;height:16px;accent-color:var(--primary);flex-shrink:0"><div style="flex:1"><div style="font-size:14px;font-weight:700">${c.code} <span style="color:var(--primary)">${meta.sym}</span></div><div style="font-size:11px;color:var(--text3)">${c.name}</div></div>${activeCurs.includes(c.code)?'<span style="color:var(--primary);font-size:16px">✓</span>':''}</label>`;}).join('');
   const curSelected=`${activeCurs.length} ${t('selected')}`;
-  const langCurrent=ALL_LANGUAGES.find(l=>l.id===(S.language||'es'))||ALL_LANGUAGES[0];
+  const langCurrent=S.language?ALL_LANGUAGES.find(l=>l.id===S.language)||ALL_LANGUAGES[0]:null;
   const langClear=`<div onclick="saveLanguage('')" style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;border-radius:8px;color:var(--text3);margin-bottom:2px"><span>✕</span><span style="font-size:14px">— Seleccionar —</span></div>`;
-  const langList=langClear+ALL_LANGUAGES.map(l=>`<div onclick="saveLanguage('${l.id}')" style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;border-radius:8px;background:${l.id===(S.language||'es')?'rgba(0,212,170,.12)':'transparent'};margin-bottom:2px">
+  const langList=langClear+ALL_LANGUAGES.map(l=>`<div onclick="saveLanguage('${l.id}')" style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;border-radius:8px;background:${l.id===S.language?'rgba(0,212,170,.12)':'transparent'};margin-bottom:2px">
     <span style="font-size:18px">${l.flag}</span>
-    <span style="font-size:14px;font-weight:${l.id===(S.language||'es')?'700':'400'};color:${l.id===(S.language||'es')?'var(--primary)':'var(--text)'}">${l.label}</span>
-    ${l.id===(S.language||'es')?'<span style="margin-left:auto;color:var(--primary)">✓</span>':''}
+    <span style="font-size:14px;font-weight:${l.id===S.language?'700':'400'};color:${l.id===S.language?'var(--primary)':'var(--text)'}">${l.label}</span>
+    ${l.id===S.language?'<span style="margin-left:auto;color:var(--primary)">✓</span>':''}
   </div>`).join('');
   return`
     <!-- PROFILE SECTION — collapsible -->
@@ -2613,8 +2615,8 @@ function renderConfiguracion(){
         </div>
         <div id="week-picker" style="display:none;border-top:1px solid var(--border)">
           <div onclick="saveWeekStart('');togglePPick('week-picker')" style="padding:12px;cursor:pointer;font-size:14px;color:var(--text3)">— Seleccionar —</div>
-          <div onclick="saveWeekStart('lunes');togglePPick('week-picker')" style="padding:12px;cursor:pointer;font-size:14px;background:${S.weekStart==='lunes'?'rgba(0,212,170,.12)':'transparent'}">${t('monday')} — ${S.weekStart==='lunes'?'✓ Seleccionado':''}</div>
-          <div onclick="saveWeekStart('domingo');togglePPick('week-picker')" style="padding:12px;cursor:pointer;font-size:14px;background:${S.weekStart==='domingo'?'rgba(0,212,170,.12)':'transparent'}">${t('sunday')} — ${S.weekStart==='domingo'?'✓ Seleccionado':''}</div>
+          <div onclick="saveWeekStart('lunes');togglePPick('week-picker')" style="padding:12px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;background:${S.weekStart==='lunes'?'rgba(0,212,170,.12)':'transparent'}">${t('monday')}${S.weekStart==='lunes'?'<span style="color:var(--primary)">✓</span>':''}</div>
+          <div onclick="saveWeekStart('domingo');togglePPick('week-picker')" style="padding:12px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;background:${S.weekStart==='domingo'?'rgba(0,212,170,.12)':'transparent'}">${t('sunday')}${S.weekStart==='domingo'?'<span style="color:var(--primary)">✓</span>':''}</div>
         </div>
       </div>
     </div>
