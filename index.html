@@ -40,6 +40,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .header-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
 #main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
 .page{display:none;padding:16px 16px calc(var(--nav-h) + 24px);min-height:100%}
+#page-herramientas{padding:0;overflow:hidden}
 .page.active{display:block}
 .bottom-nav{height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;flex-shrink:0;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
 .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border:none;background:none;color:var(--text3);cursor:pointer;transition:.2s;flex:1;font-size:10px;font-family:var(--font)}
@@ -73,7 +74,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .drawer-item:hover,.drawer-item.active{color:var(--text);background:var(--surface2)}
 .drawer-item.active{border-left:3px solid var(--primary);padding-left:17px}
 .drawer-item-icon{width:30px;height:30px;border-radius:8px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.ai-chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 56px);max-height:calc(100vh - 56px);background:var(--surface);overflow:hidden;margin:-16px}
+.ai-chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 56px - var(--nav-h));background:var(--surface);overflow:hidden;margin:-16px -16px 0}
 .ai-chat-header{background:linear-gradient(135deg,#075E54,#128C7E);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
 .ai-chat-avatar{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .ai-chat-info{flex:1}
@@ -96,7 +97,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .ai-send-btn:active{transform:scale(.92)}
 .ai-attach-btn{width:36px;height:36px;border-radius:50%;background:none;border:none;color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0}
 .ai-input-area:empty:before{content:attr(data-placeholder);color:var(--text3);pointer-events:none}
+.ai-input-area{-webkit-user-select:text;user-select:text}
+.ppick-item{padding:10px 12px;cursor:pointer;font-size:13px;border-radius:4px}
+.ppick-item:hover{background:rgba(0,212,170,.1)}
 .ai-input-area:empty:before{content:attr(data-placeholder);color:var(--text3);pointer-events:none}
+.ai-input-area{-webkit-user-select:text;user-select:text}
+.ppick-item{padding:10px 12px;cursor:pointer;font-size:13px;border-radius:4px}
+.ppick-item:hover{background:rgba(0,212,170,.1)}
 .ai-quick-btns{display:flex;flex-wrap:wrap;gap:5px;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border)}
 .ai-quick-btn{background:var(--surface2);border:1px solid var(--border);color:var(--primary);padding:5px 10px;border-radius:16px;font-size:11px;cursor:pointer;font-family:var(--font);white-space:nowrap}
 .card{background:var(--surface);border-radius:var(--radius);padding:16px;border:1px solid var(--border);box-shadow:var(--card-shadow)}
@@ -603,7 +610,17 @@ function loadState(){
     S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));
   }
   // Ensure protected Efectivo account exists
-  // Ensure an Efectivo account exists for EACH configured currency
+  // FIRST: migrate legacy efectivo-default
+  const legacyEf=S.accounts.find(a=>a.id==='efectivo-default');
+  if(legacyEf){
+    if(!S.accounts.find(a=>a.id==='efectivo-PLN')){
+      legacyEf.id='efectivo-PLN';legacyEf.currency='PLN';
+      legacyEf.protected=true;legacyEf.subtype='efectivo';legacyEf.subAccounts=[];
+    } else {
+      S.accounts=S.accounts.filter(a=>a.id!=='efectivo-default');
+    }
+  }
+  // THEN: ensure one Efectivo per configured currency
   const curs=S.currencies&&S.currencies.length?S.currencies:['PLN'];
   curs.forEach(cur=>{
     const efId='efectivo-'+cur;
@@ -614,9 +631,14 @@ function loadState(){
       efAcc.protected=true;efAcc.subtype='efectivo';efAcc.subAccounts=[];
     }
   });
-  // Legacy: migrate old efectivo-default to efectivo-PLN
-  const legacyEf=S.accounts.find(a=>a.id==='efectivo-default');
-  if(legacyEf){legacyEf.id='efectivo-PLN';legacyEf.currency='PLN';}
+  // Remove any duplicate efectivos (same currency, keep first)
+  const seenEf=new Set();
+  S.accounts=S.accounts.filter(a=>{
+    if(a.subtype!=='efectivo')return true;
+    const key='ef-'+a.currency;
+    if(seenEf.has(key))return false;
+    seenEf.add(key);return true;
+  });
   if(!S.movFilter)S.movFilter={tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''};
   if(!S.analysisPeriod)S.analysisPeriod='Mensual';
   if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
@@ -2025,7 +2047,7 @@ function renderHerramientas(){
       +'</button>'
       +'<div id="ai-input-div" class="ai-input-area" contenteditable="true" data-placeholder="Mensaje a Emiliano..." onkeydown="if(event.key===\'Enter\'&&(event.ctrlKey||event.metaKey)){event.preventDefault();sendAiMessage();}"></div>'
       +'<button class="ai-send-btn" id="ai-send-btn" onclick="aiSendOrRecord()">'
-        +'<svg id="ai-send-icon" width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>'
+        +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v4M8 23h8"/></svg>'
       +'</button>'
     +'</div>'
     +'<input type="file" id="ai-file-input" accept="image/*,application/pdf" style="display:none" onchange="aiHandleAttachment(event)">'
@@ -2189,6 +2211,15 @@ async function sendAiMessage(){
   inp.innerHTML='';
   appendAiMsg(msg,'user');
   await callAI(msg);
+}
+function toggleAiSendBtn(){
+  var inp=document.getElementById('ai-input-div');
+  var btn=document.getElementById('ai-send-btn');
+  if(!btn)return;
+  var hasText=inp&&(inp.innerText||inp.textContent||'').trim().length>0;
+  btn.innerHTML=hasText
+    ?'<svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>'
+    :'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v4M8 23h8"/></svg>';
 }
 var aiRecording=false;
 function aiSendOrRecord(){
@@ -2363,11 +2394,15 @@ function renderEstrategia(){
     recBorder='var(--secondary)';
   } else if(rAval.totalInt<=rSnow.totalInt){
     recTitle='🌊 Avalancha recomendada';
-    recBody='Ahorras '+fmt(savings)+' en intereses'+(fasterMonths>0?' y terminas '+fasterMonths+' meses antes':'')+' comparado con Bola de Nieve. Óptima cuando las tasas son distintas.';
+    recBody='Ahorras '+fmt(savings)+' en intereses'+(fasterMonths>0?' y terminas '+fasterMonths+' mes'+(fasterMonths===1?'':'es')+' antes':' (mismo tiempo que Bola de Nieve)')+'. Óptima cuando las tasas difieren significativamente.';
     recBorder='var(--primary)';
   } else {
     recTitle='❄️ Bola de Nieve recomendada';
-    recBody='Terminas '+fasterMonths+' meses antes y la diferencia en intereses es mínima. La motivación de pagar deudas pequeñas rápido vale la pena.';
+    if(fasterMonths===0){
+      recBody='Ambos métodos tardan el mismo tiempo ('+rSnow.months+' meses). Bola de Nieve ahorra '+fmt(savings)+' en intereses en este caso, así que es la opción más económica.';
+    } else {
+      recBody='Terminas '+fasterMonths+' mes'+(fasterMonths===1?'':'es')+' antes'+(savings>100?' y ahorras '+fmt(savings)+' en intereses':'');
+    }
     recBorder='var(--secondary)';
   }
 
@@ -2508,198 +2543,30 @@ function renderConfiguracion(){
           </div>
         </div>
         <div class="form-group"><label class="form-label">País</label>
-          <input class="form-input" id="cfg-country" list="cfg-cl" value="${(S.profile&&S.profile.country)||''}" placeholder="Buscar país..." autocomplete="off">
-          <datalist id="cfg-cl"><option value="">Seleccionar país</option>
-            <option value="Afganistán" ${(S.profile&&S.profile.country)==="Afganistán"?'selected':''}>Afganistán</option>
-<option value="Albania" ${(S.profile&&S.profile.country)==="Albania"?'selected':''}>Albania</option>
-<option value="Alemania" ${(S.profile&&S.profile.country)==="Alemania"?'selected':''}>Alemania</option>
-<option value="Andorra" ${(S.profile&&S.profile.country)==="Andorra"?'selected':''}>Andorra</option>
-<option value="Angola" ${(S.profile&&S.profile.country)==="Angola"?'selected':''}>Angola</option>
-<option value="Argentina" ${(S.profile&&S.profile.country)==="Argentina"?'selected':''}>Argentina</option>
-<option value="Armenia" ${(S.profile&&S.profile.country)==="Armenia"?'selected':''}>Armenia</option>
-<option value="Australia" ${(S.profile&&S.profile.country)==="Australia"?'selected':''}>Australia</option>
-<option value="Austria" ${(S.profile&&S.profile.country)==="Austria"?'selected':''}>Austria</option>
-<option value="Azerbaiyán" ${(S.profile&&S.profile.country)==="Azerbaiyán"?'selected':''}>Azerbaiyán</option>
-<option value="Bahamas" ${(S.profile&&S.profile.country)==="Bahamas"?'selected':''}>Bahamas</option>
-<option value="Bangladés" ${(S.profile&&S.profile.country)==="Bangladés"?'selected':''}>Bangladés</option>
-<option value="Bélgica" ${(S.profile&&S.profile.country)==="Bélgica"?'selected':''}>Bélgica</option>
-<option value="Belice" ${(S.profile&&S.profile.country)==="Belice"?'selected':''}>Belice</option>
-<option value="Benín" ${(S.profile&&S.profile.country)==="Benín"?'selected':''}>Benín</option>
-<option value="Bolivia" ${(S.profile&&S.profile.country)==="Bolivia"?'selected':''}>Bolivia</option>
-<option value="Bosnia y Herzegovina" ${(S.profile&&S.profile.country)==="Bosnia y Herzegovina"?'selected':''}>Bosnia y Herzegovina</option>
-<option value="Brasil" ${(S.profile&&S.profile.country)==="Brasil"?'selected':''}>Brasil</option>
-<option value="Bulgaria" ${(S.profile&&S.profile.country)==="Bulgaria"?'selected':''}>Bulgaria</option>
-<option value="Burkina Faso" ${(S.profile&&S.profile.country)==="Burkina Faso"?'selected':''}>Burkina Faso</option>
-<option value="Bután" ${(S.profile&&S.profile.country)==="Bután"?'selected':''}>Bután</option>
-<option value="Cabo Verde" ${(S.profile&&S.profile.country)==="Cabo Verde"?'selected':''}>Cabo Verde</option>
-<option value="Camboya" ${(S.profile&&S.profile.country)==="Camboya"?'selected':''}>Camboya</option>
-<option value="Camerún" ${(S.profile&&S.profile.country)==="Camerún"?'selected':''}>Camerún</option>
-<option value="Canadá" ${(S.profile&&S.profile.country)==="Canadá"?'selected':''}>Canadá</option>
-<option value="Chile" ${(S.profile&&S.profile.country)==="Chile"?'selected':''}>Chile</option>
-<option value="China" ${(S.profile&&S.profile.country)==="China"?'selected':''}>China</option>
-<option value="Chipre" ${(S.profile&&S.profile.country)==="Chipre"?'selected':''}>Chipre</option>
-<option value="Colombia" ${(S.profile&&S.profile.country)==="Colombia"?'selected':''}>Colombia</option>
-<option value="Congo" ${(S.profile&&S.profile.country)==="Congo"?'selected':''}>Congo</option>
-<option value="Corea del Norte" ${(S.profile&&S.profile.country)==="Corea del Norte"?'selected':''}>Corea del Norte</option>
-<option value="Corea del Sur" ${(S.profile&&S.profile.country)==="Corea del Sur"?'selected':''}>Corea del Sur</option>
-<option value="Costa Rica" ${(S.profile&&S.profile.country)==="Costa Rica"?'selected':''}>Costa Rica</option>
-<option value="Croacia" ${(S.profile&&S.profile.country)==="Croacia"?'selected':''}>Croacia</option>
-<option value="Cuba" ${(S.profile&&S.profile.country)==="Cuba"?'selected':''}>Cuba</option>
-<option value="Dinamarca" ${(S.profile&&S.profile.country)==="Dinamarca"?'selected':''}>Dinamarca</option>
-<option value="Ecuador" ${(S.profile&&S.profile.country)==="Ecuador"?'selected':''}>Ecuador</option>
-<option value="Egipto" ${(S.profile&&S.profile.country)==="Egipto"?'selected':''}>Egipto</option>
-<option value="El Salvador" ${(S.profile&&S.profile.country)==="El Salvador"?'selected':''}>El Salvador</option>
-<option value="Emiratos Árabes Unidos" ${(S.profile&&S.profile.country)==="Emiratos Árabes Unidos"?'selected':''}>Emiratos Árabes Unidos</option>
-<option value="Eslovaquia" ${(S.profile&&S.profile.country)==="Eslovaquia"?'selected':''}>Eslovaquia</option>
-<option value="Eslovenia" ${(S.profile&&S.profile.country)==="Eslovenia"?'selected':''}>Eslovenia</option>
-<option value="España" ${(S.profile&&S.profile.country)==="España"?'selected':''}>España</option>
-<option value="Estados Unidos" ${(S.profile&&S.profile.country)==="Estados Unidos"?'selected':''}>Estados Unidos</option>
-<option value="Estonia" ${(S.profile&&S.profile.country)==="Estonia"?'selected':''}>Estonia</option>
-<option value="Etiopía" ${(S.profile&&S.profile.country)==="Etiopía"?'selected':''}>Etiopía</option>
-<option value="Filipinas" ${(S.profile&&S.profile.country)==="Filipinas"?'selected':''}>Filipinas</option>
-<option value="Finlandia" ${(S.profile&&S.profile.country)==="Finlandia"?'selected':''}>Finlandia</option>
-<option value="Francia" ${(S.profile&&S.profile.country)==="Francia"?'selected':''}>Francia</option>
-<option value="Georgia" ${(S.profile&&S.profile.country)==="Georgia"?'selected':''}>Georgia</option>
-<option value="Ghana" ${(S.profile&&S.profile.country)==="Ghana"?'selected':''}>Ghana</option>
-<option value="Grecia" ${(S.profile&&S.profile.country)==="Grecia"?'selected':''}>Grecia</option>
-<option value="Guatemala" ${(S.profile&&S.profile.country)==="Guatemala"?'selected':''}>Guatemala</option>
-<option value="Guinea" ${(S.profile&&S.profile.country)==="Guinea"?'selected':''}>Guinea</option>
-<option value="Haití" ${(S.profile&&S.profile.country)==="Haití"?'selected':''}>Haití</option>
-<option value="Honduras" ${(S.profile&&S.profile.country)==="Honduras"?'selected':''}>Honduras</option>
-<option value="Hungría" ${(S.profile&&S.profile.country)==="Hungría"?'selected':''}>Hungría</option>
-<option value="India" ${(S.profile&&S.profile.country)==="India"?'selected':''}>India</option>
-<option value="Indonesia" ${(S.profile&&S.profile.country)==="Indonesia"?'selected':''}>Indonesia</option>
-<option value="Irak" ${(S.profile&&S.profile.country)==="Irak"?'selected':''}>Irak</option>
-<option value="Irán" ${(S.profile&&S.profile.country)==="Irán"?'selected':''}>Irán</option>
-<option value="Irlanda" ${(S.profile&&S.profile.country)==="Irlanda"?'selected':''}>Irlanda</option>
-<option value="Islandia" ${(S.profile&&S.profile.country)==="Islandia"?'selected':''}>Islandia</option>
-<option value="Israel" ${(S.profile&&S.profile.country)==="Israel"?'selected':''}>Israel</option>
-<option value="Italia" ${(S.profile&&S.profile.country)==="Italia"?'selected':''}>Italia</option>
-<option value="Jamaica" ${(S.profile&&S.profile.country)==="Jamaica"?'selected':''}>Jamaica</option>
-<option value="Japón" ${(S.profile&&S.profile.country)==="Japón"?'selected':''}>Japón</option>
-<option value="Jordania" ${(S.profile&&S.profile.country)==="Jordania"?'selected':''}>Jordania</option>
-<option value="Kazajistán" ${(S.profile&&S.profile.country)==="Kazajistán"?'selected':''}>Kazajistán</option>
-<option value="Kenia" ${(S.profile&&S.profile.country)==="Kenia"?'selected':''}>Kenia</option>
-<option value="Kosovo" ${(S.profile&&S.profile.country)==="Kosovo"?'selected':''}>Kosovo</option>
-<option value="Kuwait" ${(S.profile&&S.profile.country)==="Kuwait"?'selected':''}>Kuwait</option>
-<option value="Laos" ${(S.profile&&S.profile.country)==="Laos"?'selected':''}>Laos</option>
-<option value="Letonia" ${(S.profile&&S.profile.country)==="Letonia"?'selected':''}>Letonia</option>
-<option value="Líbano" ${(S.profile&&S.profile.country)==="Líbano"?'selected':''}>Líbano</option>
-<option value="Liberia" ${(S.profile&&S.profile.country)==="Liberia"?'selected':''}>Liberia</option>
-<option value="Libia" ${(S.profile&&S.profile.country)==="Libia"?'selected':''}>Libia</option>
-<option value="Lituania" ${(S.profile&&S.profile.country)==="Lituania"?'selected':''}>Lituania</option>
-<option value="Luxemburgo" ${(S.profile&&S.profile.country)==="Luxemburgo"?'selected':''}>Luxemburgo</option>
-<option value="Macedonia del Norte" ${(S.profile&&S.profile.country)==="Macedonia del Norte"?'selected':''}>Macedonia del Norte</option>
-<option value="Madagascar" ${(S.profile&&S.profile.country)==="Madagascar"?'selected':''}>Madagascar</option>
-<option value="Malasia" ${(S.profile&&S.profile.country)==="Malasia"?'selected':''}>Malasia</option>
-<option value="Maldivas" ${(S.profile&&S.profile.country)==="Maldivas"?'selected':''}>Maldivas</option>
-<option value="Mali" ${(S.profile&&S.profile.country)==="Mali"?'selected':''}>Mali</option>
-<option value="Malta" ${(S.profile&&S.profile.country)==="Malta"?'selected':''}>Malta</option>
-<option value="Marruecos" ${(S.profile&&S.profile.country)==="Marruecos"?'selected':''}>Marruecos</option>
-<option value="México" ${(S.profile&&S.profile.country)==="México"?'selected':''}>México</option>
-<option value="Moldavia" ${(S.profile&&S.profile.country)==="Moldavia"?'selected':''}>Moldavia</option>
-<option value="Mongolia" ${(S.profile&&S.profile.country)==="Mongolia"?'selected':''}>Mongolia</option>
-<option value="Montenegro" ${(S.profile&&S.profile.country)==="Montenegro"?'selected':''}>Montenegro</option>
-<option value="Mozambique" ${(S.profile&&S.profile.country)==="Mozambique"?'selected':''}>Mozambique</option>
-<option value="Myanmar" ${(S.profile&&S.profile.country)==="Myanmar"?'selected':''}>Myanmar</option>
-<option value="Namibia" ${(S.profile&&S.profile.country)==="Namibia"?'selected':''}>Namibia</option>
-<option value="Nepal" ${(S.profile&&S.profile.country)==="Nepal"?'selected':''}>Nepal</option>
-<option value="Nicaragua" ${(S.profile&&S.profile.country)==="Nicaragua"?'selected':''}>Nicaragua</option>
-<option value="Nigeria" ${(S.profile&&S.profile.country)==="Nigeria"?'selected':''}>Nigeria</option>
-<option value="Noruega" ${(S.profile&&S.profile.country)==="Noruega"?'selected':''}>Noruega</option>
-<option value="Nueva Zelanda" ${(S.profile&&S.profile.country)==="Nueva Zelanda"?'selected':''}>Nueva Zelanda</option>
-<option value="Omán" ${(S.profile&&S.profile.country)==="Omán"?'selected':''}>Omán</option>
-<option value="Países Bajos" ${(S.profile&&S.profile.country)==="Países Bajos"?'selected':''}>Países Bajos</option>
-<option value="Pakistán" ${(S.profile&&S.profile.country)==="Pakistán"?'selected':''}>Pakistán</option>
-<option value="Panamá" ${(S.profile&&S.profile.country)==="Panamá"?'selected':''}>Panamá</option>
-<option value="Paraguay" ${(S.profile&&S.profile.country)==="Paraguay"?'selected':''}>Paraguay</option>
-<option value="Perú" ${(S.profile&&S.profile.country)==="Perú"?'selected':''}>Perú</option>
-<option value="Polonia" ${(S.profile&&S.profile.country)==="Polonia"?'selected':''}>Polonia</option>
-<option value="Portugal" ${(S.profile&&S.profile.country)==="Portugal"?'selected':''}>Portugal</option>
-<option value="Qatar" ${(S.profile&&S.profile.country)==="Qatar"?'selected':''}>Qatar</option>
-<option value="Reino Unido" ${(S.profile&&S.profile.country)==="Reino Unido"?'selected':''}>Reino Unido</option>
-<option value="República Checa" ${(S.profile&&S.profile.country)==="República Checa"?'selected':''}>República Checa</option>
-<option value="República Dominicana" ${(S.profile&&S.profile.country)==="República Dominicana"?'selected':''}>República Dominicana</option>
-<option value="Rumanía" ${(S.profile&&S.profile.country)==="Rumanía"?'selected':''}>Rumanía</option>
-<option value="Rusia" ${(S.profile&&S.profile.country)==="Rusia"?'selected':''}>Rusia</option>
-<option value="Ruanda" ${(S.profile&&S.profile.country)==="Ruanda"?'selected':''}>Ruanda</option>
-<option value="Arabia Saudita" ${(S.profile&&S.profile.country)==="Arabia Saudita"?'selected':''}>Arabia Saudita</option>
-<option value="Senegal" ${(S.profile&&S.profile.country)==="Senegal"?'selected':''}>Senegal</option>
-<option value="Serbia" ${(S.profile&&S.profile.country)==="Serbia"?'selected':''}>Serbia</option>
-<option value="Sierra Leona" ${(S.profile&&S.profile.country)==="Sierra Leona"?'selected':''}>Sierra Leona</option>
-<option value="Singapur" ${(S.profile&&S.profile.country)==="Singapur"?'selected':''}>Singapur</option>
-<option value="Somalia" ${(S.profile&&S.profile.country)==="Somalia"?'selected':''}>Somalia</option>
-<option value="Sri Lanka" ${(S.profile&&S.profile.country)==="Sri Lanka"?'selected':''}>Sri Lanka</option>
-<option value="Sudáfrica" ${(S.profile&&S.profile.country)==="Sudáfrica"?'selected':''}>Sudáfrica</option>
-<option value="Sudán" ${(S.profile&&S.profile.country)==="Sudán"?'selected':''}>Sudán</option>
-<option value="Suecia" ${(S.profile&&S.profile.country)==="Suecia"?'selected':''}>Suecia</option>
-<option value="Suiza" ${(S.profile&&S.profile.country)==="Suiza"?'selected':''}>Suiza</option>
-<option value="Tailandia" ${(S.profile&&S.profile.country)==="Tailandia"?'selected':''}>Tailandia</option>
-<option value="Tanzania" ${(S.profile&&S.profile.country)==="Tanzania"?'selected':''}>Tanzania</option>
-<option value="Túnez" ${(S.profile&&S.profile.country)==="Túnez"?'selected':''}>Túnez</option>
-<option value="Turquía" ${(S.profile&&S.profile.country)==="Turquía"?'selected':''}>Turquía</option>
-<option value="Ucrania" ${(S.profile&&S.profile.country)==="Ucrania"?'selected':''}>Ucrania</option>
-<option value="Uganda" ${(S.profile&&S.profile.country)==="Uganda"?'selected':''}>Uganda</option>
-<option value="Uruguay" ${(S.profile&&S.profile.country)==="Uruguay"?'selected':''}>Uruguay</option>
-<option value="Uzbekistán" ${(S.profile&&S.profile.country)==="Uzbekistán"?'selected':''}>Uzbekistán</option>
-<option value="Venezuela" ${(S.profile&&S.profile.country)==="Venezuela"?'selected':''}>Venezuela</option>
-<option value="Vietnam" ${(S.profile&&S.profile.country)==="Vietnam"?'selected':''}>Vietnam</option>
-<option value="Yemen" ${(S.profile&&S.profile.country)==="Yemen"?'selected':''}>Yemen</option>
-<option value="Zambia" ${(S.profile&&S.profile.country)==="Zambia"?'selected':''}>Zambia</option>
-<option value="Zimbabue" ${(S.profile&&S.profile.country)==="Zimbabue"?'selected':''}>Zimbabue</option>
-          </datalist>
+          <div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface2);cursor:pointer;min-height:44px" onclick="togglePPick('cpick')">
+              <span style="font-size:14px" id="cfg-country-lbl">${(S.profile&&S.profile.country)||'Seleccionar país'}</span>
+              <span style="color:var(--primary);font-size:10px" id="cpick-arrow">▼</span>
+            </div>
+            <div id="cpick" style="display:none;border-top:1px solid var(--border)">
+              <div style="padding:8px;border-bottom:1px solid var(--border)"><input class="form-input" style="font-size:13px" placeholder="Buscar país..." oninput="filterPPick('cpick',this.value)"></div>
+              <div style="max-height:180px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Afganistán')" data-val="Afganistán">Afganistán</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Albania')" data-val="Albania">Albania</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Alemania')" data-val="Alemania">Alemania</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Andorra')" data-val="Andorra">Andorra</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Angola')" data-val="Angola">Angola</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Argentina')" data-val="Argentina">Argentina</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Armenia')" data-val="Armenia">Armenia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Australia')" data-val="Australia">Australia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Austria')" data-val="Austria">Austria</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Azerbaiyán')" data-val="Azerbaiyán">Azerbaiyán</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Bahamas')" data-val="Bahamas">Bahamas</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Bangladés')" data-val="Bangladés">Bangladés</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Bélgica')" data-val="Bélgica">Bélgica</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Belice')" data-val="Belice">Belice</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Benín')" data-val="Benín">Benín</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Bolivia')" data-val="Bolivia">Bolivia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Bosnia y Herzegovina')" data-val="Bosnia y Herzegovina">Bosnia y Herzegovina</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Brasil')" data-val="Brasil">Brasil</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Bulgaria')" data-val="Bulgaria">Bulgaria</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Burkina Faso')" data-val="Burkina Faso">Burkina Faso</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Bután')" data-val="Bután">Bután</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Cabo Verde')" data-val="Cabo Verde">Cabo Verde</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Camboya')" data-val="Camboya">Camboya</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Camerún')" data-val="Camerún">Camerún</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Canadá')" data-val="Canadá">Canadá</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Chile')" data-val="Chile">Chile</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','China')" data-val="China">China</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Chipre')" data-val="Chipre">Chipre</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Colombia')" data-val="Colombia">Colombia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Congo')" data-val="Congo">Congo</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Corea del Norte')" data-val="Corea del Norte">Corea del Norte</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Corea del Sur')" data-val="Corea del Sur">Corea del Sur</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Costa Rica')" data-val="Costa Rica">Costa Rica</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Croacia')" data-val="Croacia">Croacia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Cuba')" data-val="Cuba">Cuba</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Dinamarca')" data-val="Dinamarca">Dinamarca</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Ecuador')" data-val="Ecuador">Ecuador</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Egipto')" data-val="Egipto">Egipto</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','El Salvador')" data-val="El Salvador">El Salvador</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Emiratos Árabes Unidos')" data-val="Emiratos Árabes Unidos">Emiratos Árabes Unidos</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Eslovaquia')" data-val="Eslovaquia">Eslovaquia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Eslovenia')" data-val="Eslovenia">Eslovenia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','España')" data-val="España">España</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Estados Unidos')" data-val="Estados Unidos">Estados Unidos</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Estonia')" data-val="Estonia">Estonia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Etiopía')" data-val="Etiopía">Etiopía</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Filipinas')" data-val="Filipinas">Filipinas</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Finlandia')" data-val="Finlandia">Finlandia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Francia')" data-val="Francia">Francia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Georgia')" data-val="Georgia">Georgia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Ghana')" data-val="Ghana">Ghana</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Grecia')" data-val="Grecia">Grecia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Guatemala')" data-val="Guatemala">Guatemala</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Guinea')" data-val="Guinea">Guinea</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Haití')" data-val="Haití">Haití</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Honduras')" data-val="Honduras">Honduras</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Hungría')" data-val="Hungría">Hungría</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','India')" data-val="India">India</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Indonesia')" data-val="Indonesia">Indonesia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Irak')" data-val="Irak">Irak</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Irán')" data-val="Irán">Irán</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Irlanda')" data-val="Irlanda">Irlanda</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Islandia')" data-val="Islandia">Islandia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Israel')" data-val="Israel">Israel</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Italia')" data-val="Italia">Italia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Jamaica')" data-val="Jamaica">Jamaica</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Japón')" data-val="Japón">Japón</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Jordania')" data-val="Jordania">Jordania</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Kazajistán')" data-val="Kazajistán">Kazajistán</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Kenia')" data-val="Kenia">Kenia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Kosovo')" data-val="Kosovo">Kosovo</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Kuwait')" data-val="Kuwait">Kuwait</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Laos')" data-val="Laos">Laos</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Letonia')" data-val="Letonia">Letonia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Líbano')" data-val="Líbano">Líbano</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Liberia')" data-val="Liberia">Liberia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Libia')" data-val="Libia">Libia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Lituania')" data-val="Lituania">Lituania</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Luxemburgo')" data-val="Luxemburgo">Luxemburgo</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Macedonia del Norte')" data-val="Macedonia del Norte">Macedonia del Norte</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Madagascar')" data-val="Madagascar">Madagascar</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Malasia')" data-val="Malasia">Malasia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Maldivas')" data-val="Maldivas">Maldivas</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Mali')" data-val="Mali">Mali</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Malta')" data-val="Malta">Malta</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Marruecos')" data-val="Marruecos">Marruecos</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','México')" data-val="México">México</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Moldavia')" data-val="Moldavia">Moldavia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Mongolia')" data-val="Mongolia">Mongolia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Montenegro')" data-val="Montenegro">Montenegro</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Mozambique')" data-val="Mozambique">Mozambique</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Myanmar')" data-val="Myanmar">Myanmar</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Namibia')" data-val="Namibia">Namibia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Nepal')" data-val="Nepal">Nepal</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Nicaragua')" data-val="Nicaragua">Nicaragua</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Nigeria')" data-val="Nigeria">Nigeria</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Noruega')" data-val="Noruega">Noruega</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Nueva Zelanda')" data-val="Nueva Zelanda">Nueva Zelanda</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Omán')" data-val="Omán">Omán</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Países Bajos')" data-val="Países Bajos">Países Bajos</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Pakistán')" data-val="Pakistán">Pakistán</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Panamá')" data-val="Panamá">Panamá</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Paraguay')" data-val="Paraguay">Paraguay</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Perú')" data-val="Perú">Perú</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Polonia')" data-val="Polonia">Polonia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Portugal')" data-val="Portugal">Portugal</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Qatar')" data-val="Qatar">Qatar</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Reino Unido')" data-val="Reino Unido">Reino Unido</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','República Checa')" data-val="República Checa">República Checa</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','República Dominicana')" data-val="República Dominicana">República Dominicana</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Rumanía')" data-val="Rumanía">Rumanía</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Rusia')" data-val="Rusia">Rusia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Ruanda')" data-val="Ruanda">Ruanda</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Arabia Saudita')" data-val="Arabia Saudita">Arabia Saudita</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Senegal')" data-val="Senegal">Senegal</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Serbia')" data-val="Serbia">Serbia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Sierra Leona')" data-val="Sierra Leona">Sierra Leona</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Singapur')" data-val="Singapur">Singapur</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Somalia')" data-val="Somalia">Somalia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Sri Lanka')" data-val="Sri Lanka">Sri Lanka</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Sudáfrica')" data-val="Sudáfrica">Sudáfrica</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Sudán')" data-val="Sudán">Sudán</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Suecia')" data-val="Suecia">Suecia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Suiza')" data-val="Suiza">Suiza</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Tailandia')" data-val="Tailandia">Tailandia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Tanzania')" data-val="Tanzania">Tanzania</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Túnez')" data-val="Túnez">Túnez</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Turquía')" data-val="Turquía">Turquía</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Ucrania')" data-val="Ucrania">Ucrania</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Uganda')" data-val="Uganda">Uganda</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Uruguay')" data-val="Uruguay">Uruguay</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Uzbekistán')" data-val="Uzbekistán">Uzbekistán</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Venezuela')" data-val="Venezuela">Venezuela</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Vietnam')" data-val="Vietnam">Vietnam</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Yemen')" data-val="Yemen">Yemen</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Zambia')" data-val="Zambia">Zambia</div><div class="ppick-item" onclick="selectPPick('cfg-country','cpick','Zimbabue')" data-val="Zimbabue">Zimbabue</div></div>
+            </div>
+          </div>
+          <input type="hidden" id="cfg-country" value="${(S.profile&&S.profile.country)||''}">
         </div>
         <div class="form-group"><label class="form-label">Ocupación</label>
-          <input class="form-input" id="cfg-occupation" list="cfg-ol" value="${(S.profile&&S.profile.occupation)||''}" placeholder="Buscar ocupación..." autocomplete="off">
-          <datalist id="cfg-ol">
-            <option value="">Seleccionar ocupación</option>
-            <option value="Abogado/a" ${(S.profile&&S.profile.occupation)==="Abogado/a"?'selected':''}>Abogado/a</option>
-<option value="Administrador/a" ${(S.profile&&S.profile.occupation)==="Administrador/a"?'selected':''}>Administrador/a</option>
-<option value="Agricultor/a" ${(S.profile&&S.profile.occupation)==="Agricultor/a"?'selected':''}>Agricultor/a</option>
-<option value="Arquitecto/a" ${(S.profile&&S.profile.occupation)==="Arquitecto/a"?'selected':''}>Arquitecto/a</option>
-<option value="Artista" ${(S.profile&&S.profile.occupation)==="Artista"?'selected':''}>Artista</option>
-<option value="Bombero/a" ${(S.profile&&S.profile.occupation)==="Bombero/a"?'selected':''}>Bombero/a</option>
-<option value="Chef/Cocinero/a" ${(S.profile&&S.profile.occupation)==="Chef/Cocinero/a"?'selected':''}>Chef/Cocinero/a</option>
-<option value="Científico/a" ${(S.profile&&S.profile.occupation)==="Científico/a"?'selected':''}>Científico/a</option>
-<option value="Comerciante" ${(S.profile&&S.profile.occupation)==="Comerciante"?'selected':''}>Comerciante</option>
-<option value="Conductor/a" ${(S.profile&&S.profile.occupation)==="Conductor/a"?'selected':''}>Conductor/a</option>
-<option value="Consultor/a" ${(S.profile&&S.profile.occupation)==="Consultor/a"?'selected':''}>Consultor/a</option>
-<option value="Contador/a" ${(S.profile&&S.profile.occupation)==="Contador/a"?'selected':''}>Contador/a</option>
-<option value="Dentista" ${(S.profile&&S.profile.occupation)==="Dentista"?'selected':''}>Dentista</option>
-<option value="Director/a" ${(S.profile&&S.profile.occupation)==="Director/a"?'selected':''}>Director/a</option>
-<option value="Diseñador/a" ${(S.profile&&S.profile.occupation)==="Diseñador/a"?'selected':''}>Diseñador/a</option>
-<option value="Economista" ${(S.profile&&S.profile.occupation)==="Economista"?'selected':''}>Economista</option>
-<option value="Educador/a" ${(S.profile&&S.profile.occupation)==="Educador/a"?'selected':''}>Educador/a</option>
-<option value="Empleado/a" ${(S.profile&&S.profile.occupation)==="Empleado/a"?'selected':''}>Empleado/a</option>
-<option value="Emprendedor/a" ${(S.profile&&S.profile.occupation)==="Emprendedor/a"?'selected':''}>Emprendedor/a</option>
-<option value="Enfermero/a" ${(S.profile&&S.profile.occupation)==="Enfermero/a"?'selected':''}>Enfermero/a</option>
-<option value="Escritor/a" ${(S.profile&&S.profile.occupation)==="Escritor/a"?'selected':''}>Escritor/a</option>
-<option value="Estudiante" ${(S.profile&&S.profile.occupation)==="Estudiante"?'selected':''}>Estudiante</option>
-<option value="Farmacéutico/a" ${(S.profile&&S.profile.occupation)==="Farmacéutico/a"?'selected':''}>Farmacéutico/a</option>
-<option value="Fotógrafo/a" ${(S.profile&&S.profile.occupation)==="Fotógrafo/a"?'selected':''}>Fotógrafo/a</option>
-<option value="Funcionario/a público/a" ${(S.profile&&S.profile.occupation)==="Funcionario/a público/a"?'selected':''}>Funcionario/a público/a</option>
-<option value="Gerente" ${(S.profile&&S.profile.occupation)==="Gerente"?'selected':''}>Gerente</option>
-<option value="Hogar" ${(S.profile&&S.profile.occupation)==="Hogar"?'selected':''}>Hogar</option>
-<option value="Independiente/Freelance" ${(S.profile&&S.profile.occupation)==="Independiente/Freelance"?'selected':''}>Independiente/Freelance</option>
-<option value="Ingeniero/a" ${(S.profile&&S.profile.occupation)==="Ingeniero/a"?'selected':''}>Ingeniero/a</option>
-<option value="Investigador/a" ${(S.profile&&S.profile.occupation)==="Investigador/a"?'selected':''}>Investigador/a</option>
-<option value="Juez" ${(S.profile&&S.profile.occupation)==="Juez"?'selected':''}>Juez</option>
-<option value="Médico/a" ${(S.profile&&S.profile.occupation)==="Médico/a"?'selected':''}>Médico/a</option>
-<option value="Militar" ${(S.profile&&S.profile.occupation)==="Militar"?'selected':''}>Militar</option>
-<option value="Músico/a" ${(S.profile&&S.profile.occupation)==="Músico/a"?'selected':''}>Músico/a</option>
-<option value="Periodista" ${(S.profile&&S.profile.occupation)==="Periodista"?'selected':''}>Periodista</option>
-<option value="Piloto" ${(S.profile&&S.profile.occupation)==="Piloto"?'selected':''}>Piloto</option>
-<option value="Policía" ${(S.profile&&S.profile.occupation)==="Policía"?'selected':''}>Policía</option>
-<option value="Programador/a" ${(S.profile&&S.profile.occupation)==="Programador/a"?'selected':''}>Programador/a</option>
-<option value="Psicólogo/a" ${(S.profile&&S.profile.occupation)==="Psicólogo/a"?'selected':''}>Psicólogo/a</option>
-<option value="Rector/a" ${(S.profile&&S.profile.occupation)==="Rector/a"?'selected':''}>Rector/a</option>
-<option value="Sacerdote/Pastor/a" ${(S.profile&&S.profile.occupation)==="Sacerdote/Pastor/a"?'selected':''}>Sacerdote/Pastor/a</option>
-<option value="Técnico/a" ${(S.profile&&S.profile.occupation)==="Técnico/a"?'selected':''}>Técnico/a</option>
-<option value="Trabajador/a Social" ${(S.profile&&S.profile.occupation)==="Trabajador/a Social"?'selected':''}>Trabajador/a Social</option>
-<option value="Vendedor/a" ${(S.profile&&S.profile.occupation)==="Vendedor/a"?'selected':''}>Vendedor/a</option>
-<option value="Veterinario/a" ${(S.profile&&S.profile.occupation)==="Veterinario/a"?'selected':''}>Veterinario/a</option>
-<option value="Otro" ${(S.profile&&S.profile.occupation)==="Otro"?'selected':''}>Otro</option>
-          </select>
+          <div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface2);cursor:pointer;min-height:44px" onclick="togglePPick('opick')">
+              <span style="font-size:14px" id="cfg-occupation-lbl">${(S.profile&&S.profile.occupation)||'Seleccionar ocupación'}</span>
+              <span style="color:var(--primary);font-size:10px" id="opick-arrow">▼</span>
+            </div>
+            <div id="opick" style="display:none;border-top:1px solid var(--border)">
+              <div style="padding:8px;border-bottom:1px solid var(--border)"><input class="form-input" style="font-size:13px" placeholder="Buscar ocupación..." oninput="filterPPick('opick',this.value)"></div>
+              <div style="max-height:180px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Abogado/a')" data-val="Abogado/a">Abogado/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Administrador/a')" data-val="Administrador/a">Administrador/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Agricultor/a')" data-val="Agricultor/a">Agricultor/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Arquitecto/a')" data-val="Arquitecto/a">Arquitecto/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Artista')" data-val="Artista">Artista</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Bombero/a')" data-val="Bombero/a">Bombero/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Chef/Cocinero/a')" data-val="Chef/Cocinero/a">Chef/Cocinero/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Científico/a')" data-val="Científico/a">Científico/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Comerciante')" data-val="Comerciante">Comerciante</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Conductor/a')" data-val="Conductor/a">Conductor/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Consultor/a')" data-val="Consultor/a">Consultor/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Contador/a')" data-val="Contador/a">Contador/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Dentista')" data-val="Dentista">Dentista</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Director/a')" data-val="Director/a">Director/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Diseñador/a')" data-val="Diseñador/a">Diseñador/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Economista')" data-val="Economista">Economista</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Educador/a')" data-val="Educador/a">Educador/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Empleado/a')" data-val="Empleado/a">Empleado/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Emprendedor/a')" data-val="Emprendedor/a">Emprendedor/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Enfermero/a')" data-val="Enfermero/a">Enfermero/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Escritor/a')" data-val="Escritor/a">Escritor/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Estudiante')" data-val="Estudiante">Estudiante</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Farmacéutico/a')" data-val="Farmacéutico/a">Farmacéutico/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Fotógrafo/a')" data-val="Fotógrafo/a">Fotógrafo/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Funcionario/a público/a')" data-val="Funcionario/a público/a">Funcionario/a público/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Gerente')" data-val="Gerente">Gerente</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Hogar')" data-val="Hogar">Hogar</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Independiente/Freelance')" data-val="Independiente/Freelance">Independiente/Freelance</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Ingeniero/a')" data-val="Ingeniero/a">Ingeniero/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Investigador/a')" data-val="Investigador/a">Investigador/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Juez')" data-val="Juez">Juez</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Médico/a')" data-val="Médico/a">Médico/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Militar')" data-val="Militar">Militar</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Músico/a')" data-val="Músico/a">Músico/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Periodista')" data-val="Periodista">Periodista</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Piloto')" data-val="Piloto">Piloto</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Policía')" data-val="Policía">Policía</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Programador/a')" data-val="Programador/a">Programador/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Psicólogo/a')" data-val="Psicólogo/a">Psicólogo/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Rector/a')" data-val="Rector/a">Rector/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Sacerdote/Pastor/a')" data-val="Sacerdote/Pastor/a">Sacerdote/Pastor/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Técnico/a')" data-val="Técnico/a">Técnico/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Trabajador/a Social')" data-val="Trabajador/a Social">Trabajador/a Social</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Vendedor/a')" data-val="Vendedor/a">Vendedor/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Veterinario/a')" data-val="Veterinario/a">Veterinario/a</div><div class="ppick-item" onclick="selectPPick('cfg-occupation','opick','Otro')" data-val="Otro">Otro</div></div>
+            </div>
+          </div>
+          <input type="hidden" id="cfg-occupation" value="${(S.profile&&S.profile.occupation)||''}">
         </div>
         <div class="form-group"><label class="form-label">Estado civil</label><select class="form-select" id="cfg-marital">
           <option value="">Seleccionar</option>
@@ -2782,6 +2649,35 @@ function filterLangs(q){
 function filterCurs(q){
   document.getElementById('cur-list')?.querySelectorAll('label').forEach(el=>{
     el.style.display=el.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
+  });
+}
+function togglePPick(id){
+  var el=document.getElementById(id);var arr=document.getElementById(id+'-arrow');
+  if(!el)return;
+  var isOpen=el.style.display!=='none';
+  el.style.display=isOpen?'none':'block';
+  if(arr)arr.textContent=isOpen?'▼':'▲';
+}
+function filterPPick(pickId,q){
+  var el=document.getElementById(pickId);
+  if(!el)return;
+  el.querySelectorAll('.ppick-item').forEach(function(item){
+    item.style.display=item.dataset.val.toLowerCase().includes(q.toLowerCase())?'':'none';
+  });
+}
+function selectPPick(inputId,pickId,val){
+  var inp=document.getElementById(inputId);
+  var lbl=document.getElementById(inputId+'-lbl');
+  var pick=document.getElementById(pickId);
+  var arr=document.getElementById(pickId+'-arrow');
+  if(inp)inp.value=val;
+  if(lbl)lbl.textContent=val;
+  if(pick)pick.style.display='none';
+  if(arr)arr.textContent='▼';
+  // Highlight selected
+  if(pick)pick.querySelectorAll('.ppick-item').forEach(function(item){
+    item.style.background=item.dataset.val===val?'rgba(0,212,170,.12)':'';
+    item.style.fontWeight=item.dataset.val===val?'700':'';
   });
 }
 function updatePhoneLen(code){var m={'+57':10,'+48':9,'+1':10,'+34':9,'+52':10,'+54':10,'+55':11,'+56':9,'+51':9,'+58':11,'+593':9,'+502':8,'+44':10,'+49':11,'+33':9,'+39':10,'+7':10,'+86':11,'+91':10,'+81':11,'+82':11};var i=document.getElementById('cfg-phone');if(i)i.maxLength=m[code]||15;}
