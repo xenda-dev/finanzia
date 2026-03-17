@@ -73,13 +73,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .drawer-item:hover,.drawer-item.active{color:var(--text);background:var(--surface2)}
 .drawer-item.active{border-left:3px solid var(--primary);padding-left:17px}
 .drawer-item-icon{width:30px;height:30px;border-radius:8px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.ai-chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 56px);background:var(--surface);overflow:hidden;margin:-16px}
+.ai-chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 56px);max-height:calc(100vh - 56px);background:var(--surface);overflow:hidden;margin:-16px}
 .ai-chat-header{background:linear-gradient(135deg,#075E54,#128C7E);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
 .ai-chat-avatar{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .ai-chat-info{flex:1}
 .ai-chat-name{font-size:15px;font-weight:700;color:white}
 .ai-chat-status{font-size:11px;color:rgba(255,255,255,.7)}
-.ai-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--surface)}
+.ai-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--surface);min-height:0}
 .ai-date-sep{text-align:center;margin:8px 0}
 .ai-date-sep span{background:var(--surface2);color:var(--text3);font-size:10px;padding:3px 10px;border-radius:10px}
 .ai-msg{max-width:82%;padding:8px 12px;border-radius:8px;font-size:13px;line-height:1.5;position:relative}
@@ -2047,7 +2047,10 @@ function renderCalculadora(){
             <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Cuota mensual</div><div style="font-size:17px;font-weight:800;color:var(--primary)" id="loan-cuota">—</div></div>
             <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Total a pagar</div><div style="font-size:17px;font-weight:800" id="loan-total">—</div></div>
             <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Total intereses</div><div style="font-size:17px;font-weight:800;color:var(--danger)" id="loan-interest">—</div></div>
-            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Costo financiero <span onclick="showToast('El costo financiero es el % adicional que pagas sobre el capital. Ej: pediste $10M y pagas $4M de intereses = 40% de costo financiero.')" style="cursor:pointer;color:var(--primary)">ℹ️</span></div><div style="font-size:17px;font-weight:800;color:var(--warning)" id="loan-cost-pct">—</div></div>
+            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Costo financiero</div><div style="font-size:17px;font-weight:800;color:var(--warning)" id="loan-cost-pct">—</div></div>
+          </div>
+          <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:8px 10px;margin-top:10px;font-size:11px;color:var(--text2);line-height:1.5">
+            ℹ️ <strong>Costo financiero:</strong> el % adicional sobre el capital prestado que pagas en intereses. Ej: pides $10M y pagas $4M de intereses = 40%.
           </div>
         </div>
 
@@ -2118,9 +2121,12 @@ function renderSimulador(){
             <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Lo que aportaste</div><div style="font-size:15px;font-weight:800" id="sim-invested">—</div></div>
             <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Ganancias (interés)</div><div style="font-size:15px;font-weight:800;color:var(--primary)" id="sim-gains">—</div></div>
             <div style="text-align:center">
-              <div style="font-size:10px;color:var(--text2)">Multiplicador <span onclick="showToast('El multiplicador indica cuántas veces creció tu dinero. Ej: 1.8x = por cada $100 que pusiste, ahora tienes $180 gracias al interés compuesto.')" style="cursor:pointer;color:var(--primary)">ℹ️</span></div>
+              <div style="font-size:10px;color:var(--text2)">Multiplicador</div>
               <div style="font-size:15px;font-weight:800;color:var(--warning)" id="sim-mult">—</div>
             </div>
+          </div>
+          <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:8px 10px;margin-top:10px;font-size:11px;color:var(--text2);line-height:1.5">
+            ℹ️ <strong>Multiplicador:</strong> cuántas veces creció tu dinero. Ej: 1.8x significa que por cada $100 que aportaste, ahora tienes $180 gracias al interés compuesto.
           </div>
         </div>
         <div style="background:var(--surface2);border-radius:var(--radius);padding:14px">
@@ -2291,7 +2297,7 @@ function renderEstrategia(){
   })).filter(d=>d.balance>0);
 
   // Extra payment input (optional)
-  var extra=parseFloat(window._estrategiaExtra)||0;
+  var extra=parseFloat((window._estrategiaExtra||'').toString().replace(/[^0-9.]/g,''))||0;
 
   // Simulate payoff for a given order
   function simulate(ordered){
@@ -2369,7 +2375,7 @@ function renderEstrategia(){
     <div style="background:var(--surface2);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:13px">
       💡 <strong>¿Cuánto dinero extra puedes destinar al mes?</strong>
       <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
-        <input class="form-input" type="number" id="estrategia-extra" placeholder="Ej: 200.000" style="flex:1" value="${window._estrategiaExtra||''}" oninput="window._estrategiaExtra=this.value;calcEstrategia()">
+        <input class="form-input" type="text" inputmode="numeric" id="estrategia-extra" placeholder="Ej: 200.000" style="flex:1" value="${window._estrategiaExtra||''}" oninput="window._estrategiaExtra=this.value.replace(/[^0-9.]/g,'');" onblur="calcEstrategia()" onkeyup="if(event.key==='Enter'){this.blur();}">
         <span style="font-size:11px;color:var(--text2)">${S.currency}</span>
       </div>
       <div style="font-size:11px;color:var(--text2);margin-top:4px">Adicional a las cuotas mínimas de cada deuda</div>
@@ -2431,7 +2437,7 @@ function renderConfiguracion(){
     Notification.permission==='granted'?t('notifGranted'):
     Notification.permission==='denied'?t('notifDenied'):t('notifDefault');
   const activeCurs=S.currencies||['PLN'];
-    const curList=ALL_CURRENCIES.map(c=>`<label style="display:flex;align-items:center;gap:4px;padding:4px 6px;border-radius:6px;cursor:pointer;background:${activeCurs.includes(c.code)?'rgba(0,212,170,.1)':'var(--surface2)'}"><input type="checkbox" ${activeCurs.includes(c.code)?'checked':''} onchange="toggleCurrency('${c.code}',this.checked)" style="width:14px;height:14px;accent-color:var(--primary);flex-shrink:0"><span style="font-size:11px;font-weight:700;min-width:28px">${c.code}</span><span style="font-size:9px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</span></label>`).join('');
+    const curList=ALL_CURRENCIES.map(c=>{const meta=getCurrencyMeta(c.code);return`<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;background:${activeCurs.includes(c.code)?'rgba(0,212,170,.12)':'var(--surface2)'}"><input type="checkbox" ${activeCurs.includes(c.code)?'checked':''} onchange="toggleCurrency('${c.code}',this.checked)" style="width:16px;height:16px;accent-color:var(--primary);flex-shrink:0"><div style="flex:1"><div style="font-size:14px;font-weight:700">${c.code} <span style="color:var(--primary)">${meta.sym}</span></div><div style="font-size:11px;color:var(--text3)">${c.name}</div></div>${activeCurs.includes(c.code)?'<span style="color:var(--primary);font-size:16px">✓</span>':''}</label>`;}).join('');
   const curSelected=`${activeCurs.length} ${t('selected')}`;
   const langCurrent=ALL_LANGUAGES.find(l=>l.id===(S.language||'es'))||ALL_LANGUAGES[0];
   const langList=ALL_LANGUAGES.map(l=>`<div onclick="saveLanguage('${l.id}')" style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;border-radius:8px;background:${l.id===(S.language||'es')?'rgba(0,212,170,.12)':'transparent'};margin-bottom:2px">
@@ -2476,27 +2482,27 @@ function renderConfiguracion(){
           <div style="display:flex;gap:6px">
             <select class="form-select" id="cfg-phone-code" style="width:76px;flex-shrink:0;padding:8px 2px;font-size:12px" onchange="updatePhoneLen(this.value)">
               <option value="">+</option>
-              <option value="+57" ${(S.profile&&S.profile.phoneCode)==="+57"?'selected':''}>+57 🇨🇴 Colombia</option>
-<option value="+48" ${(S.profile&&S.profile.phoneCode)==="+48"?'selected':''}>+48 🇵🇱 Polonia</option>
-<option value="+1" ${(S.profile&&S.profile.phoneCode)==="+1"?'selected':''}>+1 🇺🇸 USA/Canadá</option>
-<option value="+34" ${(S.profile&&S.profile.phoneCode)==="+34"?'selected':''}>+34 🇪🇸 España</option>
-<option value="+52" ${(S.profile&&S.profile.phoneCode)==="+52"?'selected':''}>+52 🇲🇽 México</option>
-<option value="+54" ${(S.profile&&S.profile.phoneCode)==="+54"?'selected':''}>+54 🇦🇷 Argentina</option>
-<option value="+55" ${(S.profile&&S.profile.phoneCode)==="+55"?'selected':''}>+55 🇧🇷 Brasil</option>
-<option value="+56" ${(S.profile&&S.profile.phoneCode)==="+56"?'selected':''}>+56 🇨🇱 Chile</option>
-<option value="+51" ${(S.profile&&S.profile.phoneCode)==="+51"?'selected':''}>+51 🇵🇪 Perú</option>
-<option value="+58" ${(S.profile&&S.profile.phoneCode)==="+58"?'selected':''}>+58 🇻🇪 Venezuela</option>
-<option value="+593" ${(S.profile&&S.profile.phoneCode)==="+593"?'selected':''}>+593 🇪🇨 Ecuador</option>
-<option value="+502" ${(S.profile&&S.profile.phoneCode)==="+502"?'selected':''}>+502 🇬🇹 Guatemala</option>
-<option value="+44" ${(S.profile&&S.profile.phoneCode)==="+44"?'selected':''}>+44 🇬🇧 UK</option>
-<option value="+49" ${(S.profile&&S.profile.phoneCode)==="+49"?'selected':''}>+49 🇩🇪 Alemania</option>
-<option value="+33" ${(S.profile&&S.profile.phoneCode)==="+33"?'selected':''}>+33 🇫🇷 Francia</option>
-<option value="+39" ${(S.profile&&S.profile.phoneCode)==="+39"?'selected':''}>+39 🇮🇹 Italia</option>
-<option value="+7" ${(S.profile&&S.profile.phoneCode)==="+7"?'selected':''}>+7 🇷🇺 Rusia</option>
-<option value="+86" ${(S.profile&&S.profile.phoneCode)==="+86"?'selected':''}>+86 🇨🇳 China</option>
-<option value="+91" ${(S.profile&&S.profile.phoneCode)==="+91"?'selected':''}>+91 🇮🇳 India</option>
-<option value="+81" ${(S.profile&&S.profile.phoneCode)==="+81"?'selected':''}>+81 🇯🇵 Japón</option>
-<option value="+82" ${(S.profile&&S.profile.phoneCode)==="+82"?'selected':''}>+82 🇰🇷 Corea del Sur</option>
+              <option value="+57" ${(S.profile&&S.profile.phoneCode)==="+57"?'selected':''}>+57 🇨🇴</option>
+<option value="+48" ${(S.profile&&S.profile.phoneCode)==="+48"?'selected':''}>+48 🇵🇱</option>
+<option value="+1" ${(S.profile&&S.profile.phoneCode)==="+1"?'selected':''}>+1 🇺🇸</option>
+<option value="+34" ${(S.profile&&S.profile.phoneCode)==="+34"?'selected':''}>+34 🇪🇸</option>
+<option value="+52" ${(S.profile&&S.profile.phoneCode)==="+52"?'selected':''}>+52 🇲🇽</option>
+<option value="+54" ${(S.profile&&S.profile.phoneCode)==="+54"?'selected':''}>+54 🇦🇷</option>
+<option value="+55" ${(S.profile&&S.profile.phoneCode)==="+55"?'selected':''}>+55 🇧🇷</option>
+<option value="+56" ${(S.profile&&S.profile.phoneCode)==="+56"?'selected':''}>+56 🇨🇱</option>
+<option value="+51" ${(S.profile&&S.profile.phoneCode)==="+51"?'selected':''}>+51 🇵🇪</option>
+<option value="+58" ${(S.profile&&S.profile.phoneCode)==="+58"?'selected':''}>+58 🇻🇪</option>
+<option value="+593" ${(S.profile&&S.profile.phoneCode)==="+593"?'selected':''}>+593 🇪🇨</option>
+<option value="+502" ${(S.profile&&S.profile.phoneCode)==="+502"?'selected':''}>+502 🇬🇹</option>
+<option value="+44" ${(S.profile&&S.profile.phoneCode)==="+44"?'selected':''}>+44 🇬🇧</option>
+<option value="+49" ${(S.profile&&S.profile.phoneCode)==="+49"?'selected':''}>+49 🇩🇪</option>
+<option value="+33" ${(S.profile&&S.profile.phoneCode)==="+33"?'selected':''}>+33 🇫🇷</option>
+<option value="+39" ${(S.profile&&S.profile.phoneCode)==="+39"?'selected':''}>+39 🇮🇹</option>
+<option value="+7" ${(S.profile&&S.profile.phoneCode)==="+7"?'selected':''}>+7 🇷🇺</option>
+<option value="+86" ${(S.profile&&S.profile.phoneCode)==="+86"?'selected':''}>+86 🇨🇳</option>
+<option value="+91" ${(S.profile&&S.profile.phoneCode)==="+91"?'selected':''}>+91 🇮🇳</option>
+<option value="+81" ${(S.profile&&S.profile.phoneCode)==="+81"?'selected':''}>+81 🇯🇵</option>
+<option value="+82" ${(S.profile&&S.profile.phoneCode)==="+82"?'selected':''}>+82 🇰🇷</option>
             </select>
             <input class="form-input" type="tel" id="cfg-phone" value="${(S.profile&&S.profile.phone)||''}" placeholder="300 000 0000" style="flex:1;font-size:15px" maxlength="15">
           </div>
