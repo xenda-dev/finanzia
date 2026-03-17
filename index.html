@@ -6,11 +6,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Finanzía">
+<meta name="apple-mobile-web-app-title" content="FinanzIA">
 <meta name="theme-color" content="#00D4AA">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icon-192.png">
-<title>Finanzía</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A0F1E'/%3E%3Ctext x='10' y='46' font-family='system-ui,sans-serif' font-weight='800' font-size='36' fill='%2300D4AA'%3EF%3C/text%3E%3Cpolyline points='32,44 40,28 48,36 56,14' fill='none' stroke='%2300D4AA' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<title>FinanzIA</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [data-theme="dark"]{
@@ -60,8 +61,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .drawer-footer{padding:10px 20px 16px;border-top:1px solid var(--border);text-align:center;flex-shrink:0}
 .drawer-footer-brand{font-size:14px;font-weight:800;color:var(--primary)}
 .drawer-footer-brand span{color:var(--text)}
+.finanzIA-logo{display:inline-flex;align-items:center;gap:6px}
+.finanzIA-logo svg{flex-shrink:0}
 .drawer-footer-version{font-size:10px;color:var(--text3);margin-top:2px}
 .drawer-group-label{font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--text3);padding:14px 20px 4px;text-transform:uppercase}
+.drawer-group-toggle{display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;padding-right:16px}
+.drawer-group-toggle:hover{color:var(--text2)}
+.dgl-arrow{font-size:9px;transition:transform .2s}
+.dgl-arrow.collapsed{transform:rotate(-90deg)}
 .drawer-item{display:flex;align-items:center;gap:12px;padding:12px 20px;color:var(--text2);cursor:pointer;transition:.15s;font-size:14px;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
 .drawer-item:hover,.drawer-item.active{color:var(--text);background:var(--surface2)}
 .drawer-item.active{border-left:3px solid var(--primary);padding-left:17px}
@@ -238,27 +245,42 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div class="drawer-nav">
     <div class="drawer-group-label" id="dgl-principal">Principal</div>
     <button class="drawer-item active" data-page="dashboard" id="dmi-dashboard"><div class="drawer-item-icon">🏠</div><span>Inicio</span></button>
-    <div class="drawer-group-label" id="dgl-midinero">Mi Dinero</div>
-    <button class="drawer-item" data-page="cuentas" id="dmi-cuentas"><div class="drawer-item-icon">💳</div><span>Cuentas</span></button>
-    <button class="drawer-item" data-page="movimientos" id="dmi-movimientos"><div class="drawer-item-icon">📋</div><span>Movimientos</span></button>
-    <button class="drawer-item" data-page="deudas" id="dmi-deudas"><div class="drawer-item-icon">💸</div><span>Deudas</span></button>
-    <div class="drawer-group-label" id="dgl-planificacion">Planificación</div>
-    <button class="drawer-item" data-page="presupuestos" id="dmi-presupuestos"><div class="drawer-item-icon">📊</div><span>Presupuestos</span></button>
-    <button class="drawer-item" data-page="metas" id="dmi-metas"><div class="drawer-item-icon">🎯</div><span>Metas de ahorro</span></button>
-    <button class="drawer-item" data-page="pagos" id="dmi-pagos"><div class="drawer-item-icon">🔔</div><span>Pagos programados</span></button>
+    <!-- MI DINERO — collapsible -->
+    <div class="drawer-group-label drawer-group-toggle" id="dgl-midinero" onclick="toggleDrawerGroup('grp-midinero',this)">
+      Mi Dinero <span class="dgl-arrow">▼</span>
+    </div>
+    <div id="grp-midinero">
+      <button class="drawer-item" data-page="cuentas" id="dmi-cuentas"><div class="drawer-item-icon">💳</div><span>Cuentas</span></button>
+      <button class="drawer-item" data-page="movimientos" id="dmi-movimientos"><div class="drawer-item-icon">📋</div><span>Movimientos</span></button>
+      <button class="drawer-item" data-page="deudas" id="dmi-deudas"><div class="drawer-item-icon">💸</div><span>Deudas</span></button>
+    </div>
+    <!-- PLANIFICACIÓN — collapsible -->
+    <div class="drawer-group-label drawer-group-toggle" id="dgl-planificacion" onclick="toggleDrawerGroup('grp-planificacion',this)">
+      Planificación <span class="dgl-arrow">▼</span>
+    </div>
+    <div id="grp-planificacion">
+      <button class="drawer-item" data-page="presupuestos" id="dmi-presupuestos"><div class="drawer-item-icon">📊</div><span>Presupuestos</span></button>
+      <button class="drawer-item" data-page="metas" id="dmi-metas"><div class="drawer-item-icon">🎯</div><span>Metas de ahorro</span></button>
+      <button class="drawer-item" data-page="pagos" id="dmi-pagos"><div class="drawer-item-icon">🔔</div><span>Pagos programados</span></button>
+    </div>
     <div class="drawer-group-label" id="dgl-reportes">Reportes</div>
     <button class="drawer-item" data-page="analisis" id="dmi-analisis"><div class="drawer-item-icon">📈</div><span>Análisis financiero</span></button>
-    <div class="drawer-group-label" id="dgl-herramientas">Herramientas</div>
-    <button class="drawer-item" data-page="herramientas" id="dmi-herramientas"><div class="drawer-item-icon">🤖</div><span>Asistente IA</span></button>
-    <button class="drawer-item" data-page="calculadora" id="dmi-calculadora"><div class="drawer-item-icon">📐</div><span>Calculadora préstamo</span></button>
-    <button class="drawer-item" data-page="simulador" id="dmi-simulador"><div class="drawer-item-icon">💹</div><span>Simulador de ahorro</span></button>
+    <!-- HERRAMIENTAS — collapsible -->
+    <div class="drawer-group-label drawer-group-toggle" id="dgl-herramientas" onclick="toggleDrawerGroup('grp-herramientas',this)">
+      Herramientas <span class="dgl-arrow">▼</span>
+    </div>
+    <div id="grp-herramientas">
+      <button class="drawer-item" data-page="herramientas" id="dmi-herramientas"><div class="drawer-item-icon">🤖</div><span>Emiliano — Asistente IA</span></button>
+      <button class="drawer-item" data-page="calculadora" id="dmi-calculadora"><div class="drawer-item-icon">📐</div><span>Calculadora préstamo</span></button>
+      <button class="drawer-item" data-page="simulador" id="dmi-simulador"><div class="drawer-item-icon">💹</div><span>Simulador de ahorro</span></button>
+    </div>
     <div class="drawer-group-label" id="dgl-configuracion">Configuración</div>
     <button class="drawer-item" data-page="categorias" id="dmi-categorias"><div class="drawer-item-icon">🏷️</div><span>Categorías</span></button>
     <button class="drawer-item" data-page="configuracion" id="dmi-configuracion"><div class="drawer-item-icon">⚙️</div><span>Ajustes</span></button>
   </div>
   <!-- Footer -->
   <div class="drawer-footer">
-    <div class="drawer-footer-brand">Finanz<span>ía</span></div>
+    <div class="drawer-footer-brand">Finanz<span>IA</span></div>
     <div class="drawer-footer-version">v3.3 · Datos locales</div>
   </div>
 </nav>
@@ -266,7 +288,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <button class="btn-icon" onclick="openDrawer()">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
-  <div class="header-title">Finanz<span>ía</span></div>
+  <div class="header-title">Finanz<span>IA</span></div>
   <div class="header-right">
     <div class="currency-toggle" id="currency-toggle">
       <button class="cur-btn active" data-cur="PLN" onclick="setCurrency('PLN')">PLN</button>
@@ -594,6 +616,14 @@ function loadState(){
   document.getElementById('theme-btn').textContent=S.theme==='dark'?'☀️':'🌙';
   // Update drawer profile
   updateDrawerProfile();
+}
+function toggleDrawerGroup(groupId, labelEl){
+  const el=document.getElementById(groupId);
+  if(!el)return;
+  const arrow=labelEl?labelEl.querySelector('.dgl-arrow'):null;
+  const isCollapsed=el.style.display==='none';
+  el.style.display=isCollapsed?'block':'none';
+  if(arrow)arrow.classList.toggle('collapsed',!isCollapsed);
 }
 function updateDrawerProfile(){
   const name=S.profile&&S.profile.name?S.profile.name:'Mi Perfil';
@@ -1152,13 +1182,39 @@ function renderRule502030(){
     </div>`;
   }).join('');
 
-  return`<div class="card" style="margin-bottom:12px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div class="card-title" style="margin:0">📊 Regla 50/30/20</div>
-      <div style="font-size:10px;color:var(--text3)">Ingresos: ${fmt(inc)}</div>
-    </div>
-    ${rowsHtml}
+  const necPct=inc>0?Math.round(nec/inc*100):0;
+  const desPct=inc>0?Math.round(des/inc*100):0;
+  const ahoPct=inc>0?Math.round(aho/inc*100):0;
+  const necOK=necPct<=50,desOK=desPct<=30,ahoOK=ahoPct>=20;
+
+  const collapsedHtml=`<div style="display:flex;gap:12px;align-items:center;margin-top:4px">
+    <div style="display:flex;align-items:center;gap:4px"><span style="color:${necOK?'var(--success)':'var(--danger)'}">🔴</span><span style="font-size:11px;font-weight:700;color:${necOK?'var(--success)':'var(--danger)'}">${necPct}%</span></div>
+    <div style="display:flex;align-items:center;gap:4px"><span style="color:${desOK?'var(--success)':'var(--warning)'}">🟡</span><span style="font-size:11px;font-weight:700;color:${desOK?'var(--success)':'var(--warning)'}">${desPct}%</span></div>
+    <div style="display:flex;align-items:center;gap:4px"><span style="color:${ahoOK?'var(--success)':'var(--danger)'}">🟢</span><span style="font-size:11px;font-weight:700;color:${ahoOK?'var(--success)':'var(--danger)'}">${ahoPct}%</span></div>
+    <span style="font-size:10px;color:var(--text3);margin-left:4px">${necOK&&desOK&&ahoOK?'✓ Todo OK':'⚠ Revisar'}</span>
   </div>`;
+
+  return`<div class="card" style="margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleRule502030()">
+      <div class="card-title" style="margin:0">📊 Regla 50/30/20</div>
+      <span id="rule-arrow" style="color:var(--text3);font-size:12px;transition:transform .2s">▼</span>
+    </div>
+    <div id="rule-collapsed" style="display:none">${collapsedHtml}</div>
+    <div id="rule-expanded">
+      <div style="font-size:10px;color:var(--text3);margin:4px 0 12px">Ingresos del mes: <strong style="color:var(--text)">${fmt(inc)}</strong></div>
+      ${rowsHtml}
+    </div>
+  </div>`;
+}
+function toggleRule502030(){
+  const exp=document.getElementById('rule-expanded');
+  const col=document.getElementById('rule-collapsed');
+  const arrow=document.getElementById('rule-arrow');
+  if(!exp||!col)return;
+  const isOpen=exp.style.display!=='none';
+  exp.style.display=isOpen?'none':'block';
+  col.style.display=isOpen?'flex':'none';
+  if(arrow)arrow.style.transform=isOpen?'rotate(-90deg)':'';
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1221,7 +1277,7 @@ function renderDashboard(){
         <div style="font-size:10px;color:var(--text3);margin-top:2px">👆 ver cuentas</div>
       </div>
     </div>
-    ${renderRule502030()}
+    <div style="margin-top:20px">${renderRule502030()}</div>
     <div class="section-header"><div class="section-title">📊 ${t('budgets')}</div><button class="btn-text" onclick="navigate('presupuestos')">Ver todos</button></div>
     <div class="card">${budgetHtml}</div>
     <div class="section-header"><div class="section-title">📋 ${t('recentMovements')}</div><button class="btn-text" onclick="navigate('movimientos')">Ver todos</button></div>
@@ -1781,7 +1837,7 @@ const TRANSLATIONS = {
     spent:'Gastado',remaining:'Restante',
     installments:'¿A cuántas cuotas?',tcDetected:'(TC detectada)',
     tapOptions:'👆 opciones',
-    version:'Finanzía v3.3 · Datos locales · Hecho con ❤️',
+    version:'FinanzIA v3.3 · Datos locales · Hecho con ❤️',
     grpMain:'Principal',grpPlan:'Planificación',grpAnalysis:'Análisis',grpManage:'Gestión',
     grpMoney:'Mi Dinero',grpReports:'Reportes',grpTools:'Herramientas',grpConfig:'Configuración',aiAssistant:'Asistente IA',loanCalc:'Calculadora préstamo',savingsSim:'Simulador de ahorro',
     noEntity:'Sin entidad',accActive:'Activo',accPassive:'Pasivo',
@@ -1837,7 +1893,7 @@ const TRANSLATIONS = {
     spent:'Spent',remaining:'Remaining',
     installments:'How many installments?',tcDetected:'(Credit card detected)',
     tapOptions:'👆 options',
-    version:'Finanzía v3.3 · Local data · Made with ❤️',
+    version:'FinanzIA v3.3 · Local data · Made with ❤️',
     grpMain:'Main',grpPlan:'Planning',grpAnalysis:'Analysis',grpManage:'Management',
     grpMoney:'My Money',grpReports:'Reports',grpTools:'Tools',grpConfig:'Settings',aiAssistant:'AI Assistant',loanCalc:'Loan calculator',savingsSim:'Savings simulator',
     noEntity:'No entity',accActive:'Asset',accPassive:'Liability',newCategory:'New category',newSubcategory:'New subcategory',pocket:'Pocket',addPocket:'＋ Pocket',editAccount:'✏️ Edit',showMovements:'📋 Transactions',spent:'Spent',remaining:'Remaining',limit:'Limit',monthly:'Monthly',noSubcategory:'No subcategory',goToSettings:'Settings',goal_saved:'Saved',goal_target:'Target',transfer_from:'From account',transfer_to:'To account',add_savings:'Add savings',register_payment:'Register payment',today:'TODAY',overdue:'overdue',
@@ -1881,27 +1937,27 @@ const TRANSLATIONS = {
     spent:'Wydano',remaining:'Pozostało',
     installments:'Na ile rat?',tcDetected:'(Karta kredytowa)',
     tapOptions:'👆 opcje',
-    version:'Finanzía v3.3 · Dane lokalne · Zrobione z ❤️',
+    version:'FinanzIA v3.3 · Dane lokalne · Zrobione z ❤️',
     grpMain:'Główne',grpPlan:'Planowanie',grpAnalysis:'Analiza',grpManage:'Zarządzanie',
     grpMoney:'Moje Pieniądze',grpReports:'Raporty',grpTools:'Narzędzia',grpConfig:'Ustawienia',aiAssistant:'Asystent AI',loanCalc:'Kalkulator kredytu',savingsSim:'Symulator oszczędności',
     noEntity:'Brak podmiotu',accActive:'Aktyw',accPassive:'Zobowiązanie',newCategory:'Nowa kategoria',pocket:'Skarbonka',addPocket:'＋ Skarbonka',editAccount:'✏️ Edytuj',showMovements:'📋 Transakcje',spent:'Wydano',remaining:'Pozostało',limit:'Limit',monthly:'Miesięcznie',noSubcategory:'Bez podkategorii',goal_saved:'Zaoszczędzone',goal_target:'Cel',today:'DZIŚ',overdue:'przeterminowane',
   },
-  pt:{dashboard:'Início',movements:'Transações',accounts:'Contas',budgets:'Orçamentos',goals:'Metas',payments:'Pagamentos',debts:'Dívidas',analysis:'Análise',categories:'Categorias',settings:'Configurações',income:'Receitas',expenses:'Despesas',savings:'Poupança',savingsRate:'Taxa de poupança',balance:'Saldo total',activeAccounts:'Contas ativas',totalDebts:'Total dívidas',totalSaved:'Total poupado',recentMovements:'Transações recentes',seeAll:'Ver tudo',save:'Salvar',cancel:'Cancelar',delete:'Excluir',edit:'Editar',create:'Criar',income_type:'Receita',expense_type:'Despesa',transfer_type:'Transferência',name:'Nome',amount:'Valor',date:'Data',description:'Descrição',category:'Categoria',subcategory:'Subcategoria',paymentMethod:'Forma de pagamento',currency:'Moeda',account:'Conta',noMovements:'Sem transações',noAccounts:'Sem contas',noGoals:'Sem metas',preferences:'Preferências',appearance:'Aparência',system:'Sistema',language:'Idioma',weekStart:'Início da semana',activeCurrencies:'Moedas ativas',theme:'Tema',dark:'Escuro',light:'Claro',changeTo:'Mudar para',notifications:'Notificações',export:'Exportar',import:'Importar',reset:'Restaurar',resetDesc:'Apaga TODOS os dados',monday:'Segunda',sunday:'Domingo',search:'Buscar...',selected:'selecionadas',spent:'Gasto',remaining:'Restante',addSavings:'Adicionar poupança',registerPayment:'Registrar pagamento',tapOptions:'👆 opções',version:'Finanzía v3.3 · Feito com ❤️',
+  pt:{dashboard:'Início',movements:'Transações',accounts:'Contas',budgets:'Orçamentos',goals:'Metas',payments:'Pagamentos',debts:'Dívidas',analysis:'Análise',categories:'Categorias',settings:'Configurações',income:'Receitas',expenses:'Despesas',savings:'Poupança',savingsRate:'Taxa de poupança',balance:'Saldo total',activeAccounts:'Contas ativas',totalDebts:'Total dívidas',totalSaved:'Total poupado',recentMovements:'Transações recentes',seeAll:'Ver tudo',save:'Salvar',cancel:'Cancelar',delete:'Excluir',edit:'Editar',create:'Criar',income_type:'Receita',expense_type:'Despesa',transfer_type:'Transferência',name:'Nome',amount:'Valor',date:'Data',description:'Descrição',category:'Categoria',subcategory:'Subcategoria',paymentMethod:'Forma de pagamento',currency:'Moeda',account:'Conta',noMovements:'Sem transações',noAccounts:'Sem contas',noGoals:'Sem metas',preferences:'Preferências',appearance:'Aparência',system:'Sistema',language:'Idioma',weekStart:'Início da semana',activeCurrencies:'Moedas ativas',theme:'Tema',dark:'Escuro',light:'Claro',changeTo:'Mudar para',notifications:'Notificações',export:'Exportar',import:'Importar',reset:'Restaurar',resetDesc:'Apaga TODOS os dados',monday:'Segunda',sunday:'Domingo',search:'Buscar...',selected:'selecionadas',spent:'Gasto',remaining:'Restante',addSavings:'Adicionar poupança',registerPayment:'Registrar pagamento',tapOptions:'👆 opções',version:'FinanzIA v3.3 · Feito com ❤️',
     grpMain:'Principal',grpPlan:'Planejamento',grpAnalysis:'Análise',grpManage:'Gestão',
     grpMoney:'Meu Dinheiro',grpReports:'Relatórios',grpTools:'Ferramentas',grpConfig:'Configurações',aiAssistant:'Assistente IA',loanCalc:'Calculadora empréstimo',savingsSim:'Simulador poupança',
     noEntity:'Sem entidade',pocket:'Bolso',editAccount:'✏️ Editar',showMovements:'📋 Transações',spent:'Gasto',remaining:'Restante',limit:'Limite',monthly:'Mensal',noSubcategory:'Sem subcategoria',today:'HOJE',overdue:'vencido',
   },
-  fr:{dashboard:'Accueil',movements:'Transactions',accounts:'Comptes',budgets:'Budgets',goals:'Objectifs',payments:'Paiements',debts:'Dettes',analysis:'Analyse',categories:'Catégories',settings:'Paramètres',income:'Revenus',expenses:'Dépenses',savings:'Épargne',savingsRate:"Taux d'épargne",balance:'Solde total',activeAccounts:'Comptes actifs',totalDebts:'Total dettes',totalSaved:'Total épargné',recentMovements:'Transactions récentes',seeAll:'Voir tout',save:'Enregistrer',cancel:'Annuler',delete:'Supprimer',edit:'Modifier',create:'Créer',income_type:'Revenu',expense_type:'Dépense',transfer_type:'Virement',name:'Nom',amount:'Montant',date:'Date',description:'Description',category:'Catégorie',subcategory:'Sous-catégorie',paymentMethod:'Moyen de paiement',currency:'Devise',account:'Compte',noMovements:'Aucune transaction',noAccounts:'Aucun compte',noGoals:'Aucun objectif',preferences:'Préférences',appearance:'Apparence',system:'Système',language:'Langue',weekStart:'Début de semaine',activeCurrencies:'Devises actives',theme:'Thème',dark:'Sombre',light:'Clair',changeTo:'Passer en',notifications:'Notifications',export:'Exporter',import:'Importer',reset:'Réinitialiser',resetDesc:'Supprime TOUTES les données',monday:'Lundi',sunday:'Dimanche',search:'Rechercher...',selected:'sélectionnées',spent:'Dépensé',remaining:'Restant',addSavings:'Ajouter épargne',registerPayment:'Enregistrer paiement',tapOptions:'👆 options',version:'Finanzía v3.3 · Fait avec ❤️',
+  fr:{dashboard:'Accueil',movements:'Transactions',accounts:'Comptes',budgets:'Budgets',goals:'Objectifs',payments:'Paiements',debts:'Dettes',analysis:'Analyse',categories:'Catégories',settings:'Paramètres',income:'Revenus',expenses:'Dépenses',savings:'Épargne',savingsRate:"Taux d'épargne",balance:'Solde total',activeAccounts:'Comptes actifs',totalDebts:'Total dettes',totalSaved:'Total épargné',recentMovements:'Transactions récentes',seeAll:'Voir tout',save:'Enregistrer',cancel:'Annuler',delete:'Supprimer',edit:'Modifier',create:'Créer',income_type:'Revenu',expense_type:'Dépense',transfer_type:'Virement',name:'Nom',amount:'Montant',date:'Date',description:'Description',category:'Catégorie',subcategory:'Sous-catégorie',paymentMethod:'Moyen de paiement',currency:'Devise',account:'Compte',noMovements:'Aucune transaction',noAccounts:'Aucun compte',noGoals:'Aucun objectif',preferences:'Préférences',appearance:'Apparence',system:'Système',language:'Langue',weekStart:'Début de semaine',activeCurrencies:'Devises actives',theme:'Thème',dark:'Sombre',light:'Clair',changeTo:'Passer en',notifications:'Notifications',export:'Exporter',import:'Importer',reset:'Réinitialiser',resetDesc:'Supprime TOUTES les données',monday:'Lundi',sunday:'Dimanche',search:'Rechercher...',selected:'sélectionnées',spent:'Dépensé',remaining:'Restant',addSavings:'Ajouter épargne',registerPayment:'Enregistrer paiement',tapOptions:'👆 options',version:'FinanzIA v3.3 · Fait avec ❤️',
     grpMain:'Principal',grpPlan:'Planification',grpAnalysis:'Analyse',grpManage:'Gestion',
     grpMoney:'Mon Argent',grpReports:'Rapports',grpTools:'Outils',grpConfig:'Paramètres',aiAssistant:'Assistant IA',loanCalc:'Calculateur prêt',savingsSim:'Simulateur épargne',
     noEntity:'Sans entité',pocket:'Poche',editAccount:'✏️ Modifier',showMovements:'📋 Transactions',spent:'Dépensé',remaining:'Restant',limit:'Limite',monthly:'Mensuel',noSubcategory:'Sans sous-catégorie',today:'AUJOURD\'HUI',overdue:'expiré',
   },
-  de:{dashboard:'Übersicht',movements:'Transaktionen',accounts:'Konten',budgets:'Budgets',goals:'Ziele',payments:'Zahlungen',debts:'Schulden',analysis:'Analyse',categories:'Kategorien',settings:'Einstellungen',income:'Einnahmen',expenses:'Ausgaben',savings:'Ersparnisse',savingsRate:'Sparquote',balance:'Gesamtguthaben',activeAccounts:'Aktive Konten',totalDebts:'Gesamtschulden',totalSaved:'Gespart',recentMovements:'Letzte Transaktionen',seeAll:'Alle sehen',save:'Speichern',cancel:'Abbrechen',delete:'Löschen',edit:'Bearbeiten',create:'Erstellen',income_type:'Einnahme',expense_type:'Ausgabe',transfer_type:'Überweisung',name:'Name',amount:'Betrag',date:'Datum',description:'Beschreibung',category:'Kategorie',subcategory:'Unterkategorie',paymentMethod:'Zahlungsmethode',currency:'Währung',account:'Konto',noMovements:'Keine Transaktionen',noAccounts:'Keine Konten',noGoals:'Keine Ziele',preferences:'Einstellungen',appearance:'Erscheinungsbild',system:'System',language:'Sprache',weekStart:'Wochenstart',activeCurrencies:'Aktive Währungen',theme:'Design',dark:'Dunkel',light:'Hell',changeTo:'Wechseln zu',notifications:'Benachrichtigungen',export:'Exportieren',import:'Importieren',reset:'Zurücksetzen',resetDesc:'Löscht ALLE Daten',monday:'Montag',sunday:'Sonntag',search:'Suchen...',selected:'ausgewählt',spent:'Ausgegeben',remaining:'Verbleibend',addSavings:'Ersparnis hinzufügen',registerPayment:'Zahlung registrieren',tapOptions:'👆 Optionen',version:'Finanzía v3.3 · Mit ❤️ gemacht',
+  de:{dashboard:'Übersicht',movements:'Transaktionen',accounts:'Konten',budgets:'Budgets',goals:'Ziele',payments:'Zahlungen',debts:'Schulden',analysis:'Analyse',categories:'Kategorien',settings:'Einstellungen',income:'Einnahmen',expenses:'Ausgaben',savings:'Ersparnisse',savingsRate:'Sparquote',balance:'Gesamtguthaben',activeAccounts:'Aktive Konten',totalDebts:'Gesamtschulden',totalSaved:'Gespart',recentMovements:'Letzte Transaktionen',seeAll:'Alle sehen',save:'Speichern',cancel:'Abbrechen',delete:'Löschen',edit:'Bearbeiten',create:'Erstellen',income_type:'Einnahme',expense_type:'Ausgabe',transfer_type:'Überweisung',name:'Name',amount:'Betrag',date:'Datum',description:'Beschreibung',category:'Kategorie',subcategory:'Unterkategorie',paymentMethod:'Zahlungsmethode',currency:'Währung',account:'Konto',noMovements:'Keine Transaktionen',noAccounts:'Keine Konten',noGoals:'Keine Ziele',preferences:'Einstellungen',appearance:'Erscheinungsbild',system:'System',language:'Sprache',weekStart:'Wochenstart',activeCurrencies:'Aktive Währungen',theme:'Design',dark:'Dunkel',light:'Hell',changeTo:'Wechseln zu',notifications:'Benachrichtigungen',export:'Exportieren',import:'Importieren',reset:'Zurücksetzen',resetDesc:'Löscht ALLE Daten',monday:'Montag',sunday:'Sonntag',search:'Suchen...',selected:'ausgewählt',spent:'Ausgegeben',remaining:'Verbleibend',addSavings:'Ersparnis hinzufügen',registerPayment:'Zahlung registrieren',tapOptions:'👆 Optionen',version:'FinanzIA v3.3 · Mit ❤️ gemacht',
     grpMain:'Hauptmenü',grpPlan:'Planung',grpAnalysis:'Analyse',grpManage:'Verwaltung',
     grpMoney:'Mein Geld',grpReports:'Berichte',grpTools:'Werkzeuge',grpConfig:'Einstellungen',aiAssistant:'KI-Assistent',loanCalc:'Kreditrechner',savingsSim:'Sparrechner',
     noEntity:'Kein Institut',pocket:'Sparkässchen',editAccount:'✏️ Bearbeiten',showMovements:'📋 Transaktionen',spent:'Ausgegeben',remaining:'Verbleibend',limit:'Limit',monthly:'Monatlich',noSubcategory:'Keine Unterkategorie',today:'HEUTE',overdue:'überfällig',
   },
-  it:{dashboard:'Dashboard',movements:'Transazioni',accounts:'Conti',budgets:'Budget',goals:'Obiettivi',payments:'Pagamenti',debts:'Debiti',analysis:'Analisi',categories:'Categorie',settings:'Impostazioni',income:'Entrate',expenses:'Uscite',savings:'Risparmi',savingsRate:'Tasso di risparmio',balance:'Saldo totale',activeAccounts:'Conti attivi',totalDebts:'Totale debiti',totalSaved:'Totale risparmiato',recentMovements:'Transazioni recenti',seeAll:'Vedi tutto',save:'Salva',cancel:'Annulla',delete:'Elimina',edit:'Modifica',create:'Crea',income_type:'Entrata',expense_type:'Uscita',transfer_type:'Trasferimento',name:'Nome',amount:'Importo',date:'Data',description:'Descrizione',category:'Categoria',subcategory:'Sottocategoria',paymentMethod:'Metodo di pagamento',currency:'Valuta',account:'Conto',noMovements:'Nessuna transazione',noAccounts:'Nessun conto',noGoals:'Nessun obiettivo',preferences:'Preferenze',appearance:'Aspetto',system:'Sistema',language:'Lingua',weekStart:'Inizio settimana',activeCurrencies:'Valute attive',theme:'Tema',dark:'Scuro',light:'Chiaro',changeTo:'Passa a',notifications:'Notifiche',export:'Esporta',import:'Importa',reset:'Ripristina',resetDesc:'Elimina TUTTI i dati',monday:'Lunedì',sunday:'Domenica',search:'Cerca...',selected:'selezionate',spent:'Speso',remaining:'Rimanente',addSavings:'Aggiungi risparmio',registerPayment:'Registra pagamento',tapOptions:'👆 opzioni',version:'Finanzía v3.3 · Fatto con ❤️',
+  it:{dashboard:'Dashboard',movements:'Transazioni',accounts:'Conti',budgets:'Budget',goals:'Obiettivi',payments:'Pagamenti',debts:'Debiti',analysis:'Analisi',categories:'Categorie',settings:'Impostazioni',income:'Entrate',expenses:'Uscite',savings:'Risparmi',savingsRate:'Tasso di risparmio',balance:'Saldo totale',activeAccounts:'Conti attivi',totalDebts:'Totale debiti',totalSaved:'Totale risparmiato',recentMovements:'Transazioni recenti',seeAll:'Vedi tutto',save:'Salva',cancel:'Annulla',delete:'Elimina',edit:'Modifica',create:'Crea',income_type:'Entrata',expense_type:'Uscita',transfer_type:'Trasferimento',name:'Nome',amount:'Importo',date:'Data',description:'Descrizione',category:'Categoria',subcategory:'Sottocategoria',paymentMethod:'Metodo di pagamento',currency:'Valuta',account:'Conto',noMovements:'Nessuna transazione',noAccounts:'Nessun conto',noGoals:'Nessun obiettivo',preferences:'Preferenze',appearance:'Aspetto',system:'Sistema',language:'Lingua',weekStart:'Inizio settimana',activeCurrencies:'Valute attive',theme:'Tema',dark:'Scuro',light:'Chiaro',changeTo:'Passa a',notifications:'Notifiche',export:'Esporta',import:'Importa',reset:'Ripristina',resetDesc:'Elimina TUTTI i dati',monday:'Lunedì',sunday:'Domenica',search:'Cerca...',selected:'selezionate',spent:'Speso',remaining:'Rimanente',addSavings:'Aggiungi risparmio',registerPayment:'Registra pagamento',tapOptions:'👆 opzioni',version:'FinanzIA v3.3 · Fatto con ❤️',
     grpMain:'Principale',grpPlan:'Pianificazione',grpAnalysis:'Analisi',grpManage:'Gestione',
     grpMoney:'I Miei Soldi',grpReports:'Rapporti',grpTools:'Strumenti',grpConfig:'Impostazioni',aiAssistant:'Assistente IA',loanCalc:'Calcolatore prestito',savingsSim:'Simulatore risparmio',
     noEntity:'Nessun istituto',pocket:'Salvadanaio',editAccount:'✏️ Modifica',showMovements:'📋 Transazioni',spent:'Speso',remaining:'Rimanente',limit:'Limite',monthly:'Mensile',noSubcategory:'Nessuna sottocategoria',today:'OGGI',overdue:'scaduto',
@@ -1916,22 +1972,26 @@ function renderHerramientas(){
   return`
     <div class="balance-card" style="cursor:default;margin-bottom:16px">
       <div style="font-size:32px;margin-bottom:8px">🤖</div>
-      <div style="font-size:18px;font-weight:800;color:white;margin-bottom:4px">Asistente Financiero IA</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.7)">Tu Wealth Manager personal con 20 años de experiencia</div>
+      <div style="font-size:18px;font-weight:800;color:white;margin-bottom:4px">Emiliano — Asistente Financiero IA</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.7)">Tu Wealth Manager personal con 20 años de experiencia 🏦</div>
     </div>
     <div id="ai-chat-container" style="display:flex;flex-direction:column;gap:0">
       <div id="ai-messages" style="min-height:200px;max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px">
         <div class="ai-msg ai-msg-bot">
-          <div>👋 ¡Hola! Soy tu Asistente Financiero. Tengo acceso a tus datos financieros y puedo ayudarte con análisis, consejos y estrategias personalizadas.<br><br>
-          ¿En qué te puedo ayudar hoy?</div>
+          <div>👋 ¡Hola! Soy <strong>Emiliano</strong>, tu Wealth Manager personal con 20 años de experiencia. Tengo acceso a tus datos financieros en tiempo real y puedo ayudarte con análisis, estrategias y consejos personalizados.<br><br>¿En qué te puedo ayudar hoy?</div>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
           ${['📊 ¿Cómo está mi salud financiera?','💸 ¿En qué gasto más?','🎯 ¿Cómo voy con mis metas?','⚠️ ¿Puedo pagar mis deudas?'].map(q=>`<button onclick="aiQuickQuestion('${q}')" style="background:var(--surface2);border:1px solid var(--border);color:var(--primary);padding:6px 10px;border-radius:20px;font-size:11px;cursor:pointer;font-family:var(--font)">${q}</button>`).join('')}
         </div>
       </div>
-      <div style="display:flex;gap:8px">
-        <input id="ai-input" class="form-input" placeholder="Escribe tu pregunta..." style="flex:1;font-size:14px" onkeydown="if(event.key==='Enter')sendAiMessage()">
-        <button class="btn btn-primary" onclick="sendAiMessage()" style="padding:10px 14px;flex-shrink:0">➤</button>
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <div style="flex:1;position:relative">
+          <textarea id="ai-input" class="form-input" placeholder="Escribe tu pregunta a Emiliano..." rows="2"
+            style="resize:none;font-size:14px;line-height:1.4;padding-right:8px;width:100%;box-sizing:border-box"
+            onkeydown="if((event.key==='Enter'&&!event.shiftKey)){event.preventDefault();sendAiMessage();}"></textarea>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px">Enter para enviar · Shift+Enter nueva línea</div>
+        </div>
+        <button class="btn btn-primary" onclick="sendAiMessage()" style="padding:12px 16px;flex-shrink:0;border-radius:12px;font-size:18px;margin-bottom:18px">➤</button>
       </div>
     </div>
   `;
@@ -1945,12 +2005,30 @@ function renderCalculadora(){
         <div class="form-group"><label class="form-label">Tasa anual (%)</label><input class="form-input" type="number" id="loan-rate" placeholder="Ej: 18" step="0.1" oninput="calcLoan()"></div>
         <div class="form-group"><label class="form-label">Plazo (meses)</label><input class="form-input" type="number" id="loan-months" placeholder="Ej: 24" oninput="calcLoan()"></div>
       </div>
-      <div id="loan-result" style="display:none;background:var(--surface2);border-radius:var(--radius);padding:14px;margin-top:4px">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Cuota mensual</div><div style="font-size:20px;font-weight:800;color:var(--primary)" id="loan-cuota">—</div></div>
-          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Total a pagar</div><div style="font-size:20px;font-weight:800" id="loan-total">—</div></div>
-          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Total intereses</div><div style="font-size:20px;font-weight:800;color:var(--danger)" id="loan-interest">—</div></div>
-          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Costo financiero</div><div style="font-size:20px;font-weight:800;color:var(--warning)" id="loan-cost-pct">—</div></div>
+      <div id="loan-result" style="display:none;margin-top:12px">
+        <div style="background:var(--surface2);border-radius:var(--radius);padding:14px;margin-bottom:12px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Cuota mensual</div><div style="font-size:17px;font-weight:800;color:var(--primary)" id="loan-cuota">—</div></div>
+            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Total a pagar</div><div style="font-size:17px;font-weight:800" id="loan-total">—</div></div>
+            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Total intereses</div><div style="font-size:17px;font-weight:800;color:var(--danger)" id="loan-interest">—</div></div>
+            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Costo financiero</div><div style="font-size:17px;font-weight:800;color:var(--warning)" id="loan-cost-pct">—</div></div>
+          </div>
+        </div>
+        <div style="background:var(--surface2);border-radius:var(--radius);padding:14px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px">📋 Plan de pagos</div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:11px" id="loan-table">
+              <thead><tr style="border-bottom:1px solid var(--border)">
+                <th style="text-align:right;padding:4px 6px;color:var(--text3);font-weight:600">#</th>
+                <th style="text-align:right;padding:4px 6px;color:var(--text3);font-weight:600">Cuota</th>
+                <th style="text-align:right;padding:4px 6px;color:var(--success);font-weight:600">Capital</th>
+                <th style="text-align:right;padding:4px 6px;color:var(--danger);font-weight:600">Interés</th>
+                <th style="text-align:right;padding:4px 6px;color:var(--text3);font-weight:600">Saldo</th>
+              </tr></thead>
+              <tbody id="loan-table-body"></tbody>
+            </table>
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-top:6px;text-align:center" id="loan-table-note"></div>
         </div>
       </div>
     </div>
@@ -1970,6 +2048,19 @@ function calcLoan(){
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   set('loan-cuota',fmt(cuota));set('loan-total',fmt(total));
   set('loan-interest',fmt(interest));set('loan-cost-pct',Math.round(interest/P*100)+'%');
+  // Amortization table — show first 12 rows + last row
+  const tbody=document.getElementById('loan-table-body');
+  const note=document.getElementById('loan-table-note');
+  if(tbody){
+    let bal=P;const rows=[];
+    for(let i=1;i<=n;i++){
+      const intAmt=bal*rm;const capAmt=cuota-intAmt;bal-=capAmt;
+      rows.push({i,cuota,cap:capAmt,int:intAmt,bal:Math.max(0,bal)});
+    }
+    const showRows=n<=24?rows:[...rows.slice(0,12),null,...rows.slice(-1)];
+    tbody.innerHTML=showRows.map(r=>r===null?'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:4px">...</td></tr>':`<tr style="border-bottom:1px solid var(--border)"><td style="text-align:right;padding:5px 6px;color:var(--text3)">${r.i}</td><td style="text-align:right;padding:5px 6px">${fmt(r.cuota)}</td><td style="text-align:right;padding:5px 6px;color:var(--success)">${fmt(r.cap)}</td><td style="text-align:right;padding:5px 6px;color:var(--danger)">${fmt(r.int)}</td><td style="text-align:right;padding:5px 6px;font-weight:600">${fmt(r.bal)}</td></tr>`).join('');
+    if(note)note.textContent=n>24?'Mostrando primeras 12 y última cuota de '+n+' en total':'';
+  }
 }
 function renderSimulador(){
   return`
@@ -1980,15 +2071,22 @@ function renderSimulador(){
         <div class="form-group"><label class="form-label">Plazo (años)</label><input class="form-input" type="number" id="sim-years" placeholder="Ej: 5" oninput="calcSim()"></div>
         <div class="form-group"><label class="form-label">Rendimiento anual (%)</label><input class="form-input" type="number" id="sim-rate" placeholder="Ej: 8" step="0.1" oninput="calcSim()"></div>
       </div>
-      <div id="sim-result" style="display:none;background:var(--surface2);border-radius:var(--radius);padding:14px;margin-top:4px">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Total acumulado</div><div style="font-size:18px;font-weight:800;color:var(--success)" id="sim-total">—</div></div>
-          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Lo que pusiste</div><div style="font-size:18px;font-weight:800" id="sim-invested">—</div></div>
-          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Ganancias</div><div style="font-size:18px;font-weight:800;color:var(--primary)" id="sim-gains">—</div></div>
-          <div style="text-align:center"><div style="font-size:11px;color:var(--text2)">Multiplicador</div><div style="font-size:18px;font-weight:800;color:var(--warning)" id="sim-mult">—</div></div>
+      <div id="sim-result" style="display:none;margin-top:12px">
+        <div style="background:var(--surface2);border-radius:var(--radius);padding:14px;margin-bottom:12px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Total acumulado</div><div style="font-size:15px;font-weight:800;color:var(--success)" id="sim-total">—</div></div>
+            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Lo que aportaste</div><div style="font-size:15px;font-weight:800" id="sim-invested">—</div></div>
+            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Ganancias (interés)</div><div style="font-size:15px;font-weight:800;color:var(--primary)" id="sim-gains">—</div></div>
+            <div style="text-align:center">
+              <div style="font-size:10px;color:var(--text2)">Multiplicador <span onclick="alert('El multiplicador indica cuántas veces creció tu dinero.\nEj: 1.8x significa que por cada $100 que pusiste, ahora tienes $180 gracias al interés compuesto.')" style="cursor:pointer;color:var(--primary)">ℹ️</span></div>
+              <div style="font-size:15px;font-weight:800;color:var(--warning)" id="sim-mult">—</div>
+            </div>
+          </div>
         </div>
-        <div id="sim-bars" style="display:flex;align-items:flex-end;gap:4px;height:80px;margin-top:8px"></div>
-        <div style="font-size:10px;color:var(--text3);text-align:center;margin-top:4px">Proyección año por año</div>
+        <div style="background:var(--surface2);border-radius:var(--radius);padding:14px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px">📊 Proyección año por año</div>
+          <div id="sim-bars" style="display:flex;align-items:flex-end;gap:3px;height:120px"></div>
+        </div>
       </div>
     </div>
   `;
@@ -2013,7 +2111,8 @@ function calcSim(){
   if(barsEl){
     const yr=[];for(let y=1;y<=Math.min(years,12);y++){const nn=y*12;const v=rm===0?monthly*nn:monthly*(Math.pow(1+rm,nn)-1)/rm*(1+rm);yr.push(v);}
     const maxV=Math.max(...yr);
-    barsEl.innerHTML=yr.map((v,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px"><div style="width:100%;background:var(--primary);border-radius:3px 3px 0 0;height:${Math.round(v/maxV*70)}px;opacity:${0.4+0.6*(i+1)/yr.length}"></div><div style="font-size:8px;color:var(--text3)">${i+1}a</div></div>`).join('');
+    const formatK=(v)=>{if(v>=1000000)return(v/1000000).toFixed(1)+'M';if(v>=1000)return(v/1000).toFixed(0)+'K';return v.toFixed(0);};
+    barsEl.innerHTML=yr.map((v,i)=>{const h=Math.max(16,Math.round(v/maxV*95));return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px"><div style="width:100%;background:linear-gradient(to top,var(--primary),var(--secondary));border-radius:3px 3px 0 0;height:${h}px;opacity:${0.45+0.55*(i+1)/yr.length};display:flex;align-items:flex-start;justify-content:center;padding-top:2px"><span style="font-size:7px;color:white;font-weight:700;writing-mode:vertical-lr;transform:rotate(180deg);line-height:1">${formatK(v)}</span></div><div style="font-size:8px;color:var(--text3);margin-top:2px">${i+1}a</div></div>`;}).join('');
   }
 }
 
@@ -2133,6 +2232,21 @@ function renderConfiguracion(){
     ${l.id===(S.language||'es')?'<span style="margin-left:auto;color:var(--primary)">✓</span>':''}
   </div>`).join('');
   return`
+    <!-- PROFILE SECTION -->
+    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Mi Perfil</div>
+    <div class="card" style="margin-bottom:16px;cursor:default">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+        <div id="cfg-avatar" onclick="pickProfilePhoto()" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;border:3px solid var(--primary);overflow:hidden;flex-shrink:0">${(S.profile&&S.profile.photo)?'<img src="'+S.profile.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">':(S.profile&&S.profile.name?'<span style="font-size:24px;font-weight:700;color:white">'+S.profile.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)+'</span>':'<span>👤</span>')}</div>
+        <div>
+          <div style="font-size:13px;font-weight:700">${(S.profile&&S.profile.name)||'Sin nombre'}</div>
+          <div style="font-size:11px;color:var(--text2)">${(S.profile&&S.profile.email)||'Sin email'}</div>
+          <button onclick="pickProfilePhoto()" style="background:none;border:none;color:var(--primary);font-size:11px;cursor:pointer;padding:4px 0;font-family:var(--font)">📷 Cambiar foto</button>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:10px"><label class="form-label">Nombre completo</label><input class="form-input" type="text" id="cfg-name" value="${(S.profile&&S.profile.name)||''}" placeholder="Tu nombre" oninput="saveProfile()"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="cfg-email" value="${(S.profile&&S.profile.email)||''}" placeholder="tu@email.com" oninput="saveProfile()"></div>
+      <input type="file" id="profile-photo-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">
+    </div>
     <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">${t('preferences')}</div>
 
     <!-- Language -->
@@ -2204,6 +2318,24 @@ function filterCurs(q){
   document.getElementById('cur-list')?.querySelectorAll('label').forEach(el=>{
     el.style.display=el.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
   });
+}
+function saveProfile(){
+  if(!S.profile)S.profile={};
+  const name=document.getElementById('cfg-name')?.value||'';
+  const email=document.getElementById('cfg-email')?.value||'';
+  S.profile.name=name;S.profile.email=email;
+  saveState();updateDrawerProfile();
+}
+function pickProfilePhoto(){document.getElementById('profile-photo-input')?.click();}
+function handleProfilePhoto(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    if(!S.profile)S.profile={};
+    S.profile.photo=ev.target.result;
+    saveState();updateDrawerProfile();renderPage('configuracion');
+  };
+  reader.readAsDataURL(file);
 }
 function saveLanguage(v){
   S.language=v;saveState();
