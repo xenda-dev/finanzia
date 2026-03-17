@@ -2550,9 +2550,9 @@ function renderConfiguracion(){
           </div>
         </div>
         <div class="form-group"><label class="form-label">País</label>
-          <div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface2);cursor:pointer;min-height:44px" onclick="togglePPick('cpick')">
-              <span style="font-size:14px" id="cfg-country-lbl">${(S.profile&&S.profile.country)||'Seleccionar país'}</span>
+          <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('cpick')">
+              <span style="font-size:14px;color:${(S.profile&&S.profile.country)?'var(--text)':'var(--text3)'}" id="cfg-country-lbl">${(S.profile&&S.profile.country)||'Seleccionar país'}</span>
               <span style="color:var(--primary);font-size:10px" id="cpick-arrow">▼</span>
             </div>
             <div id="cpick" style="display:none;border-top:1px solid var(--border)">
@@ -2563,9 +2563,9 @@ function renderConfiguracion(){
           <input type="hidden" id="cfg-country" value="${(S.profile&&S.profile.country)||''}">
         </div>
         <div class="form-group"><label class="form-label">Ocupación</label>
-          <div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface2);cursor:pointer;min-height:44px" onclick="togglePPick('opick')">
-              <span style="font-size:14px" id="cfg-occupation-lbl">${(S.profile&&S.profile.occupation)||'Seleccionar ocupación'}</span>
+          <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('opick')">
+              <span style="font-size:14px;color:${(S.profile&&S.profile.occupation)?'var(--text)':'var(--text3)'}" id="cfg-occupation-lbl">${(S.profile&&S.profile.occupation)||'Seleccionar ocupación'}</span>
               <span style="color:var(--primary);font-size:10px" id="opick-arrow">▼</span>
             </div>
             <div id="opick" style="display:none;border-top:1px solid var(--border)">
@@ -2589,11 +2589,11 @@ function renderConfiguracion(){
     <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">${t('preferences')}</div>
 
     <!-- Language -->
-    <div class="form-group">
-      <label class="form-label">${t('language')}</label>
-      <div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface2);cursor:pointer;min-height:44px" onclick="togglePPick('lang-picker')">
-          <span style="font-size:14px">${langCurrent.flag} ${langCurrent.label}</span>
+    <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
+      <label style="font-size:14px;font-weight:600;margin:0">${t('language')}</label>
+      <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('lang-picker')">
+          <span style="font-size:14px">${langCurrent?langCurrent.flag+' '+langCurrent.label:'Seleccionar idioma'}</span>
           <span style="color:var(--primary);font-size:10px" id="lang-picker-arrow">▼</span>
         </div>
         <div id="lang-picker" style="display:none;border-top:1px solid var(--border)">
@@ -2604,11 +2604,11 @@ function renderConfiguracion(){
     </div>
 
     <!-- Week start -->
-    <div class="form-group">
-      <label class="form-label">${t('weekStart')}</label>
-      <div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface2);cursor:pointer;min-height:44px" onclick="togglePPick('week-picker')">
-          <span style="font-size:14px">📅 ${S.weekStart==='lunes'?t('monday'):t('sunday')}</span>
+    <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
+      <label style="font-size:14px;font-weight:600;margin:0">${t('weekStart')}</label>
+      <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('week-picker')">
+          <span style="font-size:14px">📅 ${S.weekStart?( S.weekStart==='lunes'?t('monday'):t('sunday')):'Seleccionar'}</span>
           <span style="color:var(--primary);font-size:10px" id="week-picker-arrow">▼</span>
         </div>
         <div id="week-picker" style="display:none;border-top:1px solid var(--border)">
@@ -2619,11 +2619,11 @@ function renderConfiguracion(){
     </div>
 
     <!-- Currencies -->
-    <div class="form-group">
-      <label class="form-label">${t('activeCurrencies')} <span style="color:var(--primary);font-size:11px">${curSelected}</span></label>
-      <div style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface2);cursor:pointer;min-height:44px" onclick="togglePPick('cur-picker')">
-          <span style="font-size:14px">💱 ${(S.currencies||['PLN']).join(' · ')}</span>
+    <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
+      <label style="font-size:14px;font-weight:600;margin:0">${t('activeCurrencies')} <span style="color:var(--primary);font-size:11px">${curSelected}</span></label>
+      <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('cur-picker')">
+          <span style="font-size:14px">💱 ${(S.currencies&&S.currencies.length)?(S.currencies.join(' · ')):' Seleccionar'}</span>
           <span style="color:var(--primary);font-size:10px" id="cur-picker-arrow">▼</span>
         </div>
         <div id="cur-picker" style="display:none;border-top:1px solid var(--border)">
