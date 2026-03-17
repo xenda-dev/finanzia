@@ -60,7 +60,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .drawer-nav{flex:1;overflow-y:auto;padding-bottom:8px}
 .drawer-footer{padding:10px 20px 16px;border-top:1px solid var(--border);text-align:center;flex-shrink:0}
 .drawer-footer-brand{font-size:14px;font-weight:800;color:var(--primary)}
-.drawer-footer-brand span{color:var(--text)}
+.drawer-footer-brand span{color:var(--primary)}
 .finanzIA-logo{display:inline-flex;align-items:center;gap:6px}
 .finanzIA-logo svg{flex-shrink:0}
 .drawer-footer-version{font-size:10px;color:var(--text3);margin-top:2px}
@@ -245,42 +245,28 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div class="drawer-nav">
     <div class="drawer-group-label" id="dgl-principal">Principal</div>
     <button class="drawer-item active" data-page="dashboard" id="dmi-dashboard"><div class="drawer-item-icon">🏠</div><span>Inicio</span></button>
-    <!-- MI DINERO — collapsible -->
-    <div class="drawer-group-label drawer-group-toggle" id="dgl-midinero" onclick="toggleDrawerGroup('grp-midinero',this)">
-      Mi Dinero <span class="dgl-arrow">▼</span>
-    </div>
-    <div id="grp-midinero">
-      <button class="drawer-item" data-page="cuentas" id="dmi-cuentas"><div class="drawer-item-icon">💳</div><span>Cuentas</span></button>
-      <button class="drawer-item" data-page="movimientos" id="dmi-movimientos"><div class="drawer-item-icon">📋</div><span>Movimientos</span></button>
-      <button class="drawer-item" data-page="deudas" id="dmi-deudas"><div class="drawer-item-icon">💸</div><span>Deudas</span></button>
-    </div>
-    <!-- PLANIFICACIÓN — collapsible -->
-    <div class="drawer-group-label drawer-group-toggle" id="dgl-planificacion" onclick="toggleDrawerGroup('grp-planificacion',this)">
-      Planificación <span class="dgl-arrow">▼</span>
-    </div>
-    <div id="grp-planificacion">
-      <button class="drawer-item" data-page="presupuestos" id="dmi-presupuestos"><div class="drawer-item-icon">📊</div><span>Presupuestos</span></button>
-      <button class="drawer-item" data-page="metas" id="dmi-metas"><div class="drawer-item-icon">🎯</div><span>Metas de ahorro</span></button>
-      <button class="drawer-item" data-page="pagos" id="dmi-pagos"><div class="drawer-item-icon">🔔</div><span>Pagos programados</span></button>
-    </div>
+    <div class="drawer-group-label" id="dgl-midinero">Mi Dinero</div>
+    <button class="drawer-item" data-page="cuentas" id="dmi-cuentas"><div class="drawer-item-icon">💳</div><span>Cuentas</span></button>
+    <button class="drawer-item" data-page="movimientos" id="dmi-movimientos"><div class="drawer-item-icon">📋</div><span>Movimientos</span></button>
+    <button class="drawer-item" data-page="deudas" id="dmi-deudas"><div class="drawer-item-icon">💸</div><span>Deudas</span></button>
+    <div class="drawer-group-label" id="dgl-planificacion">Planificación</div>
+    <button class="drawer-item" data-page="presupuestos" id="dmi-presupuestos"><div class="drawer-item-icon">📊</div><span>Presupuestos</span></button>
+    <button class="drawer-item" data-page="metas" id="dmi-metas"><div class="drawer-item-icon">🎯</div><span>Metas de ahorro</span></button>
+    <button class="drawer-item" data-page="pagos" id="dmi-pagos"><div class="drawer-item-icon">🔔</div><span>Pagos programados</span></button>
     <div class="drawer-group-label" id="dgl-reportes">Reportes</div>
     <button class="drawer-item" data-page="analisis" id="dmi-analisis"><div class="drawer-item-icon">📈</div><span>Análisis financiero</span></button>
-    <!-- HERRAMIENTAS — collapsible -->
-    <div class="drawer-group-label drawer-group-toggle" id="dgl-herramientas" onclick="toggleDrawerGroup('grp-herramientas',this)">
-      Herramientas <span class="dgl-arrow">▼</span>
-    </div>
-    <div id="grp-herramientas">
-      <button class="drawer-item" data-page="herramientas" id="dmi-herramientas"><div class="drawer-item-icon">🤖</div><span>Emiliano — Asistente IA</span></button>
-      <button class="drawer-item" data-page="calculadora" id="dmi-calculadora"><div class="drawer-item-icon">📐</div><span>Calculadora préstamo</span></button>
-      <button class="drawer-item" data-page="simulador" id="dmi-simulador"><div class="drawer-item-icon">💹</div><span>Simulador de ahorro</span></button>
-    </div>
+    <div class="drawer-group-label" id="dgl-herramientas">Herramientas</div>
+    <button class="drawer-item" data-page="herramientas" id="dmi-herramientas"><div class="drawer-item-icon">🤖</div><span>Emiliano — Asistente IA</span></button>
+    <button class="drawer-item" data-page="calculadora" id="dmi-calculadora"><div class="drawer-item-icon">📐</div><span>Calculadora préstamo</span></button>
+    <button class="drawer-item" data-page="simulador" id="dmi-simulador"><div class="drawer-item-icon">💹</div><span>Simulador de ahorro</span></button>
+    <button class="drawer-item" data-page="estrategia" id="dmi-estrategia"><div class="drawer-item-icon">❄️</div><span>Estrategia de deudas</span></button>
     <div class="drawer-group-label" id="dgl-configuracion">Configuración</div>
     <button class="drawer-item" data-page="categorias" id="dmi-categorias"><div class="drawer-item-icon">🏷️</div><span>Categorías</span></button>
     <button class="drawer-item" data-page="configuracion" id="dmi-configuracion"><div class="drawer-item-icon">⚙️</div><span>Ajustes</span></button>
   </div>
   <!-- Footer -->
   <div class="drawer-footer">
-    <div class="drawer-footer-brand">Finanz<span>IA</span></div>
+    <div class="drawer-footer-brand"><span style="color:var(--text)">Finanz</span><span style="color:var(--primary)">IA</span></div>
     <div class="drawer-footer-version">v3.3 · Datos locales</div>
   </div>
 </nav>
@@ -288,7 +274,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <button class="btn-icon" onclick="openDrawer()">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
-  <div class="header-title">Finanz<span>IA</span></div>
+  <div class="header-title"><span style="color:var(--text)">Finanz</span><span style="color:var(--primary)">IA</span></div>
   <div class="header-right">
     <div class="currency-toggle" id="currency-toggle">
       <button class="cur-btn active" data-cur="PLN" onclick="setCurrency('PLN')">PLN</button>
@@ -311,6 +297,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div id="page-herramientas" class="page"></div>
   <div id="page-calculadora" class="page"></div>
   <div id="page-simulador" class="page"></div>
+  <div id="page-estrategia" class="page"></div>
 </div>
 <nav class="bottom-nav">
   <button class="nav-item active" data-page="dashboard">
@@ -843,6 +830,7 @@ function renderPage(page){
     case'herramientas':el.innerHTML=renderHerramientas();break;
     case'calculadora':el.innerHTML=renderCalculadora();break;
     case'simulador':el.innerHTML=renderSimulador();break;
+    case'estrategia':el.innerHTML=renderEstrategia();break;
   }
 }
 function initExchangeWidget(){
@@ -1972,7 +1960,7 @@ function renderHerramientas(){
   return`
     <div class="balance-card" style="cursor:default;margin-bottom:16px">
       <div style="font-size:32px;margin-bottom:8px">🤖</div>
-      <div style="font-size:18px;font-weight:800;color:white;margin-bottom:4px">Emiliano — Asistente Financiero IA</div>
+      <div style="font-size:15px;font-weight:800;color:white;margin-bottom:4px;letter-spacing:-.3px">Emiliano — Asistente Financiero IA</div>
       <div style="font-size:13px;color:rgba(255,255,255,.7)">Tu Wealth Manager personal con 20 años de experiencia 🏦</div>
     </div>
     <div id="ai-chat-container" style="display:flex;flex-direction:column;gap:0">
@@ -1984,14 +1972,14 @@ function renderHerramientas(){
           ${['📊 ¿Cómo está mi salud financiera?','💸 ¿En qué gasto más?','🎯 ¿Cómo voy con mis metas?','⚠️ ¿Puedo pagar mis deudas?'].map(q=>`<button onclick="aiQuickQuestion('${q}')" style="background:var(--surface2);border:1px solid var(--border);color:var(--primary);padding:6px 10px;border-radius:20px;font-size:11px;cursor:pointer;font-family:var(--font)">${q}</button>`).join('')}
         </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:flex-end">
-        <div style="flex:1;position:relative">
-          <textarea id="ai-input" class="form-input" placeholder="Escribe tu pregunta a Emiliano..." rows="2"
-            style="resize:none;font-size:14px;line-height:1.4;padding-right:8px;width:100%;box-sizing:border-box"
-            onkeydown="if((event.key==='Enter'&&!event.shiftKey)){event.preventDefault();sendAiMessage();}"></textarea>
-          <div style="font-size:9px;color:var(--text3);margin-top:2px">Enter para enviar · Shift+Enter nueva línea</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <textarea id="ai-input" class="form-input" placeholder="Escribe tu mensaje a Emiliano..." rows="3"
+          style="resize:none;font-size:14px;line-height:1.5;width:100%;box-sizing:border-box;border-radius:12px"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMessage();}"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:10px;color:var(--text3)">Enter para enviar · Shift+Enter nueva línea</div>
+          <button class="btn btn-primary" onclick="sendAiMessage()" style="padding:10px 20px;border-radius:20px;font-size:14px;font-weight:700">Enviar ➤</button>
         </div>
-        <button class="btn btn-primary" onclick="sendAiMessage()" style="padding:12px 16px;flex-shrink:0;border-radius:12px;font-size:18px;margin-bottom:18px">➤</button>
       </div>
     </div>
   `;
@@ -2028,7 +2016,7 @@ function renderCalculadora(){
               <tbody id="loan-table-body"></tbody>
             </table>
           </div>
-          <div style="font-size:10px;color:var(--text3);margin-top:6px;text-align:center" id="loan-table-note"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px"><div style="font-size:10px;color:var(--text3)" id="loan-table-note"></div><button id="loan-download-btn" style="display:none;background:none;border:1px solid var(--primary);color:var(--primary);padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--font)" onclick="downloadLoanTable()">⬇️ Descargar plan</button></div>
         </div>
       </div>
     </div>
@@ -2057,9 +2045,9 @@ function calcLoan(){
       const intAmt=bal*rm;const capAmt=cuota-intAmt;bal-=capAmt;
       rows.push({i,cuota,cap:capAmt,int:intAmt,bal:Math.max(0,bal)});
     }
-    const showRows=n<=24?rows:[...rows.slice(0,12),null,...rows.slice(-1)];
-    tbody.innerHTML=showRows.map(r=>r===null?'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:4px">...</td></tr>':`<tr style="border-bottom:1px solid var(--border)"><td style="text-align:right;padding:5px 6px;color:var(--text3)">${r.i}</td><td style="text-align:right;padding:5px 6px">${fmt(r.cuota)}</td><td style="text-align:right;padding:5px 6px;color:var(--success)">${fmt(r.cap)}</td><td style="text-align:right;padding:5px 6px;color:var(--danger)">${fmt(r.int)}</td><td style="text-align:right;padding:5px 6px;font-weight:600">${fmt(r.bal)}</td></tr>`).join('');
-    if(note)note.textContent=n>24?'Mostrando primeras 12 y última cuota de '+n+' en total':'';
+    tbody.innerHTML=rows.map(r=>`<tr style="border-bottom:1px solid var(--border)"><td style="text-align:right;padding:5px 6px;color:var(--text3)">${r.i}</td><td style="text-align:right;padding:5px 6px">${fmt(r.cuota)}</td><td style="text-align:right;padding:5px 6px;color:var(--success)">${fmt(r.cap)}</td><td style="text-align:right;padding:5px 6px;color:var(--danger)">${fmt(r.int)}</td><td style="text-align:right;padding:5px 6px;font-weight:600">${fmt(r.bal)}</td></tr>`).join('');
+    if(note)note.textContent='Total: '+n+' cuotas';
+    const dlBtn=document.getElementById('loan-download-btn');if(dlBtn)dlBtn.style.display='block';
   }
 }
 function renderSimulador(){
@@ -2090,6 +2078,23 @@ function renderSimulador(){
       </div>
     </div>
   `;
+}
+function downloadLoanTable(){
+  const P=parseFloat(document.getElementById('loan-amount')?.value)||0;
+  const r=parseFloat(document.getElementById('loan-rate')?.value)||0;
+  const n=parseInt(document.getElementById('loan-months')?.value)||0;
+  if(!P||!r||!n)return;
+  const rm=r/100/12;
+  const cuota=rm===0?P/n:P*rm*Math.pow(1+rm,n)/(Math.pow(1+rm,n)-1);
+  let bal=P;let csv='Cuota,Monto Cuota,Capital,Interés,Saldo\n';
+  for(let i=1;i<=n;i++){
+    const intAmt=bal*rm;const capAmt=cuota-intAmt;bal=Math.max(0,bal-capAmt);
+    csv+=`${i},${cuota.toFixed(2)},${capAmt.toFixed(2)},${intAmt.toFixed(2)},${bal.toFixed(2)}\n`;
+  }
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='plan-pagos-prestamo.csv';a.click();
+  toast('Plan descargado ✓');
 }
 function calcSim(){
   const monthly=parseFloat(document.getElementById('sim-monthly')?.value)||0;
@@ -2179,6 +2184,102 @@ async function callAI(userMsg){
 }
 
 // ════════════════════════════════════════════════════════════
+// ESTRATEGIA DE DEUDAS
+// ════════════════════════════════════════════════════════════
+function renderEstrategia(){
+  const debts=S.accounts.filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency);
+  if(!debts.length)return`<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">¡Sin deudas!</div><div class="empty-desc">No tienes deudas registradas en ${S.currency}</div></div>`;
+
+  // Build debt objects with balance
+  const debtData=debts.map(a=>({
+    id:a.id,name:a.name,balance:Math.abs(getBalance(a.id)),
+    rate:parseFloat(a.tae)||0,monthly:parseFloat(a.monthlyPayment)||Math.abs(getBalance(a.id))*0.03,
+    color:getBank(a.bankEntity,a.currency||S.currency)?.color||a.color||'#64748B'
+  })).filter(d=>d.balance>0);
+
+  // Extra payment input (optional)
+  const extra=parseFloat(document.getElementById('estrategia-extra')?.value)||0;
+
+  // Simulate payoff for a given order
+  function simulate(ordered){
+    const ds=ordered.map(d=>({...d,bal:d.balance,paid:0}));
+    let months=0;let totalInt=0;
+    while(ds.some(d=>d.bal>0)&&months<600){
+      months++;
+      // First pay minimums on all
+      let freed=extra;
+      ds.forEach(d=>{
+        if(d.bal<=0)return;
+        const intAmt=d.bal*(d.rate/100/12);
+        const minPay=Math.min(d.bal+intAmt,d.monthly);
+        const capital=minPay-intAmt;
+        totalInt+=intAmt;
+        d.bal=Math.max(0,d.bal-capital);
+        if(d.bal<=0)freed+=d.monthly;
+      });
+      // Apply freed payments to first debt with balance
+      for(let d of ds){
+        if(d.bal>0&&freed>0){const apply=Math.min(freed,d.bal);d.bal-=apply;if(d.bal<=0)freed+=d.monthly;}
+      }
+    }
+    return{months,totalInt,order:ordered.map(d=>d.name)};
+  }
+
+  const snowball=[...debtData].sort((a,b)=>a.balance-b.balance);
+  const avalanche=[...debtData].sort((a,b)=>b.rate-a.rate);
+  const rSnow=simulate(snowball);
+  const rAval=simulate(avalanche);
+
+  const methodCard=(title,emoji,desc,result,debtsOrd,color)=>`
+    <div class="card" style="margin-bottom:12px;border-left:4px solid ${color}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="font-size:28px">${emoji}</div>
+        <div><div style="font-size:15px;font-weight:700">${title}</div><div style="font-size:11px;color:var(--text2)">${desc}</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text3)">Tiempo libre de deudas</div>
+          <div style="font-size:18px;font-weight:800;color:${color}">${result.months} meses</div>
+          <div style="font-size:10px;color:var(--text2)">${Math.floor(result.months/12)}a ${result.months%12}m</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text3)">Total en intereses</div>
+          <div style="font-size:15px;font-weight:800;color:var(--danger)">${fmt(result.totalInt)}</div>
+        </div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px">ORDEN DE PAGO:</div>
+      ${debtsOrd.map((d,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+        <div style="width:22px;height:22px;border-radius:50%;background:${d.color};color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
+        <div style="flex:1"><div style="font-size:12px;font-weight:600">${d.name}</div><div style="font-size:10px;color:var(--text2)">${fmt(d.balance)} · ${d.rate}% anual</div></div>
+      </div>`).join('')}
+    </div>`;
+
+  const savings=Math.abs(rAval.totalInt-rSnow.totalInt);
+  const fasterMonths=Math.abs(rAval.months-rSnow.months);
+  const avalBetter=rAval.totalInt<rSnow.totalInt;
+
+  return`
+    <div style="background:var(--surface2);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:13px">
+      💡 <strong>¿Cuánto dinero extra puedes destinar al mes?</strong>
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <input class="form-input" type="number" id="estrategia-extra" placeholder="Ej: 200.000" style="flex:1" onchange="renderPage('estrategia')">
+        <span style="font-size:11px;color:var(--text2)">${S.currency}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text2);margin-top:4px">Adicional a las cuotas mínimas de cada deuda</div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,${avalBetter?'rgba(0,212,170,.15)':'rgba(59,130,246,.15)'},transparent);border:1px solid ${avalBetter?'var(--primary)':'var(--secondary)'}">
+      <div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:6px">⚡ RECOMENDACIÓN</div>
+      <div style="font-size:14px;font-weight:700">${avalBetter?'Usa Avalancha':'Los dos métodos son similares'}</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px">Con Avalancha ahorras <strong style="color:var(--success)">${fmt(savings)}</strong> en intereses vs Bola de Nieve${fasterMonths>0?` y terminas ${fasterMonths} meses antes`:''}</div>
+    </div>
+
+    ${methodCard('❄️ Bola de Nieve','❄️','Primero la deuda más pequeña — motivación rápida',rSnow,snowball,'#3B82F6')}
+    ${methodCard('🌊 Avalancha','🌊','Primero la mayor tasa — ahorra más dinero',rAval,avalanche,'#00D4AA')}
+  `;
+}
+
+// ════════════════════════════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════════════════════════════
 const ALL_CURRENCIES=[
@@ -2232,20 +2333,62 @@ function renderConfiguracion(){
     ${l.id===(S.language||'es')?'<span style="margin-left:auto;color:var(--primary)">✓</span>':''}
   </div>`).join('');
   return`
-    <!-- PROFILE SECTION -->
-    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Mi Perfil</div>
-    <div class="card" style="margin-bottom:16px;cursor:default">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
-        <div id="cfg-avatar" onclick="pickProfilePhoto()" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;border:3px solid var(--primary);overflow:hidden;flex-shrink:0">${(S.profile&&S.profile.photo)?'<img src="'+S.profile.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">':(S.profile&&S.profile.name?'<span style="font-size:24px;font-weight:700;color:white">'+S.profile.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)+'</span>':'<span>👤</span>')}</div>
-        <div>
-          <div style="font-size:13px;font-weight:700">${(S.profile&&S.profile.name)||'Sin nombre'}</div>
-          <div style="font-size:11px;color:var(--text2)">${(S.profile&&S.profile.email)||'Sin email'}</div>
-          <button onclick="pickProfilePhoto()" style="background:none;border:none;color:var(--primary);font-size:11px;cursor:pointer;padding:4px 0;font-family:var(--font)">📷 Cambiar foto</button>
+    <!-- PROFILE SECTION — collapsible -->
+    <div class="card" style="margin-bottom:16px" id="profile-card">
+      <!-- COLLAPSED: shows avatar + name only -->
+      <div style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="toggleProfileCard()">
+        <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:22px;border:3px solid var(--primary);overflow:hidden;flex-shrink:0">
+          ${(S.profile&&S.profile.photo)?`<img src="${S.profile.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.profile&&S.profile.name?`<span style="font-size:18px;font-weight:700;color:white">${S.profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</span>`:'<span>👤</span>')}
         </div>
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:700">${(S.profile&&S.profile.name)||'Mi Perfil'}</div>
+          <div style="font-size:11px;color:var(--text2)">${(S.profile&&S.profile.occupation)||'Toca para editar'}</div>
+        </div>
+        <span id="profile-arrow" style="color:var(--text3);font-size:12px">▶</span>
       </div>
-      <div class="form-group" style="margin-bottom:10px"><label class="form-label">Nombre completo</label><input class="form-input" type="text" id="cfg-name" value="${(S.profile&&S.profile.name)||''}" placeholder="Tu nombre" oninput="saveProfile()"></div>
-      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="cfg-email" value="${(S.profile&&S.profile.email)||''}" placeholder="tu@email.com" oninput="saveProfile()"></div>
-      <input type="file" id="profile-photo-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">
+      <!-- EXPANDED: full form -->
+      <div id="profile-form" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+        <!-- Avatar with photo options -->
+        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:16px">
+          <div id="cfg-avatar" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:32px;border:3px solid var(--primary);overflow:hidden;margin-bottom:10px">
+            ${(S.profile&&S.profile.photo)?`<img src="${S.profile.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.profile&&S.profile.name?`<span style="font-size:26px;font-weight:700;color:white">${S.profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</span>`:'<span>👤</span>')}
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onclick="document.getElementById('profile-camera').click()" class="btn btn-secondary btn-sm">📷 Cámara</button>
+            <button onclick="document.getElementById('profile-gallery').click()" class="btn btn-secondary btn-sm">🖼️ Galería</button>
+            ${(S.profile&&S.profile.photo)?`<button onclick="removeProfilePhoto()" class="btn btn-secondary btn-sm" style="color:var(--danger)">🗑️ Quitar</button>`:''}
+          </div>
+          <input type="file" id="profile-camera" accept="image/*" capture="environment" style="display:none" onchange="handleProfilePhoto(event)">
+          <input type="file" id="profile-gallery" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">
+        </div>
+        <!-- Form fields -->
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nombre completo *</label><input class="form-input" type="text" id="cfg-name" value="${(S.profile&&S.profile.name)||''}" placeholder="Tu nombre completo"></div>
+          <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="cfg-email" value="${(S.profile&&S.profile.email)||''}" placeholder="tu@email.com"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Teléfono</label><input class="form-input" type="tel" id="cfg-phone" value="${(S.profile&&S.profile.phone)||''}" placeholder="+57 300 000 0000"></div>
+          <div class="form-group"><label class="form-label">País</label><input class="form-input" type="text" id="cfg-country" value="${(S.profile&&S.profile.country)||''}" placeholder="Colombia, Polonia..."></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Ocupación</label><input class="form-input" type="text" id="cfg-occupation" value="${(S.profile&&S.profile.occupation)||''}" placeholder="Profesión o cargo"></div>
+          <div class="form-group"><label class="form-label">Estado civil</label><select class="form-select" id="cfg-marital">
+            <option value="">Seleccionar</option>
+            ${['Soltero/a','Casado/a','Unión libre','Separado/a','Divorciado/a','Viudo/a'].map(v=>`<option value="${v}" ${(S.profile&&S.profile.marital)===v?'selected':''}>${v}</option>`).join('')}
+          </select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Rango de ingresos</label><select class="form-select" id="cfg-income">
+            <option value="">Seleccionar</option>
+            ${['Menos de $1M COP / 1K PLN','$1M - $3M COP / 1K-3K PLN','$3M - $6M COP / 3K-6K PLN','$6M - $10M COP / 6K-10K PLN','Más de $10M COP / 10K PLN'].map(v=>`<option value="${v}" ${(S.profile&&S.profile.income)===v?'selected':''}>${v}</option>`).join('')}
+          </select></div>
+          <div class="form-group"><label class="form-label">Objetivo financiero</label><select class="form-select" id="cfg-goal">
+            <option value="">Seleccionar</option>
+            ${['Salir de deudas','Ahorrar para meta específica','Crear fondo de emergencia','Invertir y hacer crecer mi dinero','Planificar mi retiro','Control del gasto diario','Independencia financiera'].map(v=>`<option value="${v}" ${(S.profile&&S.profile.financialGoal)===v?'selected':''}>${v}</option>`).join('')}
+          </select></div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="saveProfile()">💾 Guardar perfil</button>
+      </div>
     </div>
     <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">${t('preferences')}</div>
 
@@ -2321,10 +2464,31 @@ function filterCurs(q){
 }
 function saveProfile(){
   if(!S.profile)S.profile={};
-  const name=document.getElementById('cfg-name')?.value||'';
-  const email=document.getElementById('cfg-email')?.value||'';
-  S.profile.name=name;S.profile.email=email;
+  const g=(id)=>document.getElementById(id)?.value||'';
+  S.profile.name=g('cfg-name');S.profile.email=g('cfg-email');
+  S.profile.phone=g('cfg-phone');S.profile.country=g('cfg-country');
+  S.profile.occupation=g('cfg-occupation');S.profile.marital=g('cfg-marital');
+  S.profile.income=g('cfg-income');S.profile.financialGoal=g('cfg-goal');
   saveState();updateDrawerProfile();
+  toast('Perfil guardado ✓');
+  // Collapse card after saving
+  const form=document.getElementById('profile-form');
+  const arrow=document.getElementById('profile-arrow');
+  if(form){form.style.display='none';}
+  if(arrow)arrow.textContent='▶';
+  renderPage('configuracion');
+}
+function removeProfilePhoto(){
+  if(!S.profile)S.profile={};
+  S.profile.photo='';saveState();updateDrawerProfile();renderPage('configuracion');
+}
+function toggleProfileCard(){
+  const form=document.getElementById('profile-form');
+  const arrow=document.getElementById('profile-arrow');
+  if(!form)return;
+  const isOpen=form.style.display!=='none';
+  form.style.display=isOpen?'none':'block';
+  if(arrow)arrow.textContent=isOpen?'▶':'▼';
 }
 function pickProfilePhoto(){document.getElementById('profile-photo-input')?.click();}
 function handleProfilePhoto(e){
