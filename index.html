@@ -2577,14 +2577,30 @@ function renderConfiguracion(){
           </div>
           <input type="hidden" id="cfg-occupation" value="${(S.profile&&S.profile.occupation)||''}">
         </div>
-        <div class="form-group"><label class="form-label">Estado civil</label><select class="form-select" id="cfg-marital">
-          <option value="">Seleccionar</option>
-          ${['Soltero/a','Casado/a','Unión libre','Separado/a','Divorciado/a','Viudo/a'].map(v=>`<option value="${v}" ${(S.profile&&S.profile.marital)===v?'selected':''}>${v}</option>`).join('')}
-        </select></div>
-        <div class="form-group"><label class="form-label">Objetivo financiero</label><select class="form-select" id="cfg-goal">
-          <option value="">Seleccionar</option>
-          ${['Salir de deudas','Ahorrar para meta específica','Crear fondo de emergencia','Invertir y hacer crecer mi dinero','Planificar mi retiro','Control del gasto diario','Independencia financiera'].map(v=>`<option value="${v}" ${(S.profile&&S.profile.financialGoal)===v?'selected':''}>${v}</option>`).join('')}
-        </select></div>
+        <div class="form-group"><label class="form-label">Estado civil</label>
+          <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('mpick')">
+              <span style="font-size:14px;color:${(S.profile&&S.profile.marital)?'var(--text)':'var(--text3)'}" id="cfg-marital-lbl">${(S.profile&&S.profile.marital)||'Seleccionar estado civil'}</span>
+              <span style="color:var(--primary);font-size:10px" id="mpick-arrow">▼</span>
+            </div>
+            <div id="mpick" style="display:none;border-top:1px solid var(--border)">
+              <div style="max-height:180px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick('cfg-marital','mpick','')" data-val="" style="color:var(--text3)">— Seleccionar —</div><div class="ppick-item" onclick="selectPPick('cfg-marital','mpick','Soltero/a')" data-val="Soltero/a">Soltero/a</div><div class="ppick-item" onclick="selectPPick('cfg-marital','mpick','Casado/a')" data-val="Casado/a">Casado/a</div><div class="ppick-item" onclick="selectPPick('cfg-marital','mpick','Unión libre')" data-val="Unión libre">Unión libre</div><div class="ppick-item" onclick="selectPPick('cfg-marital','mpick','Separado/a')" data-val="Separado/a">Separado/a</div><div class="ppick-item" onclick="selectPPick('cfg-marital','mpick','Divorciado/a')" data-val="Divorciado/a">Divorciado/a</div><div class="ppick-item" onclick="selectPPick('cfg-marital','mpick','Viudo/a')" data-val="Viudo/a">Viudo/a</div></div>
+            </div>
+          </div>
+          <input type="hidden" id="cfg-marital" value="${(S.profile&&S.profile.marital) || ''}">
+        </div>
+        <div class="form-group"><label class="form-label">Objetivo financiero</label>
+          <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('gpick')">
+              <span style="font-size:14px;color:${(S.profile&&S.profile.financialGoal)?'var(--text)':'var(--text3)'}" id="cfg-goal-lbl">${(S.profile&&S.profile.financialGoal)||'Seleccionar objetivo'}</span>
+              <span style="color:var(--primary);font-size:10px" id="gpick-arrow">▼</span>
+            </div>
+            <div id="gpick" style="display:none;border-top:1px solid var(--border)">
+              <div style="max-height:180px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick('cfg-goal','gpick','')" data-val="" style="color:var(--text3)">— Seleccionar —</div><div class="ppick-item" onclick="selectPPick('cfg-goal','gpick','Salir de deudas')" data-val="Salir de deudas">Salir de deudas</div><div class="ppick-item" onclick="selectPPick('cfg-goal','gpick','Ahorrar para meta específica')" data-val="Ahorrar para meta específica">Ahorrar para meta específica</div><div class="ppick-item" onclick="selectPPick('cfg-goal','gpick','Crear fondo de emergencia')" data-val="Crear fondo de emergencia">Crear fondo de emergencia</div><div class="ppick-item" onclick="selectPPick('cfg-goal','gpick','Invertir y hacer crecer mi dinero')" data-val="Invertir y hacer crecer mi dinero">Invertir y hacer crecer mi dinero</div><div class="ppick-item" onclick="selectPPick('cfg-goal','gpick','Planificar mi retiro')" data-val="Planificar mi retiro">Planificar mi retiro</div><div class="ppick-item" onclick="selectPPick('cfg-goal','gpick','Control del gasto diario')" data-val="Control del gasto diario">Control del gasto diario</div><div class="ppick-item" onclick="selectPPick('cfg-goal','gpick','Independencia financiera')" data-val="Independencia financiera">Independencia financiera</div></div>
+            </div>
+          </div>
+          <input type="hidden" id="cfg-goal" value="${(S.profile&&S.profile.financialGoal) || ''}">
+        </div>
         <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="saveProfile()">💾 Guardar perfil</button>
       </div>
     </div>
@@ -2610,13 +2626,11 @@ function renderConfiguracion(){
       <label style="font-size:14px;font-weight:600;margin:0">${t('weekStart')}</label>
       <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('week-picker')">
-          <span style="font-size:14px">📅 ${S.weekStart?( S.weekStart==='lunes'?t('monday'):t('sunday')):'Seleccionar'}</span>
+          <span style="font-size:14px">📅 ${({lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'})[S.weekStart]||'Seleccionar'}</span>
           <span style="color:var(--primary);font-size:10px" id="week-picker-arrow">▼</span>
         </div>
         <div id="week-picker" style="display:none;border-top:1px solid var(--border)">
-          <div onclick="saveWeekStart('');togglePPick('week-picker')" style="padding:12px;cursor:pointer;font-size:14px;color:var(--text3)">— Seleccionar —</div>
-          <div onclick="saveWeekStart('lunes');togglePPick('week-picker')" style="padding:12px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;background:${S.weekStart==='lunes'?'rgba(0,212,170,.12)':'transparent'}">${t('monday')}${S.weekStart==='lunes'?'<span style="color:var(--primary)">✓</span>':''}</div>
-          <div onclick="saveWeekStart('domingo');togglePPick('week-picker')" style="padding:12px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;background:${S.weekStart==='domingo'?'rgba(0,212,170,.12)':'transparent'}">${t('sunday')}${S.weekStart==='domingo'?'<span style="color:var(--primary)">✓</span>':''}</div>
+          ${[['','— Seleccionar —',true],['lunes','Lunes'],['martes','Martes'],['miercoles','Miércoles'],['jueves','Jueves'],['viernes','Viernes'],['sabado','Sábado'],['domingo','Domingo']].map(([val,label,grey])=>`<div onclick="saveWeekStart('${val}')" style="padding:12px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;background:${S.weekStart===val?'rgba(0,212,170,.12)':'transparent'};color:${grey?'var(--text3)':'var(--text)'}">${label}${S.weekStart===val?'<span style="color:var(--primary)">✓</span>':''}</div>`).join('')}
         </div>
       </div>
     </div>
@@ -2695,7 +2709,7 @@ function selectPPick(inputId,pickId,val){
   var arr=document.getElementById(pickId+'-arrow');
   if(inp)inp.value=val;
   if(lbl){
-    var ph={'cfg-country':'Seleccionar país','cfg-occupation':'Seleccionar ocupación'};
+    var ph={'cfg-country':'Seleccionar país','cfg-occupation':'Seleccionar ocupación','cfg-marital':'Seleccionar estado civil','cfg-goal':'Seleccionar objetivo'};
     lbl.textContent=val||(ph[inputId]||'Seleccionar');
     lbl.style.color=val?'var(--text)':'var(--text3)';
   }
@@ -2714,7 +2728,7 @@ function saveProfile(){
   S.profile.name=g('cfg-name');S.profile.email=g('cfg-email');
   S.profile.phone=g('cfg-phone');S.profile.phoneCode=g('cfg-phone-code');
   S.profile.country=g('cfg-country');S.profile.occupation=g('cfg-occupation');S.profile.marital=g('cfg-marital');
-  S.profile.financialGoal=g('cfg-goal');
+  S.profile.marital=g('cfg-marital');S.profile.financialGoal=g('cfg-goal');
   saveState();updateDrawerProfile();
   toast('Perfil guardado ✓');
   // Collapse card after saving
