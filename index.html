@@ -73,9 +73,30 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .drawer-item:hover,.drawer-item.active{color:var(--text);background:var(--surface2)}
 .drawer-item.active{border-left:3px solid var(--primary);padding-left:17px}
 .drawer-item-icon{width:30px;height:30px;border-radius:8px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.ai-msg{max-width:85%;padding:10px 13px;border-radius:16px;font-size:13px;line-height:1.5}
-.ai-msg-bot{align-self:flex-start;background:var(--surface2);border-radius:4px 16px 16px 16px}
-.ai-msg-user{align-self:flex-end;background:var(--primary);color:white;border-radius:16px 4px 16px 16px}
+.ai-chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 180px);min-height:400px;background:var(--surface);border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border)}
+.ai-chat-header{background:linear-gradient(135deg,#075E54,#128C7E);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.ai-chat-avatar{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ai-chat-info{flex:1}
+.ai-chat-name{font-size:15px;font-weight:700;color:white}
+.ai-chat-status{font-size:11px;color:rgba(255,255,255,.7)}
+.ai-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--surface)}
+.ai-date-sep{text-align:center;margin:8px 0}
+.ai-date-sep span{background:var(--surface2);color:var(--text3);font-size:10px;padding:3px 10px;border-radius:10px}
+.ai-msg{max-width:82%;padding:8px 12px;border-radius:8px;font-size:13px;line-height:1.5;position:relative}
+.ai-msg-bot{align-self:flex-start;background:var(--surface2);border-radius:2px 12px 12px 12px;color:var(--text)}
+.ai-msg-user{align-self:flex-end;background:#DCF8C6;color:#111;border-radius:12px 2px 12px 12px}
+[data-theme="dark"] .ai-msg-user{background:#005C4B;color:white}
+.ai-msg-time{font-size:10px;color:var(--text3);text-align:right;margin-top:3px}
+.ai-msg-user .ai-msg-time{color:rgba(255,255,255,.6)}
+[data-theme="dark"] .ai-msg-user .ai-msg-time{color:rgba(255,255,255,.5)}
+.ai-input-bar{background:var(--surface2);padding:8px 10px;display:flex;align-items:flex-end;gap:8px;flex-shrink:0;border-top:1px solid var(--border)}
+.ai-input-area{flex:1;background:var(--surface);border-radius:20px;padding:8px 14px;font-size:14px;line-height:1.4;max-height:100px;overflow-y:auto;outline:none;border:1px solid var(--border);font-family:var(--font);color:var(--text);min-height:36px}
+.ai-input-area:focus{border-color:var(--primary)}
+.ai-send-btn{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#075E54,#128C7E);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.2s}
+.ai-send-btn:active{transform:scale(.92)}
+.ai-input-area:empty:before{content:attr(data-placeholder);color:var(--text3);pointer-events:none}
+.ai-quick-btns{display:flex;flex-wrap:wrap;gap:5px;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border)}
+.ai-quick-btn{background:var(--surface2);border:1px solid var(--border);color:var(--primary);padding:5px 10px;border-radius:16px;font-size:11px;cursor:pointer;font-family:var(--font);white-space:nowrap}
 .card{background:var(--surface);border-radius:var(--radius);padding:16px;border:1px solid var(--border);box-shadow:var(--card-shadow)}
 .card+.card{margin-top:12px}
 .card-title{font-size:13px;color:var(--text2);margin-bottom:12px;font-weight:600}
@@ -580,16 +601,20 @@ function loadState(){
     S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));
   }
   // Ensure protected Efectivo account exists
-  // Ensure efectivo-default exists and is always protected
-  const efAcc=S.accounts.find(a=>a.id==='efectivo-default');
-  if(!efAcc){
-    S.accounts.unshift({id:'efectivo-default',name:'Efectivo',type:'activo',subtype:'efectivo',currency:'PLN',bankEntity:'',initialBalance:0,icon:'💵',color:'#10B981',protected:true,subAccounts:[]});
-  } else {
-    // Re-stamp protected in case it was lost during import/load
-    efAcc.protected=true;
-    efAcc.subtype='efectivo';
-    efAcc.subAccounts=[];// efectivo never has sub-accounts
-  }
+  // Ensure an Efectivo account exists for EACH configured currency
+  const curs=S.currencies&&S.currencies.length?S.currencies:['PLN'];
+  curs.forEach(cur=>{
+    const efId='efectivo-'+cur;
+    const efAcc=S.accounts.find(a=>a.id===efId);
+    if(!efAcc){
+      S.accounts.unshift({id:efId,name:'Efectivo',type:'activo',subtype:'efectivo',currency:cur,bankEntity:'',initialBalance:0,icon:'💵',color:'#10B981',protected:true,subAccounts:[]});
+    } else {
+      efAcc.protected=true;efAcc.subtype='efectivo';efAcc.subAccounts=[];
+    }
+  });
+  // Legacy: migrate old efectivo-default to efectivo-PLN
+  const legacyEf=S.accounts.find(a=>a.id==='efectivo-default');
+  if(legacyEf){legacyEf.id='efectivo-PLN';legacyEf.currency='PLN';}
   if(!S.movFilter)S.movFilter={tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''};
   if(!S.analysisPeriod)S.analysisPeriod='Mensual';
   if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
@@ -629,6 +654,9 @@ function updateDrawerProfile(){
 
 function saveState(){try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
+// Number inputs: format with thousand separator on display, parse on use
+function fmtNum(v){if(v===''||v===null||isNaN(v))return '';return Number(v).toLocaleString(S.language==='pl'?'pl-PL':'es-CO');}
+function parseNum(s){if(!s)return 0;return parseFloat(String(s).replace(/[^\d.,]/g,'').replace(',','.'))||0;}
 
 // ════════════════════════════════════════════════════════════
 // THEME
@@ -843,6 +871,11 @@ function closeDrawer(){document.getElementById('drawer').classList.remove('open'
 // ════════════════════════════════════════════════════════════
 // TOAST & CONFIRM
 // ════════════════════════════════════════════════════════════
+function showToast(msg){
+  const el=document.createElement('div');
+  el.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:14px 18px;font-size:13px;line-height:1.5;max-width:300px;text-align:center;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.3);animation:scaleIn .2s ease';
+  el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),4500);
+}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
 let _confirmCb=null;
@@ -1957,29 +1990,44 @@ function t(key){const lang=S.language||'es';return(TRANSLATIONS[lang]||TRANSLATI
 // HERRAMIENTAS
 // ════════════════════════════════════════════════════════════
 function renderHerramientas(){
+  // Restore chat history if it exists
+  setTimeout(()=>{
+    const msgs=document.getElementById('ai-messages');
+    if(msgs&&aiHistory.length>0){msgs.scrollTop=msgs.scrollHeight;}
+    // Make contenteditable input work
+    const inp=document.getElementById('ai-input-div');
+    if(inp){inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAiMessage();}});}
+  },50);
+  const now=new Date();
+  const timeStr=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
   return`
-    <div class="balance-card" style="cursor:default;margin-bottom:16px">
-      <div style="font-size:32px;margin-bottom:8px">🤖</div>
-      <div style="font-size:15px;font-weight:800;color:white;margin-bottom:4px;letter-spacing:-.3px">Emiliano — Asistente Financiero IA</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.7)">Tu Wealth Manager personal con 20 años de experiencia 🏦</div>
-    </div>
-    <div id="ai-chat-container" style="display:flex;flex-direction:column;gap:0">
-      <div id="ai-messages" style="min-height:200px;max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px">
-        <div class="ai-msg ai-msg-bot">
-          <div>👋 ¡Hola! Soy <strong>Emiliano</strong>, tu Wealth Manager personal con 20 años de experiencia. Tengo acceso a tus datos financieros en tiempo real y puedo ayudarte con análisis, estrategias y consejos personalizados.<br><br>¿En qué te puedo ayudar hoy?</div>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
-          ${['📊 ¿Cómo está mi salud financiera?','💸 ¿En qué gasto más?','🎯 ¿Cómo voy con mis metas?','⚠️ ¿Puedo pagar mis deudas?'].map(q=>`<button onclick="aiQuickQuestion('${q}')" style="background:var(--surface2);border:1px solid var(--border);color:var(--primary);padding:6px 10px;border-radius:20px;font-size:11px;cursor:pointer;font-family:var(--font)">${q}</button>`).join('')}
+    <div class="ai-chat-wrap">
+      <!-- Header like WhatsApp -->
+      <div class="ai-chat-header">
+        <div class="ai-chat-avatar">🤖</div>
+        <div class="ai-chat-info">
+          <div class="ai-chat-name">Emiliano</div>
+          <div class="ai-chat-status">💼 Wealth Manager · FinanzIA</div>
         </div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <textarea id="ai-input" class="form-input" placeholder="Escribe tu mensaje a Emiliano..." rows="3"
-          style="resize:none;font-size:14px;line-height:1.5;width:100%;box-sizing:border-box;border-radius:12px"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMessage();}"></textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="font-size:10px;color:var(--text3)">Enter para enviar · Shift+Enter nueva línea</div>
-          <button class="btn btn-primary" onclick="sendAiMessage()" style="padding:10px 20px;border-radius:20px;font-size:14px;font-weight:700">Enviar ➤</button>
+      <!-- Quick questions -->
+      <div class="ai-quick-btns">
+        ${['📊 Salud financiera','💸 ¿En qué gasto más?','🎯 Mis metas','⚠️ Mis deudas'].map(q=>`<button class="ai-quick-btn" onclick="aiQuickQuestion('${q}')">${q}</button>`).join('')}
+      </div>
+      <!-- Messages area -->
+      <div class="ai-messages" id="ai-messages">
+        <div class="ai-date-sep"><span>Hoy</span></div>
+        <div class="ai-msg ai-msg-bot">
+          <div>👋 ¡Hola! Soy <strong>Emiliano</strong>, tu Wealth Manager personal. Tengo acceso a tus datos financieros en tiempo real y puedo ayudarte con análisis, estrategias y consejos personalizados.<br><br>¿En qué te puedo ayudar hoy?</div>
+          <div class="ai-msg-time">${timeStr}</div>
         </div>
+      </div>
+      <!-- Input bar like WhatsApp -->
+      <div class="ai-input-bar">
+        <div id="ai-input-div" class="ai-input-area" contenteditable="true" placeholder="Mensaje a Emiliano..." data-placeholder="Mensaje a Emiliano..."></div>
+        <button class="ai-send-btn" onclick="sendAiMessage()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+        </button>
       </div>
     </div>
   `;
@@ -1999,11 +2047,22 @@ function renderCalculadora(){
             <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Cuota mensual</div><div style="font-size:17px;font-weight:800;color:var(--primary)" id="loan-cuota">—</div></div>
             <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Total a pagar</div><div style="font-size:17px;font-weight:800" id="loan-total">—</div></div>
             <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Total intereses</div><div style="font-size:17px;font-weight:800;color:var(--danger)" id="loan-interest">—</div></div>
-            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Costo financiero</div><div style="font-size:17px;font-weight:800;color:var(--warning)" id="loan-cost-pct">—</div></div>
+            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Costo financiero <span onclick="showToast('El costo financiero es el % adicional que pagas sobre el capital. Ej: pediste $10M y pagas $4M de intereses = 40% de costo financiero.')" style="cursor:pointer;color:var(--primary)">ℹ️</span></div><div style="font-size:17px;font-weight:800;color:var(--warning)" id="loan-cost-pct">—</div></div>
+          </div>
+        </div>
+        <div style="background:var(--surface2);border-radius:var(--radius);padding:14px;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px">📊 Distribución capital vs interés</div>
+          <div id="loan-chart" style="display:flex;align-items:flex-end;gap:2px;height:90px"></div>
+          <div style="display:flex;gap:12px;font-size:10px;margin-top:6px">
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--success);border-radius:2px;display:inline-block"></span>Capital</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--danger);border-radius:2px;display:inline-block"></span>Interés</span>
           </div>
         </div>
         <div style="background:var(--surface2);border-radius:var(--radius);padding:14px">
-          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px">📋 Plan de pagos</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-size:11px;font-weight:700;color:var(--text2)">📋 Plan de pagos</div>
+            <button id="loan-download-btn-top" style="display:none;background:none;border:1px solid var(--primary);color:var(--primary);padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--font)" onclick="downloadLoanTable()">⬇️ Descargar CSV</button>
+          </div>
           <div style="overflow-x:auto">
             <table style="width:100%;border-collapse:collapse;font-size:11px" id="loan-table">
               <thead><tr style="border-bottom:1px solid var(--border)">
@@ -2016,7 +2075,7 @@ function renderCalculadora(){
               <tbody id="loan-table-body"></tbody>
             </table>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px"><div style="font-size:10px;color:var(--text3)" id="loan-table-note"></div><button id="loan-download-btn" style="display:none;background:none;border:1px solid var(--primary);color:var(--primary);padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--font)" onclick="downloadLoanTable()">⬇️ Descargar plan</button></div>
+          <div id="loan-table-note" style="font-size:10px;color:var(--text3);margin-top:4px"></div>
         </div>
       </div>
     </div>
@@ -2047,7 +2106,24 @@ function calcLoan(){
     }
     tbody.innerHTML=rows.map(r=>`<tr style="border-bottom:1px solid var(--border)"><td style="text-align:right;padding:5px 6px;color:var(--text3)">${r.i}</td><td style="text-align:right;padding:5px 6px">${fmt(r.cuota)}</td><td style="text-align:right;padding:5px 6px;color:var(--success)">${fmt(r.cap)}</td><td style="text-align:right;padding:5px 6px;color:var(--danger)">${fmt(r.int)}</td><td style="text-align:right;padding:5px 6px;font-weight:600">${fmt(r.bal)}</td></tr>`).join('');
     if(note)note.textContent='Total: '+n+' cuotas';
-    const dlBtn=document.getElementById('loan-download-btn');if(dlBtn)dlBtn.style.display='block';
+    const dlBtn=document.getElementById('loan-download-btn-top');if(dlBtn)dlBtn.style.display='block';
+    // Build chart — show every Nth bar to fit width
+    const chartEl=document.getElementById('loan-chart');
+    if(chartEl){
+      const step=Math.max(1,Math.floor(n/24));
+      const chartRows=rows.filter((_,i)=>i%step===0||i===n-1);
+      const maxBal=P;
+      chartEl.innerHTML=chartRows.map(r=>{
+        const capH=Math.round(r.cap/cuota*80);const intH=Math.round(r.int/cuota*80);
+        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px">
+          <div style="width:100%;display:flex;flex-direction:column;align-items:stretch;height:82px;justify-content:flex-end">
+            <div style="background:var(--success);height:${capH}px;border-radius:2px 2px 0 0;opacity:.9"></div>
+            <div style="background:var(--danger);height:${intH}px;opacity:.9"></div>
+          </div>
+          <div style="font-size:7px;color:var(--text3)">${r.i}</div>
+        </div>`;
+      }).join('');
+    }
   }
 }
 function renderSimulador(){
@@ -2066,7 +2142,7 @@ function renderSimulador(){
             <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Lo que aportaste</div><div style="font-size:15px;font-weight:800" id="sim-invested">—</div></div>
             <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Ganancias (interés)</div><div style="font-size:15px;font-weight:800;color:var(--primary)" id="sim-gains">—</div></div>
             <div style="text-align:center">
-              <div style="font-size:10px;color:var(--text2)">Multiplicador <span onclick="alert('El multiplicador indica cuántas veces creció tu dinero.\nEj: 1.8x significa que por cada $100 que pusiste, ahora tienes $180 gracias al interés compuesto.')" style="cursor:pointer;color:var(--primary)">ℹ️</span></div>
+              <div style="font-size:10px;color:var(--text2)">Multiplicador <span onclick="showToast('El multiplicador indica cuántas veces creció tu dinero. Ej: 1.8x = por cada $100 que pusiste, ahora tienes $180 gracias al interés compuesto.')" style="cursor:pointer;color:var(--primary)">ℹ️</span></div>
               <div style="font-size:15px;font-weight:800;color:var(--warning)" id="sim-mult">—</div>
             </div>
           </div>
@@ -2124,24 +2200,32 @@ function calcSim(){
 // ── AI Chat ──
 let aiHistory=[];
 async function sendAiMessage(){
-  const input=document.getElementById('ai-input');
-  if(!input)return;
-  const msg=input.value.trim();
+  const inp=document.getElementById('ai-input-div');
+  if(!inp)return;
+  const msg=(inp.innerText||inp.textContent||'').trim();
   if(!msg)return;
-  input.value='';
+  inp.innerHTML='';inp.textContent='';
   appendAiMsg(msg,'user');
   await callAI(msg);
 }
 function aiQuickQuestion(q){
-  const input=document.getElementById('ai-input');
-  if(input){input.value=q;sendAiMessage();}
+  const inp=document.getElementById('ai-input-div');
+  if(inp){inp.textContent=q;sendAiMessage();}
 }
 function appendAiMsg(text,role){
   const container=document.getElementById('ai-messages');
   if(!container)return;
+  const now=new Date();
+  const t=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
   const div=document.createElement('div');
-  div.className=`ai-msg ai-msg-${role==='user'?'user':'bot'}`;
-  div.innerHTML=`<div>${text}</div>`;
+  div.className='ai-msg ai-msg-'+(role==='user'?'user':'bot');
+  // Format bot messages: bold and line breaks
+  let formatted=text;
+  if(role!=='user'){
+    formatted=text.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+    formatted=formatted.replace(/\n/g,'<br>');
+  }
+  div.innerHTML='<div>'+formatted+'</div><div class="ai-msg-time">'+t+'</div>';
   container.appendChild(div);
   container.scrollTop=container.scrollHeight;
 }
@@ -2361,32 +2445,256 @@ function renderConfiguracion(){
           <input type="file" id="profile-camera" accept="image/*" capture="environment" style="display:none" onchange="handleProfilePhoto(event)">
           <input type="file" id="profile-gallery" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">
         </div>
-        <!-- Form fields -->
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Nombre completo *</label><input class="form-input" type="text" id="cfg-name" value="${(S.profile&&S.profile.name)||''}" placeholder="Tu nombre completo"></div>
-          <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="cfg-email" value="${(S.profile&&S.profile.email)||''}" placeholder="tu@email.com"></div>
+        <!-- Photo section - single icon -->
+        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:16px">
+          <div style="position:relative;display:inline-block">
+            <div id="cfg-avatar" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:32px;border:3px solid var(--primary);overflow:hidden">
+              ${(S.profile&&S.profile.photo)?`<img src="${S.profile.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.profile&&S.profile.name?`<span style="font-size:26px;font-weight:700;color:white">${S.profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</span>`:'<span>👤</span>')}
+            </div>
+            <button onclick="pickProfilePhoto()" style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--primary);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.3)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4" fill="none" stroke="white" stroke-width="2"/></svg>
+            </button>
+          </div>
+          <input type="file" id="profile-photo-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">
+          ${(S.profile&&S.profile.photo)?`<button onclick="removeProfilePhoto()" style="background:none;border:none;color:var(--danger);font-size:11px;cursor:pointer;margin-top:6px;font-family:var(--font)">🗑️ Quitar foto</button>`:''}
         </div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Teléfono</label><input class="form-input" type="tel" id="cfg-phone" value="${(S.profile&&S.profile.phone)||''}" placeholder="+57 300 000 0000"></div>
-          <div class="form-group"><label class="form-label">País</label><input class="form-input" type="text" id="cfg-country" value="${(S.profile&&S.profile.country)||''}" placeholder="Colombia, Polonia..."></div>
+        <!-- Single column form -->
+        <div class="form-group"><label class="form-label">Nombre completo *</label><input class="form-input" type="text" id="cfg-name" value="${(S.profile&&S.profile.name)||''}" placeholder="Tu nombre completo"></div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="cfg-email" value="${(S.profile&&S.profile.email)||''}" placeholder="tu@email.com"></div>
+        <div class="form-group"><label class="form-label">Teléfono</label>
+          <div style="display:flex;gap:6px">
+            <select class="form-select" id="cfg-phone-code" style="width:auto;min-width:90px;flex-shrink:0">
+              <option value="">+</option>
+              <option value="+57" ${(S.profile&&S.profile.phoneCode)==="+57"?'selected':''}>+57 🇨🇴 Colombia</option>
+<option value="+48" ${(S.profile&&S.profile.phoneCode)==="+48"?'selected':''}>+48 🇵🇱 Polonia</option>
+<option value="+1" ${(S.profile&&S.profile.phoneCode)==="+1"?'selected':''}>+1 🇺🇸 USA/Canadá</option>
+<option value="+34" ${(S.profile&&S.profile.phoneCode)==="+34"?'selected':''}>+34 🇪🇸 España</option>
+<option value="+52" ${(S.profile&&S.profile.phoneCode)==="+52"?'selected':''}>+52 🇲🇽 México</option>
+<option value="+54" ${(S.profile&&S.profile.phoneCode)==="+54"?'selected':''}>+54 🇦🇷 Argentina</option>
+<option value="+55" ${(S.profile&&S.profile.phoneCode)==="+55"?'selected':''}>+55 🇧🇷 Brasil</option>
+<option value="+56" ${(S.profile&&S.profile.phoneCode)==="+56"?'selected':''}>+56 🇨🇱 Chile</option>
+<option value="+51" ${(S.profile&&S.profile.phoneCode)==="+51"?'selected':''}>+51 🇵🇪 Perú</option>
+<option value="+58" ${(S.profile&&S.profile.phoneCode)==="+58"?'selected':''}>+58 🇻🇪 Venezuela</option>
+<option value="+593" ${(S.profile&&S.profile.phoneCode)==="+593"?'selected':''}>+593 🇪🇨 Ecuador</option>
+<option value="+502" ${(S.profile&&S.profile.phoneCode)==="+502"?'selected':''}>+502 🇬🇹 Guatemala</option>
+<option value="+44" ${(S.profile&&S.profile.phoneCode)==="+44"?'selected':''}>+44 🇬🇧 UK</option>
+<option value="+49" ${(S.profile&&S.profile.phoneCode)==="+49"?'selected':''}>+49 🇩🇪 Alemania</option>
+<option value="+33" ${(S.profile&&S.profile.phoneCode)==="+33"?'selected':''}>+33 🇫🇷 Francia</option>
+<option value="+39" ${(S.profile&&S.profile.phoneCode)==="+39"?'selected':''}>+39 🇮🇹 Italia</option>
+<option value="+7" ${(S.profile&&S.profile.phoneCode)==="+7"?'selected':''}>+7 🇷🇺 Rusia</option>
+<option value="+86" ${(S.profile&&S.profile.phoneCode)==="+86"?'selected':''}>+86 🇨🇳 China</option>
+<option value="+91" ${(S.profile&&S.profile.phoneCode)==="+91"?'selected':''}>+91 🇮🇳 India</option>
+<option value="+81" ${(S.profile&&S.profile.phoneCode)==="+81"?'selected':''}>+81 🇯🇵 Japón</option>
+<option value="+82" ${(S.profile&&S.profile.phoneCode)==="+82"?'selected':''}>+82 🇰🇷 Corea del Sur</option>
+            </select>
+            <input class="form-input" type="tel" id="cfg-phone" value="${(S.profile&&S.profile.phone)||''}" placeholder="300 000 0000" style="flex:1">
+          </div>
         </div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Ocupación</label><input class="form-input" type="text" id="cfg-occupation" value="${(S.profile&&S.profile.occupation)||''}" placeholder="Profesión o cargo"></div>
-          <div class="form-group"><label class="form-label">Estado civil</label><select class="form-select" id="cfg-marital">
-            <option value="">Seleccionar</option>
-            ${['Soltero/a','Casado/a','Unión libre','Separado/a','Divorciado/a','Viudo/a'].map(v=>`<option value="${v}" ${(S.profile&&S.profile.marital)===v?'selected':''}>${v}</option>`).join('')}
-          </select></div>
+        <div class="form-group"><label class="form-label">País</label>
+          <select class="form-select" id="cfg-country">
+            <option value="">Seleccionar país</option>
+            <option value="Afganistán" ${(S.profile&&S.profile.country)==="Afganistán"?'selected':''}>Afganistán</option>
+<option value="Albania" ${(S.profile&&S.profile.country)==="Albania"?'selected':''}>Albania</option>
+<option value="Alemania" ${(S.profile&&S.profile.country)==="Alemania"?'selected':''}>Alemania</option>
+<option value="Andorra" ${(S.profile&&S.profile.country)==="Andorra"?'selected':''}>Andorra</option>
+<option value="Angola" ${(S.profile&&S.profile.country)==="Angola"?'selected':''}>Angola</option>
+<option value="Argentina" ${(S.profile&&S.profile.country)==="Argentina"?'selected':''}>Argentina</option>
+<option value="Armenia" ${(S.profile&&S.profile.country)==="Armenia"?'selected':''}>Armenia</option>
+<option value="Australia" ${(S.profile&&S.profile.country)==="Australia"?'selected':''}>Australia</option>
+<option value="Austria" ${(S.profile&&S.profile.country)==="Austria"?'selected':''}>Austria</option>
+<option value="Azerbaiyán" ${(S.profile&&S.profile.country)==="Azerbaiyán"?'selected':''}>Azerbaiyán</option>
+<option value="Bahamas" ${(S.profile&&S.profile.country)==="Bahamas"?'selected':''}>Bahamas</option>
+<option value="Bangladés" ${(S.profile&&S.profile.country)==="Bangladés"?'selected':''}>Bangladés</option>
+<option value="Bélgica" ${(S.profile&&S.profile.country)==="Bélgica"?'selected':''}>Bélgica</option>
+<option value="Belice" ${(S.profile&&S.profile.country)==="Belice"?'selected':''}>Belice</option>
+<option value="Benín" ${(S.profile&&S.profile.country)==="Benín"?'selected':''}>Benín</option>
+<option value="Bolivia" ${(S.profile&&S.profile.country)==="Bolivia"?'selected':''}>Bolivia</option>
+<option value="Bosnia y Herzegovina" ${(S.profile&&S.profile.country)==="Bosnia y Herzegovina"?'selected':''}>Bosnia y Herzegovina</option>
+<option value="Brasil" ${(S.profile&&S.profile.country)==="Brasil"?'selected':''}>Brasil</option>
+<option value="Bulgaria" ${(S.profile&&S.profile.country)==="Bulgaria"?'selected':''}>Bulgaria</option>
+<option value="Burkina Faso" ${(S.profile&&S.profile.country)==="Burkina Faso"?'selected':''}>Burkina Faso</option>
+<option value="Bután" ${(S.profile&&S.profile.country)==="Bután"?'selected':''}>Bután</option>
+<option value="Cabo Verde" ${(S.profile&&S.profile.country)==="Cabo Verde"?'selected':''}>Cabo Verde</option>
+<option value="Camboya" ${(S.profile&&S.profile.country)==="Camboya"?'selected':''}>Camboya</option>
+<option value="Camerún" ${(S.profile&&S.profile.country)==="Camerún"?'selected':''}>Camerún</option>
+<option value="Canadá" ${(S.profile&&S.profile.country)==="Canadá"?'selected':''}>Canadá</option>
+<option value="Chile" ${(S.profile&&S.profile.country)==="Chile"?'selected':''}>Chile</option>
+<option value="China" ${(S.profile&&S.profile.country)==="China"?'selected':''}>China</option>
+<option value="Chipre" ${(S.profile&&S.profile.country)==="Chipre"?'selected':''}>Chipre</option>
+<option value="Colombia" ${(S.profile&&S.profile.country)==="Colombia"?'selected':''}>Colombia</option>
+<option value="Congo" ${(S.profile&&S.profile.country)==="Congo"?'selected':''}>Congo</option>
+<option value="Corea del Norte" ${(S.profile&&S.profile.country)==="Corea del Norte"?'selected':''}>Corea del Norte</option>
+<option value="Corea del Sur" ${(S.profile&&S.profile.country)==="Corea del Sur"?'selected':''}>Corea del Sur</option>
+<option value="Costa Rica" ${(S.profile&&S.profile.country)==="Costa Rica"?'selected':''}>Costa Rica</option>
+<option value="Croacia" ${(S.profile&&S.profile.country)==="Croacia"?'selected':''}>Croacia</option>
+<option value="Cuba" ${(S.profile&&S.profile.country)==="Cuba"?'selected':''}>Cuba</option>
+<option value="Dinamarca" ${(S.profile&&S.profile.country)==="Dinamarca"?'selected':''}>Dinamarca</option>
+<option value="Ecuador" ${(S.profile&&S.profile.country)==="Ecuador"?'selected':''}>Ecuador</option>
+<option value="Egipto" ${(S.profile&&S.profile.country)==="Egipto"?'selected':''}>Egipto</option>
+<option value="El Salvador" ${(S.profile&&S.profile.country)==="El Salvador"?'selected':''}>El Salvador</option>
+<option value="Emiratos Árabes Unidos" ${(S.profile&&S.profile.country)==="Emiratos Árabes Unidos"?'selected':''}>Emiratos Árabes Unidos</option>
+<option value="Eslovaquia" ${(S.profile&&S.profile.country)==="Eslovaquia"?'selected':''}>Eslovaquia</option>
+<option value="Eslovenia" ${(S.profile&&S.profile.country)==="Eslovenia"?'selected':''}>Eslovenia</option>
+<option value="España" ${(S.profile&&S.profile.country)==="España"?'selected':''}>España</option>
+<option value="Estados Unidos" ${(S.profile&&S.profile.country)==="Estados Unidos"?'selected':''}>Estados Unidos</option>
+<option value="Estonia" ${(S.profile&&S.profile.country)==="Estonia"?'selected':''}>Estonia</option>
+<option value="Etiopía" ${(S.profile&&S.profile.country)==="Etiopía"?'selected':''}>Etiopía</option>
+<option value="Filipinas" ${(S.profile&&S.profile.country)==="Filipinas"?'selected':''}>Filipinas</option>
+<option value="Finlandia" ${(S.profile&&S.profile.country)==="Finlandia"?'selected':''}>Finlandia</option>
+<option value="Francia" ${(S.profile&&S.profile.country)==="Francia"?'selected':''}>Francia</option>
+<option value="Georgia" ${(S.profile&&S.profile.country)==="Georgia"?'selected':''}>Georgia</option>
+<option value="Ghana" ${(S.profile&&S.profile.country)==="Ghana"?'selected':''}>Ghana</option>
+<option value="Grecia" ${(S.profile&&S.profile.country)==="Grecia"?'selected':''}>Grecia</option>
+<option value="Guatemala" ${(S.profile&&S.profile.country)==="Guatemala"?'selected':''}>Guatemala</option>
+<option value="Guinea" ${(S.profile&&S.profile.country)==="Guinea"?'selected':''}>Guinea</option>
+<option value="Haití" ${(S.profile&&S.profile.country)==="Haití"?'selected':''}>Haití</option>
+<option value="Honduras" ${(S.profile&&S.profile.country)==="Honduras"?'selected':''}>Honduras</option>
+<option value="Hungría" ${(S.profile&&S.profile.country)==="Hungría"?'selected':''}>Hungría</option>
+<option value="India" ${(S.profile&&S.profile.country)==="India"?'selected':''}>India</option>
+<option value="Indonesia" ${(S.profile&&S.profile.country)==="Indonesia"?'selected':''}>Indonesia</option>
+<option value="Irak" ${(S.profile&&S.profile.country)==="Irak"?'selected':''}>Irak</option>
+<option value="Irán" ${(S.profile&&S.profile.country)==="Irán"?'selected':''}>Irán</option>
+<option value="Irlanda" ${(S.profile&&S.profile.country)==="Irlanda"?'selected':''}>Irlanda</option>
+<option value="Islandia" ${(S.profile&&S.profile.country)==="Islandia"?'selected':''}>Islandia</option>
+<option value="Israel" ${(S.profile&&S.profile.country)==="Israel"?'selected':''}>Israel</option>
+<option value="Italia" ${(S.profile&&S.profile.country)==="Italia"?'selected':''}>Italia</option>
+<option value="Jamaica" ${(S.profile&&S.profile.country)==="Jamaica"?'selected':''}>Jamaica</option>
+<option value="Japón" ${(S.profile&&S.profile.country)==="Japón"?'selected':''}>Japón</option>
+<option value="Jordania" ${(S.profile&&S.profile.country)==="Jordania"?'selected':''}>Jordania</option>
+<option value="Kazajistán" ${(S.profile&&S.profile.country)==="Kazajistán"?'selected':''}>Kazajistán</option>
+<option value="Kenia" ${(S.profile&&S.profile.country)==="Kenia"?'selected':''}>Kenia</option>
+<option value="Kosovo" ${(S.profile&&S.profile.country)==="Kosovo"?'selected':''}>Kosovo</option>
+<option value="Kuwait" ${(S.profile&&S.profile.country)==="Kuwait"?'selected':''}>Kuwait</option>
+<option value="Laos" ${(S.profile&&S.profile.country)==="Laos"?'selected':''}>Laos</option>
+<option value="Letonia" ${(S.profile&&S.profile.country)==="Letonia"?'selected':''}>Letonia</option>
+<option value="Líbano" ${(S.profile&&S.profile.country)==="Líbano"?'selected':''}>Líbano</option>
+<option value="Liberia" ${(S.profile&&S.profile.country)==="Liberia"?'selected':''}>Liberia</option>
+<option value="Libia" ${(S.profile&&S.profile.country)==="Libia"?'selected':''}>Libia</option>
+<option value="Lituania" ${(S.profile&&S.profile.country)==="Lituania"?'selected':''}>Lituania</option>
+<option value="Luxemburgo" ${(S.profile&&S.profile.country)==="Luxemburgo"?'selected':''}>Luxemburgo</option>
+<option value="Macedonia del Norte" ${(S.profile&&S.profile.country)==="Macedonia del Norte"?'selected':''}>Macedonia del Norte</option>
+<option value="Madagascar" ${(S.profile&&S.profile.country)==="Madagascar"?'selected':''}>Madagascar</option>
+<option value="Malasia" ${(S.profile&&S.profile.country)==="Malasia"?'selected':''}>Malasia</option>
+<option value="Maldivas" ${(S.profile&&S.profile.country)==="Maldivas"?'selected':''}>Maldivas</option>
+<option value="Mali" ${(S.profile&&S.profile.country)==="Mali"?'selected':''}>Mali</option>
+<option value="Malta" ${(S.profile&&S.profile.country)==="Malta"?'selected':''}>Malta</option>
+<option value="Marruecos" ${(S.profile&&S.profile.country)==="Marruecos"?'selected':''}>Marruecos</option>
+<option value="México" ${(S.profile&&S.profile.country)==="México"?'selected':''}>México</option>
+<option value="Moldavia" ${(S.profile&&S.profile.country)==="Moldavia"?'selected':''}>Moldavia</option>
+<option value="Mongolia" ${(S.profile&&S.profile.country)==="Mongolia"?'selected':''}>Mongolia</option>
+<option value="Montenegro" ${(S.profile&&S.profile.country)==="Montenegro"?'selected':''}>Montenegro</option>
+<option value="Mozambique" ${(S.profile&&S.profile.country)==="Mozambique"?'selected':''}>Mozambique</option>
+<option value="Myanmar" ${(S.profile&&S.profile.country)==="Myanmar"?'selected':''}>Myanmar</option>
+<option value="Namibia" ${(S.profile&&S.profile.country)==="Namibia"?'selected':''}>Namibia</option>
+<option value="Nepal" ${(S.profile&&S.profile.country)==="Nepal"?'selected':''}>Nepal</option>
+<option value="Nicaragua" ${(S.profile&&S.profile.country)==="Nicaragua"?'selected':''}>Nicaragua</option>
+<option value="Nigeria" ${(S.profile&&S.profile.country)==="Nigeria"?'selected':''}>Nigeria</option>
+<option value="Noruega" ${(S.profile&&S.profile.country)==="Noruega"?'selected':''}>Noruega</option>
+<option value="Nueva Zelanda" ${(S.profile&&S.profile.country)==="Nueva Zelanda"?'selected':''}>Nueva Zelanda</option>
+<option value="Omán" ${(S.profile&&S.profile.country)==="Omán"?'selected':''}>Omán</option>
+<option value="Países Bajos" ${(S.profile&&S.profile.country)==="Países Bajos"?'selected':''}>Países Bajos</option>
+<option value="Pakistán" ${(S.profile&&S.profile.country)==="Pakistán"?'selected':''}>Pakistán</option>
+<option value="Panamá" ${(S.profile&&S.profile.country)==="Panamá"?'selected':''}>Panamá</option>
+<option value="Paraguay" ${(S.profile&&S.profile.country)==="Paraguay"?'selected':''}>Paraguay</option>
+<option value="Perú" ${(S.profile&&S.profile.country)==="Perú"?'selected':''}>Perú</option>
+<option value="Polonia" ${(S.profile&&S.profile.country)==="Polonia"?'selected':''}>Polonia</option>
+<option value="Portugal" ${(S.profile&&S.profile.country)==="Portugal"?'selected':''}>Portugal</option>
+<option value="Qatar" ${(S.profile&&S.profile.country)==="Qatar"?'selected':''}>Qatar</option>
+<option value="Reino Unido" ${(S.profile&&S.profile.country)==="Reino Unido"?'selected':''}>Reino Unido</option>
+<option value="República Checa" ${(S.profile&&S.profile.country)==="República Checa"?'selected':''}>República Checa</option>
+<option value="República Dominicana" ${(S.profile&&S.profile.country)==="República Dominicana"?'selected':''}>República Dominicana</option>
+<option value="Rumanía" ${(S.profile&&S.profile.country)==="Rumanía"?'selected':''}>Rumanía</option>
+<option value="Rusia" ${(S.profile&&S.profile.country)==="Rusia"?'selected':''}>Rusia</option>
+<option value="Ruanda" ${(S.profile&&S.profile.country)==="Ruanda"?'selected':''}>Ruanda</option>
+<option value="Arabia Saudita" ${(S.profile&&S.profile.country)==="Arabia Saudita"?'selected':''}>Arabia Saudita</option>
+<option value="Senegal" ${(S.profile&&S.profile.country)==="Senegal"?'selected':''}>Senegal</option>
+<option value="Serbia" ${(S.profile&&S.profile.country)==="Serbia"?'selected':''}>Serbia</option>
+<option value="Sierra Leona" ${(S.profile&&S.profile.country)==="Sierra Leona"?'selected':''}>Sierra Leona</option>
+<option value="Singapur" ${(S.profile&&S.profile.country)==="Singapur"?'selected':''}>Singapur</option>
+<option value="Somalia" ${(S.profile&&S.profile.country)==="Somalia"?'selected':''}>Somalia</option>
+<option value="Sri Lanka" ${(S.profile&&S.profile.country)==="Sri Lanka"?'selected':''}>Sri Lanka</option>
+<option value="Sudáfrica" ${(S.profile&&S.profile.country)==="Sudáfrica"?'selected':''}>Sudáfrica</option>
+<option value="Sudán" ${(S.profile&&S.profile.country)==="Sudán"?'selected':''}>Sudán</option>
+<option value="Suecia" ${(S.profile&&S.profile.country)==="Suecia"?'selected':''}>Suecia</option>
+<option value="Suiza" ${(S.profile&&S.profile.country)==="Suiza"?'selected':''}>Suiza</option>
+<option value="Tailandia" ${(S.profile&&S.profile.country)==="Tailandia"?'selected':''}>Tailandia</option>
+<option value="Tanzania" ${(S.profile&&S.profile.country)==="Tanzania"?'selected':''}>Tanzania</option>
+<option value="Túnez" ${(S.profile&&S.profile.country)==="Túnez"?'selected':''}>Túnez</option>
+<option value="Turquía" ${(S.profile&&S.profile.country)==="Turquía"?'selected':''}>Turquía</option>
+<option value="Ucrania" ${(S.profile&&S.profile.country)==="Ucrania"?'selected':''}>Ucrania</option>
+<option value="Uganda" ${(S.profile&&S.profile.country)==="Uganda"?'selected':''}>Uganda</option>
+<option value="Uruguay" ${(S.profile&&S.profile.country)==="Uruguay"?'selected':''}>Uruguay</option>
+<option value="Uzbekistán" ${(S.profile&&S.profile.country)==="Uzbekistán"?'selected':''}>Uzbekistán</option>
+<option value="Venezuela" ${(S.profile&&S.profile.country)==="Venezuela"?'selected':''}>Venezuela</option>
+<option value="Vietnam" ${(S.profile&&S.profile.country)==="Vietnam"?'selected':''}>Vietnam</option>
+<option value="Yemen" ${(S.profile&&S.profile.country)==="Yemen"?'selected':''}>Yemen</option>
+<option value="Zambia" ${(S.profile&&S.profile.country)==="Zambia"?'selected':''}>Zambia</option>
+<option value="Zimbabue" ${(S.profile&&S.profile.country)==="Zimbabue"?'selected':''}>Zimbabue</option>
+          </select>
         </div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Rango de ingresos</label><select class="form-select" id="cfg-income">
-            <option value="">Seleccionar</option>
-            ${['Menos de $1M COP / 1K PLN','$1M - $3M COP / 1K-3K PLN','$3M - $6M COP / 3K-6K PLN','$6M - $10M COP / 6K-10K PLN','Más de $10M COP / 10K PLN'].map(v=>`<option value="${v}" ${(S.profile&&S.profile.income)===v?'selected':''}>${v}</option>`).join('')}
-          </select></div>
-          <div class="form-group"><label class="form-label">Objetivo financiero</label><select class="form-select" id="cfg-goal">
-            <option value="">Seleccionar</option>
-            ${['Salir de deudas','Ahorrar para meta específica','Crear fondo de emergencia','Invertir y hacer crecer mi dinero','Planificar mi retiro','Control del gasto diario','Independencia financiera'].map(v=>`<option value="${v}" ${(S.profile&&S.profile.financialGoal)===v?'selected':''}>${v}</option>`).join('')}
-          </select></div>
+        <div class="form-group"><label class="form-label">Ocupación</label>
+          <select class="form-select" id="cfg-occupation">
+            <option value="">Seleccionar ocupación</option>
+            <option value="Abogado/a" ${(S.profile&&S.profile.occupation)==="Abogado/a"?'selected':''}>Abogado/a</option>
+<option value="Administrador/a" ${(S.profile&&S.profile.occupation)==="Administrador/a"?'selected':''}>Administrador/a</option>
+<option value="Agricultor/a" ${(S.profile&&S.profile.occupation)==="Agricultor/a"?'selected':''}>Agricultor/a</option>
+<option value="Arquitecto/a" ${(S.profile&&S.profile.occupation)==="Arquitecto/a"?'selected':''}>Arquitecto/a</option>
+<option value="Artista" ${(S.profile&&S.profile.occupation)==="Artista"?'selected':''}>Artista</option>
+<option value="Bombero/a" ${(S.profile&&S.profile.occupation)==="Bombero/a"?'selected':''}>Bombero/a</option>
+<option value="Chef/Cocinero/a" ${(S.profile&&S.profile.occupation)==="Chef/Cocinero/a"?'selected':''}>Chef/Cocinero/a</option>
+<option value="Científico/a" ${(S.profile&&S.profile.occupation)==="Científico/a"?'selected':''}>Científico/a</option>
+<option value="Comerciante" ${(S.profile&&S.profile.occupation)==="Comerciante"?'selected':''}>Comerciante</option>
+<option value="Conductor/a" ${(S.profile&&S.profile.occupation)==="Conductor/a"?'selected':''}>Conductor/a</option>
+<option value="Consultor/a" ${(S.profile&&S.profile.occupation)==="Consultor/a"?'selected':''}>Consultor/a</option>
+<option value="Contador/a" ${(S.profile&&S.profile.occupation)==="Contador/a"?'selected':''}>Contador/a</option>
+<option value="Dentista" ${(S.profile&&S.profile.occupation)==="Dentista"?'selected':''}>Dentista</option>
+<option value="Director/a" ${(S.profile&&S.profile.occupation)==="Director/a"?'selected':''}>Director/a</option>
+<option value="Diseñador/a" ${(S.profile&&S.profile.occupation)==="Diseñador/a"?'selected':''}>Diseñador/a</option>
+<option value="Economista" ${(S.profile&&S.profile.occupation)==="Economista"?'selected':''}>Economista</option>
+<option value="Educador/a" ${(S.profile&&S.profile.occupation)==="Educador/a"?'selected':''}>Educador/a</option>
+<option value="Empleado/a" ${(S.profile&&S.profile.occupation)==="Empleado/a"?'selected':''}>Empleado/a</option>
+<option value="Emprendedor/a" ${(S.profile&&S.profile.occupation)==="Emprendedor/a"?'selected':''}>Emprendedor/a</option>
+<option value="Enfermero/a" ${(S.profile&&S.profile.occupation)==="Enfermero/a"?'selected':''}>Enfermero/a</option>
+<option value="Escritor/a" ${(S.profile&&S.profile.occupation)==="Escritor/a"?'selected':''}>Escritor/a</option>
+<option value="Estudiante" ${(S.profile&&S.profile.occupation)==="Estudiante"?'selected':''}>Estudiante</option>
+<option value="Farmacéutico/a" ${(S.profile&&S.profile.occupation)==="Farmacéutico/a"?'selected':''}>Farmacéutico/a</option>
+<option value="Fotógrafo/a" ${(S.profile&&S.profile.occupation)==="Fotógrafo/a"?'selected':''}>Fotógrafo/a</option>
+<option value="Funcionario/a público/a" ${(S.profile&&S.profile.occupation)==="Funcionario/a público/a"?'selected':''}>Funcionario/a público/a</option>
+<option value="Gerente" ${(S.profile&&S.profile.occupation)==="Gerente"?'selected':''}>Gerente</option>
+<option value="Hogar" ${(S.profile&&S.profile.occupation)==="Hogar"?'selected':''}>Hogar</option>
+<option value="Independiente/Freelance" ${(S.profile&&S.profile.occupation)==="Independiente/Freelance"?'selected':''}>Independiente/Freelance</option>
+<option value="Ingeniero/a" ${(S.profile&&S.profile.occupation)==="Ingeniero/a"?'selected':''}>Ingeniero/a</option>
+<option value="Investigador/a" ${(S.profile&&S.profile.occupation)==="Investigador/a"?'selected':''}>Investigador/a</option>
+<option value="Juez" ${(S.profile&&S.profile.occupation)==="Juez"?'selected':''}>Juez</option>
+<option value="Médico/a" ${(S.profile&&S.profile.occupation)==="Médico/a"?'selected':''}>Médico/a</option>
+<option value="Militar" ${(S.profile&&S.profile.occupation)==="Militar"?'selected':''}>Militar</option>
+<option value="Músico/a" ${(S.profile&&S.profile.occupation)==="Músico/a"?'selected':''}>Músico/a</option>
+<option value="Periodista" ${(S.profile&&S.profile.occupation)==="Periodista"?'selected':''}>Periodista</option>
+<option value="Piloto" ${(S.profile&&S.profile.occupation)==="Piloto"?'selected':''}>Piloto</option>
+<option value="Policía" ${(S.profile&&S.profile.occupation)==="Policía"?'selected':''}>Policía</option>
+<option value="Programador/a" ${(S.profile&&S.profile.occupation)==="Programador/a"?'selected':''}>Programador/a</option>
+<option value="Psicólogo/a" ${(S.profile&&S.profile.occupation)==="Psicólogo/a"?'selected':''}>Psicólogo/a</option>
+<option value="Rector/a" ${(S.profile&&S.profile.occupation)==="Rector/a"?'selected':''}>Rector/a</option>
+<option value="Sacerdote/Pastor/a" ${(S.profile&&S.profile.occupation)==="Sacerdote/Pastor/a"?'selected':''}>Sacerdote/Pastor/a</option>
+<option value="Técnico/a" ${(S.profile&&S.profile.occupation)==="Técnico/a"?'selected':''}>Técnico/a</option>
+<option value="Trabajador/a Social" ${(S.profile&&S.profile.occupation)==="Trabajador/a Social"?'selected':''}>Trabajador/a Social</option>
+<option value="Vendedor/a" ${(S.profile&&S.profile.occupation)==="Vendedor/a"?'selected':''}>Vendedor/a</option>
+<option value="Veterinario/a" ${(S.profile&&S.profile.occupation)==="Veterinario/a"?'selected':''}>Veterinario/a</option>
+<option value="Otro" ${(S.profile&&S.profile.occupation)==="Otro"?'selected':''}>Otro</option>
+          </select>
         </div>
+        <div class="form-group"><label class="form-label">Estado civil</label><select class="form-select" id="cfg-marital">
+          <option value="">Seleccionar</option>
+          ${['Soltero/a','Casado/a','Unión libre','Separado/a','Divorciado/a','Viudo/a'].map(v=>`<option value="${v}" ${(S.profile&&S.profile.marital)===v?'selected':''}>${v}</option>`).join('')}
+        </select></div>
+        <div class="form-group"><label class="form-label">Rango de ingresos</label><select class="form-select" id="cfg-income">
+          <option value="">Seleccionar</option>
+          ${['Menos de 1.000.000','1.000.000 – 3.000.000','3.000.000 – 6.000.000','6.000.000 – 10.000.000','Más de 10.000.000'].map(v=>`<option value="${v}" ${(S.profile&&S.profile.income)===v?'selected':''}>${v}</option>`).join('')}
+        </select></div>
+        <div class="form-group"><label class="form-label">Objetivo financiero</label><select class="form-select" id="cfg-goal">
+          <option value="">Seleccionar</option>
+          ${['Salir de deudas','Ahorrar para meta específica','Crear fondo de emergencia','Invertir y hacer crecer mi dinero','Planificar mi retiro','Control del gasto diario','Independencia financiera'].map(v=>`<option value="${v}" ${(S.profile&&S.profile.financialGoal)===v?'selected':''}>${v}</option>`).join('')}
+        </select></div>
         <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="saveProfile()">💾 Guardar perfil</button>
       </div>
     </div>
@@ -2421,7 +2729,7 @@ function renderConfiguracion(){
       </div>
       <div id="cur-picker" class="hidden">
         <div style="margin-bottom:8px"><input oninput="filterCurs(this.value)" class="form-input" style="font-size:13px;padding:8px 12px" placeholder="${t('search')}"></div>
-        <div id="cur-list" style="max-height:220px;overflow-y:auto;background:var(--surface2);border-radius:10px;padding:6px;display:grid;grid-template-columns:1fr 1fr;gap:2px">${curList}</div>
+        <div id="cur-list" style="max-height:220px;overflow-y:auto;background:var(--surface2);border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:2px">${curList}</div>
       </div>
     </div>
 
@@ -2466,8 +2774,8 @@ function saveProfile(){
   if(!S.profile)S.profile={};
   const g=(id)=>document.getElementById(id)?.value||'';
   S.profile.name=g('cfg-name');S.profile.email=g('cfg-email');
-  S.profile.phone=g('cfg-phone');S.profile.country=g('cfg-country');
-  S.profile.occupation=g('cfg-occupation');S.profile.marital=g('cfg-marital');
+  S.profile.phone=g('cfg-phone');S.profile.phoneCode=g('cfg-phone-code');
+  S.profile.country=g('cfg-country');S.profile.occupation=g('cfg-occupation');S.profile.marital=g('cfg-marital');
   S.profile.income=g('cfg-income');S.profile.financialGoal=g('cfg-goal');
   saveState();updateDrawerProfile();
   toast('Perfil guardado ✓');
@@ -3022,7 +3330,7 @@ function saveAccount(){
   else{S.accounts.push(acc);toast('Cuenta creada ✓');}
   saveState();closeModal();renderPage(S.currentPage);
 }
-function deleteAccount(id){const acc=S.accounts.find(a=>a.id===id);if(acc&&acc.protected){toast('Esta cuenta no puede eliminarse');return;}confirmDialog('🗑️','¿Eliminar cuenta?','Los movimientos asociados quedarán sin cuenta.',()=>{S.accounts=S.accounts.filter(a=>a.id!==id);saveState();closeModal();renderPage('cuentas');toast('Cuenta eliminada');});}
+function deleteAccount(id){const acc=S.accounts.find(a=>a.id===id);if(acc&&(acc.protected||acc.subtype==='efectivo')){toast('Esta cuenta no puede eliminarse');return;}confirmDialog('🗑️','¿Eliminar cuenta?','Los movimientos asociados quedarán sin cuenta.',()=>{S.accounts=S.accounts.filter(a=>a.id!==id);saveState();closeModal();renderPage('cuentas');toast('Cuenta eliminada');});}
 
 // ─── BUDGET MODAL ───
 function buildBudgetModal(data){
@@ -3217,7 +3525,7 @@ function toggleAccCard(cardId,event){
 }
 function getAccIcon(a){
   if(!a)return '💳';
-  if(a.id==='efectivo-default'||a.subtype==='efectivo')return '💵';
+  if(a.id&&a.id.startsWith('efectivo-')||a.subtype==='efectivo')return '💵';
   if(a.subtype==='digital')return '📱';
   if(a.subtype==='inversion')return '📈';
   if(a.subtype==='tc')return '💳';
