@@ -425,11 +425,11 @@ const BANKS_COP = [
 // ════════════════════════════════════════════════════════════
 // STATE
 const DEFAULT_CATS = [
-  {id:'dc01',name:'Salario',icon:'💰',color:'#00D4AA',type:'ingreso',nature:'ahorros'},
-  {id:'dc02',name:'Ingresos independientes',icon:'💼',color:'#10B981',type:'ingreso',nature:'ahorros'},
-  {id:'dc03',name:'Rentas e inversiones',icon:'📈',color:'#3B82F6',type:'ingreso',nature:'ahorros'},
-  {id:'dc04',name:'Apoyos y reembolsos',icon:'🤝',color:'#8B5CF6',type:'ingreso',nature:'ahorros'},
-  {id:'dc05',name:'Ingresos extraordinarios',icon:'⭐',color:'#F59E0B',type:'ingreso',nature:'ahorros'},
+  {id:'dc01',name:'Salario',icon:'💰',color:'#00D4AA',type:'ingreso',nature:'ahorros',incomeType:'principal'},
+  {id:'dc02',name:'Ingresos independientes',icon:'💼',color:'#10B981',type:'ingreso',nature:'ahorros',incomeType:'principal'},
+  {id:'dc03',name:'Rentas e inversiones',icon:'📈',color:'#3B82F6',type:'ingreso',nature:'ahorros',incomeType:'secundario'},
+  {id:'dc04',name:'Apoyos y reembolsos',icon:'🤝',color:'#8B5CF6',type:'ingreso',nature:'ahorros',incomeType:'secundario'},
+  {id:'dc05',name:'Ingresos extraordinarios',icon:'⭐',color:'#F59E0B',type:'ingreso',nature:'ahorros',incomeType:'secundario'},
   {id:'dc06',name:'Vivienda',icon:'🏠',color:'#EF4444',type:'gasto',nature:'necesidades'},
   {id:'dc07',name:'Servicios del hogar',icon:'⚡',color:'#F97316',type:'gasto',nature:'necesidades'},
   {id:'dc08',name:'Alimentación',icon:'🛒',color:'#F59E0B',type:'gasto',nature:'necesidades'},
@@ -493,7 +493,7 @@ const DEFAULT_SUBS = [
 // ════════════════════════════════════════════════════════════
 let S = {
   currency:'', currentPage:'dashboard', theme:'dark',
-  language:'es', weekStart:'lunes', _catTab:'gasto', notifPrefs:{}, currencies:[], profile:{name:'',email:'',photo:''},
+  language:'es', weekStart:'lunes', _catTab:'gasto', notifPrefs:{}, numFormat:'auto', currencies:[], profile:{name:'',email:'',photo:''},
   accounts:[], transactions:[], categories:[], subcategories:[],
   budgets:[], goals:[], scheduledPayments:[],
   movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},
@@ -595,6 +595,11 @@ function applyThemeMode(){
   document.documentElement.setAttribute('data-theme',effective);
   const btn=document.getElementById('theme-btn');
   if(btn)btn.textContent=effective==='dark'?'☀️':'🌙';
+}
+function setNumFormat(val){
+  S.numFormat=val;
+  saveState();
+  renderPage('configuracion');
 }
 function setTheme(val){
   S.theme=val;
@@ -743,9 +748,14 @@ function getCurrencyMeta(code){return CURRENCY_META[code]||{sym:code,locale:'en-
 function fmt(amount,cur){
   const code=cur||S.currency||'';
   const n=parseFloat(amount)||0;
-  if(!code)return n.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2});
+  // Determine decimals: user preference overrides currency default
+  const noDec=(['JPY','KRW','CLP','PYG'].includes(code));
+  let decimals;
+  if(S.numFormat==='0')decimals=0;
+  else if(S.numFormat==='2')decimals=2;
+  else decimals=noDec?0:2; // auto (default)
+  if(!code)return n.toLocaleString('es-CO',{minimumFractionDigits:decimals,maximumFractionDigits:decimals});
   const meta=getCurrencyMeta(code);
-  const decimals=(['JPY','KRW','CLP','PYG'].includes(code))?0:2;
   let numStr;
   try{numStr=n.toLocaleString(meta.locale,{minimumFractionDigits:decimals,maximumFractionDigits:decimals});}
   catch(e){numStr=n.toFixed(decimals);}
@@ -2788,6 +2798,16 @@ function renderConfiguracion(){
       </div>
     </div>
 
+    <!-- Currency Format -->
+    <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
+      <label style="font-size:14px;font-weight:600;margin:0">Formato de moneda</label>
+      <div style="display:flex;background:var(--surface2);border-radius:10px;padding:3px;gap:2px">
+        <button onclick="setCurrencyFormat('decimals')" style="flex:1;padding:9px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);background:${(S.currencyFormat||'decimals')==='decimals'?'var(--primary)':'transparent'};color:${(S.currencyFormat||'decimals')==='decimals'?'white':'var(--text2)'}">1,000.00</button>
+        <button onclick="setCurrencyFormat('nodec')" style="flex:1;padding:9px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);background:${S.currencyFormat==='nodec'?'var(--primary)':'transparent'};color:${S.currencyFormat==='nodec'?'white':'var(--text2)'}">1,000</button>
+      </div>
+      <div style="font-size:11px;color:var(--text2)">Con decimales o sin decimales en toda la app</div>
+    </div>
+
     <!-- Currencies -->
     <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
       <label style="font-size:14px;font-weight:600;margin:0">${t('activeCurrencies')} <span style="color:var(--primary);font-size:11px">${curSelected}</span></label>
@@ -2815,6 +2835,17 @@ function renderConfiguracion(){
         <div id="theme-picker" style="display:none;border-top:1px solid var(--border)">
           ${[['light','☀️ Claro'],['dark','🌙 Oscuro'],['auto','⚙️ Automático del sistema']].map(([val,label])=>`<div onclick="setTheme('${val}')" style="padding:12px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;background:${S.theme===val?'rgba(0,212,170,.12)':'transparent'}">${label}${S.theme===val?'<span style="color:var(--primary)">✓</span>':''}</div>`).join('')}
         </div>
+      </div>
+    </div>
+
+    <!-- Formato de moneda -->
+    <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
+      <label style="font-size:14px;font-weight:600;margin:0">💱 Formato de moneda</label>
+      <div style="display:flex;gap:8px">
+        ${[['auto','Automático'],['2','Con decimales'],['0','Sin decimales']].map(([val,label])=>`<button onclick="setNumFormat('${val}')" style="flex:1;padding:10px 4px;border-radius:10px;border:2px solid ${(S.numFormat||'auto')===val?'var(--primary)':'var(--border)'};background:${(S.numFormat||'auto')===val?'rgba(0,212,170,.12)':'var(--surface2)'};color:${(S.numFormat||'auto')===val?'var(--primary)':'var(--text2)'};font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">${label}</button>`).join('')}
+      </div>
+      <div style="font-size:11px;color:var(--text2)">
+        Ejemplo: <strong>${(()=>{const n=1500000;const d=S.numFormat==='0'?0:S.numFormat==='2'?2:2;const meta=getCurrencyMeta(S.currency||'COP');return meta.pos==='before'?meta.sym+n.toLocaleString(meta.locale,{minimumFractionDigits:d,maximumFractionDigits:d}):n.toLocaleString(meta.locale,{minimumFractionDigits:d,maximumFractionDigits:d})+' '+meta.sym;})()}</strong>
       </div>
     </div>
 
@@ -2967,6 +2998,12 @@ function handleProfilePhoto(e){
     saveState();updateDrawerProfile();renderPage('configuracion');
   };
   reader.readAsDataURL(file);
+}
+function setCurrencyFormat(val){
+  S.currencyFormat=val;
+  saveState();
+  renderPage('configuracion');
+  if(S.currentPage!=='configuracion')renderPage(S.currentPage);
 }
 function saveLanguage(v){
   S.language=v;saveState();
@@ -3742,27 +3779,47 @@ function deletePayment(id){confirmDialog('🗑️','¿Eliminar pago?','',()=>{S.
 // ─── CATEGORY MODAL ───
 function buildCategoryModal(data){
   const defType=data.defaultType||S._catTab||'gasto';
+  const isIngreso=defType==='ingreso';
+  const isGasto=defType==='gasto';
   return`<div class="modal-header"><div class="modal-title">Nueva categoría</div><button class="modal-close" onclick="closeModal()">×</button></div>
   <div class="modal-body">
     <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" id="cat-name" placeholder="Ej: Mascotas"></div>
-    <div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="cat-type">
+    <div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="cat-type" onchange="updateCatModalFields(this.value)">
       <option value="gasto" ${defType==='gasto'?'selected':''}>Gasto</option>
       <option value="ingreso" ${defType==='ingreso'?'selected':''}>Ingreso</option>
       <option value="transferencia" ${defType==='transferencia'?'selected':''}>Transferencia</option>
     </select></div>
-    <div class="form-group"><label class="form-label">Naturaleza</label><select class="form-select" id="cat-nature">
-      <option value="necesidad">🏠 Necesidades</option>
-      <option value="deseo">🎯 Deseos</option>
-      <option value="ahorro">💰 Ahorros</option>
-    </select></div>
+    <div id="cat-nature-group" class="form-group" style="display:${isIngreso?'none':'block'}">
+      <label class="form-label">Naturaleza</label>
+      <select class="form-select" id="cat-nature">
+        <option value="necesidades">🏠 Necesidades</option>
+        <option value="deseos">🎯 Deseos</option>
+        <option value="ahorros">💰 Ahorros</option>
+      </select>
+    </div>
+    <div id="cat-income-type-group" class="form-group" style="display:${isIngreso?'block':'none'}">
+      <label class="form-label">Tipo de ingreso</label>
+      <select class="form-select" id="cat-income-type">
+        <option value="principal">⭐ Principal</option>
+        <option value="secundario">➕ Secundario</option>
+      </select>
+      <div style="font-size:11px;color:var(--text2);margin-top:4px">Principal: salario, trabajo activo · Secundario: rentas, apoyos, extras</div>
+    </div>
     <div class="form-group"><label class="form-label">Ícono</label>${iconPickerHtml(ICONS[0],'cat-icon-val')}</div>
     <div class="form-group"><label class="form-label">Color</label>${colorPickerHtml(COLORS_PALETTE[0],'cat-color-val')}</div>
     <button class="btn btn-primary" onclick="saveCategory()">Crear categoría</button>
   </div>`;
 }
+function updateCatModalFields(type){
+  const ng=document.getElementById('cat-nature-group');
+  const ig=document.getElementById('cat-income-type-group');
+  if(ng)ng.style.display=type==='ingreso'?'none':'block';
+  if(ig)ig.style.display=type==='ingreso'?'block':'none';
+}
 function saveCategory(){
   const name=document.getElementById('cat-name')?.value?.trim();if(!name){toast('Ingresa un nombre');return;}
-  const cat={id:uid(),name,type:document.getElementById('cat-type')?.value||'gasto',nature:document.getElementById('cat-nature')?.value||'necesidad',color:document.getElementById('cat-color-val')?.value||COLORS_PALETTE[0],icon:document.getElementById('cat-icon-val')?.value||ICONS[0]};
+  const catType=document.getElementById('cat-type')?.value||'gasto';
+  const cat={id:uid(),name,type:catType,nature:catType==='ingreso'?'ahorros':(document.getElementById('cat-nature')?.value||'necesidades'),incomeType:catType==='ingreso'?(document.getElementById('cat-income-type')?.value||'principal'):undefined,color:document.getElementById('cat-color-val')?.value||COLORS_PALETTE[0],icon:document.getElementById('cat-icon-val')?.value||ICONS[0]};
   S.categories.push(cat);saveState();closeModal();if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Categoría creada ✓');
   setTimeout(()=>{if(window.confirm('¿Agregar subcategoría a "'+cat.name+'" ahora?'))openModal('subcategory',{categoryId:cat.id});},300);
 }
