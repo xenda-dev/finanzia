@@ -2588,7 +2588,7 @@ function renderConfiguracion(){
     <!-- PROFILE SECTION — collapsible -->
     <div class="card" style="margin-bottom:16px" id="profile-card">
       <!-- COLLAPSED: shows avatar + name only -->
-      <div style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="toggleProfileCard()">
+      <div id="profile-collapsed-row" style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="toggleProfileCard()">
         <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:22px;border:3px solid var(--primary);overflow:hidden;flex-shrink:0">
           ${(S.profile&&S.profile.photo)?`<img src="${S.profile.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.profile&&S.profile.name?`<span style="font-size:18px;font-weight:700;color:white">${S.profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</span>`:'<span>👤</span>')}
         </div>
@@ -2658,7 +2658,7 @@ function renderConfiguracion(){
           </div>
           <input type="hidden" id="cfg-country" value="${(S.profile&&S.profile.country)||''}">
         </div>
-        <div class="form-group"><label class="form-label">País de residencia</label>
+        <div class="form-group"><label class="form-label">País de residencia <span style="font-size:10px;color:var(--primary);font-weight:400">🏠 moneda principal</span></label>
           <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('rpick')">
               <span style="font-size:14px;color:${(S.profile&&S.profile.residence)?'var(--text)':'var(--text3)'}" id="cfg-residence-lbl">${(S.profile&&S.profile.residence)||'Seleccionar país de residencia'}</span>
@@ -2670,7 +2670,6 @@ function renderConfiguracion(){
             </div>
           </div>
           <input type="hidden" id="cfg-residence" value="${(S.profile&&S.profile.residence)||''}">
-          <div style="font-size:11px;color:var(--primary);margin-top:4px">🏠 La moneda de este país será la moneda principal</div>
         </div>
         <div class="form-group"><label class="form-label">Ocupación</label>
           <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
@@ -2858,7 +2857,9 @@ function saveProfile(){
   // Collapse card after saving
   const form=document.getElementById('profile-form');
   const arrow=document.getElementById('profile-arrow');
-  if(form){form.style.display='none';}
+  const collRow=document.getElementById('profile-collapsed-row');
+  if(form)form.style.display='none';
+  if(collRow)collRow.style.display='flex';
   if(arrow)arrow.textContent='▼';
   renderPage('configuracion');
 }
@@ -2869,9 +2870,11 @@ function removeProfilePhoto(){
 function toggleProfileCard(){
   const form=document.getElementById('profile-form');
   const arrow=document.getElementById('profile-arrow');
+  const collRow=document.getElementById('profile-collapsed-row');
   if(!form)return;
   const isOpen=form.style.display!=='none';
   form.style.display=isOpen?'none':'block';
+  if(collRow)collRow.style.display=isOpen?'flex':'none';
   if(arrow)arrow.textContent=isOpen?'▼':'▲';
 }
 function pickProfilePhoto(){
@@ -2947,9 +2950,8 @@ function toggleCurrency(c,checked){
     if(S.currencies.length>=2){toast('Solo puedes tener máximo 2 monedas activas. Desactiva una primero.');renderPage('configuracion');return;}
     if(!S.currencies.includes(c))S.currencies.push(c);
   } else {
-    if(S.currencies.length<=1){toast('Debes tener al menos 1 moneda activa');renderPage('configuracion');return;}
     S.currencies=S.currencies.filter(x=>x!==c);
-    if(!S.currencies.includes(S.currency))S.currency=S.currencies[0];
+    if(S.currencies.length>0&&!S.currencies.includes(S.currency))S.currency=S.currencies[0];
   }
   saveState();refreshCurrencyToggle();renderPage('configuracion');
 }
