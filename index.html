@@ -292,6 +292,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <button class="drawer-item" data-page="calculadora" id="dmi-calculadora"><div class="drawer-item-icon">📐</div><span>Calculadora préstamo</span></button>
     <button class="drawer-item" data-page="simulador" id="dmi-simulador"><div class="drawer-item-icon">💹</div><span>Simulador de ahorro</span></button>
     <button class="drawer-item" data-page="estrategia" id="dmi-estrategia"><div class="drawer-item-icon">❄️</div><span>Estrategia de deudas</span></button>
+    <button class="drawer-item" data-page="cambio" id="dmi-cambio"><div class="drawer-item-icon">💱</div><span>Tipo de cambio</span></button>
     <div class="drawer-group-label" id="dgl-configuracion">Configuración</div>
     <button class="drawer-item" data-page="categorias" id="dmi-categorias"><div class="drawer-item-icon">🏷️</div><span>Categorías</span></button>
     <button class="drawer-item" data-page="configuracion" id="dmi-configuracion"><div class="drawer-item-icon">⚙️</div><span>Ajustes</span></button>
@@ -330,6 +331,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div id="page-calculadora" class="page"></div>
   <div id="page-simulador" class="page"></div>
   <div id="page-estrategia" class="page"></div>
+  <div id="page-cambio" class="page"></div>
 </div>
 <nav class="bottom-nav">
   <button class="nav-item active" data-page="dashboard">
@@ -671,7 +673,8 @@ function updateDrawerProfile(){
   const emailEl=document.getElementById('drawer-profile-email');
   const avatarEl=document.getElementById('drawer-avatar');
   if(nameEl)nameEl.textContent=name;
-  if(emailEl)emailEl.textContent=email;
+  const residence=S.profile&&S.profile.residence?S.profile.residence:'';
+  if(emailEl)emailEl.textContent=residence||email;
   if(avatarEl){
     if(photo){avatarEl.innerHTML=`<img src="${photo}" alt="foto">`;}
     else{const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);avatarEl.innerHTML=`<span style="font-size:16px;font-weight:700;color:white">${initials!=='MI'?initials:'👤'}</span>`;}
@@ -885,6 +888,7 @@ function renderPage(page){
     case'calculadora':el.innerHTML=renderCalculadora();break;
     case'simulador':el.innerHTML=renderSimulador();break;
     case'estrategia':el.innerHTML=renderEstrategia();break;
+    case'cambio':el.innerHTML=renderCambio();break;
   }
 }
 function initExchangeWidget(){
@@ -2315,6 +2319,96 @@ async function callAI(userMsg){
 }
 
 // ════════════════════════════════════════════════════════════
+// TIPO DE CAMBIO
+// ════════════════════════════════════════════════════════════
+function renderCambio(){
+  const curOpts=Object.keys(CURRENCY_META).map(code=>{
+    const m=getCurrencyMeta(code);
+    return `<option value="${code}">${code} ${m.sym}</option>`;
+  }).join('');
+  const fromDef=S.currencies&&S.currencies[0]?S.currencies[0]:'USD';
+  const toDef=S.currencies&&S.currencies[1]?S.currencies[1]:'EUR';
+  return`
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">💱 Conversor de tipo de cambio</div>
+      <div class="form-group">
+        <label class="form-label">Monto</label>
+        <input class="form-input" type="number" id="cambio-amount" placeholder="Ej: 1000" oninput="calcCambio()" value="1">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">De</label>
+          <select class="form-select" id="cambio-from" onchange="calcCambio()">
+            ${curOpts.replace('<option value="${fromDef}">', '<option value="${fromDef}" selected>')}
+          </select>
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:0">
+          <button onclick="swapCambio()" class="btn btn-secondary" style="width:100%;font-size:18px">⇄</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">A</label>
+          <select class="form-select" id="cambio-to" onchange="calcCambio()">
+            ${curOpts.replace('<option value="${toDef}">', '<option value="${toDef}" selected>')}
+          </select>
+        </div>
+      </div>
+      <div id="cambio-result" style="background:var(--surface2);border-radius:var(--radius);padding:16px;margin-top:4px;text-align:center;display:none">
+        <div style="font-size:13px;color:var(--text2)" id="cambio-formula">—</div>
+        <div style="font-size:28px;font-weight:800;color:var(--primary);margin:8px 0" id="cambio-output">—</div>
+        <div style="font-size:11px;color:var(--text3)" id="cambio-rate">—</div>
+      </div>
+    </div>
+    <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:var(--radius);padding:12px;font-size:12px;color:var(--text2)">
+      ℹ️ Los tipos de cambio son aproximados y se actualizan en tiempo real. Para transacciones financieras importantes consulta a tu entidad bancaria.
+    </div>
+  `;
+}
+function calcCambio(){
+  const amount=parseFloat(document.getElementById('cambio-amount')?.value)||0;
+  const from=document.getElementById('cambio-from')?.value;
+  const to=document.getElementById('cambio-to')?.value;
+  const res=document.getElementById('cambio-result');
+  if(!amount||!from||!to){if(res)res.style.display='none';return;}
+  if(res)res.style.display='block';
+  // Use cross-rate via exchange rate state
+  const rates=S.exchangeRate&&S.exchangeRate.rates?S.exchangeRate.rates:{};
+  const base=S.exchangeRate&&S.exchangeRate.base?S.exchangeRate.base:'PLN';
+  let rate=1;
+  if(from===to){rate=1;}
+  else if(rates[to]&&rates[from]){rate=rates[to]/rates[from];}
+  else if(rates[to]){rate=rates[to];}
+  else if(rates[from]){rate=1/rates[from];}
+  const result=amount*rate;
+  const fmeta=getCurrencyMeta(from);const tmeta=getCurrencyMeta(to);
+  const fmtLocal=(v,meta)=>meta.pos==='before'?meta.sym+v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}):v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+meta.sym;
+  document.getElementById('cambio-formula').textContent=fmtLocal(amount,fmeta)+' = ';
+  document.getElementById('cambio-output').textContent=fmtLocal(result,tmeta);
+  document.getElementById('cambio-rate').textContent='1 '+from+' = '+rate.toFixed(4)+' '+to+(rates[from]||rates[to]?' · Tasa en tiempo real':' · Tasa estimada');
+  // Fetch fresh rate in background
+  if(from!==to){
+    fetch('https://open.er-api.com/v6/latest/'+from)
+      .then(r=>r.json())
+      .then(data=>{
+        if(data.rates&&data.rates[to]){
+          const liveRate=data.rates[to];
+          const liveResult=amount*liveRate;
+          const outEl=document.getElementById('cambio-output');
+          const rateEl=document.getElementById('cambio-rate');
+          if(outEl)outEl.textContent=fmtLocal(liveResult,tmeta);
+          if(rateEl)rateEl.textContent='1 '+from+' = '+liveRate.toFixed(4)+' '+to+' · En tiempo real ✓';
+        }
+      }).catch(()=>{});
+  }
+}
+function swapCambio(){
+  const f=document.getElementById('cambio-from');
+  const t=document.getElementById('cambio-to');
+  if(!f||!t)return;
+  const tmp=f.value;f.value=t.value;t.value=tmp;
+  calcCambio();
+}
+
+// ════════════════════════════════════════════════════════════
 // ESTRATEGIA DE DEUDAS
 // ════════════════════════════════════════════════════════════
 function calcEstrategia(){window._estrategiaExtra=document.getElementById('estrategia-extra')?.value||window._estrategiaExtra||0;var pg=document.getElementById('page-estrategia');if(pg)pg.innerHTML=renderEstrategia();}
@@ -2551,10 +2645,10 @@ function renderConfiguracion(){
             <input class="form-input" type="tel" id="cfg-phone" value="${(S.profile&&S.profile.phone)||''}" placeholder="300 000 0000" style="flex:1;font-size:15px" maxlength="15">
           </div>
         </div>
-        <div class="form-group"><label class="form-label">País</label>
+        <div class="form-group"><label class="form-label">País de origen</label>
           <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('cpick')">
-              <span style="font-size:14px;color:${(S.profile&&S.profile.country)?'var(--text)':'var(--text3)'}" id="cfg-country-lbl">${(S.profile&&S.profile.country)||'Seleccionar país'}</span>
+              <span style="font-size:14px;color:${(S.profile&&S.profile.country)?'var(--text)':'var(--text3)'}" id="cfg-country-lbl">${(S.profile&&S.profile.country)||'Seleccionar país de origen'}</span>
               <span style="color:var(--primary);font-size:10px" id="cpick-arrow">▼</span>
             </div>
             <div id="cpick" style="display:none;border-top:1px solid var(--border)">
@@ -2709,7 +2803,7 @@ function selectPPick(inputId,pickId,val){
   var arr=document.getElementById(pickId+'-arrow');
   if(inp)inp.value=val;
   if(lbl){
-    var ph={'cfg-country':'Seleccionar país','cfg-occupation':'Seleccionar ocupación','cfg-marital':'Seleccionar estado civil','cfg-goal':'Seleccionar objetivo'};
+    var ph={'cfg-country':'Seleccionar país de origen','cfg-residence':'Seleccionar país de residencia','cfg-occupation':'Seleccionar ocupación','cfg-marital':'Seleccionar estado civil','cfg-goal':'Seleccionar objetivo'};
     lbl.textContent=val||(ph[inputId]||'Seleccionar');
     lbl.style.color=val?'var(--text)':'var(--text3)';
   }
@@ -2727,8 +2821,24 @@ function saveProfile(){
   const g=(id)=>document.getElementById(id)?.value||'';
   S.profile.name=g('cfg-name');S.profile.email=g('cfg-email');
   S.profile.phone=g('cfg-phone');S.profile.phoneCode=g('cfg-phone-code');
-  S.profile.country=g('cfg-country');S.profile.occupation=g('cfg-occupation');S.profile.marital=g('cfg-marital');
+  S.profile.country=g('cfg-country');
+  S.profile.residence=g('cfg-residence');
+  S.profile.occupation=g('cfg-occupation');S.profile.marital=g('cfg-marital');
   S.profile.marital=g('cfg-marital');S.profile.financialGoal=g('cfg-goal');
+  // Auto-set currencies based on countries
+  const countryCurrency = {"Afghanistan": "AFN", "Albania": "ALL", "Alemania": "EUR", "Andorra": "EUR", "Angola": "AOA", "Argentina": "ARS", "Armenia": "AMD", "Australia": "AUD", "Austria": "EUR", "Azerbaiyán": "AZN", "Bahamas": "BSD", "Bangladés": "BDT", "Bélgica": "EUR", "Belice": "BZD", "Bolivia": "BOB", "Bosnia y Herzegovina": "BAM", "Brasil": "BRL", "Bulgaria": "BGN", "Camerún": "XAF", "Canadá": "CAD", "Chile": "CLP", "China": "CNY", "Chipre": "EUR", "Colombia": "COP", "Costa Rica": "CRC", "Croacia": "EUR", "Cuba": "CUP", "Dinamarca": "DKK", "Ecuador": "USD", "Egipto": "EGP", "El Salvador": "USD", "Emiratos Árabes Unidos": "AED", "Eslovaquia": "EUR", "Eslovenia": "EUR", "España": "EUR", "Estados Unidos": "USD", "Estonia": "EUR", "Etiopía": "ETB", "Filipinas": "PHP", "Finlandia": "EUR", "Francia": "EUR", "Ghana": "GHS", "Grecia": "EUR", "Guatemala": "GTQ", "Honduras": "HNL", "Hungría": "HUF", "India": "INR", "Indonesia": "IDR", "Irán": "IRR", "Irlanda": "EUR", "Israel": "ILS", "Italia": "EUR", "Jamaica": "JMD", "Japón": "JPY", "Jordania": "JOD", "Kazajistán": "KZT", "Kenia": "KES", "México": "MXN", "Marruecos": "MAD", "Nepal": "NPR", "Nicaragua": "NIO", "Nigeria": "NGN", "Noruega": "NOK", "Nueva Zelanda": "NZD", "Países Bajos": "EUR", "Pakistán": "PKR", "Panamá": "USD", "Paraguay": "PYG", "Perú": "PEN", "Polonia": "PLN", "Portugal": "EUR", "Qatar": "QAR", "Reino Unido": "GBP", "República Checa": "CZK", "República Dominicana": "DOP", "Rumanía": "RON", "Rusia": "RUB", "Arabia Saudita": "SAR", "Senegal": "XOF", "Serbia": "RSD", "Singapur": "SGD", "Sudáfrica": "ZAR", "Suecia": "SEK", "Suiza": "CHF", "Tailandia": "THB", "Tanzania": "TZS", "Turquía": "TRY", "Ucrania": "UAH", "Uruguay": "UYU", "Venezuela": "VES", "Vietnam": "VND", "Zimbabue": "ZWL"};
+  const originCur = countryCurrency[S.profile.country] || '';
+  const residenceCur = countryCurrency[S.profile.residence] || '';
+  const newCurs = [];
+  // Residence currency is primary (first)
+  if(residenceCur && Object.keys(CURRENCY_META).includes(residenceCur)) newCurs.push(residenceCur);
+  if(originCur && originCur !== residenceCur && Object.keys(CURRENCY_META).includes(originCur)) newCurs.push(originCur);
+  // Limit to 2, keep existing if countries not mapped
+  if(newCurs.length > 0){
+    S.currencies = newCurs.slice(0,2);
+    S.currency = newCurs[0];
+    refreshCurrencyToggle();
+  }
   saveState();updateDrawerProfile();
   toast('Perfil guardado ✓');
   // Collapse card after saving
