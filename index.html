@@ -624,7 +624,8 @@ function loadState(){
     }
   }
   // THEN: ensure one Efectivo per configured currency
-  const curs=S.currencies&&S.currencies.length?S.currencies:['PLN'];
+  const curs=S.currencies&&S.currencies.length?S.currencies:[];
+  if(!curs.length){toggle.innerHTML='<span style="color:var(--text3);font-size:12px;padding:4px 8px">Sin moneda</span>';return;}
   curs.forEach(cur=>{
     const efId='efectivo-'+cur;
     const efAcc=S.accounts.find(a=>a.id===efId);
@@ -651,8 +652,7 @@ function loadState(){
   if(!S.language)S.language='es';
   if(!S.weekStart)S.weekStart='lunes';
   if(!S.currencies||!S.currencies.length)S.currencies=['PLN','COP'];
-  document.documentElement.setAttribute('data-theme',S.theme);
-  document.getElementById('theme-btn').textContent=S.theme==='dark'?'☀️':'🌙';
+  applyThemeMode();
   // Update drawer profile
   updateDrawerProfile();
 }
@@ -691,8 +691,7 @@ function parseNum(s){if(!s)return 0;return parseFloat(String(s).replace(/[^\d.,]
 // ════════════════════════════════════════════════════════════
 function toggleTheme(){
   S.theme=S.theme==='dark'?'light':'dark';
-  document.documentElement.setAttribute('data-theme',S.theme);
-  document.getElementById('theme-btn').textContent=S.theme==='dark'?'☀️':'🌙';
+  applyThemeMode();
   saveState();
   if(S.currentPage==='configuracion')renderPage('configuracion');
 }
@@ -826,7 +825,8 @@ const CURRENCY_META={
   CLP:{sym:'$',locale:'es-CL',pos:'before'},
 };
 function buildCurrencyOptions(selected){
-  const curs=S.currencies&&S.currencies.length?S.currencies:['PLN'];
+  const curs=S.currencies&&S.currencies.length?S.currencies:[];
+  if(!curs.length){toggle.innerHTML='<span style="color:var(--text3);font-size:12px;padding:4px 8px">Sin moneda</span>';return;}
   if(curs.length===1)return `<option value="${curs[0]}">${curs[0]}</option>`;
   return curs.map(c=>`<option value="${c}" ${c===selected?'selected':''}>${c}</option>`).join('');
 }
@@ -850,7 +850,8 @@ function setCurrency(c){
 function refreshCurrencyToggle(){
   const toggle=document.getElementById('currency-toggle');
   if(!toggle)return;
-  const curs=S.currencies&&S.currencies.length?S.currencies:['PLN'];
+  const curs=S.currencies&&S.currencies.length?S.currencies:[];
+  if(!curs.length){toggle.innerHTML='<span style="color:var(--text3);font-size:12px;padding:4px 8px">Sin moneda</span>';return;}
   toggle.innerHTML=curs.map(c=>`<button class="cur-btn ${c===S.currency?'active':''}" data-cur="${c}" onclick="setCurrency('${c}')">${c}</button>`).join('');
   // Make sure current currency is valid
   if(!curs.includes(S.currency)){S.currency=curs[0];saveState();}
@@ -1858,7 +1859,7 @@ function renderCatList(tab){
         </div>
       </div>
       <div id="${catDomId}" class="hidden">
-        ${subs.length?`<div class="subcat-list">${subs.map(s=>`<div class="subcat-item"><span>${s.icon} ${s.name}</span><button class="btn-del" onclick="deleteSub('${s.id}')">✕</button></div>`).join('')}</div>`:''}
+        ${subs.length?`<div class="subcat-list">${subs.map(s=>`<div class="subcat-item"><span>${s.icon} ${s.name}</span><div style="display:flex;gap:4px"><button class="btn-text" style="font-size:11px" onclick="openModal('editSubcategory',{id:'${s.id}'})">✏️</button><button class="btn-del" onclick="deleteSub('${s.id}')">✕</button></div></div>`).join('')}</div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1890,7 +1891,7 @@ function renderCategorias(){
           </div>
         </div>
         <div id="${catDomId}" class="hidden">
-          ${subs.length?`<div class="subcat-list">${subs.map(s=>`<div class="subcat-item"><span>${s.icon} ${s.name}</span><button class="btn-del" onclick="deleteSub('${s.id}')">✕</button></div>`).join('')}</div>`:''}
+          ${subs.length?`<div class="subcat-list">${subs.map(s=>`<div class="subcat-item"><span>${s.icon} ${s.name}</span><div style="display:flex;gap:4px"><button class="btn-text" style="font-size:11px" onclick="openModal('editSubcategory',{id:'${s.id}'})">✏️</button><button class="btn-del" onclick="deleteSub('${s.id}')">✕</button></div></div>`).join('')}</div>`:''}
         </div>
       </div>`;
     }).join('')}
@@ -2650,7 +2651,7 @@ function renderConfiguracion(){
     <div class="card" style="margin-bottom:16px;position:relative" id="profile-card">
       <!-- COLLAPSED: shows avatar + name only -->
       <div id="profile-collapsed-row" style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="toggleProfileCard()">
-        <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:22px;border:3px solid var(--primary);overflow:hidden;flex-shrink:0">
+        <div id="profile-avatar-collapsed" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:22px;border:3px solid var(--primary);overflow:hidden;flex-shrink:0">
           ${(S.profile&&S.profile.photo)?`<img src="${S.profile.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.profile&&S.profile.name?`<span style="font-size:18px;font-weight:700;color:white">${S.profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</span>`:'<span>👤</span>')}
         </div>
         <div style="flex:1">
@@ -2731,7 +2732,7 @@ function renderConfiguracion(){
             </div>
           </div>
           <input type="hidden" id="cfg-residence" value="${(S.profile&&S.profile.residence)||''}">
-        </div>
+        
         <div class="form-group"><label class="form-label">Ocupación</label>
           <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('opick')">
@@ -2769,8 +2770,8 @@ function renderConfiguracion(){
           </div>
           <input type="hidden" id="cfg-goal" value="${(S.profile&&S.profile.financialGoal) || ''}">
         </div>
-        <div style="display:flex;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
-          <button onclick="saveProfile()" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,212,170,.35)">💾</button>
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+          <button onclick="saveProfile()" style="width:100%;padding:13px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px">Guardar</button>
         </div>
       </div>
     </div>
@@ -2834,9 +2835,17 @@ function renderConfiguracion(){
     </div>
 
     <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 10px">${t('appearance')}</div>
-    <div class="config-item" onclick="toggleTheme()">
-      <div class="config-item-left"><div class="config-icon" style="background:rgba(100,116,139,.15)">${S.theme==='dark'?'🌙':'☀️'}</div><div><div style="font-size:14px;font-weight:600">${t('theme')}: ${S.theme==='dark'?t('dark')+' 🌙':t('light')+' ☀️'}</div><div style="font-size:12px;color:var(--text2)">${t('changeTo')} ${S.theme==='dark'?t('light'):t('dark')}</div></div></div>
-      <span style="color:var(--text3)">›</span>
+    <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
+      <label style="font-size:14px;font-weight:600;margin:0">${t('theme')}</label>
+      <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('theme-picker')">
+          <span style="font-size:14px">${S.theme==='dark'?'🌙 Oscuro':S.theme==='auto'?'⚙️ Automático':'☀️ Claro'}</span>
+          <span style="color:var(--primary);font-size:10px" id="theme-picker-arrow">▼</span>
+        </div>
+        <div id="theme-picker" style="display:none;border-top:1px solid var(--border)">
+          ${[['light','☀️ Claro'],['dark','🌙 Oscuro'],['auto','⚙️ Automático del sistema']].map(([val,label])=>`<div onclick="setTheme('${val}')" style="padding:12px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;background:${S.theme===val?'rgba(0,212,170,.12)':'transparent'}">${label}${S.theme===val?'<span style="color:var(--primary)">✓</span>':''}</div>`).join('')}
+        </div>
+      </div>
     </div>
 
     <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 10px">${t('system')}</div>
@@ -2932,10 +2941,9 @@ function saveProfile(){
   // Collapse card after saving
   const form=document.getElementById('profile-form');
   const arrow=document.getElementById('profile-arrow');
-  const collRow=document.getElementById('profile-collapsed-row');
   if(form)form.style.display='none';
-  if(collRow)collRow.style.display='flex';
   if(arrow)arrow.textContent='▼';
+  const avSmall=document.getElementById('profile-avatar-collapsed');if(avSmall)avSmall.style.display='flex';
   renderPage('configuracion');
 }
 function removeProfilePhoto(){
@@ -2945,11 +2953,11 @@ function removeProfilePhoto(){
 function toggleProfileCard(){
   const form=document.getElementById('profile-form');
   const arrow=document.getElementById('profile-arrow');
-  const collRow=document.getElementById('profile-collapsed-row');
+  const avatarSmall=document.getElementById('profile-avatar-collapsed');
   if(!form)return;
   const isOpen=form.style.display!=='none';
   form.style.display=isOpen?'none':'block';
-  if(collRow)collRow.style.display=isOpen?'flex':'none';
+  if(avatarSmall)avatarSmall.style.display=isOpen?'flex':'none';
   if(arrow)arrow.textContent=isOpen?'▼':'▲';
 }
 function pickProfilePhoto(){
@@ -3734,10 +3742,20 @@ function deletePayment(id){confirmDialog('🗑️','¿Eliminar pago?','',()=>{S.
 
 // ─── CATEGORY MODAL ───
 function buildCategoryModal(data){
+  const defType=data.defaultType||S._catTab||'gasto';
   return`<div class="modal-header"><div class="modal-title">Nueva categoría</div><button class="modal-close" onclick="closeModal()">×</button></div>
   <div class="modal-body">
     <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" id="cat-name" placeholder="Ej: Mascotas"></div>
-    <div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="cat-type"><option value="gasto">Gasto</option><option value="ingreso">Ingreso</option><option value="ambos">Ambos</option></select></div>
+    <div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="cat-type">
+      <option value="gasto" ${defType==='gasto'?'selected':''}>Gasto</option>
+      <option value="ingreso" ${defType==='ingreso'?'selected':''}>Ingreso</option>
+      <option value="transferencia" ${defType==='transferencia'?'selected':''}>Transferencia</option>
+    </select></div>
+    <div class="form-group"><label class="form-label">Naturaleza</label><select class="form-select" id="cat-nature">
+      <option value="necesidad">🏠 Necesidades</option>
+      <option value="deseo">🎯 Deseos</option>
+      <option value="ahorro">💰 Ahorros</option>
+    </select></div>
     <div class="form-group"><label class="form-label">Ícono</label>${iconPickerHtml(ICONS[0],'cat-icon-val')}</div>
     <div class="form-group"><label class="form-label">Color</label>${colorPickerHtml(COLORS_PALETTE[0],'cat-color-val')}</div>
     <button class="btn btn-primary" onclick="saveCategory()">Crear categoría</button>
@@ -3745,7 +3763,7 @@ function buildCategoryModal(data){
 }
 function saveCategory(){
   const name=document.getElementById('cat-name')?.value?.trim();if(!name){toast('Ingresa un nombre');return;}
-  const cat={id:uid(),name,type:document.getElementById('cat-type')?.value||'gasto',color:document.getElementById('cat-color-val')?.value||COLORS_PALETTE[0],icon:document.getElementById('cat-icon-val')?.value||ICONS[0]};
+  const cat={id:uid(),name,type:document.getElementById('cat-type')?.value||'gasto',nature:document.getElementById('cat-nature')?.value||'necesidad',color:document.getElementById('cat-color-val')?.value||COLORS_PALETTE[0],icon:document.getElementById('cat-icon-val')?.value||ICONS[0]};
   S.categories.push(cat);saveState();closeModal();if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Categoría creada ✓');
   setTimeout(()=>{if(window.confirm('¿Agregar subcategoría a "'+cat.name+'" ahora?'))openModal('subcategory',{categoryId:cat.id});},300);
 }
@@ -3771,6 +3789,33 @@ function saveSubcategory(){
   saveState();closeModal();if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Subcategoría creada ✓');
 }
 
+// ─── EDIT SUBCATEGORY MODAL ───
+function buildEditSubcategoryModal(data){
+  const sub=S.subcategories.find(s=>s.id===data.id);
+  if(!sub)return'';
+  const cat=getCat(sub.categoryId);
+  return`<div class="modal-header"><div class="modal-title">Editar subcategoría</div><button class="modal-close" onclick="closeModal()">×</button></div>
+  <div class="modal-body">
+    <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px;margin-bottom:14px;font-size:13px">${cat?`Categoría: <strong>${cat.icon} ${cat.name}</strong>`:'Sin categoría'}</div>
+    <input type="hidden" id="esub-id" value="${sub.id}">
+    <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" id="esub-name" value="${sub.name}" placeholder="Nombre"></div>
+    <div class="form-group"><label class="form-label">Ícono</label>${iconPickerHtml(sub.icon||ICONS[1],'esub-icon-val')}</div>
+    <button class="btn btn-primary" onclick="saveEditSubcategory()">Guardar</button>
+  </div>`;
+}
+function saveEditSubcategory(){
+  const id=document.getElementById('esub-id')?.value;
+  const name=document.getElementById('esub-name')?.value?.trim();
+  if(!name){toast('Ingresa un nombre');return;}
+  const sub=S.subcategories.find(s=>s.id===id);
+  if(!sub)return;
+  sub.name=name;
+  sub.icon=document.getElementById('esub-icon-val')?.value||sub.icon;
+  saveState();closeModal();
+  const cpnl=document.getElementById('cat-panel-list');
+  if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');
+  toast('Subcategoría actualizada ✓');
+}
 // ─── FILTER MODAL ───
 function buildFilterModal(){
   const f=S.movFilter;
