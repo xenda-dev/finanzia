@@ -524,7 +524,7 @@ function loadState(){
   }
   // THEN: ensure one Efectivo per configured currency
   const curs=S.currencies&&S.currencies.length?S.currencies:[];
-  if(!curs.length){toggle.innerHTML='<span style="color:var(--text3);font-size:12px;padding:4px 8px">—</span>';return;}
+  if(!curs.length){return;} // no currencies yet — efectivo accounts created when user sets up profile
   curs.forEach(cur=>{
     const efId='efectivo-'+cur;
     const efAcc=S.accounts.find(a=>a.id===efId);
@@ -548,8 +548,7 @@ function loadState(){
   if(!S.analysisPeriodSub)S.analysisPeriodSub='anual';if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
   if(!S.exchangeRate)S.exchangeRate={PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''};
   if(!S.theme)S.theme='dark';
-  if(!S.language)S.language='es';
-  if(!S.weekStart)S.weekStart='lunes';
+  // language and weekStart stay empty until user chooses
   // currencies stay empty until user sets up profile
   applyThemeMode();
   // Update drawer profile
