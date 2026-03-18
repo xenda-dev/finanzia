@@ -1774,9 +1774,9 @@ function openCatPanel(){
       '<button class="btn btn-primary btn-sm" onclick="openModal(\'category\',{defaultType:S._catTab||\'gasto\'})">+ Nueva</button>'+
     '</div>'+
     '<div style="padding:12px 16px 8px;flex-shrink:0">'+
-      '<div style="display:flex;background:var(--surface2);border-radius:10px;padding:3px;gap:2px">'+
-        '<button id="catpnl-gasto" onclick="setCatTab(&apos;gasto&apos;)" style="flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);background:'+(tab==='gasto'?'var(--primary)':'transparent')+';color:'+(tab==='gasto'?'white':'var(--text2)')+'">GASTOS</button>'+
-        '<button id="catpnl-ingreso" onclick="setCatTab(&apos;ingreso&apos;)" style="flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);background:'+(tab!=='gasto'?'var(--primary)':'transparent')+';color:'+(tab!=='gasto'?'white':'var(--text2)')+'">INGRESOS</button>'+
+      '<div style="background:var(--surface2);border-radius:50px;padding:3px;display:flex;gap:2px">'+
+        '<button id="catpnl-gasto" onclick="setCatTab(&apos;gasto&apos;)" style="flex:1;padding:9px 16px;border-radius:50px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);background:'+(tab==='gasto'?'var(--primary)':'transparent')+';color:'+(tab==='gasto'?'white':'var(--text2)')+';transition:.15s">GASTOS</button>'+
+        '<button id="catpnl-ingreso" onclick="setCatTab(&apos;ingreso&apos;)" style="flex:1;padding:9px 16px;border-radius:50px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);background:'+(tab!=='gasto'?'var(--primary)':'transparent')+';color:'+(tab!=='gasto'?'white':'var(--text2)')+';transition:.15s">INGRESOS</button>'+
       '</div>'+
     '</div>'+
     '<div id="cat-panel-list" style="flex:1;overflow-y:auto;padding:0 16px 16px">'+renderCatList(tab)+'</div>';
@@ -1787,8 +1787,8 @@ function setCatTab(tab){
   // Update panel tab buttons
   const g=document.getElementById('catpnl-gasto');
   const i=document.getElementById('catpnl-ingreso');
-  if(g){g.style.background=tab==='gasto'?'var(--primary)':'transparent';g.style.color=tab==='gasto'?'white':'var(--text2)';}
-  if(i){i.style.background=tab!=='gasto'?'var(--primary)':'transparent';i.style.color=tab!=='gasto'?'white':'var(--text2)';}
+  if(g){g.style.background=tab==='gasto'?'var(--primary)':'transparent';g.style.color=tab==='gasto'?'white':'var(--text2)';g.style.borderRadius='50px';}
+  if(i){i.style.background=tab!=='gasto'?'var(--primary)':'transparent';i.style.color=tab!=='gasto'?'white':'var(--text2)';i.style.borderRadius='50px';}
   // Update list in panel
   const list=document.getElementById('cat-panel-list');
   if(list)list.innerHTML=renderCatList(tab);
