@@ -339,7 +339,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <button class="nav-item" data-page="movimientos">
     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>Movimientos
   </button>
-  <button class="nav-fab" onclick="openModal('transaction',{})">＋</button>
+  <button class="nav-fab" onclick="openTransactionModal();">＋</button>
   <button class="nav-item" data-page="cuentas">
     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Cuentas
   </button>
@@ -591,8 +591,8 @@ const DEFAULT_SUBS = [
 // STATE
 // ════════════════════════════════════════════════════════════
 let S = {
-  currency:'PLN', currentPage:'dashboard', theme:'dark',
-  language:'es', weekStart:'lunes', _catTab:'gasto', notifPrefs:{}, currencies:['PLN','COP'], profile:{name:'',email:'',photo:''},
+  currency:'', currentPage:'dashboard', theme:'dark',
+  language:'es', weekStart:'lunes', _catTab:'gasto', notifPrefs:{}, currencies:[], profile:{name:'',email:'',photo:''},
   accounts:[], transactions:[], categories:[], subcategories:[],
   budgets:[], goals:[], scheduledPayments:[],
   movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},
@@ -608,10 +608,8 @@ function loadState(){
     else{S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));}
   }catch(e){S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));}
   // Migrate: if categories use old IDs (c1,c2...) replace with new DEFAULT_CATS
-  if(!S.categories||!S.categories.length||(S.categories[0]&&S.categories[0].id&&S.categories[0].id.match(/^c\d+$/))){
-    S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));
-    S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));
-  }
+  const needsCatReset=!S.categories||!S.categories.length||(S.categories[0]&&S.categories[0].id&&(S.categories[0].id.match(/^c\d+$/)||!DEFAULT_CATS.find(d=>d.id===S.categories[0].id)));
+  if(needsCatReset){S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));}
   // Ensure protected Efectivo account exists
   // FIRST: migrate legacy efectivo-default
   const legacyEf=S.accounts.find(a=>a.id==='efectivo-default');
@@ -625,7 +623,7 @@ function loadState(){
   }
   // THEN: ensure one Efectivo per configured currency
   const curs=S.currencies&&S.currencies.length?S.currencies:[];
-  if(!curs.length){toggle.innerHTML='<span style="color:var(--text3);font-size:12px;padding:4px 8px">Sin moneda</span>';return;}
+  if(!curs.length){toggle.innerHTML='<span style="color:var(--text3);font-size:12px;padding:4px 8px">—</span>';return;}
   curs.forEach(cur=>{
     const efId='efectivo-'+cur;
     const efAcc=S.accounts.find(a=>a.id===efId);
@@ -651,7 +649,7 @@ function loadState(){
   if(!S.theme)S.theme='dark';
   if(!S.language)S.language='es';
   if(!S.weekStart)S.weekStart='lunes';
-  if(!S.currencies||!S.currencies.length)S.currencies=['PLN','COP'];
+  // currencies stay empty until user sets up profile
   applyThemeMode();
   // Update drawer profile
   updateDrawerProfile();
@@ -672,8 +670,7 @@ function updateDrawerProfile(){
   const emailEl=document.getElementById('drawer-profile-email');
   const avatarEl=document.getElementById('drawer-avatar');
   if(nameEl)nameEl.textContent=name;
-  const residence=S.profile&&S.profile.residence?S.profile.residence:'';
-  if(emailEl)emailEl.textContent=residence||email;
+  if(emailEl)emailEl.textContent=email;
   if(avatarEl){
     if(photo){avatarEl.innerHTML=`<img src="${photo}" alt="foto">`;}
     else{const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);avatarEl.innerHTML=`<span style="font-size:16px;font-weight:700;color:white">${initials!=='MI'?initials:'👤'}</span>`;}
@@ -712,7 +709,7 @@ function toggleTheme(){setTheme(S.theme==='dark'?'light':'dark');}
 // ════════════════════════════════════════════════════════════
 async function fetchExchangeRate(){
   try{
-    const curs=S.currencies||['PLN','COP'];
+    const curs=S.currencies||[];
     if(curs.length<2){
       const el=document.getElementById('exchange-widget');
       if(el)renderExchangeWidget(el);
@@ -739,7 +736,7 @@ async function fetchExchangeRate(){
 
 function renderExchangeWidget(el){
   if(!el)return;
-  const curs=S.currencies||['PLN','COP'];
+  const curs=S.currencies||[];
   if(curs.length<2){
     el.innerHTML=`<div class="exchange-widget-row"><span style="font-size:14px">💱</span><span style="font-size:11px;color:var(--text2)">Para ver tipo de cambio, selecciona 2 monedas en <button onclick="navigate('configuracion')" style="background:none;border:none;color:var(--primary);font-weight:700;cursor:pointer;font-family:var(--font);font-size:11px">Configuración</button></span></div>`;
     return;
@@ -837,14 +834,15 @@ const CURRENCY_META={
 };
 function buildCurrencyOptions(selected){
   const curs=S.currencies&&S.currencies.length?S.currencies:[];
-  if(!curs.length){toggle.innerHTML='<span style="color:var(--text3);font-size:12px;padding:4px 8px">Sin moneda</span>';return;}
+  if(!curs.length){toggle.innerHTML='<span style="color:var(--text3);font-size:12px;padding:4px 8px">—</span>';return;}
   if(curs.length===1)return `<option value="${curs[0]}">${curs[0]}</option>`;
   return curs.map(c=>`<option value="${c}" ${c===selected?'selected':''}>${c}</option>`).join('');
 }
 function getCurrencyMeta(code){return CURRENCY_META[code]||{sym:code,locale:'en-US',pos:'before'};}
 function fmt(amount,cur){
-  const code=cur||S.currency;
+  const code=cur||S.currency||'';
   const n=parseFloat(amount)||0;
+  if(!code)return n.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2});
   const meta=getCurrencyMeta(code);
   const decimals=(['JPY','KRW','CLP','PYG'].includes(code))?0:2;
   let numStr;
@@ -862,7 +860,7 @@ function refreshCurrencyToggle(){
   const toggle=document.getElementById('currency-toggle');
   if(!toggle)return;
   const curs=S.currencies&&S.currencies.length?S.currencies:[];
-  if(!curs.length){toggle.innerHTML='<span style="color:var(--text3);font-size:12px;padding:4px 8px">Sin moneda</span>';return;}
+  if(!curs.length){toggle.innerHTML='<span style="color:var(--text3);font-size:12px;padding:4px 8px">—</span>';return;}
   toggle.innerHTML=curs.map(c=>`<button class="cur-btn ${c===S.currency?'active':''}" data-cur="${c}" onclick="setCurrency('${c}')">${c}</button>`).join('');
   // Make sure current currency is valid
   if(!curs.includes(S.currency)){S.currency=curs[0];saveState();}
@@ -1120,11 +1118,43 @@ function catOptions(type,selectedId){
 // ════════════════════════════════════════════════════════════
 // NOTIFICATIONS
 // ════════════════════════════════════════════════════════════
-async function toggleNotifPref(key){
+async function openNotifPage(){
+  const overlay=document.createElement('div');
+  overlay.id='notif-page-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
+  overlay.innerHTML=
+    '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'+
+    '<button onclick="document.getElementById(\'notif-page-overlay\').remove()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px;line-height:1">←</button>'+
+    '<span style="font-size:17px;font-weight:800">Notificaciones</span>'+
+    '<button onclick="requestNotifPerm()" style="background:var(--primary);border:none;color:white;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-family:var(--font)">Activar</button>'+
+    '</div>'+
+    '<div style="flex:1;overflow-y:auto;padding:16px">'+
+    '<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--text2)">'+
+    '🔔 Activa las notificaciones del sistema para recibir alertas. Luego personaliza cuáles deseas recibir abajo.'+
+    '</div>'+
+    buildNotifToggles()+
+    '</div>';
+  document.body.appendChild(overlay);
+}
+function buildNotifToggles(){
+  var keys=['notifPayments','notifBudget','notifGoal','notifWeekly','notifMonthly','notifDebt'];
+  var labels={'notifPayments':'💳 Pagos próximos','notifBudget':'📊 Presupuesto al límite','notifGoal':'🎯 Meta de ahorro alcanzada','notifWeekly':'📅 Resumen semanal','notifMonthly':'📈 Resumen mensual','notifDebt':'💸 Alerta de deuda alta'};
+  var descs={'notifPayments':'Recordatorio antes de que venza un pago','notifBudget':'Cuando llegues al 80% o 100% del presupuesto','notifGoal':'Celebración al completar una meta de ahorro','notifWeekly':'Resumen de gastos cada lunes','notifMonthly':'Balance de ingresos vs gastos al cierre del mes','notifDebt':'Cuando una deuda supere el 40% de tus ingresos'};
+  return keys.map(function(key){
+    var isOn=!!(S.notifPrefs&&S.notifPrefs[key]);
+    return '<div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px">'
+      +'<div style="flex:1"><div style="font-size:14px;font-weight:600">'+labels[key]+'</div><div style="font-size:12px;color:var(--text2);margin-top:2px">'+descs[key]+'</div></div>'
+      +'<div onclick="toggleNotifPref(\''+key+'\')" style="width:44px;height:24px;border-radius:12px;background:'+(isOn?'var(--primary)':'var(--border)')+';cursor:pointer;position:relative;flex-shrink:0">'
+      +'<div style="width:20px;height:20px;border-radius:50%;background:white;position:absolute;top:2px;'+(isOn?'right:2px':'left:2px')+';box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>'
+      +'</div></div>';
+  }).join('');
+}
+function toggleNotifPref(key){
   if(!S.notifPrefs)S.notifPrefs={};
   S.notifPrefs[key]=!S.notifPrefs[key];
   saveState();
-  renderPage('configuracion');
+  var list=document.querySelector('#notif-page-overlay [style*="overflow-y:auto"]');
+  if(list)list.innerHTML='<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--text2)">🔔 Activa las notificaciones del sistema para recibir alertas. Luego personaliza cuáles deseas recibir abajo.</div>'+buildNotifToggles();
 }
 function requestNotifPerm(){
   if(!('Notification'in window)){toast('Notificaciones no disponibles en este navegador');return;}
@@ -1853,10 +1883,30 @@ function setCatTab(tab){
   if(list)list.innerHTML=renderCatList(tab);
 }
 function renderCatList(tab){
-  // Show categories of selected type + transferencias in both tabs
-  const cats=S.categories.filter(cat=>cat.type===tab||cat.type==='transferencia');
-  if(!cats.length)return'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
-  return cats.map(cat=>{
+  const allCats=S.categories.filter(cat=>cat.type===tab||cat.type==='transferencia');
+  if(!allCats.length)return'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
+  // For gastos tab: group by nature
+  let html='';
+  if(tab==='gasto'){
+    const groups=[
+      {key:'necesidades',label:'🏠 Necesidades',color:'#EF4444'},
+      {key:'deseos',label:'🎯 Deseos',color:'#F59E0B'},
+      {key:'ahorros',label:'💰 Ahorros',color:'#00D4AA'},
+      {key:'transferencia',label:'↔️ Transferencias',color:'#6366F1'},
+    ];
+    groups.forEach(g=>{
+      let cats;
+      if(g.key==='transferencia') cats=S.categories.filter(c=>c.type==='transferencia');
+      else cats=S.categories.filter(c=>c.type==='gasto'&&c.nature===g.key);
+      if(!cats.length)return;
+      html+=`<div style="font-size:11px;font-weight:700;color:${g.color};text-transform:uppercase;letter-spacing:.6px;padding:10px 0 4px;border-bottom:1px solid ${g.color}33;margin-bottom:6px">${g.label}</div>`;
+      html+=cats.map(cat=>renderCatItem(cat)).join('');
+    });
+    return html||'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
+  }
+  return allCats.map(cat=>renderCatItem(cat)).join('');
+}
+function renderCatItem(cat){
     const subs=S.subcategories.filter(s=>s.categoryId===cat.id);
     const typeBadge=cat.type==='ingreso'?'badge-success':cat.type==='gasto'?'badge-danger':'badge-info';
     const catDomId='catg-'+cat.id;
@@ -1880,7 +1930,6 @@ function renderCatList(tab){
         ${subs.length?`<div class="subcat-list">${subs.map(s=>`<div class="subcat-item"><span>${s.icon} ${s.name}</span><div style="display:flex;gap:4px"><button class="btn-text" style="font-size:11px" onclick="openModal('editSubcategory',{id:'${s.id}'})">✏️</button><button class="btn-del" onclick="deleteSub('${s.id}')">✕</button></div></div>`).join('')}</div>`:''}
       </div>
     </div>`;
-  }).join('');
 }
 function renderCategorias(){
   return`
@@ -2654,8 +2703,9 @@ function renderConfiguracion(){
   const notifStatus=!('Notification'in window)?t('notifNA'):
     Notification.permission==='granted'?t('notifGranted'):
     Notification.permission==='denied'?t('notifDenied'):t('notifDefault');
-  const activeCurs=S.currencies||['PLN'];
-    const curList=ALL_CURRENCIES.map(c=>{const meta=getCurrencyMeta(c.code);return`<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;background:${activeCurs.includes(c.code)?'rgba(0,212,170,.12)':'var(--surface2)'}"><input type="checkbox" ${activeCurs.includes(c.code)?'checked':''} onchange="toggleCurrency('${c.code}',this.checked)" style="width:16px;height:16px;accent-color:var(--primary);flex-shrink:0"><div style="flex:1"><div style="font-size:14px;font-weight:700">${c.code} <span style="color:var(--primary)">${meta.sym}</span></div><div style="font-size:11px;color:var(--text3)">${c.name}</div></div>${activeCurs.includes(c.code)?'<span style="color:var(--primary);font-size:16px">✓</span>':''}</label>`;}).join('');
+  const activeCurs=S.currencies||[];
+    const resCur=(()=>{const m={"Afghanistan":"AFN","Albania":"ALL","Alemania":"EUR","Andorra":"EUR","Angola":"AOA","Argentina":"ARS","Armenia":"AMD","Australia":"AUD","Austria":"EUR","Azerbaiyán":"AZN","Bahamas":"BSD","Bangladés":"BDT","Bélgica":"EUR","Belice":"BZD","Bolivia":"BOB","Bosnia y Herzegovina":"BAM","Brasil":"BRL","Bulgaria":"BGN","Camerún":"XAF","Canadá":"CAD","Chile":"CLP","China":"CNY","Chipre":"EUR","Colombia":"COP","Costa Rica":"CRC","Croacia":"EUR","Cuba":"CUP","Dinamarca":"DKK","Ecuador":"USD","Egipto":"EGP","El Salvador":"USD","Emiratos Árabes Unidos":"AED","Eslovaquia":"EUR","Eslovenia":"EUR","España":"EUR","Estados Unidos":"USD","Estonia":"EUR","Etiopía":"ETB","Filipinas":"PHP","Finlandia":"EUR","Francia":"EUR","Ghana":"GHS","Grecia":"EUR","Guatemala":"GTQ","Honduras":"HNL","Hungría":"HUF","India":"INR","Indonesia":"IDR","Irán":"IRR","Irlanda":"EUR","Israel":"ILS","Italia":"EUR","Jamaica":"JMD","Japón":"JPY","Jordania":"JOD","Kazajistán":"KZT","Kenia":"KES","México":"MXN","Marruecos":"MAD","Nepal":"NPR","Nicaragua":"NIO","Nigeria":"NGN","Noruega":"NOK","Nueva Zelanda":"NZD","Países Bajos":"EUR","Pakistán":"PKR","Panamá":"USD","Paraguay":"PYG","Perú":"PEN","Polonia":"PLN","Portugal":"EUR","Qatar":"QAR","Reino Unido":"GBP","República Checa":"CZK","República Dominicana":"DOP","Rumanía":"RON","Rusia":"RUB","Arabia Saudita":"SAR","Senegal":"XOF","Serbia":"RSD","Singapur":"SGD","Sudáfrica":"ZAR","Suecia":"SEK","Suiza":"CHF","Tailandia":"THB","Tanzania":"TZS","Turquía":"TRY","Ucrania":"UAH","Uruguay":"UYU","Venezuela":"VES","Vietnam":"VND","Zimbabue":"ZWL"};return m[S.profile&&S.profile.residence]||'';})();
+  const curList=ALL_CURRENCIES.map(c=>{const meta=getCurrencyMeta(c.code);const isLocked=c.code===resCur&&resCur!=='';return`<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:${isLocked?'default':'pointer'};background:${activeCurs.includes(c.code)?'rgba(0,212,170,.12)':'var(--surface2)'}"><input type="checkbox" ${activeCurs.includes(c.code)?'checked':''} ${isLocked?'disabled':''} onchange="toggleCurrency('${c.code}',this.checked)" style="width:16px;height:16px;accent-color:var(--primary);flex-shrink:0"><div style="flex:1"><div style="font-size:14px;font-weight:700">${c.code} <span style="color:var(--primary)">${meta.sym}</span>${isLocked?' 🔒':''}</div><div style="font-size:11px;color:var(--text3)">${c.name}${isLocked?'<span style="color:var(--primary);font-size:10px;margin-left:4px">Moneda principal</span>':''}</div></div>${activeCurs.includes(c.code)?'<span style="color:var(--primary);font-size:16px">✓</span>':''}</label>`;}).join('');
   const curSelected=`${activeCurs.length} ${t('selected')}`;
   const langCurrent=S.language?ALL_LANGUAGES.find(l=>l.id===S.language)||ALL_LANGUAGES[0]:null;
   const langClear=`<div onclick="saveLanguage('')" style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;border-radius:8px;color:var(--text3);margin-bottom:2px"><span>✕</span><span style="font-size:14px">— Seleccionar —</span></div>`;
@@ -2694,9 +2744,10 @@ function renderConfiguracion(){
           ${(S.profile&&S.profile.photo)?`<button onclick="removeProfilePhoto()" style="background:none;border:none;color:var(--danger);font-size:11px;cursor:pointer;margin-top:6px;font-family:var(--font)">🗑️ Quitar foto</button>`:''}
         </div>
         <!-- Single column form -->
-        <div class="form-group"><label class="form-label">Nombre completo *</label><input class="form-input" type="text" id="cfg-name" value="${(S.profile&&S.profile.name)||''}" placeholder="Tu nombre completo"></div>
-        <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="cfg-email" value="${(S.profile&&S.profile.email)||''}" placeholder="tu@email.com"></div>
-        <div class="form-group"><label class="form-label">Teléfono</label>
+        <div class="form-group"><label class="form-label">Nombre completo <span style="color:var(--danger)">*</span></label><input class="form-input" type="text" id="cfg-name" value="${(S.profile&&S.profile.name)||''}" placeholder="Tu nombre completo"></div>
+        <div class="form-group"><label class="form-label">Fecha de nacimiento</label><input class="form-input" type="date" id="cfg-birthdate" value="${(S.profile&&S.profile.birthdate)||''}" max="${new Date().toISOString().split('T')[0]}"></div>
+        <div class="form-group"><label class="form-label">Email <span style="color:var(--danger)">*</span></label><input class="form-input" type="email" id="cfg-email" value="${(S.profile&&S.profile.email)||''}" placeholder="tu@email.com"></div>
+        <div class="form-group"><label class="form-label">Teléfono <span style="color:var(--danger)">*</span></label>
           <div style="display:flex;gap:6px">
             <select class="form-select" id="cfg-phone-code" style="width:76px;flex-shrink:0;padding:8px 2px;font-size:12px" onchange="updatePhoneLen(this.value)">
               <option value="">+</option>
@@ -2725,7 +2776,7 @@ function renderConfiguracion(){
             <input class="form-input" type="tel" id="cfg-phone" value="${(S.profile&&S.profile.phone)||''}" placeholder="300 000 0000" style="flex:1;font-size:15px" maxlength="15">
           </div>
         </div>
-        <div class="form-group"><label class="form-label">País de origen</label>
+        <div class="form-group"><label class="form-label">País de origen <span style="color:var(--danger)">*</span></label>
           <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('cpick')">
               <span style="font-size:14px;color:${(S.profile&&S.profile.country)?'var(--text)':'var(--text3)'}" id="cfg-country-lbl">${(S.profile&&S.profile.country)||'Seleccionar país de origen'}</span>
@@ -2738,7 +2789,7 @@ function renderConfiguracion(){
           </div>
           <input type="hidden" id="cfg-country" value="${(S.profile&&S.profile.country)||''}">
         </div>
-        <div class="form-group"><label class="form-label">País de residencia <span style="font-size:10px;color:var(--primary);font-weight:400">🏠 moneda principal</span></label>
+        <div class="form-group"><label class="form-label">País de residencia <span style="color:var(--danger)">*</span> <span style="font-size:10px;color:var(--primary);font-weight:400">🏠 moneda principal</span></label>
           <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('rpick')">
               <span style="font-size:14px;color:${(S.profile&&S.profile.residence)?'var(--text)':'var(--text3)'}" id="cfg-residence-lbl">${(S.profile&&S.profile.residence)||'Seleccionar país de residencia'}</span>
@@ -2776,7 +2827,7 @@ function renderConfiguracion(){
           </div>
           <input type="hidden" id="cfg-marital" value="${(S.profile&&S.profile.marital) || ''}">
         </div>
-        <div class="form-group"><label class="form-label">Objetivo financiero</label>
+        <div class="form-group"><label class="form-label">Objetivo financiero <span style="color:var(--danger)">*</span></label>
           <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('gpick')">
               <span style="font-size:14px;color:${(S.profile&&S.profile.financialGoal)?'var(--text)':'var(--text3)'}" id="cfg-goal-lbl">${(S.profile&&S.profile.financialGoal)||'Seleccionar objetivo'}</span>
@@ -2867,25 +2918,9 @@ function renderConfiguracion(){
     </div>
 
     <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 10px">${t('system')}</div>
-    <div class="config-item" style="flex-direction:column;align-items:stretch;gap:10px;cursor:default">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div class="config-item-left" style="gap:10px">
-          <div class="config-icon" style="background:rgba(245,158,11,.15)">🔔</div>
-          <div><div style="font-size:14px;font-weight:600">${t('notifications')}</div><div style="font-size:12px;color:var(--text2)">${notifStatus}</div></div>
-        </div>
-        <button onclick="requestNotifPerm()" style="background:var(--primary);border:none;color:white;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-family:var(--font)">Activar</button>
-      </div>
-      ${['notifPayments','notifBudget','notifGoal','notifWeekly','notifMonthly','notifDebt'].map(key=>{
-        const labels={'notifPayments':'💳 Pagos próximos','notifBudget':'📊 Presupuesto al límite','notifGoal':'🎯 Meta de ahorro alcanzada','notifWeekly':'📅 Resumen semanal','notifMonthly':'📈 Resumen mensual','notifDebt':'💸 Alerta de deuda alta'};
-        const descs={'notifPayments':'Recordatorio antes de que venza un pago','notifBudget':'Cuando llegues al 80% o 100% del presupuesto','notifGoal':'Celebración al completar una meta de ahorro','notifWeekly':'Resumen de gastos cada lunes','notifMonthly':'Balance de ingresos vs gastos al cierre del mes','notifDebt':'Cuando una deuda supere el 40% de tus ingresos'};
-        const isOn=!!(S.notifPrefs&&S.notifPrefs[key]);
-        return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--border)">
-          <div style="flex:1"><div style="font-size:13px;font-weight:600">${labels[key]}</div><div style="font-size:11px;color:var(--text2)">${descs[key]}</div></div>
-          <div onclick="toggleNotifPref('${key}')" style="width:44px;height:24px;border-radius:12px;background:${isOn?'var(--primary)':'var(--border)'};cursor:pointer;position:relative;transition:.2s;flex-shrink:0">
-            <div style="width:20px;height:20px;border-radius:50%;background:white;position:absolute;top:2px;${isOn?'right:2px':'left:2px'};transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>
-          </div>
-        </div>`;
-      }).join('')}
+    <div class="config-item" onclick="openNotifPage()">
+      <div class="config-item-left"><div class="config-icon" style="background:rgba(245,158,11,.15)">🔔</div><div><div style="font-size:14px;font-weight:600">${t('notifications')}</div><div style="font-size:12px;color:var(--text2)">${notifStatus}</div></div></div>
+      <span style="color:var(--text3)">›</span>
     </div>
     <div class="config-item" onclick="exportData()">
       <div class="config-item-left"><div class="config-icon" style="background:rgba(59,130,246,.15)">📤</div><div><div style="font-size:14px;font-weight:600">${t('export')}</div><div style="font-size:12px;color:var(--text2)">${t('exportDesc')}</div></div></div>
@@ -2950,7 +2985,21 @@ function updatePhoneLen(code){var m={'+57':10,'+48':9,'+1':10,'+34':9,'+52':10,'
 function saveProfile(){
   if(!S.profile)S.profile={};
   const g=(id)=>document.getElementById(id)?.value||'';
+  // Required field validation
+  const reqName=g('cfg-name').trim();
+  const reqEmail=g('cfg-email').trim();
+  const reqPhone=g('cfg-phone').trim();
+  const reqCountry=g('cfg-country').trim();
+  const reqResidence=g('cfg-residence').trim();
+  const reqGoal=g('cfg-goal').trim();
+  if(!reqName){toast('⚠️ El nombre es obligatorio');document.getElementById('cfg-name')?.focus();return;}
+  if(!reqEmail){toast('⚠️ El correo es obligatorio');document.getElementById('cfg-email')?.focus();return;}
+  if(!reqPhone){toast('⚠️ El teléfono es obligatorio');document.getElementById('cfg-phone')?.focus();return;}
+  if(!reqCountry){toast('⚠️ El país de origen es obligatorio');return;}
+  if(!reqResidence){toast('⚠️ El país de residencia es obligatorio');return;}
+  if(!reqGoal){toast('⚠️ El objetivo financiero es obligatorio');return;}
   S.profile.name=g('cfg-name');S.profile.email=g('cfg-email');
+  S.profile.birthdate=g('cfg-birthdate');
   S.profile.phone=g('cfg-phone');S.profile.phoneCode=g('cfg-phone-code');
   S.profile.country=g('cfg-country');
   S.profile.residence=g('cfg-residence');
@@ -3063,6 +3112,13 @@ function applyLanguage(){
 function saveWeekStart(v){S.weekStart=v;saveState();renderPage('configuracion');}
 function toggleCurrency(c,checked){
   if(!S.currencies)S.currencies=[];
+  // Get residence currency — cannot be unchecked
+  const COUNTRY_CUR={"Afghanistan":"AFN","Albania":"ALL","Alemania":"EUR","Andorra":"EUR","Angola":"AOA","Argentina":"ARS","Armenia":"AMD","Australia":"AUD","Austria":"EUR","Azerbaiyán":"AZN","Bahamas":"BSD","Bangladés":"BDT","Bélgica":"EUR","Belice":"BZD","Bolivia":"BOB","Bosnia y Herzegovina":"BAM","Brasil":"BRL","Bulgaria":"BGN","Camerún":"XAF","Canadá":"CAD","Chile":"CLP","China":"CNY","Chipre":"EUR","Colombia":"COP","Costa Rica":"CRC","Croacia":"EUR","Cuba":"CUP","Dinamarca":"DKK","Ecuador":"USD","Egipto":"EGP","El Salvador":"USD","Emiratos Árabes Unidos":"AED","Eslovaquia":"EUR","Eslovenia":"EUR","España":"EUR","Estados Unidos":"USD","Estonia":"EUR","Etiopía":"ETB","Filipinas":"PHP","Finlandia":"EUR","Francia":"EUR","Ghana":"GHS","Grecia":"EUR","Guatemala":"GTQ","Honduras":"HNL","Hungría":"HUF","India":"INR","Indonesia":"IDR","Irán":"IRR","Irlanda":"EUR","Israel":"ILS","Italia":"EUR","Jamaica":"JMD","Japón":"JPY","Jordania":"JOD","Kazajistán":"KZT","Kenia":"KES","México":"MXN","Marruecos":"MAD","Nepal":"NPR","Nicaragua":"NIO","Nigeria":"NGN","Noruega":"NOK","Nueva Zelanda":"NZD","Países Bajos":"EUR","Pakistán":"PKR","Panamá":"USD","Paraguay":"PYG","Perú":"PEN","Polonia":"PLN","Portugal":"EUR","Qatar":"QAR","Reino Unido":"GBP","República Checa":"CZK","República Dominicana":"DOP","Rumanía":"RON","Rusia":"RUB","Arabia Saudita":"SAR","Senegal":"XOF","Serbia":"RSD","Singapur":"SGD","Sudáfrica":"ZAR","Suecia":"SEK","Suiza":"CHF","Tailandia":"THB","Tanzania":"TZS","Turquía":"TRY","Ucrania":"UAH","Uruguay":"UYU","Venezuela":"VES","Vietnam":"VND","Zimbabue":"ZWL"};
+  const residenceCur=COUNTRY_CUR[S.profile&&S.profile.residence]||'';
+  if(!checked && c===residenceCur && residenceCur){
+    toast('🔒 La moneda de tu país de residencia no puede desactivarse');
+    renderPage('configuracion');return;
+  }
   if(checked){
     if(S.currencies.length>=2){toast('Solo puedes tener máximo 2 monedas activas. Desactiva una primero.');renderPage('configuracion');return;}
     if(!S.currencies.includes(c))S.currencies.push(c);
@@ -3083,7 +3139,7 @@ function handleImportFile(e){
 function resetApp(){
   confirmDialog('⚠️','¿Restaurar la app?','Se eliminarán TODOS tus datos. Esta acción es irreversible.',()=>{
     localStorage.removeItem('finanziaState3');
-    S={currency:'PLN',currentPage:'dashboard',theme:S.theme,language:S.language||'es',weekStart:S.weekStart||'lunes',currencies:['PLN','COP'],accounts:[],transactions:[],categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),subcategories:JSON.parse(JSON.stringify(DEFAULT_SUBS)),budgets:[],goals:[],scheduledPayments:[],movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},analysisPeriod:'Mensual',analysisYear:new Date().getFullYear(),exchangeRate:{PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''}};
+    S={currency:'',currentPage:'dashboard',theme:S.theme,language:S.language||'es',weekStart:S.weekStart||'lunes',currencies:[],accounts:[],transactions:[],categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),subcategories:JSON.parse(JSON.stringify(DEFAULT_SUBS)),budgets:[],goals:[],scheduledPayments:[],movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},analysisPeriod:'Mensual',analysisYear:new Date().getFullYear(),exchangeRate:{PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''}};
     saveState();refreshCurrencyToggle();navigate('dashboard');toast('App restaurada ✓');
   });
 }
@@ -3133,6 +3189,13 @@ function buildModal(type,data){
 }
 
 // ─── TRANSACTION MODAL ───
+function openTransactionModal(data){
+  if(!S.currencies||!S.currencies.length){
+    toast('Primero configura una moneda en Ajustes → Perfil');
+    return;
+  }
+  openModal('transaction',data||{});
+}
 function buildTransactionModal(data){
   const tx=data.id?S.transactions.find(t=>t.id===data.id):null;
   const isEdit=!!tx;const type=tx?tx.type:(data.type||'gasto');
@@ -3495,7 +3558,7 @@ function buildAccountModal(data){
   const subtypeOptsActivo=`<option value="banco" ${defSubtype==='banco'?'selected':''}>🏦 Banco</option><option value="efectivo" ${defSubtype==='efectivo'?'selected':''}>💵 Efectivo</option><option value="digital" ${defSubtype==='digital'?'selected':''}>📱 Digital</option><option value="inversion" ${defSubtype==='inversion'?'selected':''}>📈 Inversión</option>`;
   const subtypeOptsPasivo=`<option value="tc" ${defSubtype==='tc'?'selected':''}>💳 Tarjeta de Crédito</option><option value="credito" ${defSubtype==='credito'?'selected':''}>💰 Crédito</option><option value="prestamo" ${defSubtype==='prestamo'?'selected':''}>🏦 Préstamo</option>`;
   const extraHtml=buildAccExtraFields(defType,defSubtype,acc);
-  const availCurs=(S.currencies&&S.currencies.length?S.currencies:['PLN','COP']);
+  const availCurs=(S.currencies&&S.currencies.length?S.currencies:[]);
   return`<div class="modal-header"><div class="modal-title">${isEdit?'Editar':'Nueva'} cuenta</div><button class="modal-close" onclick="closeModal()">×</button></div>
   <div class="modal-body">
     <input type="hidden" id="acc-id" value="${acc?acc.id:''}">
@@ -3874,7 +3937,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('[data-page]').forEach(el=>el.addEventListener('click',()=>navigate(el.dataset.page)));
   refreshCurrencyToggle();
   applyLanguage();
-  navigate(S.currentPage||'dashboard');
+  navigate((S.currentPage&&S.currentPage!=='configuracion')?S.currentPage:'dashboard');
   checkAutoPayments();
   fetchExchangeRate();
   // Register Service Worker - requires /sw.js file on the server
