@@ -462,10 +462,10 @@ const DEFAULT_SUBS = [
   {id:'ds0301',categoryId:'dc03',name:'Alquileres',icon:'🏠'},{id:'ds0302',categoryId:'dc03',name:'Intereses',icon:'🏦'},{id:'ds0303',categoryId:'dc03',name:'Dividendos',icon:'📊'},
   {id:'ds0401',categoryId:'dc04',name:'Apoyo familiar',icon:'👨‍👩‍👧'},{id:'ds0402',categoryId:'dc04',name:'Mesada familiar',icon:'💰'},{id:'ds0403',categoryId:'dc04',name:'Reembolso laboral',icon:'💼'},{id:'ds0404',categoryId:'dc04',name:'Reembolso médico',icon:'🏥'},
   {id:'ds0501',categoryId:'dc05',name:'Venta de activos',icon:'🏷️'},{id:'ds0502',categoryId:'dc05',name:'Herencias',icon:'📜'},{id:'ds0503',categoryId:'dc05',name:'Loterías y sorteos',icon:'🎲'},{id:'ds0504',categoryId:'dc05',name:'Regalos recibidos',icon:'🎁'},
-  {id:'ds0601',categoryId:'dc06',name:'Arriendo',icon:'🏠'},{id:'ds0602',categoryId:'dc06',name:'Hipoteca',icon:'🏦'},{id:'ds0603',categoryId:'dc06',name:'Administración',icon:'🏢'},{id:'ds0604',categoryId:'dc06',name:'Reparaciones',icon:'🔨'},{id:'ds0605',categoryId:'dc06',name:'Mantenimiento',icon:'🔧'},
-  {id:'ds0701',categoryId:'dc07',name:'Luz',icon:'💡'},{id:'ds0702',categoryId:'dc07',name:'Agua',icon:'💧'},{id:'ds0703',categoryId:'dc07',name:'Gas',icon:'🔥'},{id:'ds0704',categoryId:'dc07',name:'Basuras',icon:'🗑️'},{id:'ds0705',categoryId:'dc07',name:'Paquete TV/Internet/Teléfono',icon:'📡'},{id:'ds0706',categoryId:'dc07',name:'Televisión',icon:'📺'},{id:'ds0707',categoryId:'dc07',name:'Internet',icon:'🌐'},{id:'ds0708',categoryId:'dc07',name:'Teléfono fijo',icon:'📞'},
+  {id:'ds0601',categoryId:'dc06',name:'Arriendo',icon:'🏠'},{id:'ds0602',categoryId:'dc06',name:'Hipoteca',icon:'🏦'},{id:'ds0603',categoryId:'dc06',name:'Administración',icon:'🏢'},{id:'ds0604',categoryId:'dc06',name:'Mantenimiento y reparaciones',icon:'🔧'},
+  {id:'ds0701',categoryId:'dc07',name:'Luz',icon:'💡'},{id:'ds0702',categoryId:'dc07',name:'Agua',icon:'💧'},{id:'ds0703',categoryId:'dc07',name:'Gas',icon:'🔥'},{id:'ds0704',categoryId:'dc07',name:'Basuras',icon:'🗑️'},{id:'ds0705',categoryId:'dc07',name:'TV/Internet/Teléfono fijo',icon:'📡'},{id:'ds0706',categoryId:'dc07',name:'Televisión',icon:'📺'},{id:'ds0707',categoryId:'dc07',name:'Internet',icon:'🌐'},{id:'ds0708',categoryId:'dc07',name:'Teléfono fijo',icon:'📞'},
   {id:'ds0801',categoryId:'dc08',name:'Mercado',icon:'🛒'},{id:'ds0802',categoryId:'dc08',name:'Frutas y verduras',icon:'🥦'},{id:'ds0803',categoryId:'dc08',name:'Carnes',icon:'🥩'},{id:'ds0804',categoryId:'dc08',name:'Panadería',icon:'🥐'},{id:'ds0805',categoryId:'dc08',name:'Abarrotes',icon:'📦'},
-  {id:'ds0901',categoryId:'dc09',name:'Gasolina',icon:'⛽'},{id:'ds0902',categoryId:'dc09',name:'Transporte público',icon:'🚌'},{id:'ds0903',categoryId:'dc09',name:'Taxi / Uber',icon:'🚕'},{id:'ds0904',categoryId:'dc09',name:'Delivery',icon:'🛵'},{id:'ds0905',categoryId:'dc09',name:'Tren',icon:'🚂'},{id:'ds0906',categoryId:'dc09',name:'Mantenimiento vehículo',icon:'🔧'},{id:'ds0907',categoryId:'dc09',name:'Peajes',icon:'🛣️'},{id:'ds0908',categoryId:'dc09',name:'Parqueaderos',icon:'🅿️'},
+  {id:'ds0901',categoryId:'dc09',name:'Gasolina / Gas',icon:'⛽'},{id:'ds0902',categoryId:'dc09',name:'Transporte público',icon:'🚌'},{id:'ds0903',categoryId:'dc09',name:'Taxi / Uber',icon:'🚕'},{id:'ds0904',categoryId:'dc09',name:'Delivery',icon:'🛵'},{id:'ds0905',categoryId:'dc09',name:'Tren',icon:'🚂'},{id:'ds0906',categoryId:'dc09',name:'Mantenimiento vehículo',icon:'🔧'},{id:'ds0907',categoryId:'dc09',name:'Peajes',icon:'🛣️'},{id:'ds0908',categoryId:'dc09',name:'Parqueaderos',icon:'🅿️'},
   {id:'ds1001',categoryId:'dc10',name:'Matrículas',icon:'🎓'},{id:'ds1002',categoryId:'dc10',name:'Útiles escolares',icon:'✏️'},{id:'ds1003',categoryId:'dc10',name:'Libros',icon:'📚'},{id:'ds1004',categoryId:'dc10',name:'Cursos',icon:'💻'},{id:'ds1005',categoryId:'dc10',name:'Plataformas educativas',icon:'🖥️'},{id:'ds1006',categoryId:'dc10',name:'Transporte escolar',icon:'🚌'},
   {id:'ds1101',categoryId:'dc11',name:'Medicinas',icon:'💊'},{id:'ds1102',categoryId:'dc11',name:'Consultas médicas',icon:'🩺'},{id:'ds1103',categoryId:'dc11',name:'Exámenes médicos',icon:'🔬'},{id:'ds1104',categoryId:'dc11',name:'Emergencias',icon:'🚨'},{id:'ds1105',categoryId:'dc11',name:'Odontología',icon:'🦷'},{id:'ds1106',categoryId:'dc11',name:'Terapias',icon:'🧠'},
   {id:'ds1201',categoryId:'dc12',name:'Plan móvil',icon:'📱'},{id:'ds1202',categoryId:'dc12',name:'Recargas',icon:'🔋'},
@@ -493,7 +493,7 @@ const DEFAULT_SUBS = [
 // ════════════════════════════════════════════════════════════
 let S = {
   currency:'', currentPage:'dashboard', theme:'dark',
-  language:'es', weekStart:'lunes', _catTab:'gasto', notifPrefs:{}, numFormat:'auto', currencies:[], profile:{name:'',email:'',photo:''},
+  language:'', weekStart:'', _catTab:'gasto', notifPrefs:{}, numFormat:'auto', currencies:[], profile:{name:'',email:'',photo:''},
   accounts:[], transactions:[], categories:[], subcategories:[],
   budgets:[], goals:[], scheduledPayments:[],
   movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},
@@ -509,7 +509,7 @@ function loadState(){
     else{S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));}
   }catch(e){S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));}
   // Migrate: if categories use old IDs (c1,c2...) replace with new DEFAULT_CATS
-  const needsCatReset=!S.categories||!S.categories.length||S.categories.length>30||(S.categories[0]&&S.categories[0].id&&(S.categories[0].id.match(/^c\d+$/)||S.categories.find(c=>c.name==='Bonificaciones')));
+  const needsCatReset=!S.categories||!S.categories.length||S.categories.length>30||(S.categories[0]&&S.categories[0].id&&S.categories[0].id.match(/^c\d+$/))||!!(S.categories.find(function(cat){return cat.name==='Bonificaciones'||cat.name==='Paquete TV/Internet/Teléfono';}));
   if(needsCatReset){S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));}
   // Ensure protected Efectivo account exists
   // FIRST: migrate legacy efectivo-default
@@ -595,6 +595,23 @@ function applyThemeMode(){
   document.documentElement.setAttribute('data-theme',effective);
   const btn=document.getElementById('theme-btn');
   if(btn)btn.textContent=effective==='dark'?'☀️':'🌙';
+}
+function buildNumFormatCaps(){
+  var opts=[['auto','Automático'],['2','Con decimales'],['0','Sin decimales']];
+  var cur=S.numFormat||'auto';
+  return opts.map(function(o){
+    var isOn=cur===o[0];
+    return '<button onclick="setNumFormat(\''+o[0]+'\')" style="flex:1;padding:8px 4px;border-radius:50px;border:none;background:'+(isOn?'var(--primary)':'transparent')+';color:'+(isOn?'white':'var(--text2)')+';font-size:12px;font-weight:'+(isOn?'700':'500')+';cursor:pointer;font-family:var(--font);transition:.15s">'+o[1]+'</button>';
+  }).join('');
+}
+function buildNumFormatExample(){
+  var n=1500000;
+  var d=S.numFormat==='0'?0:2;
+  try{
+    var meta=getCurrencyMeta(S.currency||'COP');
+    var str=n.toLocaleString(meta.locale,{minimumFractionDigits:d,maximumFractionDigits:d});
+    return meta.pos==='before'?meta.sym+str:str+' '+meta.sym;
+  }catch(e){return n.toFixed(d);}
 }
 function setNumFormat(val){
   S.numFormat=val;
@@ -1815,6 +1832,21 @@ function renderCatList(tab){
     });
     return html||'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
   }
+  // For ingresos: group by incomeType
+  if(tab==='ingreso'){
+    var grpInc=[
+      {key:'principal',label:'⭐ Principal',color:'#00D4AA'},
+      {key:'secundario',label:'➕ Secundario',color:'#8B5CF6'},
+    ];
+    var grouped='';
+    grpInc.forEach(function(g){
+      var cats=allCats.filter(function(cat){return cat.type==='ingreso'&&(g.key==='principal'?(!cat.incomeType||cat.incomeType==='principal'):cat.incomeType===g.key);});
+      if(!cats.length)return;
+      grouped+='<div style="font-size:11px;font-weight:700;color:'+g.color+';text-transform:uppercase;letter-spacing:.6px;padding:10px 0 4px;border-bottom:1px solid '+g.color+'33;margin-bottom:6px">'+g.label+'</div>';
+      grouped+=cats.map(function(cat){return renderCatItem(cat);}).join('');
+    });
+    return grouped||'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
+  }
   return allCats.map(cat=>renderCatItem(cat)).join('');
 }
 function renderCatItem(cat){
@@ -2799,14 +2831,7 @@ function renderConfiguracion(){
     </div>
 
     <!-- Currency Format -->
-    <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
-      <label style="font-size:14px;font-weight:600;margin:0">Formato de moneda</label>
-      <div style="display:flex;background:var(--surface2);border-radius:10px;padding:3px;gap:2px">
-        <button onclick="setCurrencyFormat('decimals')" style="flex:1;padding:9px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);background:${(S.currencyFormat||'decimals')==='decimals'?'var(--primary)':'transparent'};color:${(S.currencyFormat||'decimals')==='decimals'?'white':'var(--text2)'}">1,000.00</button>
-        <button onclick="setCurrencyFormat('nodec')" style="flex:1;padding:9px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);background:${S.currencyFormat==='nodec'?'var(--primary)':'transparent'};color:${S.currencyFormat==='nodec'?'white':'var(--text2)'}">1,000</button>
-      </div>
-      <div style="font-size:11px;color:var(--text2)">Con decimales o sin decimales en toda la app</div>
-    </div>
+    
 
     <!-- Currencies -->
     <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
@@ -2841,15 +2866,15 @@ function renderConfiguracion(){
     <!-- Formato de moneda -->
     <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
       <label style="font-size:14px;font-weight:600;margin:0">💱 Formato de moneda</label>
-      <div style="display:flex;gap:8px">
-        ${[['auto','Automático'],['2','Con decimales'],['0','Sin decimales']].map(([val,label])=>`<button onclick="setNumFormat('${val}')" style="flex:1;padding:10px 4px;border-radius:10px;border:2px solid ${(S.numFormat||'auto')===val?'var(--primary)':'var(--border)'};background:${(S.numFormat||'auto')===val?'rgba(0,212,170,.12)':'var(--surface2)'};color:${(S.numFormat||'auto')===val?'var(--primary)':'var(--text2)'};font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">${label}</button>`).join('')}
+      <div style="background:var(--surface2);border-radius:50px;padding:3px;display:flex;gap:2px">
+        ${buildNumFormatCaps()}
       </div>
-      <div style="font-size:11px;color:var(--text2)">
-        Ejemplo: <strong>${(()=>{const n=1500000;const d=S.numFormat==='0'?0:S.numFormat==='2'?2:2;const meta=getCurrencyMeta(S.currency||'COP');return meta.pos==='before'?meta.sym+n.toLocaleString(meta.locale,{minimumFractionDigits:d,maximumFractionDigits:d}):n.toLocaleString(meta.locale,{minimumFractionDigits:d,maximumFractionDigits:d})+' '+meta.sym;})()}</strong>
+      <div style="font-size:11px;color:var(--text2);margin-top:4px">
+        Ejemplo: <strong>${buildNumFormatExample()}</strong>
       </div>
     </div>
 
-    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 10px">${t('system')}</div>
+    <divv style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 10px">${t('system')}</div>
     <div class="config-item" onclick="openNotifPage()">
       <div class="config-item-left"><div class="config-icon" style="background:rgba(245,158,11,.15)">🔔</div><div><div style="font-size:14px;font-weight:600">${t('notifications')}</div><div style="font-size:12px;color:var(--text2)">${notifStatus}</div></div></div>
       <span style="color:var(--text3)">›</span>
@@ -3077,7 +3102,7 @@ function handleImportFile(e){
 function resetApp(){
   confirmDialog('⚠️','¿Restaurar la app?','Se eliminarán TODOS tus datos. Esta acción es irreversible.',()=>{
     localStorage.removeItem('finanziaState3');
-    S={currency:'',currentPage:'dashboard',theme:S.theme,language:S.language||'es',weekStart:S.weekStart||'lunes',currencies:[],accounts:[],transactions:[],categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),subcategories:JSON.parse(JSON.stringify(DEFAULT_SUBS)),budgets:[],goals:[],scheduledPayments:[],movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},analysisPeriod:'Mensual',analysisYear:new Date().getFullYear(),exchangeRate:{PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''}};
+    S={currency:'',currentPage:'dashboard',theme:S.theme,language:S.language||'',weekStart:S.weekStart||'',currencies:[],accounts:[],transactions:[],categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),subcategories:JSON.parse(JSON.stringify(DEFAULT_SUBS)),budgets:[],goals:[],scheduledPayments:[],movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},analysisPeriod:'Mensual',analysisYear:new Date().getFullYear(),exchangeRate:{PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''}};
     saveState();refreshCurrencyToggle();navigate('dashboard');toast('App restaurada ✓');
   });
 }
