@@ -99,15 +99,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .ai-input-area:empty:before{content:attr(data-placeholder);color:var(--text3);pointer-events:none}
 .ai-input-area{-webkit-user-select:text;user-select:text}
 .ppick-item{padding:10px 12px;cursor:pointer;font-size:13px;border-radius:4px}
-.profile-fab{position:fixed;bottom:calc(var(--nav-h) + 16px);right:16px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:22px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:50;box-shadow:0 4px 16px rgba(0,212,170,.4);transition:transform .15s}
-.profile-fab:active{transform:scale(.92)}
 #profile-form .form-input,#profile-form .form-select{background:var(--surface)}
 .ppick-item:hover{background:rgba(0,212,170,.1)}
 .ai-input-area:empty:before{content:attr(data-placeholder);color:var(--text3);pointer-events:none}
 .ai-input-area{-webkit-user-select:text;user-select:text}
 .ppick-item{padding:10px 12px;cursor:pointer;font-size:13px;border-radius:4px}
-.profile-fab{position:fixed;bottom:calc(var(--nav-h) + 16px);right:16px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:22px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:50;box-shadow:0 4px 16px rgba(0,212,170,.4);transition:transform .15s}
-.profile-fab:active{transform:scale(.92)}
 #profile-form .form-input,#profile-form .form-select{background:var(--surface)}
 .ppick-item:hover{background:rgba(0,212,170,.1)}
 .ai-quick-btns{display:flex;flex-wrap:wrap;gap:5px;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border)}
@@ -306,7 +302,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="drawer-footer-version">v3.3 · Datos locales</div>
   </div>
 </nav>
-<button class="profile-fab" id="profile-fab" onclick="saveProfile()" title="Guardar perfil">💾</button>
 <div class="header">
   <button class="btn-icon" onclick="openDrawer()">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -1806,17 +1801,37 @@ function renderAnalisis(){
 // ════════════════════════════════════════════════════════════
 // CATEGORÍAS
 // ════════════════════════════════════════════════════════════
+function closeCatPanel(){var el=document.getElementById('cat-panel-overlay');if(el)el.remove();if(S.currentPage==='configuracion')renderPage('configuracion');}
+function openCatPanel(){
+  const overlay=document.createElement('div');
+  overlay.id='cat-panel-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
+  const tab=S._catTab||'gasto';
+  overlay.innerHTML=
+    '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'+
+      '<button onclick="closeCatPanel()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px;line-height:1">←</button>'+
+      '<span style="font-size:17px;font-weight:800">Categorías</span>'+
+      '<button class="btn btn-primary btn-sm" onclick="openModal(\'category\',{defaultType:S._catTab||\'gasto\'})">+ Nueva</button>'+
+    '</div>'+
+    '<div style="padding:12px 16px 8px;flex-shrink:0">'+
+      '<div style="display:flex;background:var(--surface2);border-radius:10px;padding:3px;gap:2px">'+
+        '<button id="catpnl-gasto" onclick="setCatTab(&apos;gasto&apos;)" style="flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);background:'+(tab==='gasto'?'var(--primary)':'transparent')+';color:'+(tab==='gasto'?'white':'var(--text2)')+'">GASTOS</button>'+
+        '<button id="catpnl-ingreso" onclick="setCatTab(&apos;ingreso&apos;)" style="flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);background:'+(tab!=='gasto'?'var(--primary)':'transparent')+';color:'+(tab!=='gasto'?'white':'var(--text2)')+'">INGRESOS</button>'+
+      '</div>'+
+    '</div>'+
+    '<div id="cat-panel-list" style="flex:1;overflow-y:auto;padding:0 16px 16px">'+renderCatList(tab)+'</div>';
+  document.body.appendChild(overlay);
+}
 function setCatTab(tab){
-  if(!S._catTab)S._catTab='gasto';
   S._catTab=tab;
-  // Update buttons
-  const g=document.getElementById('cat-tab-gasto');
-  const i=document.getElementById('cat-tab-ingreso');
-  if(g){g.className='btn '+(tab!=='ingreso'?'btn-primary':'btn-secondary');g.style.flex='1';g.style.fontSize='13px';g.style.fontWeight='700';}
-  if(i){i.className='btn '+(tab==='ingreso'?'btn-primary':'btn-secondary');i.style.flex='1';i.style.fontSize='13px';i.style.fontWeight='700';}
-  // Update list
-  const container=document.getElementById('cat-list-container');
-  if(container)container.innerHTML=renderCatList(tab);
+  // Update panel tab buttons
+  const g=document.getElementById('catpnl-gasto');
+  const i=document.getElementById('catpnl-ingreso');
+  if(g){g.style.background=tab==='gasto'?'var(--primary)':'transparent';g.style.color=tab==='gasto'?'white':'var(--text2)';}
+  if(i){i.style.background=tab!=='gasto'?'var(--primary)':'transparent';i.style.color=tab!=='gasto'?'white':'var(--text2)';}
+  // Update list in panel
+  const list=document.getElementById('cat-panel-list');
+  if(list)list.innerHTML=renderCatList(tab);
 }
 function renderCatList(tab){
   // Show categories of selected type + transferencias in both tabs
@@ -1888,8 +1903,8 @@ function toggleCatGroup(id,header){
   const arrow=header.querySelector('.cat-arrow');
   if(arrow)arrow.textContent=el.classList.contains('hidden')?'▶':'▼';
 }
-function deleteCat(id){confirmDialog('🗑️','¿Eliminar categoría?','Se eliminarán sus subcategorías y los movimientos perderán la categoría.',()=>{S.categories=S.categories.filter(c=>c.id!==id);S.subcategories=S.subcategories.filter(s=>s.categoryId!==id);saveState();if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Eliminada');});}
-function deleteSub(id){confirmDialog('🗑️','¿Eliminar subcategoría?','',()=>{S.subcategories=S.subcategories.filter(s=>s.id!==id);saveState();if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Eliminada');});}
+function deleteCat(id){confirmDialog('🗑️','¿Eliminar categoría?','Se eliminarán sus subcategorías y los movimientos perderán la categoría.',()=>{S.categories=S.categories.filter(c=>c.id!==id);S.subcategories=S.subcategories.filter(s=>s.categoryId!==id);saveState();const cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Eliminada');});}
+function deleteSub(id){confirmDialog('🗑️','¿Eliminar subcategoría?','',()=>{S.subcategories=S.subcategories.filter(s=>s.id!==id);saveState();const cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Eliminada');});}
 
 // ════════════════════════════════════════════════════════════
 // I18N — Translations
@@ -2754,20 +2769,22 @@ function renderConfiguracion(){
           </div>
           <input type="hidden" id="cfg-goal" value="${(S.profile&&S.profile.financialGoal) || ''}">
         </div>
-        <!-- FAB save button placeholder -->
+        <div style="display:flex;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+          <button onclick="saveProfile()" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,212,170,.35)">💾</button>
+        </div>
       </div>
     </div>
     <!-- CATEGORÍAS -->
     <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Categorías</div>
-    <div class="card" style="margin-bottom:16px">
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <button id="cat-tab-gasto" class="btn ${S._catTab!=='ingreso'?'btn-primary':'btn-secondary'}" style="flex:1;font-size:13px;font-weight:700" onclick="setCatTab('gasto')">GASTOS</button>
-        <button id="cat-tab-ingreso" class="btn ${S._catTab==='ingreso'?'btn-primary':'btn-secondary'}" style="flex:1;font-size:13px;font-weight:700" onclick="setCatTab('ingreso')">INGRESOS</button>
+    <div class="config-item" onclick="openCatPanel()" style="margin-bottom:16px">
+      <div class="config-item-left">
+        <div class="config-icon" style="background:rgba(0,212,170,.15)">🏷️</div>
+        <div>
+          <div style="font-size:14px;font-weight:600">Categorías</div>
+          <div style="font-size:12px;color:var(--text2)">${S.categories.length} categorías · ${S.subcategories.length} subcategorías</div>
+        </div>
       </div>
-      <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
-        <button class="btn btn-primary btn-sm" onclick="openModal('category',{defaultType:S._catTab||'gasto'})">+ Nueva categoría</button>
-      </div>
-      <div id="cat-list-container">${renderCatList(S._catTab||'gasto')}</div>
+      <span style="color:var(--text3)">›</span>
     </div>
     <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">${t('preferences')}</div>
 
@@ -2919,7 +2936,6 @@ function saveProfile(){
   if(form)form.style.display='none';
   if(collRow)collRow.style.display='flex';
   if(arrow)arrow.textContent='▼';
-  const fab=document.getElementById('profile-fab');if(fab)fab.style.display='none';
   renderPage('configuracion');
 }
 function removeProfilePhoto(){
@@ -2930,12 +2946,10 @@ function toggleProfileCard(){
   const form=document.getElementById('profile-form');
   const arrow=document.getElementById('profile-arrow');
   const collRow=document.getElementById('profile-collapsed-row');
-  const fab=document.getElementById('profile-fab');
   if(!form)return;
   const isOpen=form.style.display!=='none';
   form.style.display=isOpen?'none':'block';
   if(collRow)collRow.style.display=isOpen?'flex':'none';
-  if(fab)fab.style.display=isOpen?'none':'flex';
   if(arrow)arrow.textContent=isOpen?'▼':'▲';
 }
 function pickProfilePhoto(){
