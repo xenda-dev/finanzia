@@ -425,168 +425,69 @@ const BANKS_COP = [
 // ════════════════════════════════════════════════════════════
 // STATE
 const DEFAULT_CATS = [
-  // INGRESOS
   {id:'dc01',name:'Salario',icon:'💰',color:'#00D4AA',type:'ingreso',nature:'ahorros'},
-  {id:'dc02',name:'Bonificaciones',icon:'🎁',color:'#10B981',type:'ingreso',nature:'ahorros'},
-  {id:'dc03',name:'Horas extras',icon:'⏰',color:'#3B82F6',type:'ingreso',nature:'ahorros'},
-  {id:'dc04',name:'Comisiones',icon:'📈',color:'#8B5CF6',type:'ingreso',nature:'ahorros'},
-  {id:'dc05',name:'Venta de productos/servicios',icon:'🛒',color:'#F59E0B',type:'ingreso',nature:'ahorros'},
-  {id:'dc06',name:'Intereses financieros',icon:'🏦',color:'#06B6D4',type:'ingreso',nature:'ahorros'},
-  {id:'dc07',name:'Dividendos',icon:'📊',color:'#84CC16',type:'ingreso',nature:'ahorros'},
-  {id:'dc08',name:'Alquileres recibidos',icon:'🏠',color:'#EC4899',type:'ingreso',nature:'ahorros'},
-  {id:'dc09',name:'Reembolsos',icon:'↩️',color:'#14B8A6',type:'ingreso',nature:'ahorros'},
-  {id:'dc10',name:'Ingresos extraordinarios',icon:'⭐',color:'#F97316',type:'ingreso',nature:'ahorros'},
-  {id:'dc11',name:'Ingresos familiares',icon:'👨‍👩‍👧',color:'#A855F7',type:'ingreso',nature:'ahorros'},
-  {id:'dc12',name:'Transferencia recibida',icon:'📥',color:'#6366F1',type:'ingreso',nature:'ahorros'},
-  // EGRESOS - Necesidades
-  {id:'dc13',name:'Vivienda',icon:'🏠',color:'#EF4444',type:'gasto',nature:'necesidades'},
-  {id:'dc14',name:'Servicios públicos',icon:'⚡',color:'#F97316',type:'gasto',nature:'necesidades'},
-  {id:'dc15',name:'Alimentación',icon:'🛒',color:'#F59E0B',type:'gasto',nature:'necesidades'},
-  {id:'dc16',name:'Transporte',icon:'🚗',color:'#84CC16',type:'gasto',nature:'necesidades'},
-  {id:'dc17',name:'Educación',icon:'📚',color:'#10B981',type:'gasto',nature:'necesidades'},
-  {id:'dc18',name:'Salud',icon:'🏥',color:'#06B6D4',type:'gasto',nature:'necesidades'},
-  {id:'dc19',name:'Comunicación',icon:'📱',color:'#3B82F6',type:'gasto',nature:'necesidades'},
-  {id:'dc20',name:'Seguros',icon:'🛡️',color:'#8B5CF6',type:'gasto',nature:'necesidades'},
-  {id:'dc21',name:'Deudas y obligaciones',icon:'💳',color:'#EC4899',type:'gasto',nature:'necesidades'},
-  {id:'dc22',name:'Cuidado personal básico',icon:'🧴',color:'#14B8A6',type:'gasto',nature:'necesidades'},
-  {id:'dc23',name:'Impuestos',icon:'🧾',color:'#A855F7',type:'gasto',nature:'necesidades'},
-  {id:'dc24',name:'Mantenimiento del hogar',icon:'🔧',color:'#6366F1',type:'gasto',nature:'necesidades'},
-  {id:'dc25',name:'Mascotas (básicos)',icon:'🐾',color:'#64748B',type:'gasto',nature:'necesidades'},
-  // EGRESOS - Deseos
-  {id:'dc26',name:'Restaurantes',icon:'🍽️',color:'#FF6B6B',type:'gasto',nature:'deseos'},
-  {id:'dc27',name:'Cafeterías',icon:'☕',color:'#C8960C',type:'gasto',nature:'deseos'},
-  {id:'dc28',name:'Entretenimiento',icon:'🎬',color:'#FF8E53',type:'gasto',nature:'deseos'},
-  {id:'dc29',name:'Viajes',icon:'✈️',color:'#4ECDC4',type:'gasto',nature:'deseos'},
-  {id:'dc30',name:'Compras personales',icon:'🛍️',color:'#45B7D1',type:'gasto',nature:'deseos'},
-  {id:'dc31',name:'Ropa y accesorios',icon:'👗',color:'#DDA0DD',type:'gasto',nature:'deseos'},
-  {id:'dc32',name:'Suscripciones',icon:'📺',color:'#E74C3C',type:'gasto',nature:'deseos'},
-  {id:'dc33',name:'Gimnasio',icon:'💪',color:'#27AE60',type:'gasto',nature:'deseos'},
-  {id:'dc34',name:'Regalos',icon:'🎁',color:'#E91E8C',type:'gasto',nature:'deseos'},
-  {id:'dc35',name:'Mascotas (lujos)',icon:'🐩',color:'#9B59B6',type:'gasto',nature:'deseos'},
-  {id:'dc36',name:'Hobby y deportes',icon:'⚽',color:'#2ECC71',type:'gasto',nature:'deseos'},
-  {id:'dc37',name:'Cuidado personal premium',icon:'💆',color:'#F1C40F',type:'gasto',nature:'deseos'},
-  {id:'dc38',name:'Tecnología y gadgets',icon:'💻',color:'#3498DB',type:'gasto',nature:'deseos'},
-  {id:'dc39',name:'Eventos y celebraciones',icon:'🎉',color:'#E74C3C',type:'gasto',nature:'deseos'},
-  // EGRESOS - Ahorros
-  {id:'dc40',name:'Ahorro programado',icon:'🐷',color:'#00D4AA',type:'gasto',nature:'ahorros'},
-  {id:'dc41',name:'Fondo de emergencia',icon:'🆘',color:'#FF6B6B',type:'gasto',nature:'ahorros'},
-  {id:'dc42',name:'Inversión en fondos',icon:'📊',color:'#3B82F6',type:'gasto',nature:'ahorros'},
-  {id:'dc43',name:'Compra de acciones',icon:'📈',color:'#10B981',type:'gasto',nature:'ahorros'},
-  {id:'dc44',name:'Aportes a pensión voluntaria',icon:'👴',color:'#8B5CF6',type:'gasto',nature:'ahorros'},
-  {id:'dc45',name:'Capital para proyectos',icon:'🏗️',color:'#F97316',type:'gasto',nature:'ahorros'},
-  {id:'dc46',name:'Ahorro para metas',icon:'🎯',color:'#EC4899',type:'gasto',nature:'ahorros'},
-  // TRANSFERENCIAS
-  {id:'dc47',name:'Transferencia entre cuentas',icon:'↔️',color:'#6366F1',type:'transferencia',nature:'ahorros'},
-  {id:'dc48',name:'Transferencia a terceros',icon:'📤',color:'#A855F7',type:'transferencia',nature:'ahorros'},
-  {id:'dc49',name:'Depósitos bancarios',icon:'🏦',color:'#06B6D4',type:'transferencia',nature:'ahorros'},
-  {id:'dc50',name:'Retiros en cajero',icon:'🏧',color:'#F59E0B',type:'transferencia',nature:'ahorros'},
-  {id:'dc51',name:'Recargas o top-ups',icon:'🔋',color:'#84CC16',type:'transferencia',nature:'ahorros'},
+  {id:'dc02',name:'Ingresos independientes',icon:'💼',color:'#10B981',type:'ingreso',nature:'ahorros'},
+  {id:'dc03',name:'Rentas e inversiones',icon:'📈',color:'#3B82F6',type:'ingreso',nature:'ahorros'},
+  {id:'dc04',name:'Apoyos y reembolsos',icon:'🤝',color:'#8B5CF6',type:'ingreso',nature:'ahorros'},
+  {id:'dc05',name:'Ingresos extraordinarios',icon:'⭐',color:'#F59E0B',type:'ingreso',nature:'ahorros'},
+  {id:'dc06',name:'Vivienda',icon:'🏠',color:'#EF4444',type:'gasto',nature:'necesidades'},
+  {id:'dc07',name:'Servicios del hogar',icon:'⚡',color:'#F97316',type:'gasto',nature:'necesidades'},
+  {id:'dc08',name:'Alimentación',icon:'🛒',color:'#F59E0B',type:'gasto',nature:'necesidades'},
+  {id:'dc09',name:'Transporte',icon:'🚗',color:'#84CC16',type:'gasto',nature:'necesidades'},
+  {id:'dc10',name:'Educación',icon:'📚',color:'#10B981',type:'gasto',nature:'necesidades'},
+  {id:'dc11',name:'Salud',icon:'🏥',color:'#06B6D4',type:'gasto',nature:'necesidades'},
+  {id:'dc12',name:'Comunicación',icon:'📱',color:'#3B82F6',type:'gasto',nature:'necesidades'},
+  {id:'dc13',name:'Seguros',icon:'🛡️',color:'#8B5CF6',type:'gasto',nature:'necesidades'},
+  {id:'dc14',name:'Deudas',icon:'💳',color:'#EC4899',type:'gasto',nature:'necesidades'},
+  {id:'dc15',name:'Cuidado personal',icon:'🧴',color:'#14B8A6',type:'gasto',nature:'necesidades'},
+  {id:'dc16',name:'Mascotas',icon:'🐾',color:'#A855F7',type:'gasto',nature:'necesidades'},
+  {id:'dc17',name:'Impuestos',icon:'🧾',color:'#6366F1',type:'gasto',nature:'necesidades'},
+  {id:'dc18',name:'Salidas y ocio',icon:'🍽️',color:'#FF6B6B',type:'gasto',nature:'deseos'},
+  {id:'dc19',name:'Viajes',icon:'✈️',color:'#4ECDC4',type:'gasto',nature:'deseos'},
+  {id:'dc20',name:'Ropa y compras',icon:'👗',color:'#DDA0DD',type:'gasto',nature:'deseos'},
+  {id:'dc21',name:'Suscripciones',icon:'📺',color:'#E74C3C',type:'gasto',nature:'deseos'},
+  {id:'dc22',name:'Hobby y deportes',icon:'⚽',color:'#27AE60',type:'gasto',nature:'deseos'},
+  {id:'dc23',name:'Tecnología',icon:'💻',color:'#3498DB',type:'gasto',nature:'deseos'},
+  {id:'dc24',name:'Eventos y regalos',icon:'🎉',color:'#E91E8C',type:'gasto',nature:'deseos'},
+  {id:'dc25',name:'Ahorro y emergencia',icon:'🐷',color:'#00D4AA',type:'gasto',nature:'ahorros'},
+  {id:'dc26',name:'Inversiones',icon:'📊',color:'#3B82F6',type:'gasto',nature:'ahorros'},
+  {id:'dc27',name:'Metas de ahorro',icon:'🎯',color:'#EC4899',type:'gasto',nature:'ahorros'},
+  {id:'dc28',name:'Entre mis cuentas',icon:'↔️',color:'#6366F1',type:'transferencia',nature:'ahorros'},
+  {id:'dc29',name:'Pagos a terceros',icon:'📤',color:'#A855F7',type:'transferencia',nature:'ahorros'},
+  {id:'dc30',name:'Depósitos y retiros',icon:'🏧',color:'#F59E0B',type:'transferencia',nature:'ahorros'},
 ];
 const DEFAULT_SUBS = [
-  // Salario (dc01)
   {id:'ds0101',categoryId:'dc01',name:'Salario base',icon:'💵'},{id:'ds0102',categoryId:'dc01',name:'Horas extras',icon:'⏰'},{id:'ds0103',categoryId:'dc01',name:'Bonificaciones',icon:'🎁'},{id:'ds0104',categoryId:'dc01',name:'Comisiones',icon:'📈'},
-  // Bonificaciones (dc02)
-  {id:'ds0201',categoryId:'dc02',name:'Bonificación mensual',icon:'📅'},{id:'ds0202',categoryId:'dc02',name:'Bonificación anual',icon:'🗓️'},{id:'ds0203',categoryId:'dc02',name:'Bonificación por desempeño',icon:'🏆'},
-  // Horas extras (dc03)
-  {id:'ds0301',categoryId:'dc03',name:'Hora extra diurna',icon:'☀️'},{id:'ds0302',categoryId:'dc03',name:'Hora extra nocturna',icon:'🌙'},{id:'ds0303',categoryId:'dc03',name:'Recargo dominical',icon:'📅'},
-  // Comisiones (dc04)
-  {id:'ds0401',categoryId:'dc04',name:'Comisión por ventas',icon:'💼'},{id:'ds0402',categoryId:'dc04',name:'Comisión por servicios',icon:'🛠️'},
-  // Venta (dc05)
-  {id:'ds0501',categoryId:'dc05',name:'Venta de productos',icon:'📦'},{id:'ds0502',categoryId:'dc05',name:'Venta de servicios',icon:'🛠️'},{id:'ds0503',categoryId:'dc05',name:'Freelance',icon:'💡'},
-  // Intereses (dc06)
-  {id:'ds0601',categoryId:'dc06',name:'Intereses por ahorro',icon:'🐷'},{id:'ds0602',categoryId:'dc06',name:'Intereses por CDT',icon:'📋'},{id:'ds0603',categoryId:'dc06',name:'Intereses por inversiones',icon:'📈'},
-  // Dividendos (dc07)
-  {id:'ds0701',categoryId:'dc07',name:'Dividendos de acciones',icon:'📊'},{id:'ds0702',categoryId:'dc07',name:'Dividendos de fondos',icon:'🏦'},
-  // Alquileres (dc08)
-  {id:'ds0801',categoryId:'dc08',name:'Arriendo de vivienda',icon:'🏠'},{id:'ds0802',categoryId:'dc08',name:'Arriendo de local',icon:'🏢'},{id:'ds0803',categoryId:'dc08',name:'Arriendo de vehículo',icon:'🚗'},
-  // Reembolsos (dc09)
-  {id:'ds0901',categoryId:'dc09',name:'Reembolso laboral',icon:'💼'},{id:'ds0902',categoryId:'dc09',name:'Reembolso médico',icon:'🏥'},{id:'ds0903',categoryId:'dc09',name:'Reembolso de terceros',icon:'🤝'},
-  // Ingresos extraordinarios (dc10)
-  {id:'ds1001',categoryId:'dc10',name:'Loterías / sorteos',icon:'🎲'},{id:'ds1002',categoryId:'dc10',name:'Venta de activos',icon:'🏷️'},{id:'ds1003',categoryId:'dc10',name:'Herencias',icon:'📜'},{id:'ds1004',categoryId:'dc10',name:'Regalos recibidos',icon:'🎁'},
-  // Ingresos familiares (dc11)
-  {id:'ds1101',categoryId:'dc11',name:'Apoyo familiar',icon:'👨‍👩‍👧'},{id:'ds1102',categoryId:'dc11',name:'Mesada familiar',icon:'💰'},
-  // Transferencia recibida (dc12)
-  {id:'ds1201',categoryId:'dc12',name:'Transferencia desde banco',icon:'🏦'},{id:'ds1202',categoryId:'dc12',name:'Transferencia desde billetera digital',icon:'📱'},
-  // Vivienda (dc13)
-  {id:'ds1301',categoryId:'dc13',name:'Arriendo',icon:'🏠'},{id:'ds1302',categoryId:'dc13',name:'Hipoteca',icon:'🏦'},{id:'ds1303',categoryId:'dc13',name:'Administración',icon:'🏢'},{id:'ds1304',categoryId:'dc13',name:'Reparaciones',icon:'🔨'},{id:'ds1305',categoryId:'dc13',name:'Mantenimiento',icon:'🔧'},{id:'ds1306',categoryId:'dc13',name:'Servicios del hogar',icon:'🧹'},
-  // Servicios públicos (dc14)
-  {id:'ds1401',categoryId:'dc14',name:'Luz',icon:'💡'},{id:'ds1402',categoryId:'dc14',name:'Agua',icon:'💧'},{id:'ds1403',categoryId:'dc14',name:'Gas',icon:'🔥'},{id:'ds1404',categoryId:'dc14',name:'Basuras',icon:'🗑️'},{id:'ds1405',categoryId:'dc14',name:'Internet',icon:'🌐'},{id:'ds1406',categoryId:'dc14',name:'Televisión',icon:'📺'},{id:'ds1407',categoryId:'dc14',name:'Teléfono fijo',icon:'📞'},
-  // Alimentación (dc15)
-  {id:'ds1501',categoryId:'dc15',name:'Mercado',icon:'🛒'},{id:'ds1502',categoryId:'dc15',name:'Frutas y verduras',icon:'🥦'},{id:'ds1503',categoryId:'dc15',name:'Carnes',icon:'🥩'},{id:'ds1504',categoryId:'dc15',name:'Abarrotes',icon:'📦'},{id:'ds1505',categoryId:'dc15',name:'Panadería',icon:'🥐'},
-  // Transporte (dc16)
-  {id:'ds1601',categoryId:'dc16',name:'Gasolina',icon:'⛽'},{id:'ds1602',categoryId:'dc16',name:'Transporte público',icon:'🚌'},{id:'ds1603',categoryId:'dc16',name:'Taxi',icon:'🚕'},{id:'ds1604',categoryId:'dc16',name:'Uber u otros',icon:'📱'},{id:'ds1605',categoryId:'dc16',name:'Tren',icon:'🚂'},{id:'ds1606',categoryId:'dc16',name:'Mantenimiento vehículo',icon:'🔧'},{id:'ds1607',categoryId:'dc16',name:'Peajes',icon:'🛣️'},{id:'ds1608',categoryId:'dc16',name:'Parqueaderos',icon:'🅿️'},
-  // Educación (dc17)
-  {id:'ds1701',categoryId:'dc17',name:'Matrículas',icon:'🎓'},{id:'ds1702',categoryId:'dc17',name:'Útiles escolares',icon:'✏️'},{id:'ds1703',categoryId:'dc17',name:'Libros',icon:'📚'},{id:'ds1704',categoryId:'dc17',name:'Cursos',icon:'💻'},{id:'ds1705',categoryId:'dc17',name:'Plataformas educativas',icon:'🖥️'},{id:'ds1706',categoryId:'dc17',name:'Transporte escolar',icon:'🚌'},
-  // Salud (dc18)
-  {id:'ds1801',categoryId:'dc18',name:'Medicinas',icon:'💊'},{id:'ds1802',categoryId:'dc18',name:'Consultas médicas',icon:'🩺'},{id:'ds1803',categoryId:'dc18',name:'Exámenes médicos',icon:'🔬'},{id:'ds1804',categoryId:'dc18',name:'Emergencias',icon:'🚨'},{id:'ds1805',categoryId:'dc18',name:'Odontología',icon:'🦷'},{id:'ds1806',categoryId:'dc18',name:'Terapias',icon:'🧠'},
-  // Comunicación (dc19)
-  {id:'ds1901',categoryId:'dc19',name:'Plan móvil',icon:'📱'},{id:'ds1902',categoryId:'dc19',name:'Internet',icon:'🌐'},{id:'ds1903',categoryId:'dc19',name:'Recargas',icon:'🔋'},
-  // Seguros (dc20)
-  {id:'ds2001',categoryId:'dc20',name:'Seguro de salud',icon:'🏥'},{id:'ds2002',categoryId:'dc20',name:'Seguro de vida',icon:'❤️'},{id:'ds2003',categoryId:'dc20',name:'Seguro de auto',icon:'🚗'},{id:'ds2004',categoryId:'dc20',name:'Seguro de hogar',icon:'🏠'},{id:'ds2005',categoryId:'dc20',name:'Seguro de dispositivos',icon:'📱'},
-  // Deudas (dc21)
-  {id:'ds2101',categoryId:'dc21',name:'Pago tarjeta de crédito',icon:'💳'},{id:'ds2102',categoryId:'dc21',name:'Cuotas de préstamo',icon:'🏦'},{id:'ds2103',categoryId:'dc21',name:'Microcréditos',icon:'💵'},{id:'ds2104',categoryId:'dc21',name:'Pago mínimo',icon:'⚠️'},{id:'ds2105',categoryId:'dc21',name:'Pago total',icon:'✅'},
-  // Cuidado personal básico (dc22)
-  {id:'ds2201',categoryId:'dc22',name:'Aseo personal',icon:'🧴'},{id:'ds2202',categoryId:'dc22',name:'Productos esenciales',icon:'🛒'},{id:'ds2203',categoryId:'dc22',name:'Barbería/peluquería básica',icon:'✂️'},
-  // Impuestos (dc23)
-  {id:'ds2301',categoryId:'dc23',name:'Impuesto renta',icon:'🧾'},{id:'ds2302',categoryId:'dc23',name:'Predial',icon:'🏠'},{id:'ds2303',categoryId:'dc23',name:'Vehicular',icon:'🚗'},{id:'ds2304',categoryId:'dc23',name:'Retefuente',icon:'📋'},
-  // Mantenimiento hogar (dc24)
-  {id:'ds2401',categoryId:'dc24',name:'Productos de limpieza',icon:'🧹'},{id:'ds2402',categoryId:'dc24',name:'Herramientas',icon:'🔨'},{id:'ds2403',categoryId:'dc24',name:'Servicios de mantenimiento',icon:'🔧'},
-  // Mascotas básicos (dc25)
-  {id:'ds2501',categoryId:'dc25',name:'Comida mascotas',icon:'🦴'},{id:'ds2502',categoryId:'dc25',name:'Veterinaria básica',icon:'🐾'},{id:'ds2503',categoryId:'dc25',name:'Medicamentos mascotas',icon:'💊'},
-  // Restaurantes (dc26)
-  {id:'ds2601',categoryId:'dc26',name:'Restaurante casual',icon:'🍽️'},{id:'ds2602',categoryId:'dc26',name:'Restaurante premium',icon:'🍷'},{id:'ds2603',categoryId:'dc26',name:'Comida rápida',icon:'🍔'},
-  // Cafeterías (dc27)
-  {id:'ds2701',categoryId:'dc27',name:'Café',icon:'☕'},{id:'ds2702',categoryId:'dc27',name:'Snacks',icon:'🍿'},{id:'ds2703',categoryId:'dc27',name:'Postres',icon:'🍰'},
-  // Entretenimiento (dc28)
-  {id:'ds2801',categoryId:'dc28',name:'Cine',icon:'🎬'},{id:'ds2802',categoryId:'dc28',name:'Teatro',icon:'🎭'},{id:'ds2803',categoryId:'dc28',name:'Conciertos',icon:'🎵'},{id:'ds2804',categoryId:'dc28',name:'Videojuegos',icon:'🎮'},{id:'ds2805',categoryId:'dc28',name:'Salidas sociales',icon:'🍺'},
-  // Viajes (dc29)
-  {id:'ds2901',categoryId:'dc29',name:'Vuelos',icon:'✈️'},{id:'ds2902',categoryId:'dc29',name:'Hoteles',icon:'🏨'},{id:'ds2903',categoryId:'dc29',name:'Tours',icon:'🗺️'},{id:'ds2904',categoryId:'dc29',name:'Transporte en destino',icon:'🚌'},
-  // Compras personales (dc30)
-  {id:'ds3001',categoryId:'dc30',name:'Accesorios',icon:'👜'},{id:'ds3002',categoryId:'dc30',name:'Artículos personales',icon:'🛍️'},{id:'ds3003',categoryId:'dc30',name:'Compras varias',icon:'🛒'},
-  // Ropa (dc31)
-  {id:'ds3101',categoryId:'dc31',name:'Ropa',icon:'👗'},{id:'ds3102',categoryId:'dc31',name:'Zapatos',icon:'👟'},{id:'ds3103',categoryId:'dc31',name:'Accesorios',icon:'🕶️'},
-  // Suscripciones (dc32)
-  {id:'ds3201',categoryId:'dc32',name:'Netflix',icon:'📺'},{id:'ds3202',categoryId:'dc32',name:'Spotify',icon:'🎵'},{id:'ds3203',categoryId:'dc32',name:'Amazon',icon:'📦'},{id:'ds3204',categoryId:'dc32',name:'Apps premium',icon:'📱'},
-  // Gimnasio (dc33)
-  {id:'ds3301',categoryId:'dc33',name:'Mensualidad gimnasio',icon:'🏋️'},{id:'ds3302',categoryId:'dc33',name:'Entrenador personal',icon:'💪'},{id:'ds3303',categoryId:'dc33',name:'Clases adicionales',icon:'🧘'},
-  // Regalos (dc34)
-  {id:'ds3401',categoryId:'dc34',name:'Regalos personales',icon:'🎁'},{id:'ds3402',categoryId:'dc34',name:'Regalos familiares',icon:'👨‍👩‍👧'},
-  // Mascotas lujos (dc35)
-  {id:'ds3501',categoryId:'dc35',name:'Juguetes mascotas',icon:'🎾'},{id:'ds3502',categoryId:'dc35',name:'Ropa mascotas',icon:'👕'},{id:'ds3503',categoryId:'dc35',name:'Accesorios mascotas',icon:'🐩'},
-  // Hobby (dc36)
-  {id:'ds3601',categoryId:'dc36',name:'Gimnasio / deportes',icon:'⚽'},{id:'ds3602',categoryId:'dc36',name:'Materiales de hobby',icon:'🎨'},
-  // Cuidado premium (dc37)
-  {id:'ds3701',categoryId:'dc37',name:'Spa',icon:'💆'},{id:'ds3702',categoryId:'dc37',name:'Barbería premium',icon:'✂️'},{id:'ds3703',categoryId:'dc37',name:'Maquillaje profesional',icon:'💄'},
-  // Tecnología (dc38)
-  {id:'ds3801',categoryId:'dc38',name:'Teléfonos',icon:'📱'},{id:'ds3802',categoryId:'dc38',name:'Computadores',icon:'💻'},{id:'ds3803',categoryId:'dc38',name:'Accesorios tech',icon:'⌨️'},
-  // Eventos (dc39)
-  {id:'ds3901',categoryId:'dc39',name:'Cumpleaños',icon:'🎂'},{id:'ds3902',categoryId:'dc39',name:'Bodas',icon:'💍'},{id:'ds3903',categoryId:'dc39',name:'Reuniones',icon:'🤝'},{id:'ds3904',categoryId:'dc39',name:'Decoraciones',icon:'🎊'},
-  // Ahorro programado (dc40)
-  {id:'ds4001',categoryId:'dc40',name:'Ahorro semanal',icon:'📅'},{id:'ds4002',categoryId:'dc40',name:'Ahorro mensual',icon:'🗓️'},
-  // Fondo emergencia (dc41)
-  {id:'ds4101',categoryId:'dc41',name:'Aporte mensual',icon:'💰'},{id:'ds4102',categoryId:'dc41',name:'Aporte extraordinario',icon:'⭐'},
-  // Fondos inversión (dc42)
-  {id:'ds4201',categoryId:'dc42',name:'Fondos de inversión colectiva',icon:'🏦'},{id:'ds4202',categoryId:'dc42',name:'Fondos ETF',icon:'📊'},
-  // Acciones (dc43)
-  {id:'ds4301',categoryId:'dc43',name:'Acciones nacionales',icon:'🏛️'},{id:'ds4302',categoryId:'dc43',name:'Acciones internacionales',icon:'🌍'},
-  // Pensión (dc44)
-  {id:'ds4401',categoryId:'dc44',name:'Pensión voluntaria mensual',icon:'👴'},{id:'ds4402',categoryId:'dc44',name:'Aporte extraordinario',icon:'⭐'},
-  // Capital proyectos (dc45)
-  {id:'ds4501',categoryId:'dc45',name:'Emprendimiento',icon:'💡'},{id:'ds4502',categoryId:'dc45',name:'Inversión inmobiliaria',icon:'🏗️'},
-  // Metas (dc46)
-  {id:'ds4601',categoryId:'dc46',name:'Meta: Viaje',icon:'✈️'},{id:'ds4602',categoryId:'dc46',name:'Meta: Educación',icon:'🎓'},{id:'ds4603',categoryId:'dc46',name:'Meta: Vehículo',icon:'🚗'},{id:'ds4604',categoryId:'dc46',name:'Meta: Vivienda',icon:'🏠'},
-  // Transferencias entre cuentas (dc47)
-  {id:'ds4701',categoryId:'dc47',name:'Banco → Banco',icon:'↔️'},{id:'ds4702',categoryId:'dc47',name:'Banco → Efectivo',icon:'💵'},{id:'ds4703',categoryId:'dc47',name:'Efectivo → Banco',icon:'🏦'},
-  // Transferencia a terceros (dc48)
-  {id:'ds4801',categoryId:'dc48',name:'Pago a persona',icon:'👤'},{id:'ds4802',categoryId:'dc48',name:'Pago a negocio',icon:'🏢'},
-  // Depósitos (dc49)
-  {id:'ds4901',categoryId:'dc49',name:'Depósito en ventanilla',icon:'🏦'},{id:'ds4902',categoryId:'dc49',name:'Depósito en cajero',icon:'🏧'},
-  // Retiros (dc50)
-  {id:'ds5001',categoryId:'dc50',name:'Retiro en cajero',icon:'🏧'},{id:'ds5002',categoryId:'dc50',name:'Retiro en ventanilla',icon:'🏦'},
-  // Recargas (dc51)
-  {id:'ds5101',categoryId:'dc51',name:'Recarga móvil',icon:'📱'},{id:'ds5102',categoryId:'dc51',name:'Recarga billetera digital',icon:'💳'},
+  {id:'ds0201',categoryId:'dc02',name:'Venta de productos',icon:'📦'},{id:'ds0202',categoryId:'dc02',name:'Venta de servicios',icon:'🛠️'},{id:'ds0203',categoryId:'dc02',name:'Freelance',icon:'💡'},
+  {id:'ds0301',categoryId:'dc03',name:'Alquileres',icon:'🏠'},{id:'ds0302',categoryId:'dc03',name:'Intereses',icon:'🏦'},{id:'ds0303',categoryId:'dc03',name:'Dividendos',icon:'📊'},
+  {id:'ds0401',categoryId:'dc04',name:'Apoyo familiar',icon:'👨‍👩‍👧'},{id:'ds0402',categoryId:'dc04',name:'Mesada familiar',icon:'💰'},{id:'ds0403',categoryId:'dc04',name:'Reembolso laboral',icon:'💼'},{id:'ds0404',categoryId:'dc04',name:'Reembolso médico',icon:'🏥'},
+  {id:'ds0501',categoryId:'dc05',name:'Venta de activos',icon:'🏷️'},{id:'ds0502',categoryId:'dc05',name:'Herencias',icon:'📜'},{id:'ds0503',categoryId:'dc05',name:'Loterías y sorteos',icon:'🎲'},{id:'ds0504',categoryId:'dc05',name:'Regalos recibidos',icon:'🎁'},
+  {id:'ds0601',categoryId:'dc06',name:'Arriendo',icon:'🏠'},{id:'ds0602',categoryId:'dc06',name:'Hipoteca',icon:'🏦'},{id:'ds0603',categoryId:'dc06',name:'Administración',icon:'🏢'},{id:'ds0604',categoryId:'dc06',name:'Reparaciones',icon:'🔨'},{id:'ds0605',categoryId:'dc06',name:'Mantenimiento',icon:'🔧'},
+  {id:'ds0701',categoryId:'dc07',name:'Luz',icon:'💡'},{id:'ds0702',categoryId:'dc07',name:'Agua',icon:'💧'},{id:'ds0703',categoryId:'dc07',name:'Gas',icon:'🔥'},{id:'ds0704',categoryId:'dc07',name:'Basuras',icon:'🗑️'},{id:'ds0705',categoryId:'dc07',name:'Paquete TV/Internet/Teléfono',icon:'📡'},{id:'ds0706',categoryId:'dc07',name:'Televisión',icon:'📺'},{id:'ds0707',categoryId:'dc07',name:'Internet',icon:'🌐'},{id:'ds0708',categoryId:'dc07',name:'Teléfono fijo',icon:'📞'},
+  {id:'ds0801',categoryId:'dc08',name:'Mercado',icon:'🛒'},{id:'ds0802',categoryId:'dc08',name:'Frutas y verduras',icon:'🥦'},{id:'ds0803',categoryId:'dc08',name:'Carnes',icon:'🥩'},{id:'ds0804',categoryId:'dc08',name:'Panadería',icon:'🥐'},{id:'ds0805',categoryId:'dc08',name:'Abarrotes',icon:'📦'},
+  {id:'ds0901',categoryId:'dc09',name:'Gasolina',icon:'⛽'},{id:'ds0902',categoryId:'dc09',name:'Transporte público',icon:'🚌'},{id:'ds0903',categoryId:'dc09',name:'Taxi / Uber',icon:'🚕'},{id:'ds0904',categoryId:'dc09',name:'Delivery',icon:'🛵'},{id:'ds0905',categoryId:'dc09',name:'Tren',icon:'🚂'},{id:'ds0906',categoryId:'dc09',name:'Mantenimiento vehículo',icon:'🔧'},{id:'ds0907',categoryId:'dc09',name:'Peajes',icon:'🛣️'},{id:'ds0908',categoryId:'dc09',name:'Parqueaderos',icon:'🅿️'},
+  {id:'ds1001',categoryId:'dc10',name:'Matrículas',icon:'🎓'},{id:'ds1002',categoryId:'dc10',name:'Útiles escolares',icon:'✏️'},{id:'ds1003',categoryId:'dc10',name:'Libros',icon:'📚'},{id:'ds1004',categoryId:'dc10',name:'Cursos',icon:'💻'},{id:'ds1005',categoryId:'dc10',name:'Plataformas educativas',icon:'🖥️'},{id:'ds1006',categoryId:'dc10',name:'Transporte escolar',icon:'🚌'},
+  {id:'ds1101',categoryId:'dc11',name:'Medicinas',icon:'💊'},{id:'ds1102',categoryId:'dc11',name:'Consultas médicas',icon:'🩺'},{id:'ds1103',categoryId:'dc11',name:'Exámenes médicos',icon:'🔬'},{id:'ds1104',categoryId:'dc11',name:'Emergencias',icon:'🚨'},{id:'ds1105',categoryId:'dc11',name:'Odontología',icon:'🦷'},{id:'ds1106',categoryId:'dc11',name:'Terapias',icon:'🧠'},
+  {id:'ds1201',categoryId:'dc12',name:'Plan móvil',icon:'📱'},{id:'ds1202',categoryId:'dc12',name:'Recargas',icon:'🔋'},
+  {id:'ds1301',categoryId:'dc13',name:'Seguro de salud',icon:'🏥'},{id:'ds1302',categoryId:'dc13',name:'Seguro de vida',icon:'❤️'},{id:'ds1303',categoryId:'dc13',name:'Seguro de auto',icon:'🚗'},{id:'ds1304',categoryId:'dc13',name:'Seguro de hogar',icon:'🏠'},
+  {id:'ds1401',categoryId:'dc14',name:'Tarjeta de crédito',icon:'💳'},{id:'ds1402',categoryId:'dc14',name:'Crédito hipotecario',icon:'🏦'},{id:'ds1403',categoryId:'dc14',name:'Crédito de vehículo',icon:'🚗'},{id:'ds1404',categoryId:'dc14',name:'Crédito de consumo',icon:'🛒'},{id:'ds1405',categoryId:'dc14',name:'Préstamo personal',icon:'🤝'},{id:'ds1406',categoryId:'dc14',name:'Microcrédito',icon:'💵'},{id:'ds1407',categoryId:'dc14',name:'Crédito educativo',icon:'🎓'},{id:'ds1408',categoryId:'dc14',name:'Crédito empresarial',icon:'💼'},
+  {id:'ds1501',categoryId:'dc15',name:'Aseo básico',icon:'🧴'},{id:'ds1502',categoryId:'dc15',name:'Barbería / peluquería',icon:'✂️'},{id:'ds1503',categoryId:'dc15',name:'Productos esenciales',icon:'🛒'},{id:'ds1504',categoryId:'dc15',name:'Spa',icon:'💆'},{id:'ds1505',categoryId:'dc15',name:'Maquillaje',icon:'💄'},
+  {id:'ds1601',categoryId:'dc16',name:'Comida mascotas',icon:'🦴'},{id:'ds1602',categoryId:'dc16',name:'Veterinaria',icon:'🐾'},{id:'ds1603',categoryId:'dc16',name:'Medicamentos mascotas',icon:'💊'},{id:'ds1604',categoryId:'dc16',name:'Juguetes y accesorios',icon:'🎾'},
+  {id:'ds1701',categoryId:'dc17',name:'Impuesto renta',icon:'🧾'},{id:'ds1702',categoryId:'dc17',name:'Predial',icon:'🏠'},{id:'ds1703',categoryId:'dc17',name:'Vehicular',icon:'🚗'},{id:'ds1704',categoryId:'dc17',name:'Retefuente',icon:'📋'},
+  {id:'ds1801',categoryId:'dc18',name:'Restaurante',icon:'🍽️'},{id:'ds1802',categoryId:'dc18',name:'Café y snacks',icon:'☕'},{id:'ds1803',categoryId:'dc18',name:'Cine y teatro',icon:'🎬'},{id:'ds1804',categoryId:'dc18',name:'Conciertos',icon:'🎵'},{id:'ds1805',categoryId:'dc18',name:'Salidas sociales',icon:'🍺'},{id:'ds1806',categoryId:'dc18',name:'Comida rápida',icon:'🍔'},
+  {id:'ds1901',categoryId:'dc19',name:'Vuelos',icon:'✈️'},{id:'ds1902',categoryId:'dc19',name:'Hoteles',icon:'🏨'},{id:'ds1903',categoryId:'dc19',name:'Tours',icon:'🗺️'},{id:'ds1904',categoryId:'dc19',name:'Transporte en destino',icon:'🚌'},
+  {id:'ds2001',categoryId:'dc20',name:'Ropa',icon:'👗'},{id:'ds2002',categoryId:'dc20',name:'Zapatos',icon:'👟'},{id:'ds2003',categoryId:'dc20',name:'Accesorios',icon:'👜'},{id:'ds2004',categoryId:'dc20',name:'Artículos personales',icon:'🛍️'},
+  {id:'ds2101',categoryId:'dc21',name:'Streaming',icon:'📺'},{id:'ds2102',categoryId:'dc21',name:'Música',icon:'🎵'},{id:'ds2103',categoryId:'dc21',name:'E-commerce',icon:'📦'},{id:'ds2104',categoryId:'dc21',name:'Apps premium',icon:'📱'},
+  {id:'ds2201',categoryId:'dc22',name:'Gimnasio',icon:'🏋️'},{id:'ds2202',categoryId:'dc22',name:'Entrenador personal',icon:'💪'},{id:'ds2203',categoryId:'dc22',name:'Deportes',icon:'⚽'},{id:'ds2204',categoryId:'dc22',name:'Materiales de hobby',icon:'🎨'},{id:'ds2205',categoryId:'dc22',name:'Videojuegos',icon:'🎮'},
+  {id:'ds2301',categoryId:'dc23',name:'Teléfonos',icon:'📱'},{id:'ds2302',categoryId:'dc23',name:'Computadores',icon:'💻'},{id:'ds2303',categoryId:'dc23',name:'Accesorios tech',icon:'⌨️'},
+  {id:'ds2401',categoryId:'dc24',name:'Cumpleaños',icon:'🎂'},{id:'ds2402',categoryId:'dc24',name:'Bodas y celebraciones',icon:'💍'},{id:'ds2403',categoryId:'dc24',name:'Reuniones',icon:'🤝'},{id:'ds2404',categoryId:'dc24',name:'Decoraciones',icon:'🎊'},{id:'ds2405',categoryId:'dc24',name:'Regalos',icon:'🎁'},
+  {id:'ds2501',categoryId:'dc25',name:'Ahorro mensual',icon:'🗓️'},{id:'ds2502',categoryId:'dc25',name:'Ahorro semanal',icon:'📅'},{id:'ds2503',categoryId:'dc25',name:'Fondo de emergencia',icon:'🆘'},{id:'ds2504',categoryId:'dc25',name:'Aporte extraordinario',icon:'⭐'},
+  {id:'ds2601',categoryId:'dc26',name:'Fondos de inversión',icon:'🏦'},{id:'ds2602',categoryId:'dc26',name:'ETF',icon:'📊'},{id:'ds2603',categoryId:'dc26',name:'Acciones',icon:'📈'},{id:'ds2604',categoryId:'dc26',name:'Pensión voluntaria',icon:'👴'},{id:'ds2605',categoryId:'dc26',name:'Capital para proyectos',icon:'💡'},
+  {id:'ds2701',categoryId:'dc27',name:'Viaje',icon:'✈️'},{id:'ds2702',categoryId:'dc27',name:'Educación',icon:'🎓'},{id:'ds2703',categoryId:'dc27',name:'Vehículo',icon:'🚗'},{id:'ds2704',categoryId:'dc27',name:'Vivienda',icon:'🏠'},{id:'ds2705',categoryId:'dc27',name:'Emprendimiento',icon:'💡'},
+  {id:'ds2801',categoryId:'dc28',name:'Banco → Banco',icon:'↔️'},{id:'ds2802',categoryId:'dc28',name:'Banco → Efectivo',icon:'💵'},{id:'ds2803',categoryId:'dc28',name:'Efectivo → Banco',icon:'🏦'},
+  {id:'ds2901',categoryId:'dc29',name:'Pago a persona',icon:'👤'},{id:'ds2902',categoryId:'dc29',name:'Pago a negocio',icon:'🏢'},
+  {id:'ds3001',categoryId:'dc30',name:'Depósito en ventanilla',icon:'🏦'},{id:'ds3002',categoryId:'dc30',name:'Depósito en cajero',icon:'🏧'},{id:'ds3003',categoryId:'dc30',name:'Retiro en cajero',icon:'🏧'},{id:'ds3004',categoryId:'dc30',name:'Retiro en ventanilla',icon:'🏦'},{id:'ds3005',categoryId:'dc30',name:'Recarga billetera digital',icon:'💳'},{id:'ds3006',categoryId:'dc30',name:'Recarga móvil',icon:'📱'},
 ];
-
 // ════════════════════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════════════════════
@@ -608,7 +509,7 @@ function loadState(){
     else{S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));}
   }catch(e){S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));}
   // Migrate: if categories use old IDs (c1,c2...) replace with new DEFAULT_CATS
-  const needsCatReset=!S.categories||!S.categories.length||(S.categories[0]&&S.categories[0].id&&(S.categories[0].id.match(/^c\d+$/)||!DEFAULT_CATS.find(d=>d.id===S.categories[0].id)));
+  const needsCatReset=!S.categories||!S.categories.length||S.categories.length>30||(S.categories[0]&&S.categories[0].id&&(S.categories[0].id.match(/^c\d+$/)||S.categories.find(c=>c.name==='Bonificaciones')));
   if(needsCatReset){S.categories=JSON.parse(JSON.stringify(DEFAULT_CATS));S.subcategories=JSON.parse(JSON.stringify(DEFAULT_SUBS));}
   // Ensure protected Efectivo account exists
   // FIRST: migrate legacy efectivo-default
