@@ -2594,11 +2594,21 @@ function calcAllCambio(){
   window._cambioRows.forEach(function(_,idx){calcCambioRow(idx);});
 }
 function swapCambioRow(idx){
-  var f=document.getElementById('cambio-from-'+idx);
-  var t=document.getElementById('cambio-to-'+idx);
-  if(!f||!t)return;
-  var tmp=f.value;f.value=t.value;t.value=tmp;
+  if(!window._cambioRows||!window._cambioRows[idx])return;
+  var row=window._cambioRows[idx];
+  var tmp=row.from; row.from=row.to; row.to=tmp;
+  // Update labels
+  var fLbl=document.getElementById('cambio-from-lbl-'+idx);
+  var tLbl=document.getElementById('cambio-to-lbl-'+idx);
+  if(fLbl){fLbl.innerHTML=row.from?buildCambioLblHtml(row.from):'<span style="color:var(--text3)">— Seleccionar moneda —</span>';}
+  if(tLbl){tLbl.innerHTML=row.to?buildCambioLblHtml(row.to):'<span style="color:var(--text3)">— Seleccionar moneda —</span>';}
   calcCambioRow(idx);
+}
+function buildCambioLblHtml(code){
+  var meta=getCurrencyMeta(code);
+  var name=getCurName(code);
+  return '<span style="font-size:13px;font-weight:700">'+code+' <span style="color:var(--primary)">'+meta.sym+'</span></span>'
+    +'<span style="font-size:10px;color:var(--text3);margin-left:4px">'+name+'</span>';
 }
 function addCambioRow(){
   if(!window._cambioRows)window._cambioRows=[];
@@ -2639,10 +2649,10 @@ function renderCambio(){
 }
 function buildCambioRow(idx,row){
   var q="'";
-  var fromLabel=row.from?row.from+' · '+getCurName(row.from):'— Seleccionar moneda —';
-  var toLabel=row.to?row.to+' · '+getCurName(row.to):'— Seleccionar moneda —';
-  var fromColor=row.from?'var(--text)':'var(--text3)';
-  var toColor=row.to?'var(--text)':'var(--text3)';
+  var fromLabel=row.from?buildCambioLblHtml(row.from):'<span style="color:var(--text3)">— Seleccionar moneda —</span>';
+  var toLabel=row.to?buildCambioLblHtml(row.to):'<span style="color:var(--text3)">— Seleccionar moneda —</span>';
+  
+  
   var resultHtml='';
   if(row.result){
     resultHtml=''
@@ -2663,12 +2673,12 @@ function buildCambioRow(idx,row){
       +'<div style="display:flex;gap:8px;align-items:flex-end">'
         +'<div style="flex:1">'
           +'<label class="form-label" style="font-size:11px">De</label>'
-          +'<div class="cpick-wrap" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">'
+          +'<div class="cpick-wrap" style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
             +'<div style="padding:10px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="toggleCambioPick('+q+'cambio-pick-from-'+idx+q+','+q+'cambio-from-lbl-'+idx+q+')">'
-              +'<span id="cambio-from-lbl-'+idx+'" style="font-size:13px;color:'+fromColor+'">'+fromLabel+'</span>'
+              +'<span id="cambio-from-lbl-'+idx+'">'+fromLabel+'</span>'
               +'<span style="color:var(--primary);font-size:9px">▼</span>'
             +'</div>'
-            +'<div id="cambio-pick-from-'+idx+'" style="display:none;border-top:1px solid var(--border)">'
+            +'<div id="cambio-pick-from-'+idx+'" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 8px 8px;box-shadow:0 6px 20px rgba(0,0,0,.25)">'
               +'<div style="padding:6px 8px;border-bottom:1px solid var(--border)"><input class="form-input" style="font-size:12px;padding:6px 10px" placeholder="Buscar moneda..." oninput="filterCambioPick('+q+'cambio-pick-from-'+idx+q+',this.value)"></div>'
               +'<div style="max-height:160px;overflow-y:auto" id="cambio-pick-from-'+idx+'-list">'+buildCambioPickItems(idx,'from',row.from)+'</div>'
             +'</div>'
@@ -2679,12 +2689,12 @@ function buildCambioRow(idx,row){
         +'</div>'
         +'<div style="flex:1">'
           +'<label class="form-label" style="font-size:11px">A</label>'
-          +'<div class="cpick-wrap" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">'
+          +'<div class="cpick-wrap" style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
             +'<div style="padding:10px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="toggleCambioPick('+q+'cambio-pick-to-'+idx+q+','+q+'cambio-to-lbl-'+idx+q+')">'
-              +'<span id="cambio-to-lbl-'+idx+'" style="font-size:13px;color:'+toColor+'">'+toLabel+'</span>'
+              +'<span id="cambio-to-lbl-'+idx+'">'+toLabel+'</span>'
               +'<span style="color:var(--primary);font-size:9px">▼</span>'
             +'</div>'
-            +'<div id="cambio-pick-to-'+idx+'" style="display:none;border-top:1px solid var(--border)">'
+            +'<div id="cambio-pick-to-'+idx+'" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 8px 8px;box-shadow:0 6px 20px rgba(0,0,0,.25)">'
               +'<div style="padding:6px 8px;border-bottom:1px solid var(--border)"><input class="form-input" style="font-size:12px;padding:6px 10px" placeholder="Buscar moneda..." oninput="filterCambioPick('+q+'cambio-pick-to-'+idx+q+',this.value)"></div>'
               +'<div style="max-height:160px;overflow-y:auto" id="cambio-pick-to-'+idx+'-list">'+buildCambioPickItems(idx,'to',row.to)+'</div>'
             +'</div>'
@@ -2696,10 +2706,14 @@ function buildCambioRow(idx,row){
 }
 function buildCambioPickItems(idx,side,selected){
   var q="'";
-  var html='<div class="ppick-item" onclick="selectCambioCur('+q+idx+q+','+q+side+q+','+q+q+')" data-val="" style="color:var(--text3);padding:8px 12px;font-size:13px">— Seleccionar —</div>';
+  var html='<div class="ppick-item" onclick="selectCambioCur('+q+idx+q+','+q+side+q+','+q+q+')" data-val="" style="padding:10px 12px;color:var(--text3);font-size:13px;cursor:pointer">— Seleccionar —</div>';
   ALL_CURRENCIES.forEach(function(cur){
+    var meta=getCurrencyMeta(cur.code);
     var sel=cur.code===selected;
-    html+='<div class="ppick-item" onclick="selectCambioCur('+q+idx+q+','+q+side+q+','+q+cur.code+q+')" data-val="'+cur.code+'" style="padding:8px 12px;font-size:13px;font-weight:'+(sel?'600':'400')+';color:'+(sel?'var(--primary)':'var(--text)')+'">'+cur.code+' · '+cur.name+'</div>';
+    html+='<div class="ppick-item" onclick="selectCambioCur('+q+idx+q+','+q+side+q+','+q+cur.code+q+')" data-val="'+cur.code+'" style="padding:10px 12px;cursor:pointer;background:'+(sel?'rgba(0,212,170,.12)':'')+'">'
+      +'<div style="font-size:13px;font-weight:700;color:'+(sel?'var(--primary)':'var(--text)')+'">'+cur.code+' <span style="color:var(--primary)">'+meta.sym+'</span></div>'
+      +'<div style="font-size:11px;color:var(--text3)">'+cur.name+'</div>'
+      +'</div>';
   });
   return html;
 }
@@ -2741,8 +2755,8 @@ function selectCambioCur(idx,side,code){
   var lbl=document.getElementById(lblId);
   if(el)el.style.display='none';
   if(lbl){
-    lbl.textContent=code?code+' · '+getCurName(code):'— Seleccionar moneda —';
-    lbl.style.color=code?'var(--text)':'var(--text3)';
+    if(code){lbl.innerHTML=buildCambioLblHtml(code);}
+    else{lbl.innerHTML='<span style="color:var(--text3)">— Seleccionar moneda —</span>';}
   }
   calcCambioRow(idx);
 }
