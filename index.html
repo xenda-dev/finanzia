@@ -960,7 +960,8 @@ function renderPage(page){
 }
 function initExchangeWidget(){
   const el=document.getElementById('exchange-widget');
-  if(el)renderExchangeWidget(el);
+  if(el)renderExchangeWidget(el); // render immediately with cached
+  fetchExchangeRate();            // then refresh in background
 }
 function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('overlay').classList.add('active');}
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('overlay').classList.remove('active');}
@@ -2552,7 +2553,7 @@ function calcCambioRow(idx){
   var fmeta=getCurrencyMeta(from);var tmeta=getCurrencyMeta(to);
   function fmtL(v,meta){return meta.pos==='before'?meta.sym+v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}):v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+meta.sym;}
   function showResult(res,rateStr,live){
-    var suffix=live?' · En tiempo real ✓':' · Estimado';
+    var suffix=live?' · open.er-api.com ✓':' · Estimado';
     // Try to update existing DOM elements first
     var fEl=document.getElementById('cambio-formula-'+idx);
     var oEl=document.getElementById('cambio-output-'+idx);
@@ -2600,15 +2601,13 @@ function swapCambioRow(idx){
   // Update labels
   var fLbl=document.getElementById('cambio-from-lbl-'+idx);
   var tLbl=document.getElementById('cambio-to-lbl-'+idx);
-  if(fLbl){fLbl.innerHTML=row.from?buildCambioLblHtml(row.from):'<span style="color:var(--text3)">— Seleccionar moneda —</span>';}
-  if(tLbl){tLbl.innerHTML=row.to?buildCambioLblHtml(row.to):'<span style="color:var(--text3)">— Seleccionar moneda —</span>';}
+  if(fLbl){fLbl.innerHTML=row.from?buildCambioLblHtml(row.from):'<span style="font-size:14px;font-weight:600;color:var(--text3)">💱 Seleccionar</span>';}
+  if(tLbl){tLbl.innerHTML=row.to?buildCambioLblHtml(row.to):'<span style="font-size:14px;font-weight:600;color:var(--text3)">💱 Seleccionar</span>';}
   calcCambioRow(idx);
 }
 function buildCambioLblHtml(code){
   var meta=getCurrencyMeta(code);
-  var name=getCurName(code);
-  return '<span style="font-size:13px;font-weight:700">'+code+' <span style="color:var(--primary)">'+meta.sym+'</span></span>'
-    +'<span style="font-size:10px;color:var(--text3);margin-left:4px">'+name+'</span>';
+  return '<span style="font-size:14px;font-weight:600">💱 '+code+' <span style="color:var(--primary)">'+meta.sym+'</span></span>';
 }
 function addCambioRow(){
   if(!window._cambioRows)window._cambioRows=[];
@@ -2649,8 +2648,8 @@ function renderCambio(){
 }
 function buildCambioRow(idx,row){
   var q="'";
-  var fromLabel=row.from?buildCambioLblHtml(row.from):'<span style="color:var(--text3)">— Seleccionar moneda —</span>';
-  var toLabel=row.to?buildCambioLblHtml(row.to):'<span style="color:var(--text3)">— Seleccionar moneda —</span>';
+  var fromLabel=row.from?buildCambioLblHtml(row.from):'<span style="font-size:14px;font-weight:600;color:var(--text3)">💱 Seleccionar</span>';
+  var toLabel=row.to?buildCambioLblHtml(row.to):'<span style="font-size:14px;font-weight:600;color:var(--text3)">💱 Seleccionar</span>';
   
   
   var resultHtml='';
@@ -2706,12 +2705,12 @@ function buildCambioRow(idx,row){
 }
 function buildCambioPickItems(idx,side,selected){
   var q="'";
-  var html='<div class="ppick-item" onclick="selectCambioCur('+q+idx+q+','+q+side+q+','+q+q+')" data-val="" style="padding:10px 12px;color:var(--text3);font-size:13px;cursor:pointer">— Seleccionar —</div>';
+  var html='<div class="ppick-item" onclick="selectCambioCur('+q+idx+q+','+q+side+q+','+q+q+')" data-val="" style="padding:10px 12px;font-size:14px;font-weight:600;color:var(--text3);cursor:pointer">💱 Seleccionar</div>';
   ALL_CURRENCIES.forEach(function(cur){
     var meta=getCurrencyMeta(cur.code);
     var sel=cur.code===selected;
     html+='<div class="ppick-item" onclick="selectCambioCur('+q+idx+q+','+q+side+q+','+q+cur.code+q+')" data-val="'+cur.code+'" style="padding:10px 12px;cursor:pointer;background:'+(sel?'rgba(0,212,170,.12)':'')+'">'
-      +'<div style="font-size:13px;font-weight:700;color:'+(sel?'var(--primary)':'var(--text)')+'">'+cur.code+' <span style="color:var(--primary)">'+meta.sym+'</span></div>'
+      +'<div style="font-size:14px;font-weight:600;color:'+(sel?'var(--primary)':'var(--text)')+'">💱 '+cur.code+' <span style="color:var(--primary)">'+meta.sym+'</span></div>'
       +'<div style="font-size:11px;color:var(--text3)">'+cur.name+'</div>'
       +'</div>';
   });
@@ -2756,7 +2755,7 @@ function selectCambioCur(idx,side,code){
   if(el)el.style.display='none';
   if(lbl){
     if(code){lbl.innerHTML=buildCambioLblHtml(code);}
-    else{lbl.innerHTML='<span style="color:var(--text3)">— Seleccionar moneda —</span>';}
+    else{lbl.innerHTML='<span style="font-size:14px;font-weight:600;color:var(--text3)">💱 Seleccionar</span>';}
   }
   calcCambioRow(idx);
 }
@@ -3850,7 +3849,7 @@ function handleImportFile(e){
 function resetApp(){
   confirmDialog('⚠️','¿Restaurar la app?','Se eliminarán TODOS tus datos. Esta acción es irreversible.',()=>{
     localStorage.removeItem('finanziaState3');
-    S={currency:'',currentPage:'dashboard',theme:S.theme,language:S.language||'',weekStart:S.weekStart||'',currencies:[],accounts:[],transactions:[],categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),subcategories:JSON.parse(JSON.stringify(DEFAULT_SUBS)),budgets:[],goals:[],scheduledPayments:[],movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},analysisPeriod:'Mensual',analysisYear:new Date().getFullYear(),exchangeRate:{PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''}};
+    S={currency:'',currentPage:'dashboard',theme:S.theme,language:'',weekStart:'',currencies:[],accounts:[],transactions:[],categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),subcategories:JSON.parse(JSON.stringify(DEFAULT_SUBS)),budgets:[],goals:[],scheduledPayments:[],movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},analysisPeriod:'Mensual',analysisYear:new Date().getFullYear(),exchangeRate:{PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''}};
     saveState();refreshCurrencyToggle();navigate('dashboard');toast('App restaurada ✓');
   });
 }
