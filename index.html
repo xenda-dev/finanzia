@@ -2751,6 +2751,8 @@ function filterCambioPick(pickId,val){
 function selectCambioCur(idx,side,code){
   idx=parseInt(idx);
   if(!window._cambioRows[idx])return;
+  // Toggle: pressing already-selected deselects it
+  if(window._cambioRows[idx][side]===code) code='';
   window._cambioRows[idx][side]=code;
   var pickId='cambio-pick-'+side+'-'+idx;
   var lblId='cambio-'+side+'-lbl-'+idx;
