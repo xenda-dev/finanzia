@@ -99,12 +99,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .ai-input-area:empty:before{content:attr(data-placeholder);color:var(--text3);pointer-events:none}
 .ai-input-area{-webkit-user-select:text;user-select:text}
 .ppick-item{padding:10px 12px;cursor:pointer;font-size:13px;border-radius:4px}
-#profile-form .form-input,#profile-form .form-select{background:var(--surface)}
+#profile-form .form-input,#profile-form .form-select{background:var(--surface2)}
+#profile-page-overlay .form-input,#profile-page-overlay .form-select{background:var(--surface2)}
 .ppick-item:hover{background:rgba(0,212,170,.1)}
 .ai-input-area:empty:before{content:attr(data-placeholder);color:var(--text3);pointer-events:none}
 .ai-input-area{-webkit-user-select:text;user-select:text}
 .ppick-item{padding:10px 12px;cursor:pointer;font-size:13px;border-radius:4px}
-#profile-form .form-input,#profile-form .form-select{background:var(--surface)}
+#profile-form .form-input,#profile-form .form-select{background:var(--surface2)}
+#profile-page-overlay .form-input,#profile-page-overlay .form-select{background:var(--surface2)}
 .ppick-item:hover{background:rgba(0,212,170,.1)}
 .ai-quick-btns{display:flex;flex-wrap:wrap;gap:5px;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border)}
 .ai-quick-btn{background:var(--surface2);border:1px solid var(--border);color:var(--primary);padding:5px 10px;border-radius:16px;font-size:11px;cursor:pointer;font-family:var(--font);white-space:nowrap}
@@ -2821,6 +2823,27 @@ function selectPPick(inputId,pickId,val){
     item.style.fontWeight=item.dataset.val===val?'700':'';
   });
 }
+function getDefaultPhoneCode(){
+  try{
+    const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'';
+    const lang=(navigator.language||'').toLowerCase();
+    if(tz.includes('Warsaw')||tz.includes('Europe/Warsaw')||lang.startsWith('pl'))return '+48';
+    if(tz.includes('Bogota')||tz.includes('America/Bogota')||lang==='es-co')return '+57';
+    if(tz.includes('America/New_York')||tz.includes('America/Los_Angeles')||lang.startsWith('en-us'))return '+1';
+    if(tz.includes('Europe/London')||lang.startsWith('en-gb'))return '+44';
+    if(tz.includes('Europe/Madrid')||lang==='es-es')return '+34';
+    if(tz.includes('America/Mexico_City')||lang==='es-mx')return '+52';
+    if(tz.includes('America/Argentina')||lang==='es-ar')return '+54';
+    if(tz.includes('America/Sao_Paulo')||lang.startsWith('pt-br'))return '+55';
+    if(tz.includes('Europe/Berlin')||lang.startsWith('de'))return '+49';
+    if(tz.includes('Europe/Paris')||lang.startsWith('fr'))return '+33';
+    if(tz.includes('Europe/Rome')||lang.startsWith('it'))return '+39';
+    if(tz.includes('Asia/Shanghai')||lang.startsWith('zh'))return '+86';
+    if(tz.includes('Asia/Kolkata')||lang.startsWith('hi'))return '+91';
+    if(tz.includes('Asia/Tokyo')||lang.startsWith('ja'))return '+81';
+  }catch(e){}
+  return '';
+}
 function updatePhoneLen(code){var m={'+57':10,'+48':9,'+1':10,'+34':9,'+52':10,'+54':10,'+55':11,'+56':9,'+51':9,'+58':11,'+593':9,'+502':8,'+44':10,'+49':11,'+33':9,'+39':10,'+7':10,'+86':11,'+91':10,'+81':11,'+82':11};var i=document.getElementById('cfg-phone');if(i)i.maxLength=m[code]||15;}
 
 function openProfilePage(){
@@ -2868,7 +2891,7 @@ function buildProfileFormHTML(){
         <div class="form-group"><label class="form-label">Teléfono <span style="color:var(--danger)">*</span></label>
           <div style="display:flex;gap:6px">
             <select class="form-select" id="cfg-phone-code" style="width:110px;flex-shrink:0" onchange="updatePhoneLen(this.value)">
-              <option value="">Indicativo</option>
+              <option value="">${getDefaultPhoneCode()}</option>
               <option value="+57" ${(S.profile&&S.profile.phoneCode)==="+57"?'selected':''}>🇨🇴 +57</option>
               <option value="+48" ${(S.profile&&S.profile.phoneCode)==="+48"?'selected':''}>🇵🇱 +48</option>
               <option value="+1" ${(S.profile&&S.profile.phoneCode)==="+1"?'selected':''}>🇺🇸 +1</option>
