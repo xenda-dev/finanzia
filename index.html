@@ -295,14 +295,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <button class="drawer-item" data-page="simulador" id="dmi-simulador"><div class="drawer-item-icon">💹</div><span>Simulador de ahorro</span></button>
     <button class="drawer-item" data-page="estrategia" id="dmi-estrategia"><div class="drawer-item-icon">❄️</div><span>Estrategia de deudas</span></button>
     <button class="drawer-item" data-page="cambio" id="dmi-cambio"><div class="drawer-item-icon">💱</div><span>Tipo de cambio</span></button>
-    <div class="drawer-group-label" id="dgl-inversiones" onclick="toggleDrawerGroup('dgl-inversiones-items',this)" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">Inversiones <span class="dgl-arrow" style="font-size:10px;transition:transform .2s">▼</span></div>
-    <div id="dgl-inversiones-items">
-      <button class="drawer-item" data-page="inversiones" id="dmi-inversiones"><div class="drawer-item-icon">📈</div><span>Mis inversiones</span></button>
-    </div>
-    <div class="drawer-group-label" id="dgl-listas" onclick="toggleDrawerGroup('dgl-listas-items',this)" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">Listas <span class="dgl-arrow" style="font-size:10px;transition:transform .2s">▼</span></div>
-    <div id="dgl-listas-items">
-      <button class="drawer-item" data-page="listas" id="dmi-listas"><div class="drawer-item-icon">🛒</div><span>Listas de compra</span></button>
-    </div>
+    <button class="drawer-item" data-page="inversiones" id="dmi-inversiones"><div class="drawer-item-icon">📈</div><span>Inversiones</span></button>
+    <button class="drawer-item" data-page="listas" id="dmi-listas"><div class="drawer-item-icon">🛒</div><span>Listas de compra</span></button>
     <div class="drawer-group-label" id="dgl-configuracion">Configuración</div>
     <button class="drawer-item" data-page="configuracion" id="dmi-configuracion"><div class="drawer-item-icon">⚙️</div><span>Ajustes</span></button>
   </div>
@@ -3995,6 +3989,7 @@ function openListDetail(id){
   overlay.style.cssText = 'position:fixed;inset:0;z-index:200;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   overlay.innerHTML = buildListDetailHTML(l);
   document.body.appendChild(overlay);
+  renderListItems(l);
 }
 
 function buildListDetailHTML(l){
@@ -4048,17 +4043,42 @@ function buildListDetailHTML(l){
 }
 
 function buildListItemHTML(listId, item){
-  return `<div id="li-${item.id}" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)22">
-    <div onclick="toggleListItem('${listId}','${item.id}')" style="width:24px;height:24px;border-radius:6px;border:2px solid ${item.done?'var(--success)':'var(--border)'};background:${item.done?'var(--success)':'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s">
-      ${item.done?'<span style="color:white;font-size:14px">✓</span>':''}
-    </div>
-    <div style="flex:1;${item.done?'text-decoration:line-through;color:var(--text3)':''}">
-      <div style="font-size:14px;font-weight:600">${item.name}</div>
-      ${item.qty&&item.qty!=1?`<div style="font-size:11px;color:var(--text2)">Cantidad: ${item.qty}</div>`:''}
-    </div>
-    ${item.price?`<div style="font-size:13px;font-weight:700;color:var(--text2)">${fmt(parseFloat(item.price)*parseFloat(item.qty||1))}</div>`:''}
-    <button onclick="removeListItem('${listId}','${item.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px">✕</button>
-  </div>`;
+  var total=(parseFloat(item.price)||0)*(parseFloat(item.qty)||1);
+  var lid=listId, iid=item.id;
+  var el=document.createElement('div');
+  el.id='li-'+iid;
+  el.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)';
+  // Checkbox
+  var chk=document.createElement('div');
+  chk.style.cssText='width:24px;height:24px;border-radius:6px;border:2px solid '+(item.done?'var(--success)':'var(--border)')+';background:'+(item.done?'var(--success)':'transparent')+';cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s';
+  chk.innerHTML=item.done?'<span style="color:white;font-size:14px">✓</span>':'';
+  chk.onclick=function(){toggleListItem(lid,iid);};
+  // Content
+  var content=document.createElement('div');
+  content.style.cssText='flex:1;'+(item.done?'text-decoration:line-through;color:var(--text3)':'');
+  var nameDiv=document.createElement('div');
+  nameDiv.style.cssText='font-size:13px;font-weight:600';
+  nameDiv.textContent=item.name;
+  // Qty + Price inputs
+  var inputs=document.createElement('div');
+  inputs.style.cssText='display:flex;gap:6px;margin-top:4px;align-items:center';
+  var qtyInp=document.createElement('input');
+  qtyInp.type='number';qtyInp.min='1';qtyInp.value=item.qty||1;qtyInp.placeholder='Cant.';
+  qtyInp.style.cssText='width:52px;padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px;color:var(--text);font-family:var(--font)';
+  qtyInp.onchange=function(){updateItemQty(lid,iid,this.value);};
+  var priceInp=document.createElement('input');
+  priceInp.type='number';priceInp.min='0';priceInp.value=item.price||'';priceInp.placeholder='Precio';
+  priceInp.style.cssText='width:80px;padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:12px;color:var(--text);font-family:var(--font)';
+  priceInp.onchange=function(){updateItemPrice(lid,iid,this.value);};
+  inputs.appendChild(qtyInp);inputs.appendChild(priceInp);
+  if(total>0){var tot=document.createElement('span');tot.style.cssText='font-size:12px;font-weight:700;color:var(--primary)';tot.textContent='= '+fmt(total);inputs.appendChild(tot);}
+  content.appendChild(nameDiv);content.appendChild(inputs);
+  // Delete
+  var del=document.createElement('button');
+  del.style.cssText='background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px';
+  del.textContent='✕';del.onclick=function(){removeListItem(lid,iid);};
+  el.appendChild(chk);el.appendChild(content);el.appendChild(del);
+  return el.outerHTML;
 }
 
 function addListItem(listId){
@@ -4068,31 +4088,23 @@ function addListItem(listId){
   const l = (S.shoppingLists||[]).find(x=>x.id===listId);
   if(!l) return;
   if(!l.items) l.items=[];
-  l.items.push({id:uid(),name:inp.value.trim(),qty:1,price:'',done:false,section:secEl?secEl.value:''});
+  var secVal=secEl?secEl.value:'';
+  l.items.push({id:uid(),name:inp.value.trim(),qty:1,price:'',done:false,section:secVal});
   inp.value='';
+  if(secEl)secEl.value='';
   saveState();
-  // Refresh overlay
-  const container = document.getElementById('list-items-container');
-  if(container){
-    const items = l.items;
-    let html = items.map(i=>buildListItemHTML(l.id,i)).join('');
-    container.innerHTML = html||'<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Lista vacía</div></div>';
-  }
+  renderListItems(l);
   inp.focus();
 }
 
 function toggleListItem(listId, itemId){
-  const l = (S.shoppingLists||[]).find(x=>x.id===listId);
-  if(!l) return;
-  const item = (l.items||[]).find(i=>i.id===itemId);
-  if(!item) return;
-  item.done = !item.done;
+  var l=(S.shoppingLists||[]).find(function(x){return x.id===listId;});
+  if(!l)return;
+  var item=(l.items||[]).find(function(i){return i.id===itemId;});
+  if(!item)return;
+  item.done=!item.done;
   saveState();
-  const el = document.getElementById('li-'+itemId);
-  if(el){
-    const container = document.getElementById('list-items-container');
-    if(container) container.innerHTML = l.items.map(i=>buildListItemHTML(l.id,i)).join('');
-  }
+  renderListItems(l);
 }
 
 function removeListItem(listId, itemId){
@@ -4285,6 +4297,60 @@ function buildInvExtraFields(type, inv){
   return '';
 }
 
+
+
+function renderListItems(l){
+  var items=l.items||[];
+  var container=document.getElementById('list-items-container');
+  if(!container)return;
+  if(!items.length){container.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Lista vacía</div><div class="empty-desc">Agrega ítems arriba</div></div>';return;}
+  var html='';
+  if(l.type==='supermercado'){
+    var sections={};
+    items.forEach(function(i){var sec=i.section||'📦 Otros';if(!sections[sec])sections[sec]=[];sections[sec].push(i);});
+    SUPER_SECTIONS.forEach(function(sec){
+      if(!sections[sec]||!sections[sec].length)return;
+      html+='<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:10px 0 4px;border-bottom:1px solid var(--border);margin-bottom:4px">'+sec+'</div>';
+      html+=sections[sec].map(function(i){return buildListItemHTML(l.id,i);}).join('');
+    });
+    var unsec=items.filter(function(i){return !i.section||!SUPER_SECTIONS.includes(i.section);});
+    if(unsec.length)html+=unsec.map(function(i){return buildListItemHTML(l.id,i);}).join('');
+  } else {
+    html=items.map(function(i){return buildListItemHTML(l.id,i);}).join('');
+  }
+  container.innerHTML=html||'<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Lista vacía</div></div>';
+  refreshListSummary(l);
+}
+function updateItemQty(listId, itemId, val){
+  var l=(S.shoppingLists||[]).find(function(x){return x.id===listId;});
+  if(!l)return;
+  var item=(l.items||[]).find(function(i){return i.id===itemId;});
+  if(!item)return;
+  item.qty=parseFloat(val)||1;
+  saveState();
+  refreshListSummary(l);
+}
+function updateItemPrice(listId, itemId, val){
+  var l=(S.shoppingLists||[]).find(function(x){return x.id===listId;});
+  if(!l)return;
+  var item=(l.items||[]).find(function(i){return i.id===itemId;});
+  if(!item)return;
+  item.price=val;
+  saveState();
+  refreshListSummary(l);
+}
+function refreshListSummary(l){
+  var totalEst=(l.items||[]).reduce(function(s,i){return s+(parseFloat(i.price)||0)*(parseFloat(i.qty)||1);},0);
+  var totalDone=(l.items||[]).filter(function(i){return i.done;}).reduce(function(s,i){return s+(parseFloat(i.price)||0)*(parseFloat(i.qty)||1);},0);
+  var done=(l.items||[]).filter(function(i){return i.done;}).length;
+  var total=(l.items||[]).length;
+  var estEl=document.getElementById('list-summary-est');
+  var doneEl=document.getElementById('list-summary-done');
+  var cntEl=document.getElementById('list-summary-cnt');
+  if(estEl)estEl.textContent=totalEst>0?fmt(totalEst):'—';
+  if(doneEl)doneEl.textContent=totalDone>0?fmt(totalDone):'—';
+  if(cntEl)cntEl.textContent=done+'/'+total;
+}
 function updateInvFields(type){
   const inv = null;
   document.getElementById('inv-extra-fields').innerHTML = buildInvExtraFields(type, inv);
