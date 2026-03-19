@@ -2523,92 +2523,231 @@ async function callAI(userMsg){
 // ════════════════════════════════════════════════════════════
 // TIPO DE CAMBIO
 // ════════════════════════════════════════════════════════════
-function renderCambio(){
-  const curOpts=Object.keys(CURRENCY_META).map(code=>{
-    const m=getCurrencyMeta(code);
-    return `<option value="${code}">${code} ${m.sym}</option>`;
-  }).join('');
-  const fromDef=S.currencies&&S.currencies[0]?S.currencies[0]:'USD';
-  const toDef=S.currencies&&S.currencies[1]?S.currencies[1]:'EUR';
-  return`
-    <div class="card" style="margin-bottom:12px">
-      <div class="card-title">💱 Conversor de tipo de cambio</div>
-      <div class="form-group">
-        <label class="form-label">Monto</label>
-        <input class="form-input" type="number" id="cambio-amount" placeholder="Ej: 1000" oninput="calcCambio()" value="1">
-      </div>
-      <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px">
-        <div style="flex:1">
-          <label class="form-label">De</label>
-          <select class="form-select" id="cambio-from" onchange="calcCambio()" style="padding:10px 8px;font-size:13px">
-            ${curOpts.replace('<option value="${fromDef}">', '<option value="${fromDef}" selected>')}
-          </select>
-        </div>
-        <div style="flex-shrink:0;padding-bottom:2px">
-          <button onclick="swapCambio()" style="width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--primary);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">⇄</button>
-        </div>
-        <div style="flex:1">
-          <label class="form-label">A</label>
-          <select class="form-select" id="cambio-to" onchange="calcCambio()" style="padding:10px 8px;font-size:13px">
-            ${curOpts.replace('<option value="${toDef}">', '<option value="${toDef}" selected>')}
-          </select>
-        </div>
-      </div>
-      <div id="cambio-result" style="background:var(--surface2);border-radius:var(--radius);padding:16px;margin-top:4px;text-align:center;display:none">
-        <div style="font-size:13px;color:var(--text2)" id="cambio-formula">—</div>
-        <div style="font-size:28px;font-weight:800;color:var(--primary);margin:8px 0" id="cambio-output">—</div>
-        <div style="font-size:11px;color:var(--text3)" id="cambio-rate">—</div>
-      </div>
-    </div>
-    <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:var(--radius);padding:12px;font-size:12px;color:var(--text2)">
-      ℹ️ Los tipos de cambio son aproximados y se actualizan en tiempo real. Para transacciones financieras importantes consulta a tu entidad bancaria.
-    </div>
-  `;
-}
-function calcCambio(){
-  const amount=parseFloat(document.getElementById('cambio-amount')?.value)||0;
-  const from=document.getElementById('cambio-from')?.value;
-  const to=document.getElementById('cambio-to')?.value;
-  const res=document.getElementById('cambio-result');
-  if(!amount||!from||!to){if(res)res.style.display='none';return;}
-  if(res)res.style.display='block';
-  // Use cross-rate via exchange rate state
-  const rates=S.exchangeRate&&S.exchangeRate.rates?S.exchangeRate.rates:{};
-  const base=S.exchangeRate&&S.exchangeRate.base?S.exchangeRate.base:'PLN';
-  let rate=1;
+
+function calcCambioRow(idx){
+  if(!window._cambioRows)return;
+  var row=window._cambioRows[idx];
+  if(!row)return;
+  var from=row.from;
+  var to=row.to;
+  var amount=parseFloat(document.getElementById('cambio-amount')?.value)||0;
+  window._cambioAmount=amount;
+  // Hide result if incomplete
+  var resHidden=document.getElementById('cambio-result-hidden-'+idx);
+  if(!amount||!from||!to){
+    row.result=null;
+    if(resHidden)resHidden.innerHTML='';
+    // hide visible result if exists
+    var vis=document.getElementById('cambio-formula-'+idx);
+    if(vis&&vis.parentElement)vis.parentElement.style.display='none';
+    return;
+  }
+  var rates=S.exchangeRate&&S.exchangeRate.rates?S.exchangeRate.rates:{};
+  var rate=1;
   if(from===to){rate=1;}
   else if(rates[to]&&rates[from]){rate=rates[to]/rates[from];}
-  else if(rates[to]){rate=rates[to];}
-  else if(rates[from]){rate=1/rates[from];}
-  const result=amount*rate;
-  const fmeta=getCurrencyMeta(from);const tmeta=getCurrencyMeta(to);
-  const fmtLocal=(v,meta)=>meta.pos==='before'?meta.sym+v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}):v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+meta.sym;
-  document.getElementById('cambio-formula').textContent=fmtLocal(amount,fmeta)+' = ';
-  document.getElementById('cambio-output').textContent=fmtLocal(result,tmeta);
-  document.getElementById('cambio-rate').textContent='1 '+from+' = '+rate.toFixed(4)+' '+to+(rates[from]||rates[to]?' · Tasa en tiempo real':' · Tasa estimada');
-  // Fetch fresh rate in background
+  else if(rates[to]&&!rates[from]){rate=rates[to];}
+  else if(!rates[to]&&rates[from]){rate=1/rates[from];}
+  var result=amount*rate;
+  var fmeta=getCurrencyMeta(from);var tmeta=getCurrencyMeta(to);
+  function fmtL(v,meta){return meta.pos==='before'?meta.sym+v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2}):v.toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2})+' '+meta.sym;}
+  function showResult(res,rateStr,live){
+    var suffix=live?' · En tiempo real ✓':' · Estimado';
+    // Try to update existing DOM elements first
+    var fEl=document.getElementById('cambio-formula-'+idx);
+    var oEl=document.getElementById('cambio-output-'+idx);
+    var rEl=document.getElementById('cambio-rate-'+idx);
+    if(fEl&&oEl&&rEl){
+      fEl.parentElement.style.display='';
+      fEl.textContent=fmtL(amount,fmeta)+' =';
+      oEl.textContent=fmtL(res,tmeta);
+      rEl.textContent='1 '+from+' = '+rateStr.toFixed(4)+' '+to+suffix;
+    } else {
+      // Build inline into hidden placeholder
+      var ph=document.getElementById('cambio-result-hidden-'+idx);
+      if(ph){
+        ph.innerHTML='<div style="background:var(--surface2);border-radius:var(--radius);padding:12px 14px;margin-top:10px;text-align:center">'
+          +'<div style="font-size:12px;color:var(--text2)" id="cambio-formula-'+idx+'">'+fmtL(amount,fmeta)+' =</div>'
+          +'<div style="font-size:26px;font-weight:800;color:var(--primary);margin:6px 0" id="cambio-output-'+idx+'">'+fmtL(res,tmeta)+'</div>'
+          +'<div style="font-size:11px;color:var(--text3)" id="cambio-rate-'+idx+'">1 '+from+' = '+rateStr.toFixed(4)+' '+to+suffix+'</div>'
+          +'</div>';
+      }
+    }
+    row.result={formula:fmtL(amount,fmeta)+' =',output:fmtL(res,tmeta),rate:'1 '+from+' = '+rateStr.toFixed(4)+' '+to+suffix};
+  }
+  showResult(result,rate,false);
+  // Always fetch live rate directly with 'from' as base
   if(from!==to){
     fetch('https://open.er-api.com/v6/latest/'+from)
-      .then(r=>r.json())
-      .then(data=>{
+      .then(function(r){return r.json();})
+      .then(function(data){
         if(data.rates&&data.rates[to]){
-          const liveRate=data.rates[to];
-          const liveResult=amount*liveRate;
-          const outEl=document.getElementById('cambio-output');
-          const rateEl=document.getElementById('cambio-rate');
-          if(outEl)outEl.textContent=fmtLocal(liveResult,tmeta);
-          if(rateEl)rateEl.textContent='1 '+from+' = '+liveRate.toFixed(4)+' '+to+' · En tiempo real ✓';
+          var lr=data.rates[to];
+          showResult(amount*lr,lr,true);
         }
-      }).catch(()=>{});
+      }).catch(function(){});
   }
 }
-function swapCambio(){
-  const f=document.getElementById('cambio-from');
-  const t=document.getElementById('cambio-to');
-  if(!f||!t)return;
-  const tmp=f.value;f.value=t.value;t.value=tmp;
-  calcCambio();
+function calcAllCambio(){
+  window._cambioAmount=parseFloat(document.getElementById('cambio-amount')?.value)||0;
+  if(!window._cambioRows)return;
+  window._cambioRows.forEach(function(_,idx){calcCambioRow(idx);});
 }
+function swapCambioRow(idx){
+  var f=document.getElementById('cambio-from-'+idx);
+  var t=document.getElementById('cambio-to-'+idx);
+  if(!f||!t)return;
+  var tmp=f.value;f.value=t.value;t.value=tmp;
+  calcCambioRow(idx);
+}
+function addCambioRow(){
+  if(!window._cambioRows)window._cambioRows=[];
+  window._cambioRows.push({from:'',to:'',result:null});
+  renderPage('cambio');
+}
+function removeCambioRow(idx){
+  if(!window._cambioRows||window._cambioRows.length<=1)return;
+  window._cambioRows.splice(idx,1);
+  renderPage('cambio');
+}
+function renderCambio(){
+  var q="'";
+  if(!window._cambioRows||!window._cambioRows.length){
+    window._cambioRows=[{from:'',to:'',result:null}];
+  }
+  window._cambioAmount=window._cambioAmount||1;
+  var rowsHtml='';
+  window._cambioRows.forEach(function(row,idx){
+    rowsHtml+=buildCambioRow(idx,row);
+  });
+  var html=''
+    +'<div class="card" style="margin-bottom:12px">'
+      +'<div class="card-title">💱 Tipo de cambio</div>'
+      +'<div class="form-group" style="margin-bottom:0">'
+        +'<label class="form-label">Monto</label>'
+        +'<input class="form-input" type="number" id="cambio-amount" placeholder="Ej: 1000" oninput="calcAllCambio()" value="'+window._cambioAmount+'">'
+      +'</div>'
+    +'</div>'
+    +rowsHtml
+    +'<button onclick="addCambioRow()" style="width:100%;padding:13px;border-radius:50px;border:1.5px dashed var(--border);background:transparent;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px">'
+      +'<span style="font-size:20px;font-weight:300;line-height:1;color:var(--primary)">+</span> Agregar par de monedas'
+    +'</button>'
+    +'<div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:var(--radius);padding:12px;font-size:12px;color:var(--text2)">'
+      +'ℹ️ Tipos de cambio en tiempo real. Para transacciones importantes consulta tu entidad bancaria.'
+    +'</div>';
+  return html;
+}
+function buildCambioRow(idx,row){
+  var q="'";
+  var fromLabel=row.from?row.from+' · '+getCurName(row.from):'— Seleccionar moneda —';
+  var toLabel=row.to?row.to+' · '+getCurName(row.to):'— Seleccionar moneda —';
+  var fromColor=row.from?'var(--text)':'var(--text3)';
+  var toColor=row.to?'var(--text)':'var(--text3)';
+  var resultHtml='';
+  if(row.result){
+    resultHtml=''
+      +'<div style="background:var(--surface2);border-radius:var(--radius);padding:12px 14px;margin-top:10px;text-align:center">'
+        +'<div style="font-size:12px;color:var(--text2)" id="cambio-formula-'+idx+'">'+row.result.formula+'</div>'
+        +'<div style="font-size:26px;font-weight:800;color:var(--primary);margin:6px 0" id="cambio-output-'+idx+'">'+row.result.output+'</div>'
+        +'<div style="font-size:11px;color:var(--text3)" id="cambio-rate-'+idx+'">'+row.result.rate+'</div>'
+      +'</div>';
+  } else {
+    resultHtml='<div id="cambio-result-hidden-'+idx+'"></div>';
+  }
+  var deleteBtn=window._cambioRows.length>1
+    ?'<button onclick="removeCambioRow('+idx+')" style="width:26px;height:26px;border-radius:50%;background:var(--surface2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--danger);flex-shrink:0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+    :'';
+  return ''
+    +'<div class="card" style="margin-bottom:10px;padding:14px">'
+      +(deleteBtn?'<div style="display:flex;justify-content:flex-end;margin-bottom:6px">'+deleteBtn+'</div>':'')
+      +'<div style="display:flex;gap:8px;align-items:flex-end">'
+        +'<div style="flex:1">'
+          +'<label class="form-label" style="font-size:11px">De</label>'
+          +'<div class="cpick-wrap" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">'
+            +'<div style="padding:10px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="toggleCambioPick('+q+'cambio-pick-from-'+idx+q+','+q+'cambio-from-lbl-'+idx+q+')">'
+              +'<span id="cambio-from-lbl-'+idx+'" style="font-size:13px;color:'+fromColor+'">'+fromLabel+'</span>'
+              +'<span style="color:var(--primary);font-size:9px">▼</span>'
+            +'</div>'
+            +'<div id="cambio-pick-from-'+idx+'" style="display:none;border-top:1px solid var(--border)">'
+              +'<div style="padding:6px 8px;border-bottom:1px solid var(--border)"><input class="form-input" style="font-size:12px;padding:6px 10px" placeholder="Buscar moneda..." oninput="filterCambioPick('+q+'cambio-pick-from-'+idx+q+',this.value)"></div>'
+              +'<div style="max-height:160px;overflow-y:auto" id="cambio-pick-from-'+idx+'-list">'+buildCambioPickItems(idx,'from',row.from)+'</div>'
+            +'</div>'
+          +'</div>'
+        +'</div>'
+        +'<div style="flex-shrink:0;padding-bottom:2px">'
+          +'<button onclick="swapCambioRow('+idx+')" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--primary);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center">⇄</button>'
+        +'</div>'
+        +'<div style="flex:1">'
+          +'<label class="form-label" style="font-size:11px">A</label>'
+          +'<div class="cpick-wrap" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">'
+            +'<div style="padding:10px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="toggleCambioPick('+q+'cambio-pick-to-'+idx+q+','+q+'cambio-to-lbl-'+idx+q+')">'
+              +'<span id="cambio-to-lbl-'+idx+'" style="font-size:13px;color:'+toColor+'">'+toLabel+'</span>'
+              +'<span style="color:var(--primary);font-size:9px">▼</span>'
+            +'</div>'
+            +'<div id="cambio-pick-to-'+idx+'" style="display:none;border-top:1px solid var(--border)">'
+              +'<div style="padding:6px 8px;border-bottom:1px solid var(--border)"><input class="form-input" style="font-size:12px;padding:6px 10px" placeholder="Buscar moneda..." oninput="filterCambioPick('+q+'cambio-pick-to-'+idx+q+',this.value)"></div>'
+              +'<div style="max-height:160px;overflow-y:auto" id="cambio-pick-to-'+idx+'-list">'+buildCambioPickItems(idx,'to',row.to)+'</div>'
+            +'</div>'
+          +'</div>'
+        +'</div>'
+      +'</div>'
+      +resultHtml
+    +'</div>';
+}
+function buildCambioPickItems(idx,side,selected){
+  var q="'";
+  var html='<div class="ppick-item" onclick="selectCambioCur('+q+idx+q+','+q+side+q+','+q+q+')" data-val="" style="color:var(--text3);padding:8px 12px;font-size:13px">— Seleccionar —</div>';
+  ALL_CURRENCIES.forEach(function(cur){
+    var sel=cur.code===selected;
+    html+='<div class="ppick-item" onclick="selectCambioCur('+q+idx+q+','+q+side+q+','+q+cur.code+q+')" data-val="'+cur.code+'" style="padding:8px 12px;font-size:13px;font-weight:'+(sel?'600':'400')+';color:'+(sel?'var(--primary)':'var(--text)')+'">'+cur.code+' · '+cur.name+'</div>';
+  });
+  return html;
+}
+function getCurName(code){
+  var found=ALL_CURRENCIES.find(function(c){return c.code===code;});
+  return found?found.name:code;
+}
+function toggleCambioPick(pickId,lblId){
+  var el=document.getElementById(pickId);
+  if(!el)return;
+  var isOpen=el.style.display!=='none';
+  // Close all other pickers first
+  document.querySelectorAll('[id^="cambio-pick-"]').forEach(function(p){
+    if(!p.id.endsWith('-list'))p.style.display='none';
+  });
+  el.style.display=isOpen?'none':'block';
+  if(!isOpen){
+    var inp=el.querySelector('input');
+    if(inp){inp.value='';filterCambioPick(pickId,'');setTimeout(function(){inp.focus();},50);}
+  }
+}
+function filterCambioPick(pickId,val){
+  var listId=pickId+'-list';
+  var list=document.getElementById(listId);
+  if(!list)return;
+  var v=val.toLowerCase();
+  list.querySelectorAll('.ppick-item').forEach(function(item){
+    if(!item.dataset.val){item.style.display='';return;}
+    item.style.display=(item.textContent.toLowerCase().includes(v)||!v)?'':'none';
+  });
+}
+function selectCambioCur(idx,side,code){
+  idx=parseInt(idx);
+  if(!window._cambioRows[idx])return;
+  window._cambioRows[idx][side]=code;
+  var pickId='cambio-pick-'+side+'-'+idx;
+  var lblId='cambio-'+side+'-lbl-'+idx;
+  var el=document.getElementById(pickId);
+  var lbl=document.getElementById(lblId);
+  if(el)el.style.display='none';
+  if(lbl){
+    lbl.textContent=code?code+' · '+getCurName(code):'— Seleccionar moneda —';
+    lbl.style.color=code?'var(--text)':'var(--text3)';
+  }
+  calcCambioRow(idx);
+}
+
+
 
 // ════════════════════════════════════════════════════════════
 // ESTRATEGIA DE DEUDAS
