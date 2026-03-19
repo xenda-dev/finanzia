@@ -295,8 +295,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <button class="drawer-item" data-page="simulador" id="dmi-simulador"><div class="drawer-item-icon">💹</div><span>Simulador de ahorro</span></button>
     <button class="drawer-item" data-page="estrategia" id="dmi-estrategia"><div class="drawer-item-icon">❄️</div><span>Estrategia de deudas</span></button>
     <button class="drawer-item" data-page="cambio" id="dmi-cambio"><div class="drawer-item-icon">💱</div><span>Tipo de cambio</span></button>
-    <button class="drawer-item" data-page="inversiones" id="dmi-inversiones"><div class="drawer-item-icon">📈</div><span>Inversiones</span></button>
     <button class="drawer-item" data-page="listas" id="dmi-listas"><div class="drawer-item-icon">🛒</div><span>Listas de compra</span></button>
+    <div class="drawer-group-label" id="dgl-inversiones">Inversiones</div>
+    <button class="drawer-item" data-page="inversiones" id="dmi-inversiones"><div class="drawer-item-icon">📈</div><span>Mis inversiones</span></button>
     <div class="drawer-group-label" id="dgl-configuracion">Configuración</div>
     <button class="drawer-item" data-page="configuracion" id="dmi-configuracion"><div class="drawer-item-icon">⚙️</div><span>Ajustes</span></button>
   </div>
@@ -767,7 +768,7 @@ const CURRENCY_META={
 };
 function buildCurrencyOptions(selected){
   const curs=S.currencies&&S.currencies.length?S.currencies:[];
-  if(!curs.length){toggle.innerHTML='<span style="color:var(--text3);font-size:12px;padding:4px 8px">—</span>';return;}
+  if(!curs.length)return '<option value="">Sin moneda</option>';
   if(curs.length===1)return `<option value="${curs[0]}">${curs[0]}</option>`;
   return curs.map(c=>`<option value="${c}" ${c===selected?'selected':''}>${c}</option>`).join('');
 }
@@ -2597,7 +2598,7 @@ function renderEstrategia(){
     <div style="background:var(--surface2);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:13px">
       💡 <strong>¿Cuánto dinero extra puedes destinar al mes?</strong>
       <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
-        <input class="form-input" type="text" inputmode="numeric" id="estrategia-extra" placeholder="Ej: 200.000" style="flex:1" value="${window._estrategiaExtra||''}" oninput="window._estrategiaExtra=this.value.replace(/[^0-9.]/g,'');" onblur="calcEstrategia()" onkeyup="if(event.key==='Enter'){this.blur();}">
+        <input class="form-input" type="text" inputmode="numeric" id="estrategia-extra" placeholder="Ej: 200.000" style="flex:1" value="${window._estrategiaExtra||''}" oninput="window._estrategiaExtra=this.value.replace(/[^0-9.]/g,'');" onblur="calcEstrategia()" onkeyup="if(event.key==="Enter"){this.blur();}">
         <span style="font-size:11px;color:var(--text2)">${S.currency}</span>
       </div>
       <div style="font-size:11px;color:var(--text2);margin-top:4px">Adicional a las cuotas mínimas de cada deuda</div>
@@ -3946,7 +3947,7 @@ const LISTA_TIPOS = [
   {id:'regalos',icon:'🎁',name:'Regalos'},
   {id:'custom',icon:'📋',name:'Personalizada'},
 ];
-const SUPER_SECTIONS = ['🥛 Lácteos','🥩 Carnes','🥦 Frutas y verduras','🍞 Panadería','🧴 Aseo','🧹 Limpieza','🥫 Abarrotes','❄️ Congelados','🍷 Bebidas','🐾 Mascotas','💊 Salud','📦 Otros'];
+
 
 function renderListas(){
   const lists = S.shoppingLists||[];
@@ -3981,6 +3982,245 @@ function renderListas(){
   `;
 }
 
+// ══ SECTIONS PER LIST TYPE ══
+const LIST_SECTIONS = {
+  supermercado: ['🥛 Lácteos','🥩 Carnes','🥦 Frutas y verduras','🍞 Panadería','🧴 Aseo','🧹 Limpieza','🥫 Abarrotes','❄️ Congelados','🍷 Bebidas','🐾 Mascotas','📦 Otros'],
+  farmacia:     ['💊 Medicamentos','🌿 Vitaminas y suplementos','🩹 Primeros auxilios','🧴 Cuidado personal','👶 Bebé'],
+  hogar:        ['🧹 Limpieza general','🪣 Cocina','🚿 Baño','🔧 Mantenimiento','💡 Electricidad'],
+  ropa:         ['👕 Ropa casual','👔 Ropa formal','👟 Calzado','👜 Accesorios','🧴 Cuidado personal'],
+  regalos:      ['👨‍👩‍👧 Familia','👫 Amigos','💼 Trabajo','🎉 Ocasiones especiales'],
+  custom:       [],
+};
+const DEFAULT_LIST_ITEMS = {
+  supermercado:[
+    {name:'Leche',section:'🥛 Lácteos'},{name:'Queso',section:'🥛 Lácteos'},{name:'Yogur',section:'🥛 Lácteos'},
+    {name:'Pollo',section:'🥩 Carnes'},{name:'Carne molida',section:'🥩 Carnes'},{name:'Huevos',section:'🥩 Carnes'},
+    {name:'Tomate',section:'🥦 Frutas y verduras'},{name:'Cebolla',section:'🥦 Frutas y verduras'},{name:'Lechuga',section:'🥦 Frutas y verduras'},{name:'Banano',section:'🥦 Frutas y verduras'},
+    {name:'Pan',section:'🍞 Panadería'},{name:'Arepa',section:'🍞 Panadería'},
+    {name:'Aceite',section:'🥫 Abarrotes'},{name:'Arroz',section:'🥫 Abarrotes'},{name:'Pasta',section:'🥫 Abarrotes'},{name:'Sal',section:'🥫 Abarrotes'},{name:'Azúcar',section:'🥫 Abarrotes'},
+    {name:'Jabón de baño',section:'🧴 Aseo'},{name:'Shampoo',section:'🧴 Aseo'},{name:'Papel higiénico',section:'🧴 Aseo'},
+    {name:'Detergente',section:'🧹 Limpieza'},{name:'Limpiapisos',section:'🧹 Limpieza'},{name:'Esponja',section:'🧹 Limpieza'},
+    {name:'Agua',section:'🍷 Bebidas'},{name:'Jugo',section:'🍷 Bebidas'},
+  ],
+  farmacia:[
+    {name:'Ibuprofeno',section:'💊 Medicamentos'},{name:'Acetaminofén',section:'💊 Medicamentos'},{name:'Antiácido',section:'💊 Medicamentos'},
+    {name:'Vitamina C',section:'🌿 Vitaminas y suplementos'},{name:'Vitamina D',section:'🌿 Vitaminas y suplementos'},
+    {name:'Curita',section:'🩹 Primeros auxilios'},{name:'Alcohol antiséptico',section:'🩹 Primeros auxilios'},
+    {name:'Crema hidratante',section:'🧴 Cuidado personal'},{name:'Protector solar',section:'🧴 Cuidado personal'},
+  ],
+  hogar:[
+    {name:'Detergente multiusos',section:'🧹 Limpieza general'},{name:'Bolsa de basura',section:'🧹 Limpieza general'},{name:'Guantes',section:'🧹 Limpieza general'},
+    {name:'Esponja de cocina',section:'🪣 Cocina'},{name:'Lavavajillas',section:'🪣 Cocina'},
+    {name:'Desengrasante baño',section:'🚿 Baño'},{name:'Papel higiénico',section:'🚿 Baño'},
+    {name:'Bombillo',section:'💡 Electricidad'},{name:'Pila AA',section:'💡 Electricidad'},
+    {name:'Cinta de enmascarar',section:'🔧 Mantenimiento'},{name:'Tornillos',section:'🔧 Mantenimiento'},
+  ],
+  ropa:[
+    {name:'Camiseta',section:'👕 Ropa casual'},{name:'Pantalón',section:'👕 Ropa casual'},{name:'Medias',section:'👕 Ropa casual'},
+    {name:'Camisa formal',section:'👔 Ropa formal'},{name:'Pantalón formal',section:'👔 Ropa formal'},
+    {name:'Zapatos',section:'👟 Calzado'},{name:'Tenis',section:'👟 Calzado'},
+    {name:'Cinturón',section:'👜 Accesorios'},{name:'Bolso',section:'👜 Accesorios'},
+  ],
+  regalos:[
+    {name:'Regalo cumpleaños',section:'👨‍👩‍👧 Familia'},{name:'Papel de regalo',section:'👨‍👩‍👧 Familia'},{name:'Moño',section:'👨‍👩‍👧 Familia'},
+    {name:'Tarjeta de regalo',section:'👫 Amigos'},
+    {name:'Detalle corporativo',section:'💼 Trabajo'},
+    {name:'Decoración',section:'🎉 Ocasiones especiales'},
+  ],
+  custom:[],
+};
+
+// ══ HELPER: get sections for a list (includes user-created ones) ══
+function getListSections(l){
+  var base = LIST_SECTIONS[l.type]||[];
+  // Add any custom sections that exist in items but not in base
+  var extra = [];
+  (l.items||[]).forEach(function(i){
+    if(i.section && base.indexOf(i.section)<0 && extra.indexOf(i.section)<0) extra.push(i.section);
+  });
+  // Also include manually added sections stored on list
+  (l.customSections||[]).forEach(function(s){
+    if(base.indexOf(s)<0 && extra.indexOf(s)<0) extra.push(s);
+  });
+  return base.concat(extra);
+}
+
+// ══ RENDER LIST ITEMS — ticked items sink to bottom, section select-all ══
+function renderListItems(l){
+  var items = l.items||[];
+  var container = document.getElementById('list-items-container');
+  if(!container) return;
+  var done = items.filter(function(i){return i.done;}).length;
+  var cntEl = document.getElementById('list-summary-cnt');
+  if(cntEl) cntEl.textContent = done+'/'+items.length;
+  if(!items.length){
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Lista vacía</div><div class="empty-desc">Agrega ítems abajo</div></div>';
+    return;
+  }
+  var html = '';
+  var sections = getListSections(l);
+
+  if(sections.length){
+    var pendingBySection = {}, doneBySection = {};
+    sections.forEach(function(s){ pendingBySection[s]=[]; doneBySection[s]=[]; });
+    var pendingNoSection = [], doneNoSection = [];
+
+    items.forEach(function(i){
+      var sec = i.section||'';
+      var inSections = sec && sections.indexOf(sec)>=0;
+      if(i.done){
+        if(inSections) doneBySection[sec].push(i);
+        else doneNoSection.push(i);
+      } else {
+        if(inSections) pendingBySection[sec].push(i);
+        else pendingNoSection.push(i);
+      }
+    });
+
+    // Render sections that have at least 1 pending item
+    sections.forEach(function(sec){
+      var pending = pendingBySection[sec]||[];
+      var done_s  = doneBySection[sec]||[];
+      if(!pending.length && !done_s.length) return;
+      if(!pending.length) return; // all done → goes to floatingDone below
+      var q="'";
+      var total = pending.length + done_s.length;
+      var doneCount = done_s.length;
+      html += '<div style="margin-top:8px">';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0 4px;border-bottom:1px solid var(--border)">'
+        +'<span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px">'+sec+'</span>'
+        +'<div style="display:flex;align-items:center;gap:6px">'
+        +'<span style="font-size:11px;color:var(--text3)">'+doneCount+'/'+total+'</span>'
+        +'<button onclick="toggleSection('+q+l.id+q+','+q+sec+q+')" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:11px;padding:2px 8px;cursor:pointer;font-family:var(--font)">☑ Todo</button>'
+        +'</div></div>';
+      pending.forEach(function(i){ html += buildListItemHTML(l.id, i); });
+      html += '</div>';
+    });
+
+    // Pending items without a section
+    if(pendingNoSection.length){
+      html += '<div style="margin-top:8px"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;padding:8px 0 4px;border-bottom:1px solid var(--border)">📦 Otros</div>';
+      pendingNoSection.forEach(function(i){ html += buildListItemHTML(l.id, i); });
+      html += '</div>';
+    }
+
+    // ALL done items go to floating zone (individual ticked OR full section ticked)
+    var floatingDone = [];
+    sections.forEach(function(sec){
+      floatingDone = floatingDone.concat(doneBySection[sec]||[]);
+    });
+    floatingDone = floatingDone.concat(doneNoSection);
+    if(floatingDone.length){
+      html += '<div style="margin-top:12px;opacity:.65"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:6px 0;border-top:1px dashed var(--border)">✓ Tachados</div>';
+      floatingDone.forEach(function(i){ html += buildListItemHTML(l.id, i); });
+      html += '</div>';
+    }
+
+  } else {
+    // No sections — pending first, done at bottom
+    var pending = items.filter(function(i){return !i.done;});
+    var doneAll = items.filter(function(i){return i.done;});
+    pending.forEach(function(i){ html += buildListItemHTML(l.id, i); });
+    if(doneAll.length){
+      html += '<div style="margin-top:12px;opacity:.65"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:6px 0;border-top:1px dashed var(--border)">✓ Tachados</div>';
+      doneAll.forEach(function(i){ html += buildListItemHTML(l.id, i); });
+      html += '</div>';
+    }
+  }
+  container.innerHTML = html;
+}
+
+// ══ TOGGLE ALL ITEMS IN A SECTION ══
+function toggleSection(listId, section){
+  var l = (S.shoppingLists||[]).find(function(x){return x.id===listId;});
+  if(!l) return;
+  var secItems = (l.items||[]).filter(function(i){return i.section===section;});
+  var allDone = secItems.every(function(i){return i.done;});
+  secItems.forEach(function(i){i.done = !allDone;});
+  saveState();
+  renderListItems(l);
+}
+
+// ══ LIMPIAR = RESTORE (uncheck ticked items) ══
+function clearDoneItems(listId){
+  var l = (S.shoppingLists||[]).find(function(x){return x.id===listId;});
+  if(!l) return;
+  (l.items||[]).forEach(function(i){ i.done = false; });
+  saveState();
+  renderListItems(l);
+}
+
+// ══ BUILD LIST DETAIL HTML ══
+function buildListDetailHTML(l){
+  var tipo = LISTA_TIPOS.find(function(t){return t.id===l.type;})||LISTA_TIPOS[5];
+  var items = l.items||[];
+  var sections = getListSections(l);
+  var q="'";
+  // Section selector for add-item bar
+  var secSelect = '';
+  if(sections.length){
+    secSelect = '<select class="form-select" id="list-new-section" style="width:130px;font-size:12px"><option value="">Sección</option>'
+      +sections.map(function(s){return '<option value="'+s+'">'+s+'</option>';}).join('')
+      +'</select>';
+  }
+  // Add section button for custom lists
+  var addSecBtn = '<button onclick="addCustomSection('+q+l.id+q+')" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--primary);font-size:12px;padding:5px 10px;cursor:pointer;font-family:var(--font);white-space:nowrap">+ Sección</button>';
+  return '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0">'
+    +'<button onclick="closeListDetail()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px;line-height:1">←</button>'
+    +'<div style="font-size:20px">'+tipo.icon+'</div>'
+    +'<div style="flex:1"><div style="font-size:17px;font-weight:800">'+l.name+'</div></div>'
+    +'<button onclick="shareList('+q+l.id+q+')" style="background:none;border:none;color:var(--primary);font-size:20px;cursor:pointer">📤</button>'
+    +'</div>'
+    +'<div style="padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'
+    +'<div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Ítems</span><span id="list-summary-cnt" style="font-size:16px;font-weight:800;color:var(--primary)">'+items.filter(function(i){return i.done;}).length+'/'+items.length+'</span></div>'
+    +'<button onclick="clearDoneItems('+q+l.id+q+')" style="background:none;border:1px solid var(--border);border-radius:50px;color:var(--primary);font-size:12px;padding:5px 12px;cursor:pointer;font-family:var(--font)">↺ Restaurar</button>'
+    +'</div>'
+    +'<div style="flex:1;overflow-y:auto;padding:12px 16px" id="list-items-container"></div>'
+    +'<div id="list-add-bar" style="padding:12px 16px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0">'
+    +'<div style="display:flex;gap:8px">'
+    +'<input class="form-input" type="text" id="list-new-item" placeholder="Agregar ítem..." style="flex:1" onkeydown="if(event.key===\'Enter\')addListItem('+q+l.id+q+')">'
+    +secSelect
+    +addSecBtn
+    +'<button class="btn btn-primary btn-sm" onclick="addListItem('+q+l.id+q+')">+</button>'
+    +'</div>'
+    +'</div>';
+}
+
+// ══ ADD CUSTOM SECTION ══
+function addCustomSection(listId){
+  var l = (S.shoppingLists||[]).find(function(x){return x.id===listId;});
+  if(!l) return;
+  // Show inline input row
+  var bar = document.getElementById('list-add-bar');
+  if(!bar) return;
+  var q="'";
+  bar.innerHTML = '<div style="display:flex;gap:8px;width:100%">'
+    +'<input class="form-input" type="text" id="new-section-input" placeholder="Nombre de la sección..." style="flex:1">'
+    +'<button class="btn btn-primary btn-sm" onclick="saveCustomSection('+q+listId+q+')">Crear</button>'
+    +'<button onclick="cancelCustomSection('+q+listId+q+')" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--text2);padding:6px 12px;cursor:pointer;font-family:var(--font)">✕</button>'
+    +'</div>';
+  setTimeout(function(){var el=document.getElementById('new-section-input');if(el)el.focus();},100);
+}
+function saveCustomSection(listId){
+  var inp = document.getElementById('new-section-input');
+  if(!inp||!inp.value.trim()){toast('Ingresa un nombre');return;}
+  var l = (S.shoppingLists||[]).find(function(x){return x.id===listId;});
+  if(!l) return;
+  var name = inp.value.trim();
+  if(!l.customSections) l.customSections=[];
+  if(l.customSections.indexOf(name)<0) l.customSections.push(name);
+  saveState();
+  // Rebuild overlay
+  var overlay = document.getElementById('list-detail-overlay');
+  if(overlay){ overlay.innerHTML = buildListDetailHTML(l); renderListItems(l); }
+}
+function cancelCustomSection(listId){
+  var l = (S.shoppingLists||[]).find(function(x){return x.id===listId;});
+  if(!l) return;
+  var overlay = document.getElementById('list-detail-overlay');
+  if(overlay){ overlay.innerHTML = buildListDetailHTML(l); renderListItems(l); }
+}
+
 function openListDetail(id){
   const l = (S.shoppingLists||[]).find(x=>x.id===id);
   if(!l) return;
@@ -3992,99 +4232,63 @@ function openListDetail(id){
   renderListItems(l);
 }
 
-function buildListDetailHTML(l){
-  const tipo = LISTA_TIPOS.find(t=>t.id===l.type)||LISTA_TIPOS[5];
-  const items = l.items||[];
-  const totalEst = items.reduce((s,i)=>s+(parseFloat(i.price)||0)*(parseFloat(i.qty)||1),0);
-  const totalDone = items.filter(i=>i.done).reduce((s,i)=>s+(parseFloat(i.price)||0)*(parseFloat(i.qty)||1),0);
-  // Group by section if supermercado
-  let itemsHtml = '';
-  if(l.type==='supermercado'){
-    const sections = {};
-    items.forEach(i=>{
-      const sec = i.section||'📦 Otros';
-      if(!sections[sec]) sections[sec]=[];
-      sections[sec].push(i);
-    });
-    SUPER_SECTIONS.forEach(sec=>{
-      if(!sections[sec]||!sections[sec].length) return;
-      itemsHtml += `<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:10px 0 4px;border-bottom:1px solid var(--border)33;margin-bottom:4px">${sec}</div>`;
-      itemsHtml += sections[sec].map(i=>buildListItemHTML(l.id,i)).join('');
-    });
-    // Items without section
-    const unsectioned = items.filter(i=>!i.section||!SUPER_SECTIONS.includes(i.section));
-    if(unsectioned.length) itemsHtml += unsectioned.map(i=>buildListItemHTML(l.id,i)).join('');
-  } else {
-    itemsHtml = items.map(i=>buildListItemHTML(l.id,i)).join('');
-  }
-  return `
-    <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0">
-      <button onclick="closeListDetail()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px;line-height:1">←</button>
-      <div style="font-size:20px">${tipo.icon}</div>
-      <div style="flex:1"><div style="font-size:17px;font-weight:800">${l.name}</div></div>
-      <button onclick="shareList('${l.id}')" style="background:none;border:none;color:var(--primary);font-size:20px;cursor:pointer">📤</button>
-    </div>
-    <div style="padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Ítems</span><span id="list-summary-cnt" style="font-size:16px;font-weight:800;color:var(--primary)">${items.filter(i=>i.done).length}/${items.length}</span></div><button onclick="clearDoneItems('${l.id}')" style="background:none;border:1px solid var(--border);border-radius:50px;color:var(--text2);font-size:12px;padding:5px 12px;cursor:pointer;font-family:var(--font)">Limpiar ✓</button></div>
-    <div style="flex:1;overflow-y:auto;padding:12px 16px" id="list-items-container">
-      ${itemsHtml||'<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Lista vacía</div><div class="empty-desc">Agrega tu primer ítem</div></div>'}
-    </div>
-    <div style="padding:12px 16px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0">
-      <div style="display:flex;gap:8px">
-        <input class="form-input" type="text" id="list-new-item" placeholder="Agregar ítem..." style="flex:1" onkeydown="if(event.key==='Enter')addListItem('${l.id}')">
-        ${l.type==='supermercado'?`<select class="form-select" id="list-new-section" style="width:130px;font-size:12px"><option value="">Sección</option>${SUPER_SECTIONS.map(s=>`<option value="${s}">${s}</option>`).join('')}</select>`:''}
-        <button class="btn btn-primary btn-sm" onclick="addListItem('${l.id}')">+</button>
-      </div>
-    </div>`;
-}
+
 
 function buildListItemHTML(listId, item){
   var done=item.done;
   var q="'";
   var chk='onclick="toggleListItem('+q+listId+q+','+q+item.id+q+')"';
   var del='onclick="removeListItem('+q+listId+q+','+q+item.id+q+')"';
+  var edit='onclick="editListItem('+q+listId+q+','+q+item.id+q+')"';
   var chkStyle='width:28px;height:28px;border-radius:8px;border:2px solid '+(done?'var(--success)':'var(--border)')+';background:'+(done?'var(--success)':'transparent')+';cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s';
   var textStyle='flex:1;font-size:14px;font-weight:500;'+(done?'text-decoration:line-through;color:var(--text3)':'color:var(--text)');
   var chkInner=done?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':'';
-  return '<div id="li-'+item.id+'" style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)">'
+  return '<div id="li-'+item.id+'" style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)">'
     +'<div '+chk+' style="'+chkStyle+'">'+chkInner+'</div>'
     +'<div style="'+textStyle+'">'+item.name+'</div>'
-    +'<button '+del+' style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0 4px">&#10005;</button>'
+    +'<button '+edit+' style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;padding:0 3px;opacity:.6">✏️</button>'
+    +'<button '+del+' style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 3px">✕</button>'
   +'</div>';
 }
+function editListItem(listId, itemId){
+  var el=document.getElementById('li-'+itemId);
+  if(!el)return;
+  var nameDiv=el.querySelector('div[style*="font-size:14px"]');
+  if(!nameDiv)return;
+  var current=nameDiv.textContent;
+  var inp=document.createElement('input');
+  inp.id='edit-inp-'+itemId;
+  inp.type='text';
+  inp.value=current;
+  inp.style.cssText='flex:1;padding:3px 8px;border-radius:6px;border:1.5px solid var(--primary);background:var(--surface);font-size:14px;font-weight:500;color:var(--text);font-family:var(--font);outline:none';
+  var saved=false;
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){saved=true;inp.blur();}
+    if(e.key==='Escape'){saved=true;renderListItems((S.shoppingLists||[]).find(function(x){return x.id===listId;}));}
+  });
+  inp.addEventListener('blur',function(){
+    if(saved)return;
+    saved=true;
+    var val=inp.value.trim();
+    var l=(S.shoppingLists||[]).find(function(x){return x.id===listId;});
+    if(!l)return;
+    if(val){
+      var item=(l.items||[]).find(function(i){return i.id===itemId;});
+      if(item){item.name=val;saveState();}
+    }
+    renderListItems(l);
+  });
+  nameDiv.parentNode.replaceChild(inp,nameDiv);
+  inp.focus();inp.select();
+}
+
 function toggleListItem(listId,itemId){var l=(S.shoppingLists||[]).find(function(x){return x.id===listId;});if(!l)return;var item=(l.items||[]).find(function(i){return i.id===itemId;});if(!item)return;item.done=!item.done;saveState();renderListItems(l);}
 function removeListItem(listId,itemId){var l=(S.shoppingLists||[]).find(function(x){return x.id===listId;});if(!l)return;l.items=(l.items||[]).filter(function(i){return i.id!==itemId;});saveState();renderListItems(l);}
-function clearDoneItems(listId){var l=(S.shoppingLists||[]).find(function(x){return x.id===listId;});if(!l)return;l.items=(l.items||[]).filter(function(i){return !i.done;});saveState();renderListItems(l);}
+
 function addListItem(listId){var inp=document.getElementById('list-new-item');var secEl=document.getElementById('list-new-section');if(!inp||!inp.value.trim())return;var l=(S.shoppingLists||[]).find(function(x){return x.id===listId;});if(!l)return;if(!l.items)l.items=[];l.items.push({id:uid(),name:inp.value.trim(),done:false,section:secEl?secEl.value:''});inp.value='';if(secEl)secEl.value='';saveState();renderListItems(l);inp.focus();}
-function updateItemQty(listId, itemId, val){
-  var l=(S.shoppingLists||[]).find(function(x){return x.id===listId;});
-  if(!l)return;
-  var item=(l.items||[]).find(function(i){return i.id===itemId;});
-  if(!item)return;
-  item.qty=parseFloat(val)||1;
-  saveState();
-  refreshListSummary(l);
-}
-function updateItemPrice(listId, itemId, val){
-  var l=(S.shoppingLists||[]).find(function(x){return x.id===listId;});
-  if(!l)return;
-  var item=(l.items||[]).find(function(i){return i.id===itemId;});
-  if(!item)return;
-  item.price=val;
-  saveState();
-  refreshListSummary(l);
-}
-function refreshListSummary(l){
-  var totalEst=(l.items||[]).reduce(function(s,i){return s+(parseFloat(i.price)||0)*(parseFloat(i.qty)||1);},0);
-  var totalDone=(l.items||[]).filter(function(i){return i.done;}).reduce(function(s,i){return s+(parseFloat(i.price)||0)*(parseFloat(i.qty)||1);},0);
-  var done=(l.items||[]).filter(function(i){return i.done;}).length;
-  var total=(l.items||[]).length;
-  var estEl=document.getElementById('list-summary-est');
-  var doneEl=document.getElementById('list-summary-done');
-  var cntEl=document.getElementById('list-summary-cnt');
-  if(estEl)estEl.textContent=totalEst>0?fmt(totalEst):'—';
-  if(doneEl)doneEl.textContent=totalDone>0?fmt(totalDone):'—';
-  if(cntEl)cntEl.textContent=done+'/'+total;
-}
+
+
+
 function updateInvFields(type){
   const inv = null;
   document.getElementById('inv-extra-fields').innerHTML = buildInvExtraFields(type, inv);
@@ -4156,30 +4360,158 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(dx<-60&&document.getElementById('drawer').classList.contains('open'))closeDrawer();
   },{passive:true});
 });
+
+const INV_TYPES=[
+  {id:'acciones',icon:'📊',name:'Acciones / ETF',color:'#3B82F6'},
+  {id:'cdt',icon:'🏦',name:'CDT / Plazo fijo',color:'#10B981'},
+  {id:'inmueble',icon:'🏠',name:'Inmueble',color:'#F59E0B'},
+  {id:'cripto',icon:'₿',name:'Criptomonedas',color:'#F97316'},
+  {id:'negocio',icon:'🤝',name:'Negocio propio',color:'#8B5CF6'},
+  {id:'otro',icon:'💼',name:'Otro',color:'#64748B'},
+];
+
+function renderInversiones(){
+  var invs=S.investments||[];
+  var totalInv=invs.reduce(function(s,i){return s+(parseFloat(i.capital)||0);},0);
+  var totalVal=invs.reduce(function(s,i){return s+(parseFloat(i.currentValue)||parseFloat(i.capital)||0);},0);
+  var totalGain=totalVal-totalInv;
+  var gainPct=totalInv>0?((totalGain/totalInv)*100).toFixed(1):0;
+  var html='';
+  if(invs.length){
+    html+='<div class="balance-card" style="margin-bottom:16px;cursor:default">'
+      +'<div class="balance-label">Portafolio total ('+S.currency+')</div>'
+      +'<div class="balance-amount" style="color:'+(totalGain>=0?'#6FFFDF':'#FF8080')+'">'+fmt(totalVal)+'</div>'
+      +'<div class="balance-row">'
+      +'<div class="balance-stat"><div class="balance-stat-label">💰 Invertido</div><div class="balance-stat-val">'+fmt(totalInv)+'</div></div>'
+      +'<div class="balance-stat"><div class="balance-stat-label">'+(totalGain>=0?'📈 Ganancia':'📉 Pérdida')+'</div><div class="balance-stat-val '+(totalGain>=0?'inc':'exp')+'">'+(totalGain>=0?'+':'')+fmt(totalGain)+' ('+gainPct+'%)</div></div>'
+      +'</div></div>';
+  }
+  html+='<div style="display:flex;justify-content:flex-end;margin-bottom:12px">'
+    +'<button class="btn btn-primary btn-sm" onclick="openModal(\'newInvestment\',{})">+ Nueva inversión</button>'
+    +'</div>';
+  if(!invs.length){
+    html+='<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-title">Sin inversiones</div><div class="empty-desc">Registra tu primer activo</div></div>';
+    return html;
+  }
+  invs.forEach(function(inv){
+    var tipo=INV_TYPES.find(function(t){return t.id===inv.type;})||INV_TYPES[5];
+    var cap=parseFloat(inv.capital)||0;
+    var cur=parseFloat(inv.currentValue)||cap;
+    var gain=cur-cap;
+    var gainP=cap>0?((gain/cap)*100).toFixed(1):0;
+    var isPos=gain>=0;
+    var cdtInfo='';
+    if(inv.type==='cdt'&&inv.rate&&inv.endDate){
+      var days=Math.max(0,Math.round((new Date(inv.endDate)-new Date())/86400000));
+      var projected=cap*(1+(parseFloat(inv.rate)/100)*(days/365));
+      cdtInfo='<div style="font-size:11px;color:var(--text2);margin-top:4px">📅 Vence en '+days+'d · Proyectado: '+fmt(projected)+'</div>';
+    }
+    html+='<div class="card" style="margin-bottom:12px;border-left:4px solid '+tipo.color+'" onclick="openModal(&apos;editInvestment&apos;,{id:&apos;'+inv.id+'&apos;})">'
+      +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">'
+      +'<div style="width:44px;height:44px;border-radius:12px;background:'+tipo.color+'22;display:flex;align-items:center;justify-content:center;font-size:22px">'+tipo.icon+'</div>'
+      +'<div style="flex:1"><div style="font-size:15px;font-weight:700">'+inv.name+'</div>'
+      +'<div style="font-size:12px;color:var(--text2)">'+tipo.name+(inv.ticker?' · '+inv.ticker:'')+'</div>'+cdtInfo+'</div>'
+      +'<div style="text-align:right"><div style="font-size:16px;font-weight:800">'+fmt(cur)+'</div>'
+      +'<div style="font-size:12px;font-weight:700;color:'+(isPos?'var(--success)':'var(--danger)')+')">'+(isPos?'+':'')+fmt(gain)+' ('+gainP+'%)</div></div>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;color:var(--text2)">'
+      +'<div>💰 Capital: <strong>'+fmt(cap)+'</strong></div>'
+      +'<div>📅 Desde: <strong>'+(inv.startDate||'—')+'</strong></div>'
+      +'</div></div>';
+  });
+  return html;
+}
+function buildInvExtraFields(type,inv){
+  if(type==='acciones'||type==='cripto'){
+    return '<div class="form-row"><div class="form-group"><label class="form-label">Ticker / Símbolo</label><input class="form-input" type="text" id="inv-ticker" placeholder="Ej: AAPL, BTC" value="'+(inv?inv.ticker||'':'')+'"></div><div class="form-group"><label class="form-label">Cantidad</label><input class="form-input" type="number" id="inv-qty" placeholder="Ej: 10" value="'+(inv?inv.qty||'':'')+'"></div></div>';
+  }
+  if(type==='cdt'){
+    return '<div class="form-row"><div class="form-group"><label class="form-label">Tasa anual (%)</label><input class="form-input" type="number" id="inv-rate" placeholder="Ej: 12.5" step="0.01" value="'+(inv?inv.rate||'':'')+'"></div><div class="form-group"><label class="form-label">Fecha vencimiento</label><input class="form-input" type="date" id="inv-end" value="'+(inv?inv.endDate||'':'')+'"></div></div>';
+  }
+  if(type==='inmueble'){
+    return '<div class="form-row"><div class="form-group"><label class="form-label">Renta mensual</label><input class="form-input" type="number" id="inv-rent" placeholder="0 si no renta" value="'+(inv?inv.rent||'':'')+'"></div><div class="form-group"><label class="form-label">Dirección</label><input class="form-input" type="text" id="inv-address" placeholder="Opcional" value="'+(inv?inv.address||'':'')+'"></div></div>';
+  }
+  if(type==='negocio'){
+    return '<div class="form-row"><div class="form-group"><label class="form-label">Retorno mensual</label><input class="form-input" type="number" id="inv-monthly" placeholder="0.00" value="'+(inv?inv.monthlyReturn||'':'')+'"></div><div class="form-group"><label class="form-label">Participación (%)</label><input class="form-input" type="number" id="inv-share" placeholder="Ej: 50" value="'+(inv?inv.share||'':'')+'"></div></div>';
+  }
+  return '';
+}
+function buildNewInvestmentModal(data){
+  var inv=data.id?(S.investments||[]).find(function(x){return x.id===data.id;}):null;
+  var isEdit=!!inv;
+  var defType=inv?inv.type:'acciones';
+  var q="'";
+  var deleteBtn=isEdit?('<button class="btn btn-danger" onclick="deleteInvestment('+q+inv.id+q+')">Eliminar</button>'):'';
+  return '<div class="modal-header"><div class="modal-title">'+(isEdit?'Editar':'Nueva')+' inversión</div><button class="modal-close" onclick="closeModal()">×</button></div>'
+    +'<div class="modal-body">'
+    +'<input type="hidden" id="inv-id" value="'+(inv?inv.id:'')+'">'
+    +'<div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" id="inv-name" placeholder="Ej: Apple, FONDO ABC..." value="'+(inv?inv.name:'')+'"></div>'
+    +'<div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="inv-type" onchange="updateInvFields(this.value)">'
+    +INV_TYPES.map(function(t){return '<option value="'+t.id+'" '+(defType===t.id?'selected':'')+'>'+t.icon+' '+t.name+'</option>';}).join('')
+    +'</select></div>'
+    +'<div id="inv-extra-fields">'+buildInvExtraFields(defType,inv)+'</div>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">Capital invertido</label><input class="form-input" type="number" id="inv-capital" placeholder="0.00" value="'+(inv?inv.capital:'')+'" step="0.01"></div>'
+    +'<div class="form-group"><label class="form-label">Valor actual</label><input class="form-input" type="number" id="inv-current" placeholder="= capital si no cambió" value="'+(inv?inv.currentValue:'')+'" step="0.01"></div></div>'
+    +'<div class="form-row"><div class="form-group"><label class="form-label">Fecha inicio</label><input class="form-input" type="date" id="inv-start" value="'+(inv?inv.startDate:todayStr())+'"></div>'
+    +'<div class="form-group"><label class="form-label">Moneda</label><select class="form-select" id="inv-currency">'+buildCurrencyOptions(inv?inv.currency:S.currency)+'</select></div></div>'
+    +'<div class="form-group"><label class="form-label">Notas</label><input class="form-input" type="text" id="inv-notes" placeholder="Observaciones..." value="'+(inv?inv.notes||'':'')+'"></div>'
+    +'<div class="btn-row">'+deleteBtn+'<button class="btn btn-primary" onclick="saveInvestment()">'+(isEdit?'Guardar':'Registrar')+'</button></div>'
+    +'</div>';
+}
+
+
+
+
+function buildNewListModal(data){
+  return '<div class="modal-header"><div class="modal-title">Nueva lista</div><button class="modal-close" onclick="closeModal()">×</button></div>'
+    +'<div class="modal-body">'
+    +'<div class="form-group"><label class="form-label" style="margin-bottom:8px">¿Qué tipo de lista?</label>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +LISTA_TIPOS.map(function(t){var q="'";return '<button onclick="selectListType('+q+t.id+q+')" id="lt-'+t.id+'" style="padding:12px 8px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;transition:.15s">'+t.icon+' '+t.name+'</button>';}).join('')
+    +'</div><input type="hidden" id="nl-type" value="supermercado"></div>'
+    +'<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="saveNewList()">Crear lista</button>'
+    +'</div>';
+}
+function selectListType(typeId){
+  document.getElementById('nl-type').value=typeId;
+  LISTA_TIPOS.forEach(function(t){
+    var btn=document.getElementById('lt-'+t.id);
+    if(btn){btn.style.borderColor=t.id===typeId?'var(--primary)':'var(--border)';btn.style.background=t.id===typeId?'rgba(0,212,170,.12)':'var(--surface2)';btn.style.color=t.id===typeId?'var(--primary)':'var(--text)';}
+  });
+}
+function saveNewList(){
+  var type=document.getElementById('nl-type')&&document.getElementById('nl-type').value||'supermercado';
+  var tipo=LISTA_TIPOS.find(function(t){return t.id===type;})||LISTA_TIPOS[5];
+  if(!S.shoppingLists)S.shoppingLists=[];
+  var exists=S.shoppingLists.find(function(l){return l.type===type;});
+  if(exists&&type!=='custom'){toast('Ya tienes una lista de '+tipo.name);closeModal();openListDetail(exists.id);return;}
+  var items=(DEFAULT_LIST_ITEMS[type]||[]).map(function(i){return {id:uid(),name:i.name,done:false,section:i.section||''};});
+  var name=type==='custom'?('Lista '+(S.shoppingLists.filter(function(l){return l.type==='custom';}).length+1)):tipo.name;
+  S.shoppingLists.push({id:uid(),name:name,type:type,color:tipo.color,items:items,createdAt:todayStr()});
+  saveState();closeModal();renderPage('listas');toast('Lista creada ✓');
+}
+function deleteList(id){
+  confirmDialog('🗑️','¿Eliminar lista?','',function(){
+    S.shoppingLists=(S.shoppingLists||[]).filter(function(x){return x.id!==id;});
+    saveState();renderPage('listas');toast('Lista eliminada');
+  });
+}
+function shareList(listId){
+  var l=(S.shoppingLists||[]).find(function(x){return x.id===listId;});
+  if(!l)return;
+  var text='📋 *'+l.name+'*\n\n';
+  (l.items||[]).forEach(function(i){text+=(i.done?'✅':'⬜')+' '+i.name+'\n';});
+  if(navigator.share){navigator.share({title:l.name,text:text});}
+  else if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('Lista copiada ✓');});}
+}
+function closeListDetail(){
+  var el=document.getElementById('list-detail-overlay');
+  if(el)el.remove();
+  renderPage('listas');
+}
+
+
+
 </script>
 </body>
-</html>function renderListItems(l){
-  var items=l.items||[];
-  var container=document.getElementById('list-items-container');
-  if(!container)return;
-  var done=items.filter(function(i){return i.done;}).length;
-  var cntEl=document.getElementById('list-summary-cnt');
-  if(cntEl)cntEl.textContent=done+'/'+items.length;
-  if(!items.length){container.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Lista vacía</div><div class="empty-desc">Agrega ítems abajo</div></div>';return;}
-  var html='';
-  if(l.type==='supermercado'){
-    var sections={};
-    items.forEach(function(i){var sec=i.section||'📦 Otros';if(!sections[sec])sections[sec]=[];sections[sec].push(i);});
-    SUPER_SECTIONS.forEach(function(sec){
-      if(!sections[sec]||!sections[sec].length)return;
-      var sd=sections[sec].filter(function(i){return i.done;}).length;
-      html+='<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:12px 0 4px;display:flex;justify-content:space-between"><span>'+sec+'</span><span style="color:var(--primary)">'+sd+'/'+sections[sec].length+'</span></div>';
-      html+=sections[sec].map(function(i){return buildListItemHTML(l.id,i);}).join('');
-    });
-    var unsec=items.filter(function(i){return !i.section||!SUPER_SECTIONS.includes(i.section);});
-    if(unsec.length){var ud=unsec.filter(function(i){return i.done;}).length;html+='<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:12px 0 4px;display:flex;justify-content:space-between"><span>📦 Otros</span><span style="color:var(--primary)">'+ud+'/'+unsec.length+'</span></div>';html+=unsec.map(function(i){return buildListItemHTML(l.id,i);}).join('');}
-  } else {
-    html=items.map(function(i){return buildListItemHTML(l.id,i);}).join('');
-  }
-  container.innerHTML=html;
-}
+</html>
