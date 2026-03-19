@@ -2891,28 +2891,7 @@ function buildProfileFormHTML(){
         <div class="form-group"><label class="form-label">Teléfono <span style="color:var(--danger)">*</span></label>
           <div style="display:flex;gap:6px">
             <select class="form-select" id="cfg-phone-code" style="width:110px;flex-shrink:0" onchange="updatePhoneLen(this.value)">
-              <option value="">${getDefaultPhoneCode()}</option>
-              <option value="+57" ${(S.profile&&S.profile.phoneCode)==="+57"?'selected':''}>🇨🇴 +57</option>
-              <option value="+48" ${(S.profile&&S.profile.phoneCode)==="+48"?'selected':''}>🇵🇱 +48</option>
-              <option value="+1" ${(S.profile&&S.profile.phoneCode)==="+1"?'selected':''}>🇺🇸 +1</option>
-              <option value="+34" ${(S.profile&&S.profile.phoneCode)==="+34"?'selected':''}>🇪🇸 +34</option>
-              <option value="+52" ${(S.profile&&S.profile.phoneCode)==="+52"?'selected':''}>🇲🇽 +52</option>
-              <option value="+54" ${(S.profile&&S.profile.phoneCode)==="+54"?'selected':''}>🇦🇷 +54</option>
-              <option value="+55" ${(S.profile&&S.profile.phoneCode)==="+55"?'selected':''}>🇧🇷 +55</option>
-              <option value="+56" ${(S.profile&&S.profile.phoneCode)==="+56"?'selected':''}>🇨🇱 +56</option>
-              <option value="+51" ${(S.profile&&S.profile.phoneCode)==="+51"?'selected':''}>🇵🇪 +51</option>
-              <option value="+58" ${(S.profile&&S.profile.phoneCode)==="+58"?'selected':''}>🇻🇪 +58</option>
-              <option value="+593" ${(S.profile&&S.profile.phoneCode)==="+593"?'selected':''}>🇪🇨 +593</option>
-              <option value="+502" ${(S.profile&&S.profile.phoneCode)==="+502"?'selected':''}>🇬🇹 +502</option>
-              <option value="+44" ${(S.profile&&S.profile.phoneCode)==="+44"?'selected':''}>🇬🇧 +44</option>
-              <option value="+49" ${(S.profile&&S.profile.phoneCode)==="+49"?'selected':''}>🇩🇪 +49</option>
-              <option value="+33" ${(S.profile&&S.profile.phoneCode)==="+33"?'selected':''}>🇫🇷 +33</option>
-              <option value="+39" ${(S.profile&&S.profile.phoneCode)==="+39"?'selected':''}>🇮🇹 +39</option>
-              <option value="+7" ${(S.profile&&S.profile.phoneCode)==="+7"?'selected':''}>🇷🇺 +7</option>
-              <option value="+86" ${(S.profile&&S.profile.phoneCode)==="+86"?'selected':''}>🇨🇳 +86</option>
-              <option value="+91" ${(S.profile&&S.profile.phoneCode)==="+91"?'selected':''}>🇮🇳 +91</option>
-              <option value="+81" ${(S.profile&&S.profile.phoneCode)==="+81"?'selected':''}>🇯🇵 +81</option>
-              <option value="+82" ${(S.profile&&S.profile.phoneCode)==="+82"?'selected':''}>🇰🇷 +82</option>
+              ${(()=>{const d=getDefaultPhoneCode()||'+57';const m={'+57':'🇨🇴 +57','+48':'🇵🇱 +48','+1':'🇺🇸 +1','+34':'🇪🇸 +34','+52':'🇲🇽 +52','+54':'🇦🇷 +54','+55':'🇧🇷 +55','+56':'🇨🇱 +56','+51':'🇵🇪 +51','+58':'🇻🇪 +58','+593':'🇪🇨 +593','+502':'🇬🇹 +502','+44':'🇬🇧 +44','+49':'🇩🇪 +49','+33':'🇫🇷 +33','+39':'🇮🇹 +39','+7':'🇷🇺 +7','+86':'🇨🇳 +86','+91':'🇮🇳 +91','+81':'🇯🇵 +81','+82':'🇰🇷 +82'};return Object.entries(m).map(([v,l])=>'<option value="'+v+'"'+(d===v?' selected':'')+'>'+l+'</option>').join('');})()}
             </select>
             <input class="form-input" type="tel" id="cfg-phone" value="${(S.profile&&S.profile.phone)||''}" placeholder="300 000 0000" style="flex:1;font-size:15px" maxlength="15">
           </div>
