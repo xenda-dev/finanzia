@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="dark">
+<html lang="es" data-theme="auto">
 <head>
+<script>(function(){try{var s=JSON.parse(localStorage.getItem("finanziaState3")||"{}");var t=s.theme||"auto";var e=t==="auto"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;document.documentElement.setAttribute("data-theme",e);}catch(e){document.documentElement.setAttribute("data-theme","dark");}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
@@ -294,6 +295,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <button class="drawer-item" data-page="simulador" id="dmi-simulador"><div class="drawer-item-icon">💹</div><span>Simulador de ahorro</span></button>
     <button class="drawer-item" data-page="estrategia" id="dmi-estrategia"><div class="drawer-item-icon">❄️</div><span>Estrategia de deudas</span></button>
     <button class="drawer-item" data-page="cambio" id="dmi-cambio"><div class="drawer-item-icon">💱</div><span>Tipo de cambio</span></button>
+    <div class="drawer-group-label" id="dgl-inversiones" onclick="toggleDrawerGroup('dgl-inversiones-items',this)" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">Inversiones <span class="dgl-arrow" style="font-size:10px;transition:transform .2s">▼</span></div>
+    <div id="dgl-inversiones-items">
+      <button class="drawer-item" data-page="inversiones" id="dmi-inversiones"><div class="drawer-item-icon">📈</div><span>Mis inversiones</span></button>
+    </div>
+    <div class="drawer-group-label" id="dgl-listas" onclick="toggleDrawerGroup('dgl-listas-items',this)" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">Listas <span class="dgl-arrow" style="font-size:10px;transition:transform .2s">▼</span></div>
+    <div id="dgl-listas-items">
+      <button class="drawer-item" data-page="listas" id="dmi-listas"><div class="drawer-item-icon">🛒</div><span>Listas de compra</span></button>
+    </div>
     <div class="drawer-group-label" id="dgl-configuracion">Configuración</div>
     <button class="drawer-item" data-page="configuracion" id="dmi-configuracion"><div class="drawer-item-icon">⚙️</div><span>Ajustes</span></button>
   </div>
@@ -332,6 +341,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div id="page-simulador" class="page"></div>
   <div id="page-estrategia" class="page"></div>
   <div id="page-cambio" class="page"></div>
+  <div id="page-listas" class="page"></div>
+  <div id="page-inversiones" class="page"></div>
 </div>
 <nav class="bottom-nav">
   <button class="nav-item active" data-page="dashboard">
@@ -493,9 +504,9 @@ const DEFAULT_SUBS = [
 // STATE
 // ════════════════════════════════════════════════════════════
 let S = {
-  currency:'', currentPage:'dashboard', theme:'dark',
+  currency:'', currentPage:'dashboard', theme:'auto',
   language:'', weekStart:'', _catTab:'gasto', notifPrefs:{}, numFormat:'auto', currencies:[], profile:{name:'',email:'',photo:''},
-  accounts:[], transactions:[], categories:[], subcategories:[],
+  shoppingLists:[], investments:[], accounts:[], transactions:[], categories:[], subcategories:[],
   budgets:[], goals:[], scheduledPayments:[],
   movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},
   analysisPeriod:'Mensual', analysisPeriodSub:'anual',
@@ -548,7 +559,7 @@ function loadState(){
   if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
   if(!S.analysisPeriodSub)S.analysisPeriodSub='anual';if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
   if(!S.exchangeRate)S.exchangeRate={PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''};
-  if(!S.theme)S.theme='dark';
+  if(!S.theme)S.theme='auto';
   // language and weekStart stay empty until user chooses
   // currencies stay empty until user sets up profile
   applyThemeMode();
@@ -625,7 +636,12 @@ function setTheme(val){
   saveState();
   renderPage('configuracion');
 }
-function toggleTheme(){setTheme(S.theme==='dark'?'light':'dark');}
+function toggleTheme(){
+  const effective=S.theme==='auto'
+    ?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')
+    :S.theme;
+  setTheme(effective==='dark'?'light':'dark');
+}
 
 // ════════════════════════════════════════════════════════════
 // EXCHANGE RATE
@@ -826,6 +842,8 @@ function renderPage(page){
     case'simulador':el.innerHTML=renderSimulador();break;
     case'estrategia':el.innerHTML=renderEstrategia();break;
     case'cambio':el.innerHTML=renderCambio();break;
+    case'listas':el.innerHTML=renderListas();break;
+    case'inversiones':el.innerHTML=renderInversiones();break;
   }
 }
 function initExchangeWidget(){
@@ -3150,6 +3168,9 @@ function buildModal(type,data){
     case'category':return drag+buildCategoryModal(data);
     case'subcategory':return drag+buildSubcategoryModal(data);
     case'editSubcategory':return drag+buildEditSubcategoryModal(data);
+    case'newList':return drag+buildNewListModal(data);
+    case'newInvestment':return drag+buildNewInvestmentModal(data);
+    case'editInvestment':return drag+buildNewInvestmentModal(data);
     case'filterMovimientos':return drag+buildFilterModal();
     case'balanceDistribution':return drag+buildBalanceDistModal();
     case'debtPayment':return drag+buildDebtPaymentModal(data);
@@ -3919,6 +3940,395 @@ function buildFilterModal(){
 function applyFilters(){S.movFilter.dateFrom=document.getElementById('fil-from')?.value||'';S.movFilter.dateTo=document.getElementById('fil-to')?.value||'';S.movFilter.catId=document.getElementById('fil-cat')?.value||'';S.movFilter.accountId=document.getElementById('fil-acc')?.value||'';S.movFilter.payMethod=document.getElementById('fil-pay')?.value||'';closeModal();renderPage('movimientos');}
 function clearFilters(){S.movFilter={tab:S.movFilter.tab,search:S.movFilter.search,dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''};closeModal();renderPage('movimientos');}
 
+
+// ════════════════════════════════════════════════════════════
+// LISTAS DE COMPRA
+// ════════════════════════════════════════════════════════════
+const LISTA_TIPOS = [
+  {id:'supermercado',icon:'🛒',name:'Supermercado'},
+  {id:'farmacia',icon:'💊',name:'Farmacia'},
+  {id:'hogar',icon:'🏠',name:'Hogar y limpieza'},
+  {id:'ropa',icon:'👗',name:'Ropa y personal'},
+  {id:'regalos',icon:'🎁',name:'Regalos'},
+  {id:'custom',icon:'📋',name:'Personalizada'},
+];
+const SUPER_SECTIONS = ['🥛 Lácteos','🥩 Carnes','🥦 Frutas y verduras','🍞 Panadería','🧴 Aseo','🧹 Limpieza','🥫 Abarrotes','❄️ Congelados','🍷 Bebidas','🐾 Mascotas','💊 Salud','📦 Otros'];
+
+function renderListas(){
+  const lists = S.shoppingLists||[];
+  return `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+      <button class="btn btn-primary btn-sm" onclick="openModal('newList',{})">+ Nueva lista</button>
+    </div>
+    ${!lists.length?`<div class="empty-state"><div class="empty-icon">🛒</div><div class="empty-title">Sin listas</div><div class="empty-desc">Crea tu primera lista de compras</div></div>`:
+    lists.map(l=>{
+      const done = (l.items||[]).filter(i=>i.done).length;
+      const total = (l.items||[]).length;
+      const totalPrice = (l.items||[]).reduce((s,i)=>(s+(parseFloat(i.price)||0)*(parseFloat(i.qty)||1)),0);
+      const pct = total>0?Math.round(done/total*100):0;
+      const tipo = LISTA_TIPOS.find(t=>t.id===l.type)||LISTA_TIPOS[5];
+      return `<div class="card" style="margin-bottom:12px;cursor:pointer" onclick="openListDetail('${l.id}')">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+          <div style="width:44px;height:44px;border-radius:12px;background:${l.color||'#00D4AA'}22;display:flex;align-items:center;justify-content:center;font-size:22px">${tipo.icon}</div>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:700">${l.name}</div>
+            <div style="font-size:12px;color:var(--text2)">${done}/${total} ítems · ${totalPrice>0?fmt(totalPrice):''}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:800;color:${pct===100?'var(--success)':'var(--primary)'}">${pct}%</div>
+            <button onclick="event.stopPropagation();deleteList('${l.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px">🗑</button>
+          </div>
+        </div>
+        <div style="height:6px;background:var(--surface3);border-radius:99px;overflow:hidden">
+          <div style="height:100%;border-radius:99px;background:${pct===100?'var(--success)':'var(--primary)'};width:${pct}%;transition:width .3s"></div>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+function openListDetail(id){
+  const l = (S.shoppingLists||[]).find(x=>x.id===id);
+  if(!l) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'list-detail-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:200;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
+  overlay.innerHTML = buildListDetailHTML(l);
+  document.body.appendChild(overlay);
+}
+
+function buildListDetailHTML(l){
+  const tipo = LISTA_TIPOS.find(t=>t.id===l.type)||LISTA_TIPOS[5];
+  const items = l.items||[];
+  const totalEst = items.reduce((s,i)=>s+(parseFloat(i.price)||0)*(parseFloat(i.qty)||1),0);
+  const totalDone = items.filter(i=>i.done).reduce((s,i)=>s+(parseFloat(i.price)||0)*(parseFloat(i.qty)||1),0);
+  // Group by section if supermercado
+  let itemsHtml = '';
+  if(l.type==='supermercado'){
+    const sections = {};
+    items.forEach(i=>{
+      const sec = i.section||'📦 Otros';
+      if(!sections[sec]) sections[sec]=[];
+      sections[sec].push(i);
+    });
+    SUPER_SECTIONS.forEach(sec=>{
+      if(!sections[sec]||!sections[sec].length) return;
+      itemsHtml += `<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;padding:10px 0 4px;border-bottom:1px solid var(--border)33;margin-bottom:4px">${sec}</div>`;
+      itemsHtml += sections[sec].map(i=>buildListItemHTML(l.id,i)).join('');
+    });
+    // Items without section
+    const unsectioned = items.filter(i=>!i.section||!SUPER_SECTIONS.includes(i.section));
+    if(unsectioned.length) itemsHtml += unsectioned.map(i=>buildListItemHTML(l.id,i)).join('');
+  } else {
+    itemsHtml = items.map(i=>buildListItemHTML(l.id,i)).join('');
+  }
+  return `
+    <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <button onclick="closeListDetail()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px;line-height:1">←</button>
+      <div style="font-size:20px">${tipo.icon}</div>
+      <div style="flex:1"><div style="font-size:17px;font-weight:800">${l.name}</div></div>
+      <button onclick="shareList('${l.id}')" style="background:none;border:none;color:var(--primary);font-size:20px;cursor:pointer">📤</button>
+    </div>
+    <div style="padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;gap:16px;flex-shrink:0">
+      <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">ÍTEMS</div><div style="font-size:15px;font-weight:700">${items.filter(i=>i.done).length}/${items.length}</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">ESTIMADO</div><div style="font-size:15px;font-weight:700">${totalEst>0?fmt(totalEst):'—'}</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">EN CARRO</div><div style="font-size:15px;font-weight:700;color:var(--success)">${totalDone>0?fmt(totalDone):'—'}</div></div>
+      <button onclick="clearDoneItems('${l.id}')" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:11px;padding:4px 8px;cursor:pointer">Limpiar ✓</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:12px 16px" id="list-items-container">
+      ${itemsHtml||'<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Lista vacía</div><div class="empty-desc">Agrega tu primer ítem</div></div>'}
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0">
+      <div style="display:flex;gap:8px">
+        <input class="form-input" type="text" id="list-new-item" placeholder="Agregar ítem..." style="flex:1" onkeydown="if(event.key==='Enter')addListItem('${l.id}')">
+        ${l.type==='supermercado'?`<select class="form-select" id="list-new-section" style="width:130px;font-size:12px"><option value="">Sección</option>${SUPER_SECTIONS.map(s=>`<option value="${s}">${s}</option>`).join('')}</select>`:''}
+        <button class="btn btn-primary btn-sm" onclick="addListItem('${l.id}')">+</button>
+      </div>
+    </div>`;
+}
+
+function buildListItemHTML(listId, item){
+  return `<div id="li-${item.id}" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)22">
+    <div onclick="toggleListItem('${listId}','${item.id}')" style="width:24px;height:24px;border-radius:6px;border:2px solid ${item.done?'var(--success)':'var(--border)'};background:${item.done?'var(--success)':'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s">
+      ${item.done?'<span style="color:white;font-size:14px">✓</span>':''}
+    </div>
+    <div style="flex:1;${item.done?'text-decoration:line-through;color:var(--text3)':''}">
+      <div style="font-size:14px;font-weight:600">${item.name}</div>
+      ${item.qty&&item.qty!=1?`<div style="font-size:11px;color:var(--text2)">Cantidad: ${item.qty}</div>`:''}
+    </div>
+    ${item.price?`<div style="font-size:13px;font-weight:700;color:var(--text2)">${fmt(parseFloat(item.price)*parseFloat(item.qty||1))}</div>`:''}
+    <button onclick="removeListItem('${listId}','${item.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px">✕</button>
+  </div>`;
+}
+
+function addListItem(listId){
+  const inp = document.getElementById('list-new-item');
+  const secEl = document.getElementById('list-new-section');
+  if(!inp||!inp.value.trim()) return;
+  const l = (S.shoppingLists||[]).find(x=>x.id===listId);
+  if(!l) return;
+  if(!l.items) l.items=[];
+  l.items.push({id:uid(),name:inp.value.trim(),qty:1,price:'',done:false,section:secEl?secEl.value:''});
+  inp.value='';
+  saveState();
+  // Refresh overlay
+  const container = document.getElementById('list-items-container');
+  if(container){
+    const items = l.items;
+    let html = items.map(i=>buildListItemHTML(l.id,i)).join('');
+    container.innerHTML = html||'<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Lista vacía</div></div>';
+  }
+  inp.focus();
+}
+
+function toggleListItem(listId, itemId){
+  const l = (S.shoppingLists||[]).find(x=>x.id===listId);
+  if(!l) return;
+  const item = (l.items||[]).find(i=>i.id===itemId);
+  if(!item) return;
+  item.done = !item.done;
+  saveState();
+  const el = document.getElementById('li-'+itemId);
+  if(el){
+    const container = document.getElementById('list-items-container');
+    if(container) container.innerHTML = l.items.map(i=>buildListItemHTML(l.id,i)).join('');
+  }
+}
+
+function removeListItem(listId, itemId){
+  const l = (S.shoppingLists||[]).find(x=>x.id===listId);
+  if(!l) return;
+  l.items = (l.items||[]).filter(i=>i.id!==itemId);
+  saveState();
+  const container = document.getElementById('list-items-container');
+  if(container) container.innerHTML = l.items.map(i=>buildListItemHTML(l.id,i)).join('')||'<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Lista vacía</div></div>';
+}
+
+function clearDoneItems(listId){
+  const l = (S.shoppingLists||[]).find(x=>x.id===listId);
+  if(!l) return;
+  l.items = (l.items||[]).filter(i=>!i.done);
+  saveState();
+  const container = document.getElementById('list-items-container');
+  if(container) container.innerHTML = l.items.map(i=>buildListItemHTML(l.id,i)).join('')||'<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Lista vacía</div></div>';
+}
+
+function closeListDetail(){
+  const el = document.getElementById('list-detail-overlay');
+  if(el) el.remove();
+  renderPage('listas');
+}
+
+function shareList(listId){
+  const l = (S.shoppingLists||[]).find(x=>x.id===listId);
+  if(!l) return;
+  let text = `📋 *${l.name}*\n\n`;
+  (l.items||[]).forEach(i=>{ text += `${i.done?'✅':'⬜'} ${i.name}${i.qty&&i.qty!=1?' (x'+i.qty+')':''}${i.price?' — '+fmt(parseFloat(i.price)*parseFloat(i.qty||1)):''}\n`; });
+  const total = (l.items||[]).reduce((s,i)=>s+(parseFloat(i.price)||0)*(parseFloat(i.qty)||1),0);
+  if(total>0) text += `\n💰 Total estimado: ${fmt(total)}`;
+  if(navigator.share){ navigator.share({title:l.name,text}); }
+  else { navigator.clipboard?.writeText(text).then(()=>toast('Lista copiada ✓')); }
+}
+
+function deleteList(id){
+  confirmDialog('🗑️','¿Eliminar lista?','',()=>{
+    S.shoppingLists=(S.shoppingLists||[]).filter(x=>x.id!==id);
+    saveState(); renderPage('listas'); toast('Lista eliminada');
+  });
+}
+
+// ── Modal: Nueva lista ──
+const DEFAULT_LIST_ITEMS = {"supermercado":[{id:uid(),name:"Leche",qty:1,price:"",done:false,section:"🥛 Lácteos"},{id:uid(),name:"Queso",qty:1,price:"",done:false,section:"🥛 Lácteos"},{id:uid(),name:"Yogur",qty:1,price:"",done:false,section:"🥛 Lácteos"},{id:uid(),name:"Pollo",qty:1,price:"",done:false,section:"🥩 Carnes"},{id:uid(),name:"Carne molida",qty:1,price:"",done:false,section:"🥩 Carnes"},{id:uid(),name:"Huevos",qty:1,price:"",done:false,section:"🥩 Carnes"},{id:uid(),name:"Tomate",qty:1,price:"",done:false,section:"🥦 Frutas y verduras"},{id:uid(),name:"Cebolla",qty:1,price:"",done:false,section:"🥦 Frutas y verduras"},{id:uid(),name:"Lechuga",qty:1,price:"",done:false,section:"🥦 Frutas y verduras"},{id:uid(),name:"Banano",qty:1,price:"",done:false,section:"🥦 Frutas y verduras"},{id:uid(),name:"Pan",qty:1,price:"",done:false,section:"🍞 Panadería"},{id:uid(),name:"Arepa",qty:1,price:"",done:false,section:"🍞 Panadería"},{id:uid(),name:"Aceite",qty:1,price:"",done:false,section:"🥫 Abarrotes"},{id:uid(),name:"Arroz",qty:1,price:"",done:false,section:"🥫 Abarrotes"},{id:uid(),name:"Pasta",qty:1,price:"",done:false,section:"🥫 Abarrotes"},{id:uid(),name:"Sal",qty:1,price:"",done:false,section:"🥫 Abarrotes"},{id:uid(),name:"Azúcar",qty:1,price:"",done:false,section:"🥫 Abarrotes"},{id:uid(),name:"Jabón de baño",qty:1,price:"",done:false,section:"🧴 Aseo"},{id:uid(),name:"Shampoo",qty:1,price:"",done:false,section:"🧴 Aseo"},{id:uid(),name:"Papel higiénico",qty:1,price:"",done:false,section:"🧴 Aseo"},{id:uid(),name:"Detergente",qty:1,price:"",done:false,section:"🧹 Limpieza"},{id:uid(),name:"Limpiapisos",qty:1,price:"",done:false,section:"🧹 Limpieza"},{id:uid(),name:"Esponja",qty:1,price:"",done:false,section:"🧹 Limpieza"},{id:uid(),name:"Agua",qty:1,price:"",done:false,section:"🍷 Bebidas"},{id:uid(),name:"Jugo",qty:1,price:"",done:false,section:"🍷 Bebidas"}],"farmacia":[{id:uid(),name:"Ibuprofeno",qty:1,price:"",done:false,section:""},{id:uid(),name:"Acetaminofén",qty:1,price:"",done:false,section:""},{id:uid(),name:"Antiácido",qty:1,price:"",done:false,section:""},{id:uid(),name:"Vitamina C",qty:1,price:"",done:false,section:""},{id:uid(),name:"Curita / apósito",qty:1,price:"",done:false,section:""},{id:uid(),name:"Alcohol",qty:1,price:"",done:false,section:""},{id:uid(),name:"Crema hidratante",qty:1,price:"",done:false,section:""},{id:uid(),name:"Protector solar",qty:1,price:"",done:false,section:""}],"hogar":[{id:uid(),name:"Bombillo",qty:1,price:"",done:false,section:""},{id:uid(),name:"Pila AA",qty:1,price:"",done:false,section:""},{id:uid(),name:"Foco LED",qty:1,price:"",done:false,section:""},{id:uid(),name:"Cinta de enmascarar",qty:1,price:"",done:false,section:""},{id:uid(),name:"Escoba",qty:1,price:"",done:false,section:""},{id:uid(),name:"Trapeador",qty:1,price:"",done:false,section:""},{id:uid(),name:"Bolsa de basura",qty:1,price:"",done:false,section:""},{id:uid(),name:"Desengrasante",qty:1,price:"",done:false,section:""}],"ropa":[{id:uid(),name:"Camiseta",qty:1,price:"",done:false,section:""},{id:uid(),name:"Pantalón",qty:1,price:"",done:false,section:""},{id:uid(),name:"Zapatos",qty:1,price:"",done:false,section:""},{id:uid(),name:"Medias / calcetines",qty:1,price:"",done:false,section:""},{id:uid(),name:"Ropa interior",qty:1,price:"",done:false,section:""},{id:uid(),name:"Chaqueta / saco",qty:1,price:"",done:false,section:""}],"regalos":[{id:uid(),name:"Regalo cumpleaños",qty:1,price:"",done:false,section:""},{id:uid(),name:"Tarjeta de regalo",qty:1,price:"",done:false,section:""},{id:uid(),name:"Papel de regalo",qty:1,price:"",done:false,section:""},{id:uid(),name:"Moño / lazo",qty:1,price:"",done:false,section:""}],"custom":[]};
+function buildNewListModal(data){
+  return `<div class="modal-header"><div class="modal-title">Nueva lista</div><button class="modal-close" onclick="closeModal()">×</button></div>
+  <div class="modal-body">
+    <div class="form-group"><label class="form-label">¿Qué tipo de lista?</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+        ${LISTA_TIPOS.map(t=>`<button onclick="selectListType('${t.id}')" id="lt-${t.id}" style="padding:12px 8px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;transition:.15s">${t.icon} ${t.name}</button>`).join('')}
+      </div>
+      <input type="hidden" id="nl-type" value="supermercado">
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="saveNewList()">Crear lista</button>
+  </div>`;
+}
+
+function selectListType(typeId){
+  document.getElementById('nl-type').value = typeId;
+  LISTA_TIPOS.forEach(t=>{
+    const btn = document.getElementById('lt-'+t.id);
+    if(btn){ btn.style.borderColor = t.id===typeId?'var(--primary)':'var(--border)'; btn.style.background = t.id===typeId?'rgba(0,212,170,.12)':'var(--surface2)'; btn.style.color = t.id===typeId?'var(--primary)':'var(--text)'; }
+  });
+}
+
+function saveNewList(){
+  const type = document.getElementById('nl-type')?.value||'supermercado';
+  const tipo = LISTA_TIPOS.find(t=>t.id===type)||LISTA_TIPOS[5];
+  if(!S.shoppingLists) S.shoppingLists=[];
+  // Check if a list of this type already exists
+  const exists = S.shoppingLists.find(l=>l.type===type);
+  if(exists&&type!=='custom'){ toast('Ya tienes una lista de '+tipo.name); closeModal(); openListDetail(exists.id); return; }
+  const color = tipo.color||'#00D4AA';
+  const defaultItems = (DEFAULT_LIST_ITEMS[type]||[]).map(i=>({...i,id:uid()}));
+  const customName = type==='custom'?('Lista '+(S.shoppingLists.filter(l=>l.type==='custom').length+1)):tipo.name;
+  S.shoppingLists.push({id:uid(),name:customName,type,color,items:defaultItems,createdAt:todayStr()});
+  saveState(); closeModal(); renderPage('listas'); toast('Lista creada ✓');
+}
+
+// ════════════════════════════════════════════════════════════
+// INVERSIONES
+// ════════════════════════════════════════════════════════════
+const INV_TYPES = [
+  {id:'acciones',icon:'📊',name:'Acciones / ETF',color:'#3B82F6'},
+  {id:'cdt',icon:'🏦',name:'CDT / Plazo fijo',color:'#10B981'},
+  {id:'inmueble',icon:'🏠',name:'Inmueble',color:'#F59E0B'},
+  {id:'cripto',icon:'₿',name:'Criptomonedas',color:'#F97316'},
+  {id:'negocio',icon:'🤝',name:'Negocio propio',color:'#8B5CF6'},
+  {id:'otro',icon:'💼',name:'Otro',color:'#64748B'},
+];
+
+function renderInversiones(){
+  const invs = S.investments||[];
+  const totalInv = invs.reduce((s,i)=>s+(parseFloat(i.capital)||0),0);
+  const totalVal = invs.reduce((s,i)=>s+(parseFloat(i.currentValue)||parseFloat(i.capital)||0),0);
+  const totalGain = totalVal - totalInv;
+  const gainPct = totalInv>0?((totalGain/totalInv)*100).toFixed(1):0;
+  return `
+    ${invs.length?`<div class="balance-card" style="margin-bottom:16px;cursor:default">
+      <div class="balance-label">Portafolio total (${S.currency})</div>
+      <div class="balance-amount" style="color:${totalGain>=0?'#6FFFDF':'#FF8080'}">${fmt(totalVal)}</div>
+      <div class="balance-row">
+        <div class="balance-stat"><div class="balance-stat-label">💰 Invertido</div><div class="balance-stat-val">${fmt(totalInv)}</div></div>
+        <div class="balance-stat"><div class="balance-stat-label">${totalGain>=0?'📈 Ganancia':'📉 Pérdida'}</div><div class="balance-stat-val ${totalGain>=0?'inc':'exp'}">${totalGain>=0?'+':''}${fmt(totalGain)} (${gainPct}%)</div></div>
+      </div>
+    </div>`:''}
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+      <button class="btn btn-primary btn-sm" onclick="openModal('newInvestment',{})">+ Nueva inversión</button>
+    </div>
+    ${!invs.length?`<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-title">Sin inversiones</div><div class="empty-desc">Registra tu primer activo</div></div>`:
+    invs.map(inv=>{
+      const tipo = INV_TYPES.find(t=>t.id===inv.type)||INV_TYPES[5];
+      const cap = parseFloat(inv.capital)||0;
+      const cur = parseFloat(inv.currentValue)||cap;
+      const gain = cur - cap;
+      const gainP = cap>0?((gain/cap)*100).toFixed(1):0;
+      const isPos = gain >= 0;
+      // For CDT: calculate projected value
+      let cdtInfo = '';
+      if(inv.type==='cdt'&&inv.rate&&inv.endDate){
+        const days = Math.max(0,Math.round((new Date(inv.endDate)-new Date())/86400000));
+        const projected = cap*(1+(parseFloat(inv.rate)/100)*(days/365));
+        cdtInfo = `<div style="font-size:11px;color:var(--text2);margin-top:4px">📅 Vence en ${days}d · Proyectado: ${fmt(projected)}</div>`;
+      }
+      return `<div class="card" style="margin-bottom:12px;border-left:4px solid ${tipo.color}" onclick="openModal('editInvestment',{id:'${inv.id}'})">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <div style="width:44px;height:44px;border-radius:12px;background:${tipo.color}22;display:flex;align-items:center;justify-content:center;font-size:22px">${tipo.icon}</div>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:700">${inv.name}</div>
+            <div style="font-size:12px;color:var(--text2)">${tipo.name}${inv.ticker?' · '+inv.ticker:''}</div>
+            ${cdtInfo}
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:16px;font-weight:800">${fmt(cur)}</div>
+            <div style="font-size:12px;font-weight:700;color:${isPos?'var(--success)':'var(--danger)'}">${isPos?'+':''}${fmt(gain)} (${gainP}%)</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;color:var(--text2)">
+          <div>💰 Capital: <strong>${fmt(cap)}</strong></div>
+          <div>📅 Desde: <strong>${inv.startDate||'—'}</strong></div>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+// ── Investment Modal ──
+function buildNewInvestmentModal(data){
+  const inv = data.id?(S.investments||[]).find(x=>x.id===data.id):null;
+  const isEdit = !!inv;
+  const defType = inv?inv.type:'acciones';
+  return `<div class="modal-header"><div class="modal-title">${isEdit?'Editar':'Nueva'} inversión</div><button class="modal-close" onclick="closeModal()">×</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="inv-id" value="${inv?inv.id:''}">
+    <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" id="inv-name" placeholder="Ej: Apple Inc., FONDO ABC..." value="${inv?inv.name:''}"></div>
+    <div class="form-group"><label class="form-label">Tipo</label>
+      <select class="form-select" id="inv-type" onchange="updateInvFields(this.value)">
+        ${INV_TYPES.map(t=>`<option value="${t.id}" ${defType===t.id?'selected':''}>${t.icon} ${t.name}</option>`).join('')}
+      </select>
+    </div>
+    <div id="inv-extra-fields">${buildInvExtraFields(defType,inv)}</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Capital invertido</label><input class="form-input" type="number" id="inv-capital" placeholder="0.00" value="${inv?inv.capital:''}" step="0.01"></div>
+      <div class="form-group"><label class="form-label">Valor actual</label><input class="form-input" type="number" id="inv-current" placeholder="= capital si no cambió" value="${inv?inv.currentValue:''}" step="0.01"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Fecha inicio</label><input class="form-input" type="date" id="inv-start" value="${inv?inv.startDate:todayStr()}"></div>
+      <div class="form-group"><label class="form-label">Moneda</label><select class="form-select" id="inv-currency">${buildCurrencyOptions(inv?inv.currency:S.currency)}</select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notas</label><input class="form-input" type="text" id="inv-notes" placeholder="Observaciones..." value="${inv?inv.notes||'':''}"></div>
+    <div class="btn-row">${isEdit?`<button class="btn btn-danger" onclick="deleteInvestment('${inv.id}')">Eliminar</button>`:''}<button class="btn btn-primary" onclick="saveInvestment()">${isEdit?'Guardar':'Registrar'}</button></div>
+  </div>`;
+}
+
+function buildInvExtraFields(type, inv){
+  if(type==='acciones'||type==='cripto'){
+    return `<div class="form-row"><div class="form-group"><label class="form-label">Ticker / Símbolo</label><input class="form-input" type="text" id="inv-ticker" placeholder="Ej: AAPL, BTC" value="${inv?inv.ticker||'':''}"></div><div class="form-group"><label class="form-label">Cantidad</label><input class="form-input" type="number" id="inv-qty" placeholder="Ej: 10" value="${inv?inv.qty||'':''}"></div></div>`;
+  }
+  if(type==='cdt'){
+    return `<div class="form-row"><div class="form-group"><label class="form-label">Tasa anual (%)</label><input class="form-input" type="number" id="inv-rate" placeholder="Ej: 12.5" step="0.01" value="${inv?inv.rate||'':''}"></div><div class="form-group"><label class="form-label">Fecha vencimiento</label><input class="form-input" type="date" id="inv-end" value="${inv?inv.endDate||'':''}"></div></div>`;
+  }
+  if(type==='inmueble'){
+    return `<div class="form-row"><div class="form-group"><label class="form-label">Renta mensual</label><input class="form-input" type="number" id="inv-rent" placeholder="0 si no renta" value="${inv?inv.rent||'':''}"></div><div class="form-group"><label class="form-label">Dirección</label><input class="form-input" type="text" id="inv-address" placeholder="Opcional" value="${inv?inv.address||'':''}"></div></div>`;
+  }
+  if(type==='negocio'){
+    return `<div class="form-row"><div class="form-group"><label class="form-label">Retorno mensual</label><input class="form-input" type="number" id="inv-monthly" placeholder="0.00" value="${inv?inv.monthlyReturn||'':''}"></div><div class="form-group"><label class="form-label">Participación (%)</label><input class="form-input" type="number" id="inv-share" placeholder="Ej: 50" value="${inv?inv.share||'':''}"></div></div>`;
+  }
+  return '';
+}
+
+function updateInvFields(type){
+  const inv = null;
+  document.getElementById('inv-extra-fields').innerHTML = buildInvExtraFields(type, inv);
+}
+
+function saveInvestment(){
+  const name = document.getElementById('inv-name')?.value?.trim();
+  const capital = parseFloat(document.getElementById('inv-capital')?.value);
+  if(!name){ toast('Ingresa un nombre'); return; }
+  if(!capital||capital<=0){ toast('Ingresa el capital invertido'); return; }
+  const type = document.getElementById('inv-type')?.value||'acciones';
+  const id = document.getElementById('inv-id')?.value;
+  const existing = id?(S.investments||[]).find(x=>x.id===id):null;
+  const inv = {
+    id: existing?existing.id:uid(),
+    name, type, capital,
+    currentValue: parseFloat(document.getElementById('inv-current')?.value)||capital,
+    currency: document.getElementById('inv-currency')?.value||S.currency,
+    startDate: document.getElementById('inv-start')?.value||todayStr(),
+    notes: document.getElementById('inv-notes')?.value||'',
+    // Extra fields
+    ticker: document.getElementById('inv-ticker')?.value||'',
+    qty: document.getElementById('inv-qty')?.value||'',
+    rate: document.getElementById('inv-rate')?.value||'',
+    endDate: document.getElementById('inv-end')?.value||'',
+    rent: document.getElementById('inv-rent')?.value||'',
+    address: document.getElementById('inv-address')?.value||'',
+    monthlyReturn: document.getElementById('inv-monthly')?.value||'',
+    share: document.getElementById('inv-share')?.value||'',
+  };
+  if(!S.investments) S.investments=[];
+  if(existing){ const idx=S.investments.findIndex(x=>x.id===id); S.investments[idx]=inv; toast('Inversión actualizada ✓'); }
+  else{ S.investments.push(inv); toast('Inversión registrada ✓'); }
+  saveState(); closeModal(); renderPage('inversiones');
+}
+
+function deleteInvestment(id){
+  confirmDialog('🗑️','¿Eliminar inversión?','',()=>{
+    S.investments=(S.investments||[]).filter(x=>x.id!==id);
+    saveState(); closeModal(); renderPage('inversiones'); toast('Eliminada');
+  });
+}
+
+
 // ════════════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════════════
@@ -3927,6 +4337,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('[data-page]').forEach(el=>el.addEventListener('click',()=>navigate(el.dataset.page)));
   refreshCurrencyToggle();
   applyLanguage();
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){if(S.theme==='auto')applyThemeMode();});
   navigate((S.currentPage&&S.currentPage!=='configuracion')?S.currentPage:'dashboard');
   checkAutoPayments();
   fetchExchangeRate();
