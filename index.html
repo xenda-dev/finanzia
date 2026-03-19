@@ -3241,26 +3241,25 @@ function buildProfileFormHTML(){
   var occupations=['Empleado','Independiente / Freelancer','Empresario','Estudiante','Ama/Amo de casa','Jubilado','Desempleado','Otro'];
   var occupOpts=occupations.map(function(o){return '<option value="'+o+'" '+(p.occupation===o?'selected':'')+'>'+o+'</option>';}).join('');
   var maritalOpts=['Soltero/a','Casado/a','Unión libre','Divorciado/a','Viudo/a'].map(function(m){return '<option value="'+m+'" '+(p.marital===m?'selected':'')+'>'+m+'</option>';}).join('');
-  var goalOpts=['Ahorrar para emergencias','Pagar deudas','Comprar vivienda','Viajar','Independencia financiera','Emprender','Jubilación','Educación','Otro'].map(function(g){return '<option value="'+g+'" '+(p.financialGoal===g?'selected':'')+'>'+g+'</option>';}).join('');
+  var goalOpts=['Ahorrar para emergencias','Control de gastos','Pagar deudas','Comprar vivienda','Viajar','Independencia financiera','Emprender','Jubilación','Educación','Otro'].map(function(g){return '<option value="'+g+'" '+(p.financialGoal===g?'selected':'')+'>'+g+'</option>';}).join('');
 
   var html=''
     +'<!-- Photo section -->'
     +'<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:16px">'
       +'<div style="position:relative;display:inline-block">'
         +'<div id="cfg-avatar" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:32px;border:3px solid var(--primary);overflow:hidden">'+avatarInner+'</div>'
-        +'<div style="position:absolute;bottom:0;right:0;display:flex;gap:4px">'
-          +'<button onclick="document.getElementById(&apos;profile-cam-input&apos;).click()" style="width:26px;height:26px;border-radius:50%;background:var(--primary);border:none;color:white;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center">📷</button>'
-          +'<button onclick="document.getElementById(&apos;profile-gal-input&apos;).click()" style="width:26px;height:26px;border-radius:50%;background:var(--secondary);border:none;color:white;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center">🖼️</button>'
+        +'<div style="position:absolute;bottom:0;right:0">'
+          +'<button onclick="document.getElementById(&apos;profile-cam-input&apos;).click()" style="width:28px;height:28px;border-radius:50%;background:var(--primary);border:none;color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">📷</button>'
         +'</div>'
       +'</div>'
       +'<input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">'
-      +'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
+      
       +removeBtn
     +'</div>'
     +'<div class="form-group"><label class="form-label">Nombre completo <span style="color:var(--danger)">*</span></label>'
       +'<input class="form-input" type="text" id="cfg-name" value="'+(p.name||'')+'" placeholder="Tu nombre completo"></div>'
     +'<div class="form-group"><label class="form-label">Fecha de nacimiento</label>'
-      +'<input class="form-input" type="date" id="cfg-birthdate" value="'+(p.birthdate||'')+'"></div>'
+      +'<input class="form-input" type="date" id="cfg-birthdate" value="'+(p.birthdate||'')+'" max="2026-03-19"></div>'
     +'<div class="form-group"><label class="form-label">Email <span style="color:var(--danger)">*</span></label>'
       +'<input class="form-input" type="email" id="cfg-email" value="'+(p.email||'')+'" placeholder="tu@email.com"></div>'
     +'<div class="form-group"><label class="form-label">Teléfono <span style="color:var(--danger)">*</span></label>'
@@ -3499,6 +3498,8 @@ const COUNTRY_DATA={
   'Zambia':{cur:'ZMW',phone:'+260',lang:'en'},
   'Zimbabue':{cur:'ZWL',phone:'+263',lang:'en'}
 };
+
+
 
 function saveProfile(){
   if(!S.profile)S.profile={};
