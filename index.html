@@ -2705,13 +2705,17 @@ function buildCambioRow(idx,row){
 }
 function buildCambioPickItems(idx,side,selected){
   var q="'";
-  var html='<div class="ppick-item" onclick="selectCambioCur('+q+idx+q+','+q+side+q+','+q+q+')" data-val="" style="padding:10px 12px;font-size:14px;font-weight:600;color:var(--text3);cursor:pointer">💱 Seleccionar</div>';
+  var html='';
   ALL_CURRENCIES.forEach(function(cur){
     var meta=getCurrencyMeta(cur.code);
     var sel=cur.code===selected;
-    html+='<div class="ppick-item" onclick="selectCambioCur('+q+idx+q+','+q+side+q+','+q+cur.code+q+')" data-val="'+cur.code+'" style="padding:10px 12px;cursor:pointer;background:'+(sel?'rgba(0,212,170,.12)':'')+'">'
-      +'<div style="font-size:14px;font-weight:600;color:'+(sel?'var(--primary)':'var(--text)')+'">💱 '+cur.code+' <span style="color:var(--primary)">'+meta.sym+'</span></div>'
-      +'<div style="font-size:11px;color:var(--text3)">'+cur.name+'</div>'
+    html+='<div class="ppick-item" onclick="selectCambioCur('+q+idx+q+','+q+side+q+','+q+cur.code+q+')" data-val="'+cur.code+'" style="padding:10px 12px;cursor:pointer;background:'+(sel?'rgba(0,212,170,.12)':'')+';display:flex;align-items:center;gap:10px">'
+      +'<input type="checkbox" '+(sel?'checked':'')+' disabled style="width:16px;height:16px;accent-color:var(--primary);flex-shrink:0;pointer-events:none">'
+      +'<div style="flex:1">'
+        +'<div style="font-size:14px;font-weight:700;color:'+(sel?'var(--primary)':'var(--text)')+'">'+cur.code+' <span style="color:var(--primary)">'+meta.sym+'</span></div>'
+        +'<div style="font-size:11px;color:var(--text3)">'+cur.name+'</div>'
+      +'</div>'
+      +(sel?'<span style="color:var(--primary);font-size:16px">✓</span>':'')
       +'</div>';
   });
   return html;
