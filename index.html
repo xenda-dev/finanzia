@@ -67,6 +67,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .finanzIA-logo svg{flex-shrink:0}
 .drawer-footer-version{font-size:10px;color:var(--text3);margin-top:2px}
 .drawer-group-label{font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--text3);padding:14px 20px 4px;text-transform:uppercase}
+.dgl-collapsible{cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding-right:16px;user-select:none}
+.dgl-collapsible:hover{color:var(--text2)}
+.dgl-arrow{font-size:12px;transition:transform .2s;display:inline-block}
 .drawer-group-toggle{display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;padding-right:16px}
 .drawer-group-toggle:hover{color:var(--text2)}
 .dgl-arrow{font-size:9px;transition:transform .2s}
@@ -277,27 +280,46 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
   <!-- Navigation -->
   <div class="drawer-nav">
+    <!-- 1. Principal -->
     <div class="drawer-group-label" id="dgl-principal">Principal</div>
     <button class="drawer-item active" data-page="dashboard" id="dmi-dashboard"><div class="drawer-item-icon">🏠</div><span>Inicio</span></button>
-    <div class="drawer-group-label" id="dgl-midinero">Mi Dinero</div>
-    <button class="drawer-item" data-page="cuentas" id="dmi-cuentas"><div class="drawer-item-icon">💳</div><span>Cuentas</span></button>
-    <button class="drawer-item" data-page="movimientos" id="dmi-movimientos"><div class="drawer-item-icon">📋</div><span>Movimientos</span></button>
-    <button class="drawer-item" data-page="deudas" id="dmi-deudas"><div class="drawer-item-icon">💸</div><span>Deudas</span></button>
-    <div class="drawer-group-label" id="dgl-planificacion">Planificación</div>
-    <button class="drawer-item" data-page="presupuestos" id="dmi-presupuestos"><div class="drawer-item-icon">📊</div><span>Presupuestos</span></button>
-    <button class="drawer-item" data-page="metas" id="dmi-metas"><div class="drawer-item-icon">🎯</div><span>Metas de ahorro</span></button>
-    <button class="drawer-item" data-page="pagos" id="dmi-pagos"><div class="drawer-item-icon">🔔</div><span>Pagos programados</span></button>
-    <div class="drawer-group-label" id="dgl-reportes">Reportes</div>
-    <button class="drawer-item" data-page="analisis" id="dmi-analisis"><div class="drawer-item-icon">📈</div><span>Análisis financiero</span></button>
-    <div class="drawer-group-label" id="dgl-herramientas">Herramientas</div>
-    <button class="drawer-item" data-page="herramientas" id="dmi-herramientas"><div class="drawer-item-icon">🤖</div><span>Emiliano — Asistente IA</span></button>
-    <button class="drawer-item" data-page="calculadora" id="dmi-calculadora"><div class="drawer-item-icon">📐</div><span>Calculadora préstamo</span></button>
-    <button class="drawer-item" data-page="simulador" id="dmi-simulador"><div class="drawer-item-icon">💹</div><span>Simulador de ahorro</span></button>
-    <button class="drawer-item" data-page="estrategia" id="dmi-estrategia"><div class="drawer-item-icon">❄️</div><span>Estrategia de deudas</span></button>
-    <button class="drawer-item" data-page="cambio" id="dmi-cambio"><div class="drawer-item-icon">💱</div><span>Tipo de cambio</span></button>
-    <button class="drawer-item" data-page="listas" id="dmi-listas"><div class="drawer-item-icon">🛒</div><span>Listas de compra</span></button>
+    <!-- 2. Mi Dinero (collapsible) -->
+    <div class="drawer-group-label dgl-collapsible" id="dgl-midinero" onclick="toggleDrawerGroup('dgl-midinero-items',this)">
+      <span>Mi Dinero</span><span class="dgl-arrow">▾</span>
+    </div>
+    <div id="dgl-midinero-items">
+      <button class="drawer-item" data-page="cuentas" id="dmi-cuentas"><div class="drawer-item-icon">💳</div><span>Cuentas</span></button>
+      <button class="drawer-item" data-page="movimientos" id="dmi-movimientos"><div class="drawer-item-icon">📋</div><span>Movimientos</span></button>
+      <button class="drawer-item" data-page="deudas" id="dmi-deudas"><div class="drawer-item-icon">💸</div><span>Deudas</span></button>
+    </div>
+    <!-- 3. Planificación (collapsible) -->
+    <div class="drawer-group-label dgl-collapsible" id="dgl-planificacion" onclick="toggleDrawerGroup('dgl-planificacion-items',this)">
+      <span>Planificación</span><span class="dgl-arrow">▾</span>
+    </div>
+    <div id="dgl-planificacion-items">
+      <button class="drawer-item" data-page="presupuestos" id="dmi-presupuestos"><div class="drawer-item-icon">📊</div><span>Presupuestos</span></button>
+      <button class="drawer-item" data-page="metas" id="dmi-metas"><div class="drawer-item-icon">🎯</div><span>Metas de ahorro</span></button>
+      <button class="drawer-item" data-page="pagos" id="dmi-pagos"><div class="drawer-item-icon">🔔</div><span>Pagos programados</span></button>
+    </div>
+    <!-- 4. Inversiones -->
     <div class="drawer-group-label" id="dgl-inversiones">Inversiones</div>
     <button class="drawer-item" data-page="inversiones" id="dmi-inversiones"><div class="drawer-item-icon">📈</div><span>Mis inversiones</span></button>
+    <!-- 5. Reportes -->
+    <div class="drawer-group-label" id="dgl-reportes">Reportes</div>
+    <button class="drawer-item" data-page="analisis" id="dmi-analisis"><div class="drawer-item-icon">📊</div><span>Análisis financiero</span></button>
+    <!-- 6. Herramientas (collapsible) -->
+    <div class="drawer-group-label dgl-collapsible" id="dgl-herramientas" onclick="toggleDrawerGroup('dgl-herramientas-items',this)">
+      <span>Herramientas</span><span class="dgl-arrow">▾</span>
+    </div>
+    <div id="dgl-herramientas-items">
+      <button class="drawer-item" data-page="herramientas" id="dmi-herramientas"><div class="drawer-item-icon">🤖</div><span>Emiliano — Asistente IA</span></button>
+      <button class="drawer-item" data-page="calculadora" id="dmi-calculadora"><div class="drawer-item-icon">📐</div><span>Calculadora préstamo</span></button>
+      <button class="drawer-item" data-page="simulador" id="dmi-simulador"><div class="drawer-item-icon">💹</div><span>Simulador de ahorro</span></button>
+      <button class="drawer-item" data-page="estrategia" id="dmi-estrategia"><div class="drawer-item-icon">❄️</div><span>Estrategia de deudas</span></button>
+      <button class="drawer-item" data-page="cambio" id="dmi-cambio"><div class="drawer-item-icon">💱</div><span>Tipo de cambio</span></button>
+      <button class="drawer-item" data-page="listas" id="dmi-listas"><div class="drawer-item-icon">🛒</div><span>Listas de compra</span></button>
+    </div>
+    <!-- 7. Configuración -->
     <div class="drawer-group-label" id="dgl-configuracion">Configuración</div>
     <button class="drawer-item" data-page="configuracion" id="dmi-configuracion"><div class="drawer-item-icon">⚙️</div><span>Ajustes</span></button>
   </div>
@@ -562,12 +584,12 @@ function loadState(){
   updateDrawerProfile();
 }
 function toggleDrawerGroup(groupId, labelEl){
-  const el=document.getElementById(groupId);
+  var el=document.getElementById(groupId);
   if(!el)return;
-  const arrow=labelEl?labelEl.querySelector('.dgl-arrow'):null;
-  const isCollapsed=el.style.display==='none';
+  var isCollapsed=el.style.display==='none';
   el.style.display=isCollapsed?'block':'none';
-  if(arrow)arrow.classList.toggle('collapsed',!isCollapsed);
+  var arrow=labelEl?labelEl.querySelector('.dgl-arrow'):null;
+  if(arrow)arrow.style.transform=isCollapsed?'rotate(0deg)':'rotate(-90deg)';
 }
 function updateDrawerProfile(){
   const name=S.profile&&S.profile.name?S.profile.name:'Mi Perfil';
@@ -4159,12 +4181,12 @@ function buildListDetailHTML(l){
   // Section selector for add-item bar
   var secSelect = '';
   if(sections.length){
-    secSelect = '<select class="form-select" id="list-new-section" style="width:130px;font-size:12px"><option value="">Sección</option>'
+    secSelect = '<select class="form-select" id="list-new-section" style="flex:1;font-size:13px"><option value="">Sección</option>'
       +sections.map(function(s){return '<option value="'+s+'">'+s+'</option>';}).join('')
       +'</select>';
   }
   // Add section button for custom lists
-  var addSecBtn = '<button onclick="addCustomSection('+q+l.id+q+')" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--primary);font-size:12px;padding:5px 10px;cursor:pointer;font-family:var(--font);white-space:nowrap">+ Sección</button>';
+  var addSecBtn = '<button onclick="addCustomSection('+q+l.id+q+')" style="flex:1;background:none;border:1px solid var(--border);border-radius:8px;color:var(--primary);font-size:13px;padding:8px 4px;cursor:pointer;font-family:var(--font)">+ Sección</button>';
   return '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0">'
     +'<button onclick="closeListDetail()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px;line-height:1">←</button>'
     +'<div style="font-size:20px">'+tipo.icon+'</div>'
@@ -4176,13 +4198,12 @@ function buildListDetailHTML(l){
     +'<button onclick="clearDoneItems('+q+l.id+q+')" style="background:none;border:1px solid var(--border);border-radius:50px;color:var(--primary);font-size:12px;padding:5px 12px;cursor:pointer;font-family:var(--font)">↺ Restaurar</button>'
     +'</div>'
     +'<div style="flex:1;overflow-y:auto;padding:12px 16px" id="list-items-container"></div>'
-    +'<div id="list-add-bar" style="padding:12px 16px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0">'
-    +'<div style="display:flex;gap:8px">'
+    +'<div id="list-add-bar" style="padding:10px 16px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0">'
+    +'<div style="display:flex;gap:8px;margin-bottom:'+(sections.length?'8':'0')+'px">'
     +'<input class="form-input" type="text" id="list-new-item" placeholder="Agregar ítem..." style="flex:1" onkeydown="if(event.key===\'Enter\')addListItem('+q+l.id+q+')">'
-    +secSelect
-    +addSecBtn
-    +'<button class="btn btn-primary btn-sm" onclick="addListItem('+q+l.id+q+')">+</button>'
+    +'<button class="btn btn-primary btn-sm" onclick="addListItem('+q+l.id+q+')" style="padding:0 20px;font-size:22px;font-weight:300;line-height:1">+</button>'
     +'</div>'
+    +(sections.length ? ('<div style="display:flex;gap:8px">'+(secSelect||'')+(addSecBtn||'')+'</div>') : '')
     +'</div>';
 }
 
@@ -4253,22 +4274,17 @@ function buildListItemHTML(listId, item){
 function editListItem(listId, itemId){
   var el=document.getElementById('li-'+itemId);
   if(!el)return;
-  var nameDiv=el.querySelector('div[style*="font-size:14px"]');
+  var nameDiv=el.querySelector('div[style*="flex:1"]');
   if(!nameDiv)return;
   var current=nameDiv.textContent;
   var inp=document.createElement('input');
-  inp.id='edit-inp-'+itemId;
   inp.type='text';
   inp.value=current;
-  inp.style.cssText='flex:1;padding:3px 8px;border-radius:6px;border:1.5px solid var(--primary);background:var(--surface);font-size:14px;font-weight:500;color:var(--text);font-family:var(--font);outline:none';
-  var saved=false;
-  inp.addEventListener('keydown',function(e){
-    if(e.key==='Enter'){saved=true;inp.blur();}
-    if(e.key==='Escape'){saved=true;renderListItems((S.shoppingLists||[]).find(function(x){return x.id===listId;}));}
-  });
-  inp.addEventListener('blur',function(){
-    if(saved)return;
-    saved=true;
+  inp.style.cssText='flex:1;padding:3px 8px;border-radius:6px;border:1.5px solid var(--primary);background:var(--surface);font-size:14px;font-weight:500;color:var(--text);font-family:var(--font);outline:none;min-width:0';
+  var done=false;
+  function commit(){
+    if(done)return;
+    done=true;
     var val=inp.value.trim();
     var l=(S.shoppingLists||[]).find(function(x){return x.id===listId;});
     if(!l)return;
@@ -4277,7 +4293,12 @@ function editListItem(listId, itemId){
       if(item){item.name=val;saveState();}
     }
     renderListItems(l);
+  }
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){e.preventDefault();commit();}
+    if(e.key==='Escape'){done=true;renderListItems((S.shoppingLists||[]).find(function(x){return x.id===listId;}));}
   });
+  inp.addEventListener('blur',commit);
   nameDiv.parentNode.replaceChild(inp,nameDiv);
   inp.focus();inp.select();
 }
