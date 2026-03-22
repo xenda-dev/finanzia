@@ -952,7 +952,7 @@ function renderPage(page){
     case'herramientas':el.innerHTML=renderHerramientas();break;
     case'calculadora':el.innerHTML=renderCalculadora();break;
     case'simulador':el.innerHTML=renderSimulador();break;
-    case'estrategia':el.innerHTML=renderEstrategia();break;
+    case'estrategia':window._estrategiaMetodo='';el.innerHTML=renderEstrategia();break;
     case'cambio':el.innerHTML=renderCambio();break;
     case'listas':el.innerHTML=renderListas();break;
     case'inversiones':el.innerHTML=renderInversiones();break;
@@ -2791,7 +2791,7 @@ function renderEstrategia(){
   const debts=S.accounts.filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency);
   if(!debts.length)return '<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">¡Sin deudas!</div><div class="empty-desc">No tienes deudas registradas en '+S.currency+'</div></div>';
 
-  const metodo=window._estrategiaMetodo||'avalancha';
+  const metodo=window._estrategiaMetodo||'';
   const extra=parseFloat((window._estrategiaExtra||'').toString().replace(/[^0-9.]/g,''))||0;
   const MESES_SHORT=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
@@ -2821,8 +2821,8 @@ function renderEstrategia(){
 
   var avalanche=[].concat(debtData).sort(function(a,b){return b.rate-a.rate;});
   var snowball=[].concat(debtData).sort(function(a,b){return a.balance-b.balance;});
-  var ordered=metodo==='avalancha'?avalanche:snowball;
-  var mColor=metodo==='avalancha'?'var(--primary)':'#7461EF';
+  var ordered=metodo==='nieve'?snowball:avalanche; // default avalanche for calc even if not shown
+  var mColor=metodo==='nieve'?'#7461EF':'var(--primary)';
 
   function simulate(ord, extraAmt){
     var xAmt=extraAmt||0;
@@ -2980,15 +2980,15 @@ function renderEstrategia(){
   var ganttHtml='';
   var totalMonths=rMain.months;
   if(totalMonths>0&&totalMonths<=120){
-    var labelStep=totalMonths<=12?1:totalMonths<=24?2:totalMonths<=48?4:totalMonths<=72?6:12;
-    var axis='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+    // Simple start/end header instead of overcrowded axis
+    var axis='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
       +'<div style="width:90px;flex-shrink:0"></div>'
-      +'<div style="flex:1;position:relative;height:16px">';
-    for(var li=0;li<totalMonths;li+=labelStep){
-      var lpct=(li/totalMonths*100).toFixed(1);
-      axis+='<span style="position:absolute;left:'+lpct+'%;font-size:9px;color:var(--text3);transform:translateX(-50%)">'+monthLabel(startY,startM,li)+'</span>';
-    }
-    axis+='</div><div style="width:40px;flex-shrink:0"></div></div>';
+      +'<div style="flex:1;display:flex;justify-content:space-between">'
+        +'<span style="font-size:10px;color:var(--text3);font-weight:600">▶ '+monthLabel(startY,startM,0)+'</span>'
+        +'<span style="font-size:10px;color:var(--success);font-weight:600">'+monthLabel(startY,startM,totalMonths-1)+' 🏁</span>'
+      +'</div>'
+      +'<div style="width:40px;flex-shrink:0"></div>'
+    +'</div>';
     var bars='';
     ordered.forEach(function(d){
       var payoff=rMain.payoffMonth[d.id]||totalMonths;
@@ -3024,7 +3024,8 @@ function renderEstrategia(){
   return ratesWarning
     // 1 METHOD SELECTOR
     +'<div class="card" style="margin-bottom:14px">'
-      +'<div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:10px;letter-spacing:.5px">¿CÓMO QUIERES ATACAR TUS DEUDAS?</div>'
+      +'<div style="font-size:13px;font-weight:700;margin-bottom:4px">¿Bajo qué método quieres atacar tus deudas?</div>'
+      +'<div style="font-size:11px;color:var(--text2);margin-bottom:12px">Elige una estrategia para ver tu plan personalizado</div>'
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
         +'<button onclick="setEstrategiaMetodo(\'avalancha\')" style="padding:14px 8px;border-radius:12px;border:2px solid '+(metodo==='avalancha'?'var(--primary)':'var(--border)')+';background:'+(metodo==='avalancha'?'rgba(0,212,170,.12)':'var(--surface2)')+';color:'+(metodo==='avalancha'?'var(--primary)':'var(--text)')+';cursor:pointer;font-family:var(--font);font-size:13px;font-weight:700;text-align:center;line-height:1.5">'
           +'🌊 Avalancha<br><span style="font-size:10px;font-weight:400;opacity:.7">Mayor tasa primero</span>'
@@ -3034,20 +3035,18 @@ function renderEstrategia(){
         +'</button>'
       +'</div>'
     +'</div>'
-    // 1b METHOD EXPLANATION CARDS
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'
-      +'<div style="background:'+(metodo==='avalancha'?'rgba(0,212,170,.07)':'var(--surface2)')+';border-radius:10px;padding:12px;border:1px solid '+(metodo==='avalancha'?'var(--primary)44':'var(--border)')+';">'
-        +'<div style="font-size:20px;margin-bottom:6px">🌊</div>'
-        +'<div style="font-size:12px;font-weight:700;margin-bottom:4px">Avalancha</div>'
-        +'<div style="font-size:11px;color:var(--text2);line-height:1.5">Pagas primero la deuda con la <strong>tasa de interés más alta</strong>. Matematicamente ahorras más dinero. Ideal si quieres pagar lo menos posible en total.</div>'
-      +'</div>'
-      +'<div style="background:'+(metodo==='nieve'?'rgba(116,97,239,.07)':'var(--surface2)')+';border-radius:10px;padding:12px;border:1px solid '+(metodo==='nieve'?'#7461EF44':'var(--border)')+';">'
-        +'<div style="font-size:20px;margin-bottom:6px">❄️</div>'
-        +'<div style="font-size:12px;font-weight:700;margin-bottom:4px">Bola de nieve</div>'
-        +'<div style="font-size:11px;color:var(--text2);line-height:1.5">Pagas primero la deuda con el <strong>saldo más pequeño</strong>. Ver deudas desaparecer te motiva a continuar. Ideal si necesitas impulso psicológico.</div>'
-      +'</div>'
-    +'</div>'
-    // 2 DEBT LIST
+    // 1b EXPLANATION — solo cuando hay método seleccionado
+    +(metodo
+      ?'<div style="background:'+(metodo==='avalancha'?'rgba(0,212,170,.07)':'rgba(116,97,239,.07)')+';border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid '+(metodo==='avalancha'?'var(--primary)':'#7461EF')+'33">'
+          +'<div style="font-size:22px;margin-bottom:6px">'+(metodo==='avalancha'?'🌊':'❄️')+'</div>'
+          +'<div style="font-size:13px;font-weight:700;margin-bottom:6px;color:'+(metodo==='avalancha'?'var(--primary)':'#7461EF')+'">'+(metodo==='avalancha'?'Método Avalancha':'Método Bola de nieve')+'</div>'
+          +(metodo==='avalancha'
+            ?'<div style="font-size:12px;color:var(--text2);line-height:1.6">Pagas primero la deuda con la <strong>tasa de interés más alta</strong>. Una vez la liquidas, ese dinero lo atacas a la siguiente. Matemáticamente es la estrategia más eficiente: pagarás <strong>menos intereses en total</strong> y terminarás antes. Ideal si eres disciplinado y buscas el menor costo financiero posible.</div>'
+            :'<div style="font-size:12px;color:var(--text2);line-height:1.6">Pagas primero la deuda con el <strong>saldo más pequeño</strong>. Al verla desaparecer rápido, obtienes una victoria psicológica que te mantiene motivado. La cuota liberada se suma al ataque de la siguiente deuda — como una bola de nieve que crece. Ideal si necesitas motivación y ver resultados rápido.</div>'
+          )
+        +'</div>'
+      :'')
+    // 2 DEBT LIST (siempre visible)
     +'<div class="card" style="margin-bottom:14px">'
       +'<div style="font-size:13px;font-weight:700;margin-bottom:4px">📋 Listado de deudas</div>'
       +'<div style="font-size:11px;color:var(--text2);margin-bottom:12px">'+S.currency+'</div>'
@@ -3060,52 +3059,56 @@ function renderEstrategia(){
         +'</div>'
       +'</div>'
     +'</div>'
-    // 3 ORDER OF PAYMENTS
-    +'<div class="card" style="margin-bottom:14px;border-left:4px solid '+mColor+'">'
-      +'<div style="font-size:13px;font-weight:700;margin-bottom:4px">'+(metodo==='avalancha'?'🌊 Orden Avalancha':'❄️ Orden Bola de nieve')+'</div>'
-      +'<div style="font-size:11px;color:var(--text2);margin-bottom:12px">'+(metodo==='avalancha'?'Pagas primero la de mayor tasa de interés':'Pagas primero la de menor saldo')+'</div>'
-      +orderRows
-    +'</div>'
-    // 4 CRONOGRAMA
-    +'<div class="card" style="margin-bottom:14px">'
-      +'<div style="font-size:13px;font-weight:700;margin-bottom:12px">📅 Cronograma de pagos</div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">'
-        +'<div>'
-          +'<div style="font-size:11px;color:var(--text3);font-weight:700;margin-bottom:5px">INICIO DEL PAGO</div>'
-          +'<input class="form-input" type="month" id="estrategia-start" value="'+startStr+'" onchange="calcEstrategia()" style="font-size:13px;width:100%">'
+    // Resto solo visible cuando hay método seleccionado
+    +(metodo?(
+      // 3 ORDER OF PAYMENTS
+      '<div class="card" style="margin-bottom:14px;border-left:4px solid '+mColor+'">'
+        +'<div style="font-size:13px;font-weight:700;margin-bottom:4px">'+(metodo==='avalancha'?'🌊 Orden Avalancha':'❄️ Orden Bola de nieve')+'</div>'
+        +'<div style="font-size:11px;color:var(--text2);margin-bottom:12px">'+(metodo==='avalancha'?'Pagas primero la de mayor tasa de interés':'Pagas primero la de menor saldo')+'</div>'
+        +orderRows
+      +'</div>'
+      // 4 CRONOGRAMA
+      +'<div class="card" style="margin-bottom:14px">'
+        +'<div style="font-size:13px;font-weight:700;margin-bottom:12px">📅 Cronograma de pagos</div>'
+        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">'
+          +'<div>'
+            +'<div style="font-size:11px;color:var(--text3);font-weight:700;margin-bottom:5px">INICIO DEL PAGO</div>'
+            +'<input class="form-input" type="month" id="estrategia-start" value="'+startStr+'" onchange="calcEstrategia()" style="font-size:13px;width:100%">'
+          +'</div>'
+          +'<div>'
+            +'<div style="font-size:11px;color:var(--text3);font-weight:700;margin-bottom:5px">ABONO EXTRA MENSUAL</div>'
+            +'<input class="form-input" type="text" inputmode="numeric" id="estrategia-extra" value="'+(window._estrategiaExtra||'')+'" placeholder="0" onblur="calcEstrategia()" oninput="window._estrategiaExtra=this.value.replace(/[^0-9.]/g,\'\')" onkeyup="if(event.key===\'Enter\')this.blur()" style="font-size:13px;width:100%">'
+          +'</div>'
         +'</div>'
-        +'<div>'
-          +'<div style="font-size:11px;color:var(--text3);font-weight:700;margin-bottom:5px">ABONO EXTRA MENSUAL</div>'
-          +'<input class="form-input" type="text" inputmode="numeric" id="estrategia-extra" value="'+(window._estrategiaExtra||'')+'" placeholder="0" onblur="calcEstrategia()" oninput="window._estrategiaExtra=this.value.replace(/[^0-9.]/g,\'\')" onkeyup="if(event.key===\'Enter\')this.blur()" style="font-size:13px;width:100%">'
+        +extraTip
+        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+          +'<div style="background:var(--surface2);border-radius:10px;padding:12px;text-align:center">'
+            +'<div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.5px">TERMINARÍAS EN</div>'
+            +'<div style="font-size:26px;font-weight:800;color:'+mColor+'">'+rMain.months+'</div>'
+            +'<div style="font-size:11px;color:var(--text2)">meses · '+Math.floor(rMain.months/12)+'a '+rMain.months%12+'m</div>'
+          +'</div>'
+          +'<div style="background:var(--surface2);border-radius:10px;padding:12px;text-align:center">'
+            +'<div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.5px">MES FINAL</div>'
+            +'<div style="font-size:20px;font-weight:800;color:var(--text)">'+endMonthStr+'</div>'
+            +'<div style="font-size:10px;color:var(--success);font-weight:600">libre de deudas 🎉</div>'
+          +'</div>'
+          +'<div style="background:rgba(239,68,68,.08);border-radius:10px;padding:12px;text-align:center">'
+            +'<div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.5px">PAGARÁS EN INTERESES</div>'
+            +'<div style="font-size:14px;font-weight:800;color:var(--danger)">'+fmt(rMain.totalInt)+'</div>'
+            +'<div style="font-size:9px;color:var(--text3);margin-top:2px">costo total del crédito</div>'
+          +'</div>'
+          +'<div style="background:'+(isBetter?'rgba(0,212,170,.1)':'rgba(239,68,68,.08)')+';border-radius:10px;padding:12px;text-align:center;border:1px solid '+(isBetter?'var(--primary)':'var(--danger)')+'33">'
+            +'<div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.5px">'+(isBetter?'✅ AHORRAS VS ':'⚠️ PAGARÍAS MÁS VS ')+(metodo==='avalancha'?'BOLA NIEVE':'AVALANCHA')+'</div>'
+            +'<div style="font-size:14px;font-weight:800;color:'+(isBetter?'var(--success)':'var(--danger)')+'">'+fmt(interestSavings)+'</div>'
+            +'<div style="font-size:9px;color:'+(isBetter?'var(--success)':'var(--danger)')+';margin-top:2px">'+vsMonths+'m '+(isBetter?'más rápido con este método':'más lento con este método')+'</div>'
+          +'</div>'
         +'</div>'
       +'</div>'
-      +extraTip
-      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
-        +'<div style="background:var(--surface2);border-radius:10px;padding:12px;text-align:center">'
-          +'<div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.5px">TERMINARÍAS EN</div>'
-          +'<div style="font-size:26px;font-weight:800;color:'+mColor+'">'+rMain.months+'</div>'
-          +'<div style="font-size:11px;color:var(--text2)">meses · '+Math.floor(rMain.months/12)+'a '+rMain.months%12+'m</div>'
-        +'</div>'
-        +'<div style="background:var(--surface2);border-radius:10px;padding:12px;text-align:center">'
-          +'<div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.5px">MES FINAL</div>'
-          +'<div style="font-size:20px;font-weight:800;color:var(--text)">'+endMonthStr+'</div>'
-          +'<div style="font-size:10px;color:var(--success);font-weight:600">libre de deudas 🎉</div>'
-        +'</div>'
-        +'<div style="background:var(--surface2);border-radius:10px;padding:12px;text-align:center">'
-          +'<div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.5px">INTERESES TOTALES</div>'
-          +'<div style="font-size:14px;font-weight:800;color:var(--danger)">'+fmt(rMain.totalInt)+'</div>'
-        +'</div>'
-        +'<div style="background:'+(isBetter?'rgba(0,212,170,.1)':'rgba(116,97,239,.1)')+';border-radius:10px;padding:12px;text-align:center;border:1px solid '+(isBetter?'var(--primary)':'#7461EF')+'44">'
-          +'<div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.5px">VS '+(metodo==='avalancha'?'BOLA NIEVE':'AVALANCHA')+'</div>'
-          +'<div style="font-size:12px;font-weight:800;color:'+(isBetter?'var(--success)':'var(--danger)')+'">'+fmt(interestSavings)+'</div>'
-          +'<div style="font-size:10px;color:'+(isBetter?'var(--success)':'var(--danger)')+'">'+vsMonths+'m '+(isBetter?'más rápido':'más lento')+'</div>'
-        +'</div>'
-      +'</div>'
-    +'</div>'
-    // 5 GANTT
-    +ganttHtml
-    // 6 AMORTIZATION TABLE
-    +tableHtml;
+      // 5 GANTT
+      +ganttHtml
+      // 6 AMORTIZATION TABLE
+      +tableHtml
+    ):'');
 }
 
 // ════════════════════════════════════════════════════════════
