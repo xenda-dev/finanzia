@@ -5213,7 +5213,7 @@ function buildNewListModal(data){
     +'<div class="modal-body">'
     +'<div class="form-group"><label class="form-label" style="margin-bottom:8px">¿Qué tipo de lista?</label>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
-    +LISTA_TIPOS.map(function(t){var q="'";return '<button onclick="selectListType('+q+t.id+q+')" id="lt-'+t.id+'" style="padding:12px 8px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;transition:.15s">'+t.icon+' '+t.name+'</button>';}).join('')
+    +LISTA_TIPOS.map(function(t){var q="'";var sel=t.id==='supermercado';return '<button onclick="selectListType('+q+t.id+q+')" id="lt-'+t.id+'" style="padding:12px 8px;border-radius:10px;border:2px solid '+(sel?'var(--primary)':'var(--border)')+';background:'+(sel?'rgba(0,212,170,.12)':'var(--surface2)')+';color:'+(sel?'var(--primary)':'var(--text)')+';cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;transition:.15s">'+t.icon+' '+t.name+'</button>';}).join('')
     +'</div><input type="hidden" id="nl-type" value="supermercado"></div>'
     +'<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="saveNewList()">Crear lista</button>'
     +'</div>';
