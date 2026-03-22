@@ -2824,12 +2824,13 @@ function renderEstrategia(){
   var ordered=metodo==='avalancha'?avalanche:snowball;
   var mColor=metodo==='avalancha'?'var(--primary)':'#7461EF';
 
-  function simulate(ord){
+  function simulate(ord, extraAmt){
+    var xAmt=extraAmt||0;
     var ds=ord.map(function(d){return{id:d.id,bal:d.balance,monthly:d.monthly,rate:d.rate};});
     var months=0;var totalInt=0;var payoffMonth={};
     while(ds.some(function(d){return d.bal>0;})&&months<600){
       months++;
-      var freed=extra;
+      var freed=xAmt;
       ds.forEach(function(d){
         if(d.bal<=0)return;
         var intAmt=d.bal*(d.rate/100/12);
@@ -2851,11 +2852,89 @@ function renderEstrategia(){
     return{months:months,totalInt:totalInt,payoffMonth:payoffMonth};
   }
 
-  var rMain=simulate(ordered);
-  var rAlt=simulate(metodo==='avalancha'?snowball:avalanche);
+  // Simulate: main method with extra, alt method with extra, main method WITHOUT extra (for extraTip)
+  var rMain=simulate(ordered, extra);
+  var rAlt=simulate(metodo==='avalancha'?snowball:avalanche, extra);
+  var rBase=extra>0?simulate(ordered, 0):null; // baseline without extra payment
   var interestSavings=Math.abs(rMain.totalInt-rAlt.totalInt);
-  var monthSavings=Math.abs(rMain.months-rAlt.months);
+  var vsMonths=Math.abs(rMain.months-rAlt.months);         // diff between methods
+  var extraMonthSaved=rBase?Math.max(0,rBase.months-rMain.months):0; // months saved by extra
+  var extraIntSaved=rBase?Math.max(0,rBase.totalInt-rMain.totalInt):0;
   var isBetter=rMain.totalInt<=rAlt.totalInt;
+
+  // ── Amortization table (Excel-style) ──
+  var tableHtml='';
+  if(rMain.months>0&&rMain.months<=120){
+    // Re-simulate collecting monthly snapshots
+    var tDs=ordered.map(function(d){return{id:d.id,name:d.name,bal:d.balance,monthly:d.monthly,rate:d.rate,color:d.color};});
+    var tMonths=0;var tRows=[];
+    while(tDs.some(function(d){return d.bal>0;})&&tMonths<120){
+      tMonths++;
+      var freed=extra;var rowTotalPay=0;var rowTotalInt=0;var cells=[];
+      tDs.forEach(function(d){
+        if(d.bal<=0){cells.push({pay:0,int:0,bal:0,done:true});return;}
+        var intAmt=d.bal*(d.rate/100/12);
+        var minPay=Math.min(d.bal+intAmt,d.monthly);
+        var capital=Math.max(0,minPay-intAmt);
+        var actualPay=Math.min(minPay,d.bal+intAmt);
+        rowTotalInt+=intAmt;rowTotalPay+=actualPay;
+        d.bal=Math.max(0,d.bal-capital);
+        if(d.bal<=0)freed+=d.monthly;
+        cells.push({pay:actualPay,int:intAmt,bal:d.bal,done:d.bal<=0});
+      });
+      // Apply freed to first active
+      for(var ti=0;ti<tDs.length;ti++){
+        var td=tDs[ti];
+        if(td.bal>0&&freed>0){
+          var tapply=Math.min(freed,td.bal);
+          freed-=tapply;td.bal-=tapply;rowTotalPay+=tapply;
+          if(td.bal<=0){cells[ti].done=true;freed+=td.monthly;}
+          cells[ti].bal=td.bal;
+        }
+      }
+      tRows.push({month:tMonths,cells:cells,totalPay:rowTotalPay,totalInt:rowTotalInt});
+    }
+
+    // Build table HTML
+    var tHead='<tr style="background:var(--surface3)">'
+      +'<th style="padding:7px 10px;font-size:10px;font-weight:700;color:var(--text3);text-align:left;white-space:nowrap;position:sticky;left:0;background:var(--surface3);z-index:2;min-width:52px">MES</th>';
+    ordered.forEach(function(d){
+      tHead+='<th style="padding:7px 8px;font-size:10px;font-weight:700;color:'+d.color+';text-align:right;white-space:nowrap;min-width:90px;border-left:1px solid var(--border)">'+d.name+'</th>';
+    });
+    tHead+='<th style="padding:7px 8px;font-size:10px;font-weight:700;color:var(--text3);text-align:right;white-space:nowrap;min-width:80px;border-left:2px solid var(--border)">TOTAL</th></tr>';
+
+    var tBody='';
+    tRows.forEach(function(r){
+      var isLast=r.month===rMain.months;
+      var rowBg=isLast?'background:rgba(0,212,170,.08)':'';
+      tBody+='<tr style="border-bottom:1px solid var(--border);'+rowBg+'">'
+        +'<td style="padding:6px 10px;font-size:11px;font-weight:600;color:var(--text2);white-space:nowrap;position:sticky;left:0;background:'+(isLast?'rgba(0,212,170,.1)':'var(--surface)')+';z-index:1">'+monthLabel(startY,startM,r.month-1)+'</td>';
+      r.cells.forEach(function(c){
+        if(c.done&&c.pay===0){
+          tBody+='<td style="padding:6px 8px;text-align:center;border-left:1px solid var(--border)"><span style="font-size:14px">✅</span></td>';
+        } else {
+          tBody+='<td style="padding:6px 8px;text-align:right;border-left:1px solid var(--border)">'
+            +'<div style="font-size:11px;font-weight:700;color:var(--text)">'+fmt(c.pay)+'</div>'
+            +'<div style="font-size:9px;color:var(--text3)">int: '+fmt(c.int)+'</div>'
+            +'<div style="font-size:9px;color:var(--danger)">saldo: '+fmt(c.bal)+'</div>'
+          +'</td>';
+        }
+      });
+      tBody+='<td style="padding:6px 8px;text-align:right;font-size:11px;font-weight:700;border-left:2px solid var(--border);color:'+(isLast?'var(--success)':'var(--text)')+'">'+fmt(r.totalPay)+'</td>'
+      +'</tr>';
+    });
+
+    tableHtml='<div class="card" style="margin-bottom:14px">'
+      +'<div style="font-size:13px;font-weight:700;margin-bottom:4px">📊 Tabla de amortización</div>'
+      +'<div style="font-size:11px;color:var(--text2);margin-bottom:12px">Pago · Interés · Saldo por mes</div>'
+      +'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;border:1px solid var(--border)">'
+        +'<table style="width:100%;border-collapse:collapse;font-family:var(--font)">'
+          +'<thead>'+tHead+'</thead>'
+          +'<tbody>'+tBody+'</tbody>'
+        +'</table>'
+      +'</div>'
+    +'</div>';
+  }
 
   var endDate=new Date(startY,startM-1+rMain.months,1);
   var endMonthStr=endDate.toLocaleString('es',{month:'short',year:'numeric'});
@@ -2939,7 +3018,7 @@ function renderEstrategia(){
     ?'<div style="background:rgba(245,158,11,.1);border-left:3px solid var(--warning);border-radius:4px;padding:9px 12px;font-size:12px;color:var(--text2);margin-bottom:14px">⚠️ <strong>Sin tasas de interés:</strong> edita cada deuda y agrega el % TAE para resultados precisos.</div>'
     :'';
   var extraTip=extra>0
-    ?'<div style="background:rgba(0,212,170,.08);border-left:3px solid var(--primary);border-radius:4px;padding:9px 12px;font-size:12px;color:var(--text2);margin-bottom:12px">💡 Con el abono extra de <strong style="color:var(--primary)">'+fmt(extra)+'/mes</strong> terminas <strong>'+monthSavings+'</strong> mes'+(monthSavings===1?'':'es')+' antes.</div>'
+    ?'<div style="background:rgba(0,212,170,.08);border-left:3px solid var(--primary);border-radius:4px;padding:9px 12px;font-size:12px;color:var(--text2);margin-bottom:12px">💡 Con el abono extra de <strong style="color:var(--primary)">'+fmt(extra)+'/mes</strong> terminas <strong style="color:var(--primary)">'+extraMonthSaved+'</strong> mes'+(extraMonthSaved===1?'':'es')+' antes y ahorras <strong style="color:var(--success)">'+fmt(extraIntSaved)+'</strong> en intereses.</div>'
     :'';
 
   return ratesWarning
@@ -2953,6 +3032,19 @@ function renderEstrategia(){
         +'<button onclick="setEstrategiaMetodo(\'nieve\')" style="padding:14px 8px;border-radius:12px;border:2px solid '+(metodo==='nieve'?'#7461EF':'var(--border)')+';background:'+(metodo==='nieve'?'rgba(116,97,239,.12)':'var(--surface2)')+';color:'+(metodo==='nieve'?'#7461EF':'var(--text)')+';cursor:pointer;font-family:var(--font);font-size:13px;font-weight:700;text-align:center;line-height:1.5">'
           +'❄️ Bola de nieve<br><span style="font-size:10px;font-weight:400;opacity:.7">Menor saldo primero</span>'
         +'</button>'
+      +'</div>'
+    +'</div>'
+    // 1b METHOD EXPLANATION CARDS
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'
+      +'<div style="background:'+(metodo==='avalancha'?'rgba(0,212,170,.07)':'var(--surface2)')+';border-radius:10px;padding:12px;border:1px solid '+(metodo==='avalancha'?'var(--primary)44':'var(--border)')+';">'
+        +'<div style="font-size:20px;margin-bottom:6px">🌊</div>'
+        +'<div style="font-size:12px;font-weight:700;margin-bottom:4px">Avalancha</div>'
+        +'<div style="font-size:11px;color:var(--text2);line-height:1.5">Pagas primero la deuda con la <strong>tasa de interés más alta</strong>. Matematicamente ahorras más dinero. Ideal si quieres pagar lo menos posible en total.</div>'
+      +'</div>'
+      +'<div style="background:'+(metodo==='nieve'?'rgba(116,97,239,.07)':'var(--surface2)')+';border-radius:10px;padding:12px;border:1px solid '+(metodo==='nieve'?'#7461EF44':'var(--border)')+';">'
+        +'<div style="font-size:20px;margin-bottom:6px">❄️</div>'
+        +'<div style="font-size:12px;font-weight:700;margin-bottom:4px">Bola de nieve</div>'
+        +'<div style="font-size:11px;color:var(--text2);line-height:1.5">Pagas primero la deuda con el <strong>saldo más pequeño</strong>. Ver deudas desaparecer te motiva a continuar. Ideal si necesitas impulso psicológico.</div>'
       +'</div>'
     +'</div>'
     // 2 DEBT LIST
@@ -3006,12 +3098,14 @@ function renderEstrategia(){
         +'<div style="background:'+(isBetter?'rgba(0,212,170,.1)':'rgba(116,97,239,.1)')+';border-radius:10px;padding:12px;text-align:center;border:1px solid '+(isBetter?'var(--primary)':'#7461EF')+'44">'
           +'<div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.5px">VS '+(metodo==='avalancha'?'BOLA NIEVE':'AVALANCHA')+'</div>'
           +'<div style="font-size:12px;font-weight:800;color:'+(isBetter?'var(--success)':'var(--danger)')+'">'+fmt(interestSavings)+'</div>'
-          +'<div style="font-size:10px;color:'+(isBetter?'var(--success)':'var(--danger)')+'">'+monthSavings+'m '+(isBetter?'más rápido':'más lento')+'</div>'
+          +'<div style="font-size:10px;color:'+(isBetter?'var(--success)':'var(--danger)')+'">'+vsMonths+'m '+(isBetter?'más rápido':'más lento')+'</div>'
         +'</div>'
       +'</div>'
     +'</div>'
     // 5 GANTT
-    +ganttHtml;
+    +ganttHtml
+    // 6 AMORTIZATION TABLE
+    +tableHtml;
 }
 
 // ════════════════════════════════════════════════════════════
