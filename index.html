@@ -2601,8 +2601,8 @@ function swapCambioRow(idx){
   // Update labels
   var fLbl=document.getElementById('cambio-from-lbl-'+idx);
   var tLbl=document.getElementById('cambio-to-lbl-'+idx);
-  if(fLbl){fLbl.innerHTML=row.from?buildCambioLblHtml(row.from):'<span style="font-size:14px;font-weight:600;color:var(--text3)">Seleccionar</span>';}
-  if(tLbl){tLbl.innerHTML=row.to?buildCambioLblHtml(row.to):'<span style="font-size:14px;font-weight:600;color:var(--text3)">Seleccionar</span>';}
+  if(fLbl){fLbl.innerHTML=row.from?buildCambioLblHtml(row.from):'<span style="font-size:14px;font-weight:600;color:var(--text3)">💱 Seleccionar</span>';}
+  if(tLbl){tLbl.innerHTML=row.to?buildCambioLblHtml(row.to):'<span style="font-size:14px;font-weight:600;color:var(--text3)">💱 Seleccionar</span>';}
   calcCambioRow(idx);
 }
 function buildCambioLblHtml(code){
@@ -2648,8 +2648,8 @@ function renderCambio(){
 }
 function buildCambioRow(idx,row){
   var q="'";
-  var fromLabel=row.from?buildCambioLblHtml(row.from):'<span style="font-size:14px;font-weight:600;color:var(--text3)">Seleccionar</span>';
-  var toLabel=row.to?buildCambioLblHtml(row.to):'<span style="font-size:14px;font-weight:600;color:var(--text3)">Seleccionar</span>';
+  var fromLabel=row.from?buildCambioLblHtml(row.from):'<span style="font-size:14px;font-weight:600;color:var(--text3)">💱 Seleccionar</span>';
+  var toLabel=row.to?buildCambioLblHtml(row.to):'<span style="font-size:14px;font-weight:600;color:var(--text3)">💱 Seleccionar</span>';
   
   
   var resultHtml='';
@@ -2684,7 +2684,7 @@ function buildCambioRow(idx,row){
           +'</div>'
         +'</div>'
         +'<div style="display:flex;justify-content:center">'
-          +'<button onclick="swapCambioRow('+idx+')" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--primary);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center">⇄</button>'
+          +'<button onclick="swapCambioRow('+idx+')" style="width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--primary);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">↕</button>'
         +'</div>'
         +'<div>'
           +'<label class="form-label" style="font-size:11px">A</label>'
@@ -2761,7 +2761,7 @@ function selectCambioCur(idx,side,code){
   if(el)el.style.display='none';
   if(lbl){
     if(code){lbl.innerHTML=buildCambioLblHtml(code);}
-    else{lbl.innerHTML='<span style="font-size:14px;font-weight:600;color:var(--text3)">Seleccionar</span>';}
+    else{lbl.innerHTML='<span style="font-size:14px;font-weight:600;color:var(--text3)">💱 Seleccionar</span>';}
   }
   calcCambioRow(idx);
 }
@@ -3378,12 +3378,12 @@ function renderConfiguracion(){
     <!-- Language -->
     <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
       <label style="font-size:14px;font-weight:600;margin:0">${t('language')}</label>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
+      <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('lang-picker')">
           <span style="font-size:14px">${langCurrent?langCurrent.flag+' '+langCurrent.label:'Seleccionar idioma'}</span>
           <span style="color:var(--primary);font-size:10px" id="lang-picker-arrow">▼</span>
         </div>
-        <div id="lang-picker" style="display:none;border-top:1px solid var(--border)">
+        <div id="lang-picker" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">
           <div style="padding:8px;border-bottom:1px solid var(--border)"><input oninput="filterLangs(this.value)" class="form-input" style="font-size:13px" placeholder="${t('search')}"></div>
           <div id="lang-list" style="max-height:200px;overflow-y:auto;padding:4px">${langList}</div>
         </div>
@@ -3393,12 +3393,12 @@ function renderConfiguracion(){
     <!-- Week start -->
     <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
       <label style="font-size:14px;font-weight:600;margin:0">${t('weekStart')}</label>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
+      <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('week-picker')">
           <span style="font-size:14px">📅 ${({lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'})[S.weekStart]||'Seleccionar'}</span>
           <span style="color:var(--primary);font-size:10px" id="week-picker-arrow">▼</span>
         </div>
-        <div id="week-picker" style="display:none;border-top:1px solid var(--border)">
+        <div id="week-picker" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">
           ${[['','— Seleccionar —',true],['lunes','Lunes'],['martes','Martes'],['miercoles','Miércoles'],['jueves','Jueves'],['viernes','Viernes'],['sabado','Sábado'],['domingo','Domingo']].map(([val,label,grey])=>`<div onclick="saveWeekStart('${val}')" style="padding:12px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;background:${S.weekStart===val?'rgba(0,212,170,.12)':'transparent'};color:${grey?'var(--text3)':'var(--text)'}">${label}${S.weekStart===val?'<span style="color:var(--primary)">✓</span>':''}</div>`).join('')}
         </div>
       </div>
@@ -3410,12 +3410,12 @@ function renderConfiguracion(){
     <!-- Currencies -->
     <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
       <label style="font-size:14px;font-weight:600;margin:0">${t('activeCurrencies')} <span style="color:var(--primary);font-size:11px">${curSelected}</span></label>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
+      <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('cur-picker')">
           <span style="font-size:14px">💱 ${(S.currencies&&S.currencies.length)?(S.currencies.join(' · ')):' Seleccionar'}</span>
           <span style="color:var(--primary);font-size:10px" id="cur-picker-arrow">▼</span>
         </div>
-        <div id="cur-picker" style="display:none;border-top:1px solid var(--border)">
+        <div id="cur-picker" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">
           <div style="padding:8px;border-bottom:1px solid var(--border)"><input oninput="filterCurs(this.value)" class="form-input" style="font-size:13px" placeholder="${t('search')}"></div>
           <div id="cur-list" style="max-height:220px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:2px">${curList}</div>
         </div>
@@ -3426,12 +3426,12 @@ function renderConfiguracion(){
     <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 10px">${t('appearance')}</div>
     <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
       <label style="font-size:14px;font-weight:600;margin:0">${t('theme')}</label>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
+      <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('theme-picker')">
           <span style="font-size:14px">${S.theme==='dark'?'🌙 Oscuro':S.theme==='auto'?'⚙️ Automático':'☀️ Claro'}</span>
           <span style="color:var(--primary);font-size:10px" id="theme-picker-arrow">▼</span>
         </div>
-        <div id="theme-picker" style="display:none;border-top:1px solid var(--border)">
+        <div id="theme-picker" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">
           ${[['light','☀️ Claro'],['dark','🌙 Oscuro'],['auto','⚙️ Automático del sistema']].map(([val,label])=>`<div onclick="setTheme('${val}')" style="padding:12px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;background:${S.theme===val?'rgba(0,212,170,.12)':'transparent'}">${label}${S.theme===val?'<span style="color:var(--primary)">✓</span>':''}</div>`).join('')}
         </div>
       </div>
@@ -3512,6 +3512,7 @@ function selectPPick(inputId,pickId,val){
     item.style.fontWeight=item.dataset.val===val?'700':'';
   });
 }
+
 function selectPPickWithFlag(inputId,pickId,val,flag){
   var inp=document.getElementById(inputId);
   var lbl=document.getElementById(inputId+'-lbl');
@@ -3520,11 +3521,10 @@ function selectPPickWithFlag(inputId,pickId,val,flag){
   if(inp)inp.value=val;
   if(lbl){
     var ph={'cfg-country':'Seleccionar país de origen','cfg-residence':'Seleccionar país de residencia'};
-    if(val&&flag){lbl.textContent=flag+' '+val;}
-    else{lbl.textContent=ph[inputId]||'Seleccionar';}
+    lbl.textContent=val&&flag?(flag+' '+val):(ph[inputId]||'Seleccionar');
     lbl.style.color=val?'var(--text)':'var(--text3)';
   }
-  if(pick)pick.style.display='none';
+  if(pick){pick.style.display='none';}
   if(arr)arr.textContent='▼';
   if(pick)pick.querySelectorAll('.ppick-item').forEach(function(item){
     item.style.background=item.dataset.val===val?'rgba(0,212,170,.12)':'';
@@ -3626,22 +3626,22 @@ function buildProfileFormHTML(){
   Object.keys(phoneMap).sort().forEach(function(code){
     phoneOpts+='<option value="'+code+'" '+(defPhone===code?'selected':'')+'>'+phoneMap[code]+'</option>';
   });
-  // Flag helper: ISO2 → emoji
+  // Flag helpers
   function iso2flag(iso){return iso?String.fromCodePoint(iso.charCodeAt(0)+127397)+String.fromCodePoint(iso.charCodeAt(1)+127397):'🌐';}
-  var phoneToISO={'+54':'AR','+591':'BO','+55':'BR','+56':'CL','+57':'CO','+506':'CR','+53':'CU','+1809':'DO','+1829':'DO','+1849':'DO','+593':'EC','+503':'SV','+502':'GT','+509':'HT','+504':'HN','+52':'MX','+505':'NI','+507':'PA','+595':'PY','+51':'PE','+598':'UY','+58':'VE','+34':'ES','+33':'FR','+49':'DE','+39':'IT','+351':'PT','+44':'GB','+1':'US','+81':'JP','+82':'KR','+86':'CN','+91':'IN','+7':'RU','+380':'UA','+48':'PL','+31':'NL','+32':'BE','+41':'CH','+43':'AT','+46':'SE','+47':'NO','+45':'DK','+358':'FI','+30':'GR','+36':'HU','+420':'CZ','+40':'RO','+359':'BG','+372':'EE','+371':'LV','+370':'LT','+27':'ZA','+234':'NG','+20':'EG','+254':'KE','+255':'TZ','+256':'UG','+251':'ET','+1242':'BS','+1268':'AG','+1246':'BB','+1441':'BM','+60':'MY','+65':'SG','+66':'TH','+62':'ID','+63':'PH','+84':'VN','+95':'MM','+92':'PK','+880':'BD','+94':'LK','+98':'IR','+90':'TR','+972':'IL','+966':'SA','+971':'AE','+212':'MA','+213':'DZ','+216':'TN','+218':'LY','+61':'AU','+64':'NZ','+93':'AF','+355':'AL','+213':'DZ','+376':'AD','+244':'AO','+374':'AM','+994':'AZ','+973':'BH','+375':'BY','+501':'BZ','+229':'BJ','+975':'BT','+267':'BW','+387':'BA','+226':'BF','+257':'BI','+238':'CV','+855':'KH','+237':'CM','+236':'CF','+235':'TD','+269':'KM','+243':'CD','+242':'CG','+506':'CR','+385':'HR','+357':'CY','+420':'CZ','+253':'DJ','+670':'TL','+593':'EC','+240':'GQ','+291':'ER','+268':'SZ','+251':'ET','+679':'FJ','+241':'GA','+220':'GM','+995':'GE','+233':'GH','+224':'GN','+245':'GW','+592':'GY','+509':'HT','+504':'HN','+36':'HU','+354':'IS','+964':'IQ','+353':'IE','+225':'CI','+1876':'JM','+962':'JO','+7':'KZ','+254':'KE','+686':'KI','+965':'KW','+996':'KG','+856':'LA','+961':'LB','+266':'LS','+231':'LR','+218':'LY','+423':'LI','+370':'LT','+352':'LU','+261':'MG','+265':'MW','+960':'MV','+223':'ML','+356':'MT','+692':'MH','+222':'MR','+230':'MU','+52':'MX','+691':'FM','+373':'MD','+377':'MC','+976':'MN','+382':'ME','+212':'MA','+258':'MZ','+264':'NA','+674':'NR','+977':'NP','+505':'NI','+227':'NE','+234':'NG','+389':'MK','+47':'NO','+968':'OM','+92':'PK','+680':'PW','+970':'PS','+507':'PA','+675':'PG','+595':'PY','+51':'PE','+63':'PH','+48':'PL','+351':'PT','+974':'QA','+40':'RO','+7':'RU','+250':'RW','+1869':'KN','+1758':'LC','+1784':'VC','+685':'WS','+378':'SM','+239':'ST','+966':'SA','+221':'SN','+381':'RS','+232':'SL','+421':'SK','+386':'SI','+677':'SB','+252':'SO','+27':'ZA','+211':'SS','+34':'ES','+94':'LK','+249':'SD','+597':'SR','+268':'SZ','+46':'SE','+41':'CH','+963':'SY','+886':'TW','+992':'TJ','+255':'TZ','+66':'TH','+228':'TG','+676':'TO','+1868':'TT','+216':'TN','+90':'TR','+993':'TM','+256':'UG','+380':'UA','+971':'AE','+44':'GB','+1':'US','+598':'UY','+998':'UZ','+678':'VU','+58':'VE','+84':'VN','+967':'YE','+260':'ZM','+263':'ZW'};
+  var phoneToISO={'+54':'AR','+591':'BO','+55':'BR','+56':'CL','+57':'CO','+506':'CR','+53':'CU','+1809':'DO','+593':'EC','+503':'SV','+502':'GT','+509':'HT','+504':'HN','+52':'MX','+505':'NI','+507':'PA','+595':'PY','+51':'PE','+598':'UY','+58':'VE','+34':'ES','+33':'FR','+49':'DE','+39':'IT','+351':'PT','+44':'GB','+1':'US','+81':'JP','+82':'KR','+86':'CN','+91':'IN','+7':'RU','+380':'UA','+48':'PL','+31':'NL','+32':'BE','+41':'CH','+43':'AT','+46':'SE','+47':'NO','+45':'DK','+358':'FI','+30':'GR','+36':'HU','+420':'CZ','+40':'RO','+359':'BG','+372':'EE','+371':'LV','+370':'LT','+27':'ZA','+234':'NG','+20':'EG','+254':'KE','+255':'TZ','+256':'UG','+251':'ET','+1242':'BS','+1268':'AG','+1246':'BB','+60':'MY','+65':'SG','+66':'TH','+62':'ID','+63':'PH','+84':'VN','+95':'MM','+92':'PK','+880':'BD','+94':'LK','+98':'IR','+90':'TR','+972':'IL','+966':'SA','+971':'AE','+212':'MA','+213':'DZ','+216':'TN','+218':'LY','+61':'AU','+64':'NZ','+93':'AF','+355':'AL','+376':'AD','+244':'AO','+374':'AM','+994':'AZ','+973':'BH','+375':'BY','+501':'BZ','+229':'BJ','+975':'BT','+267':'BW','+387':'BA','+226':'BF','+257':'BI','+238':'CV','+855':'KH','+237':'CM','+236':'CF','+235':'TD','+269':'KM','+243':'CD','+242':'CG','+240':'GQ','+291':'ER','+268':'SZ','+679':'FJ','+241':'GA','+220':'GM','+995':'GE','+233':'GH','+224':'GN','+245':'GW','+592':'GY','+354':'IS','+964':'IQ','+353':'IE','+225':'CI','+1876':'JM','+962':'JO','+7':'KZ','+686':'KI','+965':'KW','+996':'KG','+856':'LA','+961':'LB','+266':'LS','+231':'LR','+423':'LI','+352':'LU','+261':'MG','+265':'MW','+960':'MV','+223':'ML','+356':'MT','+692':'MH','+222':'MR','+230':'MU','+691':'FM','+373':'MD','+377':'MC','+976':'MN','+382':'ME','+258':'MZ','+264':'NA','+674':'NR','+977':'NP','+227':'NE','+389':'MK','+968':'OM','+680':'PW','+970':'PS','+675':'PG','+974':'QA','+250':'RW','+1869':'KN','+1758':'LC','+1784':'VC','+685':'WS','+378':'SM','+239':'ST','+221':'SN','+381':'RS','+232':'SL','+421':'SK','+386':'SI','+677':'SB','+252':'SO','+211':'SS','+249':'SD','+597':'SR','+886':'TW','+992':'TJ','+228':'TG','+676':'TO','+1868':'TT','+993':'TM','+998':'UZ','+678':'VU','+967':'YE','+260':'ZM','+263':'ZW'};
   function countryFlag(name){var d=COUNTRY_DATA[name];if(!d)return'🌐';var iso=phoneToISO[d.phone]||null;return iso?iso2flag(iso):'🌐';}
-  // Country options from COUNTRY_DATA (with flags)
+  // Country options with flags
   var countryOpts='';
   Object.keys(COUNTRY_DATA).forEach(function(name){
     var flag=countryFlag(name);
-    countryOpts+='<div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-country\',\'cpick\',\''+name+'\',\''+flag+'\')" data-val="'+name+'">'+flag+' '+name+'</div>';
+    countryOpts+='<div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-country\',\'cpick\',\''+name+'\',' +'\''+flag+'\'' + ')" data-val="'+name+'">'+flag+' '+name+'</div>';
   });
   var residOpts='';
   Object.keys(COUNTRY_DATA).forEach(function(name){
     var flag=countryFlag(name);
-    residOpts+='<div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-residence\',\'rpick\',\''+name+'\',\''+flag+'\')" data-val="'+name+'">'+flag+' '+name+'</div>';
+    residOpts+='<div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-residence\',\'rpick\',\''+name+'\',' +'\''+flag+'\'' + ')" data-val="'+name+'">'+flag+' '+name+'</div>';
   });
-  // Build occupations as custom picker items
+  // Custom picker items for occupation/marital/goal
   var occupations=['Empleado','Independiente / Freelancer','Empresario','Estudiante','Ama/Amo de casa','Jubilado','Desempleado','Otro'];
   var occupOpts=occupations.map(function(o){return '<div class="ppick-item" onclick="selectPPick(\'cfg-occupation\',\'opick\',\''+o+'\')" data-val="'+o+'" style="'+(p.occupation===o?'background:rgba(0,212,170,.1)':'')+'">'+o+'</div>';}).join('');
   var maritalList=['Soltero/a','Casado/a','Unión libre','Divorciado/a','Viudo/a'];
@@ -3674,59 +3674,59 @@ function buildProfileFormHTML(){
         +'<input class="form-input" type="tel" id="cfg-phone" value="'+(p.phone||'')+'" placeholder="300 000 0000" style="flex:1;font-size:15px" maxlength="15">'
       +'</div></div>'
     +'<div class="form-group"><label class="form-label">País de origen <span style="color:var(--danger)">*</span></label>'
-      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)">'
+      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick(\'cpick\')">'
           +'<span style="font-size:14px;color:'+(p.country?'var(--text)':'var(--text3)')+'" id="cfg-country-lbl">'+(p.country?(countryFlag(p.country)+' '+p.country):'Seleccionar país de origen')+'</span>'
           +'<span style="color:var(--primary);font-size:10px" id="cpick-arrow">▼</span>'
         +'</div>'
-        +'<div id="cpick" style="display:none;border-top:1px solid var(--border)">'
+        +'<div id="cpick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
           +'<div style="padding:8px;border-bottom:1px solid var(--border)"><input class="form-input" style="font-size:13px" placeholder="Buscar país..." oninput="filterPPick(\'cpick\',this.value)"></div>'
-          +'<div style="max-height:180px;overflow-y:auto"><div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-country\',\'cpick\',\'\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+countryOpts+'</div>'
+          +'<div style="max-height:200px;overflow-y:auto"><div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-country\',\'cpick\',\'\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+countryOpts+'</div>'
         +'</div>'
       +'</div>'
       +'<input type="hidden" id="cfg-country" value="'+(p.country||'')+'"></div>'
     +'<div class="form-group"><label class="form-label">País de residencia <span style="color:var(--danger)">*</span> <span style="font-size:10px;color:var(--primary);font-weight:400">🏠 moneda principal</span></label>'
-      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)">'
+      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick(\'rpick\')">'
           +'<span style="font-size:14px;color:'+(p.residence?'var(--text)':'var(--text3)')+'" id="cfg-residence-lbl">'+(p.residence?(countryFlag(p.residence)+' '+p.residence):'Seleccionar país de residencia')+'</span>'
           +'<span style="color:var(--primary);font-size:10px" id="rpick-arrow">▼</span>'
         +'</div>'
-        +'<div id="rpick" style="display:none;border-top:1px solid var(--border)">'
+        +'<div id="rpick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
           +'<div style="padding:8px;border-bottom:1px solid var(--border)"><input class="form-input" style="font-size:13px" placeholder="Buscar país de residencia..." oninput="filterPPick(\'rpick\',this.value)"></div>'
-          +'<div style="max-height:180px;overflow-y:auto"><div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-residence\',\'rpick\',\'\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+residOpts+'</div>'
+          +'<div style="max-height:200px;overflow-y:auto"><div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-residence\',\'rpick\',\'\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+residOpts+'</div>'
         +'</div>'
       +'</div>'
       +'<input type="hidden" id="cfg-residence" value="'+(p.residence||'')+'"></div>'
     +'<div class="form-group"><label class="form-label">Ocupación</label>'
-      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick(\'opick\')">'
+      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
+         +'<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick(\'opick\')">'
           +'<span style="font-size:14px;color:'+(p.occupation?'var(--text)':'var(--text3)')+'" id="cfg-occupation-lbl">'+(p.occupation||'Seleccionar ocupación')+'</span>'
           +'<span style="color:var(--primary);font-size:10px" id="opick-arrow">▼</span>'
         +'</div>'
-        +'<div id="opick" style="display:none;border-top:1px solid var(--border)">'
-          +'<div style="max-height:200px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-occupation\',\'opick\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+occupOpts+'</div>'
+        +'<div id="opick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
+          +'<div style="max-height:220px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-occupation\',\'opick\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+occupOpts+'</div>'
         +'</div>'
       +'</div>'
       +'<input type="hidden" id="cfg-occupation" value="'+(p.occupation||'')+'"></div>'
     +'<div class="form-group"><label class="form-label">Estado civil</label>'
-      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)">'
+      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick(\'mpick\')">'
           +'<span style="font-size:14px;color:'+(p.marital?'var(--text)':'var(--text3)')+'" id="cfg-marital-lbl">'+(p.marital||'Seleccionar estado civil')+'</span>'
           +'<span style="color:var(--primary);font-size:10px" id="mpick-arrow">▼</span>'
         +'</div>'
-        +'<div id="mpick" style="display:none;border-top:1px solid var(--border)">'
-          +'<div style="max-height:200px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-marital\',\'mpick\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+maritalOpts+'</div>'
+        +'<div id="mpick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
+          +'<div style="max-height:220px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-marital\',\'mpick\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+maritalOpts+'</div>'
         +'</div>'
       +'</div>'
       +'<input type="hidden" id="cfg-marital" value="'+(p.marital||'')+'"></div>'
     +'<div class="form-group"><label class="form-label">Objetivo financiero principal <span style="color:var(--danger)">*</span></label>'
-      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)">'
+      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick(\'gpick\')">'
           +'<span style="font-size:14px;color:'+(p.financialGoal?'var(--text)':'var(--text3)')+'" id="cfg-goal-lbl">'+(p.financialGoal||'Seleccionar objetivo')+'</span>'
           +'<span style="color:var(--primary);font-size:10px" id="gpick-arrow">▼</span>'
         +'</div>'
-        +'<div id="gpick" style="display:none;border-top:1px solid var(--border)">'
-          +'<div style="max-height:200px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+goalOpts+'</div>'
+        +'<div id="gpick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
+          +'<div style="max-height:220px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+goalOpts+'</div>'
         +'</div>'
       +'</div>'
       +'<input type="hidden" id="cfg-goal" value="'+(p.financialGoal||'')+'"></div>'
