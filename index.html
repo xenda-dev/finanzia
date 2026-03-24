@@ -2328,6 +2328,23 @@ function renderCalculadora(){
     </div>
   `;
 }
+function downloadLoanTable(){
+  const P=parseFloat(document.getElementById('loan-amount')?.value)||0;
+  const r=parseFloat(document.getElementById('loan-rate')?.value)||0;
+  const n=parseInt(document.getElementById('loan-months')?.value)||0;
+  if(!P||!r||!n)return;
+  const rm=r/100/12;
+  const cuota=rm===0?P/n:P*rm*Math.pow(1+rm,n)/(Math.pow(1+rm,n)-1);
+  let bal=P;let csv='Cuota,Monto Cuota,Capital,Interés,Saldo\n';
+  for(let i=1;i<=n;i++){
+    const intAmt=bal*rm;const capAmt=cuota-intAmt;bal=Math.max(0,bal-capAmt);
+    csv+=`${i},${cuota.toFixed(2)},${capAmt.toFixed(2)},${intAmt.toFixed(2)},${bal.toFixed(2)}\n`;
+  }
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='plan-pagos-prestamo.csv';a.click();
+  toast('Plan descargado ✓');
+}
 function calcLoan(){
   const P=parseFloat(document.getElementById('loan-amount')?.value)||0;
   const r=parseFloat(document.getElementById('loan-rate')?.value)||0;
@@ -2356,78 +2373,261 @@ function calcLoan(){
     const dlBtn=document.getElementById('loan-download-btn-top');if(dlBtn)dlBtn.style.display='block';  }
 }
 function renderSimulador(){
+  const today=new Date();
+  const yy=today.getFullYear();
+  const mm=String(today.getMonth()+1).padStart(2,'0');
+  const dd=String(today.getDate()).padStart(2,'0');
+  const todayStr=`${yy}-${mm}-${dd}`;
+  const endDefault=`${yy+2}-${mm}-${dd}`;
   return`
+    <!-- Modo tabs -->
+    <div style="background:var(--surface2);border-radius:50px;padding:3px;display:flex;gap:2px;margin-bottom:14px">
+      <button id="sim-tab-proyectar" onclick="simSetMode('proyectar')" style="flex:1;padding:9px 10px;border-radius:50px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);background:var(--primary);color:white;transition:.15s">📈 Proyectar ahorro</button>
+      <button id="sim-tab-meta" onclick="simSetMode('meta')" style="flex:1;padding:9px 10px;border-radius:50px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);background:transparent;color:var(--text2);transition:.15s">🎯 Calcular aporte</button>
+    </div>
+
+    <!-- Inputs -->
     <div class="card" style="margin-bottom:12px">
-      <div class="card-title">💹 Simulador de Ahorro</div>
-      <div class="form-group"><label class="form-label">Ahorro mensual</label><input class="form-input" type="number" id="sim-monthly" placeholder="Ej: 500.000" oninput="calcSim()"></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Plazo (años)</label><input class="form-input" type="number" id="sim-years" placeholder="Ej: 5" oninput="calcSim()"></div>
-        <div class="form-group"><label class="form-label">Rendimiento anual (%)</label><input class="form-input" type="number" id="sim-rate" placeholder="Ej: 8" step="0.1" oninput="calcSim()"></div>
+      <!-- META (solo modo calcular) -->
+      <div id="sim-meta-row" class="form-group" style="display:none">
+        <label class="form-label">🎯 Meta de ahorro</label>
+        <input class="form-input" type="number" id="sim-goal" placeholder="Ej: 20.000.000" oninput="calcSim()">
       </div>
-      <div id="sim-result" style="display:none;margin-top:12px">
-        <div style="background:var(--surface2);border-radius:var(--radius);padding:14px;margin-bottom:12px">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Total acumulado</div><div style="font-size:15px;font-weight:800;color:var(--success)" id="sim-total">—</div></div>
-            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Lo que aportaste</div><div style="font-size:15px;font-weight:800" id="sim-invested">—</div></div>
-            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Ganancias (interés)</div><div style="font-size:15px;font-weight:800;color:var(--primary)" id="sim-gains">—</div></div>
-            <div style="text-align:center">
-              <div style="font-size:10px;color:var(--text2)">Multiplicador</div>
-              <div style="font-size:15px;font-weight:800;color:var(--warning)" id="sim-mult">—</div>
-            </div>
-          </div>
-          <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:8px 10px;margin-top:10px;font-size:11px;color:var(--text2);line-height:1.5">
-            ℹ️ <strong>Multiplicador:</strong> cuántas veces creció tu dinero. Ej: 1.8x significa que por cada $100 que aportaste, ahora tienes $180 gracias al interés compuesto.
-          </div>
+      <!-- Capital inicial -->
+      <div class="form-group">
+        <label class="form-label">💰 Capital inicial (opcional)</label>
+        <input class="form-input" type="number" id="sim-initial" placeholder="Ej: 10.000.000" oninput="calcSim()">
+      </div>
+      <!-- Aporte mensual (solo modo proyectar) -->
+      <div id="sim-monthly-row" class="form-group">
+        <label class="form-label">📅 Aporte mensual</label>
+        <input class="form-input" type="number" id="sim-monthly" placeholder="Ej: 500.000" oninput="calcSim()">
+      </div>
+      <!-- Rentabilidad + Retención -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">📊 Rentabilidad anual (%)</label>
+          <input class="form-input" type="number" id="sim-rate" placeholder="Ej: 10" step="0.01" oninput="calcSim()">
         </div>
-        <div style="background:var(--surface2);border-radius:var(--radius);padding:14px">
-          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px">📊 Proyección año por año</div>
-          <div id="sim-bars" style="display:flex;align-items:flex-end;gap:3px;height:120px"></div>
+        <div class="form-group">
+          <label class="form-label">🧾 Retención (%)</label>
+          <input class="form-input" type="number" id="sim-tax" placeholder="Ej: 7" step="0.01" oninput="calcSim()" value="">
+        </div>
+      </div>
+      <!-- Fechas -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">📅 Inicio del ahorro</label>
+          <input class="form-input" type="date" id="sim-start" value="${todayStr}" oninput="simUpdateDuration();calcSim()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">🏁 Fin del ahorro</label>
+          <input class="form-input" type="date" id="sim-end" value="${endDefault}" oninput="simUpdateDuration();calcSim()">
+        </div>
+      </div>
+      <!-- Duración calculada -->
+      <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:var(--text2)">⏱️ Duración</span>
+        <span style="font-size:13px;font-weight:700;color:var(--primary)" id="sim-duration-lbl">—</span>
+      </div>
+    </div>
+
+    <!-- Resultado aporte sugerido (solo modo meta) -->
+    <div id="sim-suggested-row" style="display:none;margin-bottom:12px">
+      <div style="background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:var(--radius);padding:16px;text-align:center">
+        <div style="font-size:11px;color:rgba(255,255,255,.8);margin-bottom:4px">APORTE MENSUAL SUGERIDO</div>
+        <div style="font-size:28px;font-weight:900;color:white" id="sim-suggested-amt">—</div>
+      </div>
+    </div>
+
+    <!-- Métricas resumen -->
+    <div id="sim-metrics" style="display:none;margin-bottom:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="card" style="padding:12px;text-align:center">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Total acumulado</div>
+          <div style="font-size:16px;font-weight:800;color:var(--success)" id="sim-total">—</div>
+        </div>
+        <div class="card" style="padding:12px;text-align:center">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Total aportado</div>
+          <div style="font-size:16px;font-weight:800" id="sim-invested">—</div>
+        </div>
+        <div class="card" style="padding:12px;text-align:center">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Rendimientos</div>
+          <div style="font-size:16px;font-weight:800;color:var(--primary)" id="sim-gains">—</div>
+        </div>
+        <div class="card" style="padding:12px;text-align:center">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Multiplicador</div>
+          <div style="font-size:16px;font-weight:800;color:var(--warning)" id="sim-mult">—</div>
         </div>
       </div>
     </div>
+
+    <!-- Gráfico barras anual -->
+    <div id="sim-chart-wrap" style="display:none" class="card" style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px">📊 Proyección año a año</div>
+      <div id="sim-bars" style="display:flex;align-items:flex-end;gap:3px;height:100px"></div>
+    </div>
+
+    <!-- Tabla mensual -->
+    <div id="sim-table-wrap" style="display:none" class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--text2)">📋 Detalle mensual</div>
+        <button onclick="simDownloadCSV()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:11px;color:var(--text);cursor:pointer;font-family:var(--font)">⬇ CSV</button>
+      </div>
+      <!-- Header fijo -->
+      <div style="display:grid;grid-template-columns:56px 1fr 1fr 1fr 1fr;gap:4px;padding:6px 4px;background:var(--surface2);border-radius:6px;margin-bottom:4px">
+        <div style="font-size:9px;font-weight:700;color:var(--text3);text-align:center">MES</div>
+        <div style="font-size:9px;font-weight:700;color:var(--text3);text-align:right">SALDO INI.</div>
+        <div style="font-size:9px;font-weight:700;color:var(--primary);text-align:right">ABONO</div>
+        <div style="font-size:9px;font-weight:700;color:var(--success);text-align:right">RENDIM.</div>
+        <div style="font-size:9px;font-weight:700;color:var(--text2);text-align:right">SALDO FINAL</div>
+      </div>
+      <div id="sim-table-body" style="max-height:320px;overflow-y:auto"></div>
+    </div>
   `;
 }
-function downloadLoanTable(){
-  const P=parseFloat(document.getElementById('loan-amount')?.value)||0;
-  const r=parseFloat(document.getElementById('loan-rate')?.value)||0;
-  const n=parseInt(document.getElementById('loan-months')?.value)||0;
-  if(!P||!r||!n)return;
-  const rm=r/100/12;
-  const cuota=rm===0?P/n:P*rm*Math.pow(1+rm,n)/(Math.pow(1+rm,n)-1);
-  let bal=P;let csv='Cuota,Monto Cuota,Capital,Interés,Saldo\n';
-  for(let i=1;i<=n;i++){
-    const intAmt=bal*rm;const capAmt=cuota-intAmt;bal=Math.max(0,bal-capAmt);
-    csv+=`${i},${cuota.toFixed(2)},${capAmt.toFixed(2)},${intAmt.toFixed(2)},${bal.toFixed(2)}\n`;
-  }
-  const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  a.download='plan-pagos-prestamo.csv';a.click();
-  toast('Plan descargado ✓');
+function simSetMode(mode){
+  window._simMode=mode;
+  const isProyectar=mode==='proyectar';
+  document.getElementById('sim-tab-proyectar').style.background=isProyectar?'var(--primary)':'transparent';
+  document.getElementById('sim-tab-proyectar').style.color=isProyectar?'white':'var(--text2)';
+  document.getElementById('sim-tab-meta').style.background=!isProyectar?'var(--primary)':'transparent';
+  document.getElementById('sim-tab-meta').style.color=!isProyectar?'white':'var(--text2)';
+  document.getElementById('sim-meta-row').style.display=isProyectar?'none':'block';
+  document.getElementById('sim-monthly-row').style.display=isProyectar?'block':'none';
+  document.getElementById('sim-suggested-row').style.display='none';
+  calcSim();
+}
+function simUpdateDuration(){
+  var s=document.getElementById('sim-start')?.value;
+  var e=document.getElementById('sim-end')?.value;
+  var lbl=document.getElementById('sim-duration-lbl');
+  if(!s||!e||!lbl){return;}
+  var sd=new Date(s),ed=new Date(e);
+  if(ed<=sd){lbl.textContent='Fecha inválida';return;}
+  var months=(ed.getFullYear()-sd.getFullYear())*12+(ed.getMonth()-sd.getMonth());
+  var days=Math.round((ed-sd)/(1000*60*60*24));
+  lbl.textContent=months+' meses ('+days+' días)';
 }
 function calcSim(){
-  const monthly=parseFloat(document.getElementById('sim-monthly')?.value)||0;
-  const years=parseInt(document.getElementById('sim-years')?.value)||0;
-  const rate=parseFloat(document.getElementById('sim-rate')?.value)||0;
-  const res=document.getElementById('sim-result');
-  if(!monthly||!years){if(res)res.style.display='none';return;}
-  const rm=rate/100/12;
-  const n=years*12;
-  const total=rm===0?monthly*n:monthly*(Math.pow(1+rm,n)-1)/rm*(1+rm);
-  const invested=monthly*n;
-  const gains=total-invested;
-  if(res)res.style.display='block';
-  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  set('sim-total',fmt(total));set('sim-invested',fmt(invested));
-  set('sim-gains',fmt(gains));set('sim-mult',total>0?(total/invested).toFixed(2)+'x':'—');
-  // Yearly bars
-  const barsEl=document.getElementById('sim-bars');
-  if(barsEl){
-    const yr=[];for(let y=1;y<=Math.min(years,12);y++){const nn=y*12;const v=rm===0?monthly*nn:monthly*(Math.pow(1+rm,nn)-1)/rm*(1+rm);yr.push(v);}
-    const maxV=Math.max(...yr);
-    const formatK=(v)=>{if(v>=1000000)return(v/1000000).toFixed(1)+'M';if(v>=1000)return(v/1000).toFixed(0)+'K';return v.toFixed(0);};
-    barsEl.innerHTML=yr.map((v,i)=>{const h=Math.max(20,Math.round(v/maxV*85));return`<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="font-size:7px;font-weight:700;color:var(--text2);margin-bottom:2px;text-align:center;white-space:nowrap;overflow:hidden;width:100%;text-overflow:ellipsis">${formatK(v)}</div><div style="width:100%;background:linear-gradient(to top,var(--primary),var(--secondary));border-radius:3px 3px 0 0;height:${h}px;opacity:${0.45+0.55*(i+1)/yr.length}"></div><div style="font-size:8px;color:var(--text3);margin-top:2px">${i+1}a</div></div>`;}).join('');
+  simUpdateDuration();
+  const mode=window._simMode||'proyectar';
+  const initial=parseFloat(document.getElementById('sim-initial')?.value)||0;
+  const annualRate=parseFloat(document.getElementById('sim-rate')?.value)||0;
+  const taxRate=parseFloat(document.getElementById('sim-tax')?.value)||0;
+  const startVal=document.getElementById('sim-start')?.value;
+  const endVal=document.getElementById('sim-end')?.value;
+  if(!startVal||!endVal)return;
+  const sd=new Date(startVal),ed=new Date(endVal);
+  if(ed<=sd)return;
+  const months=(ed.getFullYear()-sd.getFullYear())*12+(ed.getMonth()-sd.getMonth());
+  if(months<1)return;
+  const rm=annualRate/100/12;
+  const taxM=taxRate/100/12;
+  let monthly=0;
+  if(mode==='proyectar'){
+    monthly=parseFloat(document.getElementById('sim-monthly')?.value)||0;
+    if(!monthly&&!initial)return;
+  } else {
+    const goal=parseFloat(document.getElementById('sim-goal')?.value)||0;
+    if(!goal)return;
+    // Solve: goal = initial*(1+rm_net)^n + monthly*(((1+rm_net)^n-1)/rm_net)
+    const rm_net=rm-taxM;
+    const factor=Math.pow(1+rm_net,months);
+    if(rm_net===0) monthly=(goal-initial)/months;
+    else monthly=(goal-initial*factor)/((factor-1)/rm_net);
+    if(monthly<0)monthly=0;
+    const sugEl=document.getElementById('sim-suggested-amt');
+    if(sugEl)sugEl.textContent=fmt(monthly);
+    const sugRow=document.getElementById('sim-suggested-row');
+    if(sugRow)sugRow.style.display='block';
   }
+  // Build monthly schedule
+  const rows=[];
+  let bal=initial;
+  const startD=new Date(startVal);
+  for(let i=0;i<months;i++){
+    const d=new Date(startD.getFullYear(),startD.getMonth()+i,1);
+    const label=(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getFullYear().toString().slice(2);
+    const saldoIni=bal;
+    const abono=monthly;
+    bal+=abono;
+    const rend=bal*rm;
+    const ret=bal*taxM;
+    const rendNeto=rend-ret;
+    bal+=rendNeto;
+    rows.push({label,saldoIni,abono,rend,ret,rendNeto,saldoFinal:bal});
+  }
+  const total=bal;
+  const invested=initial+monthly*months;
+  const gains=total-invested;
+  // Show metrics
+  const metr=document.getElementById('sim-metrics');
+  if(metr)metr.style.display='block';
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('sim-total',fmt(total));
+  set('sim-invested',fmt(invested));
+  set('sim-gains',fmt(gains));
+  set('sim-mult',invested>0?(total/invested).toFixed(2)+'x':'—');
+  // Bar chart (yearly)
+  const chartWrap=document.getElementById('sim-chart-wrap');
+  const barsEl=document.getElementById('sim-bars');
+  if(chartWrap&&barsEl){
+    chartWrap.style.display='block';
+    const maxYr=Math.min(Math.floor(months/12),12);
+    const yr=[];
+    for(let y=1;y<=maxYr;y++){
+      const idx=Math.min(y*12,rows.length)-1;
+      if(idx>=0)yr.push(rows[idx].saldoFinal);
+    }
+    if(yr.length){
+      const maxV=Math.max(...yr);
+      const formatK=(v)=>{if(v>=1000000)return(v/1000000).toFixed(1)+'M';if(v>=1000)return(v/1000).toFixed(0)+'K';return Math.round(v).toString();};
+      barsEl.innerHTML=yr.map((v,i)=>{const h=Math.max(18,Math.round(v/maxV*80));return`<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="font-size:7px;font-weight:700;color:var(--text2);margin-bottom:2px;text-align:center;white-space:nowrap;overflow:hidden;width:100%;text-overflow:ellipsis">${formatK(v)}</div><div style="width:100%;background:linear-gradient(to top,var(--primary),var(--secondary));border-radius:3px 3px 0 0;height:${h}px;opacity:${0.45+0.55*(i+1)/yr.length}"></div><div style="font-size:8px;color:var(--text3);margin-top:2px">${i+1}a</div></div>`;}).join('');
+    }
+  }
+  // Monthly table
+  const tableWrap=document.getElementById('sim-table-wrap');
+  const tableBody=document.getElementById('sim-table-body');
+  if(tableWrap&&tableBody){
+    tableWrap.style.display='block';
+    const hasTax=taxRate>0;
+    const cols=hasTax?'56px 1fr 1fr 1fr 1fr 1fr':'56px 1fr 1fr 1fr 1fr';
+    tableBody.innerHTML=rows.map((r,i)=>{
+      const isYear=(i+1)%12===0;
+      return`<div style="display:grid;grid-template-columns:${cols};gap:4px;padding:6px 4px;border-radius:4px;background:${isYear?'rgba(0,212,170,.07)':'transparent'};border-bottom:1px solid var(--border)22">
+        <div style="font-size:10px;font-weight:${isYear?'800':'600'};color:${isYear?'var(--primary)':'var(--text3)'};text-align:center">${r.label}</div>
+        <div style="font-size:10px;color:var(--text2);text-align:right">${fmtK(r.saldoIni)}</div>
+        <div style="font-size:10px;color:var(--primary);text-align:right;font-weight:700">+${fmtK(r.abono)}</div>
+        <div style="font-size:10px;color:var(--success);text-align:right">+${fmtK(r.rendNeto)}</div>
+        ${hasTax?`<div style="font-size:10px;color:var(--danger);text-align:right">-${fmtK(r.ret)}</div>`:''}
+        <div style="font-size:10px;font-weight:${isYear?'800':'600'};color:${isYear?'var(--primary)':'var(--text)'};text-align:right">${fmtK(r.saldoFinal)}</div>
+      </div>`;
+    }).join('');
+  }
+  window._simRows=rows;
+  window._simMonthly=monthly;
 }
+function fmtK(v){
+  if(Math.abs(v)<1)return'0';
+  if(Math.abs(v)>=1000000)return(v/1000000).toFixed(2)+'M';
+  if(Math.abs(v)>=1000)return(v/1000).toFixed(1)+'K';
+  return Math.round(v).toLocaleString();
+}
+function simDownloadCSV(){
+  const rows=window._simRows;
+  if(!rows||!rows.length){toast('Primero calcula la proyección');return;}
+  const hasTax=parseFloat(document.getElementById('sim-tax')?.value)||0;
+  let csv='Mes,Saldo inicial,Abono,Rendimiento bruto'+(hasTax?',Retención':'')+',Rendimiento neto,Saldo final\n';
+  rows.forEach(r=>{
+    csv+=`${r.label},${r.saldoIni.toFixed(2)},${r.abono.toFixed(2)},${r.rend.toFixed(2)}`+(hasTax?`,${r.ret.toFixed(2)}`:'')+`,${r.rendNeto.toFixed(2)},${r.saldoFinal.toFixed(2)}\n`;
+  });
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='simulacion-ahorro.csv';a.click();
+  toast('Tabla descargada ✓');
+}
+
 
 // ── AI Chat ──
 let aiHistory=[];
@@ -3551,6 +3751,9 @@ function selectPPickWithFlag(inputId,pickId,val,flag){
     item.style.fontWeight=item.dataset.val===val?'700':'';
   });
 }
+
+
+function selectPPickWithFlag(inputId,pickId,val,flag){var inp=document.getElementById(inputId);var lbl=document.getElementById(inputId+'-lbl');var pick=document.getElementById(pickId);var arr=document.getElementById(pickId+'-arrow');if(inp)inp.value=val;if(lbl){var ph={'cfg-country':'Seleccionar país de origen','cfg-residence':'Seleccionar país de residencia'};lbl.textContent=val&&flag?(flag+' '+val):(ph[inputId]||'Seleccionar');lbl.style.color=val?'var(--text)':'var(--text3)';}if(pick){pick.style.display='none';}if(arr)arr.textContent='▼';if(pick)pick.querySelectorAll('.ppick-item').forEach(function(item){item.style.background=item.dataset.val===val?'rgba(0,212,170,.12)':'';item.style.fontWeight=item.dataset.val===val?'700':'';});}
 
 function getDefaultPhoneCode(){
   try{
