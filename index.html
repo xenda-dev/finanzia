@@ -1958,8 +1958,14 @@ function renderCatList(tab){
       if(g.key==='transferencia') cats=S.categories.filter(c=>c.type==='transferencia');
       else cats=S.categories.filter(c=>c.type==='gasto'&&c.nature===g.key);
       if(!cats.length)return;
-      html+=`<div style="font-size:11px;font-weight:700;color:${g.color};text-transform:uppercase;letter-spacing:.6px;padding:10px 0 4px;border-bottom:1px solid ${g.color}33;margin-bottom:6px">${g.label}</div>`;
-      html+=cats.map(cat=>renderCatItem(cat)).join('');
+      const secId='cat-sec-'+g.key;
+      html+=`<div style="margin-bottom:4px">`;
+      html+=`<div onclick="toggleCatSection('${secId}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:var(--radius-sm);background:${g.color}18;cursor:pointer;user-select:none">`;
+      html+=`<span style="font-size:12px;font-weight:700;color:${g.color};text-transform:uppercase;letter-spacing:.6px">${g.label}</span>`;
+      html+=`<span id="${secId}-arrow" style="color:${g.color};font-size:11px;transition:.2s">▶</span>`;
+      html+=`</div>`;
+      html+=`<div id="${secId}" style="display:none;padding:4px 0 6px">${cats.map(cat=>renderCatItem(cat)).join('')}</div>`;
+      html+=`</div>`;
     });
     return html||'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
   }
@@ -1973,8 +1979,14 @@ function renderCatList(tab){
     grpInc.forEach(function(g){
       var cats=allCats.filter(function(cat){return cat.type==='ingreso'&&(g.key==='principal'?(!cat.incomeType||cat.incomeType==='principal'):cat.incomeType===g.key);});
       if(!cats.length)return;
-      grouped+='<div style="font-size:11px;font-weight:700;color:'+g.color+';text-transform:uppercase;letter-spacing:.6px;padding:10px 0 4px;border-bottom:1px solid '+g.color+'33;margin-bottom:6px">'+g.label+'</div>';
-      grouped+=cats.map(function(cat){return renderCatItem(cat);}).join('');
+      var secId='cat-sec-inc-'+g.key;
+      grouped+='<div style="margin-bottom:4px">';
+      grouped+='<div onclick="toggleCatSection(\''+secId+'\')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:var(--radius-sm);background:'+g.color+'18;cursor:pointer;user-select:none">';
+      grouped+='<span style="font-size:12px;font-weight:700;color:'+g.color+';text-transform:uppercase;letter-spacing:.6px">'+g.label+'</span>';
+      grouped+='<span id="'+secId+'-arrow" style="color:'+g.color+';font-size:11px;transition:.2s">▶</span>';
+      grouped+='</div>';
+      grouped+='<div id="'+secId+'" style="display:none;padding:4px 0 6px">'+cats.map(function(cat){return renderCatItem(cat);}).join('')+'</div>';
+      grouped+='</div>';
     });
     return grouped||'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
   }
@@ -2037,6 +2049,14 @@ function renderCategorias(){
       </div>`;
     }).join('')}
   `;
+}
+function toggleCatSection(secId){
+  var el=document.getElementById(secId);
+  var arr=document.getElementById(secId+'-arrow');
+  if(!el)return;
+  var open=el.style.display!=='none';
+  el.style.display=open?'none':'block';
+  if(arr)arr.textContent=open?'▶':'▼';
 }
 function toggleCatGroup(id,header){
   const el=document.getElementById(id);
@@ -3378,12 +3398,12 @@ function renderConfiguracion(){
     <!-- Language -->
     <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
       <label style="font-size:14px;font-weight:600;margin:0">${t('language')}</label>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">
+      <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('lang-picker')">
           <span style="font-size:14px">${langCurrent?langCurrent.flag+' '+langCurrent.label:'Seleccionar idioma'}</span>
           <span style="color:var(--primary);font-size:10px" id="lang-picker-arrow">▼</span>
         </div>
-        <div id="lang-picker" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">
+        <div id="lang-picker" style="display:none;border-top:1px solid var(--border)">
           <div style="padding:8px;border-bottom:1px solid var(--border)"><input oninput="filterLangs(this.value)" class="form-input" style="font-size:13px" placeholder="${t('search')}"></div>
           <div id="lang-list" style="max-height:200px;overflow-y:auto;padding:4px">${langList}</div>
         </div>
@@ -3393,12 +3413,12 @@ function renderConfiguracion(){
     <!-- Week start -->
     <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
       <label style="font-size:14px;font-weight:600;margin:0">${t('weekStart')}</label>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">
+      <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('week-picker')">
           <span style="font-size:14px">📅 ${({lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'})[S.weekStart]||'Seleccionar'}</span>
           <span style="color:var(--primary);font-size:10px" id="week-picker-arrow">▼</span>
         </div>
-        <div id="week-picker" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">
+        <div id="week-picker" style="display:none;border-top:1px solid var(--border)">
           ${[['','— Seleccionar —',true],['lunes','Lunes'],['martes','Martes'],['miercoles','Miércoles'],['jueves','Jueves'],['viernes','Viernes'],['sabado','Sábado'],['domingo','Domingo']].map(([val,label,grey])=>`<div onclick="saveWeekStart('${val}')" style="padding:12px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;background:${S.weekStart===val?'rgba(0,212,170,.12)':'transparent'};color:${grey?'var(--text3)':'var(--text)'}">${label}${S.weekStart===val?'<span style="color:var(--primary)">✓</span>':''}</div>`).join('')}
         </div>
       </div>
@@ -3410,12 +3430,12 @@ function renderConfiguracion(){
     <!-- Currencies -->
     <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
       <label style="font-size:14px;font-weight:600;margin:0">${t('activeCurrencies')} <span style="color:var(--primary);font-size:11px">${curSelected}</span></label>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">
+      <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('cur-picker')">
           <span style="font-size:14px">💱 ${(S.currencies&&S.currencies.length)?(S.currencies.join(' · ')):' Seleccionar'}</span>
           <span style="color:var(--primary);font-size:10px" id="cur-picker-arrow">▼</span>
         </div>
-        <div id="cur-picker" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">
+        <div id="cur-picker" style="display:none;border-top:1px solid var(--border)">
           <div style="padding:8px;border-bottom:1px solid var(--border)"><input oninput="filterCurs(this.value)" class="form-input" style="font-size:13px" placeholder="${t('search')}"></div>
           <div id="cur-list" style="max-height:220px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:2px">${curList}</div>
         </div>
@@ -3426,12 +3446,12 @@ function renderConfiguracion(){
     <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 10px">${t('appearance')}</div>
     <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
       <label style="font-size:14px;font-weight:600;margin:0">${t('theme')}</label>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">
+      <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)">
         <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--surface);cursor:pointer" onclick="togglePPick('theme-picker')">
           <span style="font-size:14px">${S.theme==='dark'?'🌙 Oscuro':S.theme==='auto'?'⚙️ Automático':'☀️ Claro'}</span>
           <span style="color:var(--primary);font-size:10px" id="theme-picker-arrow">▼</span>
         </div>
-        <div id="theme-picker" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">
+        <div id="theme-picker" style="display:none;border-top:1px solid var(--border)">
           ${[['light','☀️ Claro'],['dark','🌙 Oscuro'],['auto','⚙️ Automático del sistema']].map(([val,label])=>`<div onclick="setTheme('${val}')" style="padding:12px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;background:${S.theme===val?'rgba(0,212,170,.12)':'transparent'}">${label}${S.theme===val?'<span style="color:var(--primary)">✓</span>':''}</div>`).join('')}
         </div>
       </div>
@@ -3531,6 +3551,7 @@ function selectPPickWithFlag(inputId,pickId,val,flag){
     item.style.fontWeight=item.dataset.val===val?'700':'';
   });
 }
+
 function getDefaultPhoneCode(){
   try{
     var tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'';
@@ -3634,20 +3655,20 @@ function buildProfileFormHTML(){
   var countryOpts='';
   Object.keys(COUNTRY_DATA).forEach(function(name){
     var flag=countryFlag(name);
-    countryOpts+='<div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-country\',\'cpick\',\''+name+'\',' +'\''+flag+'\'' + ')" data-val="'+name+'">'+flag+' '+name+'</div>';
+    countryOpts+='<div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-country\',\'cpick\',\''+name+'\',' +'\'' +flag+'\'' + ')" data-val="'+name+'">'+flag+' '+name+'</div>';
   });
   var residOpts='';
   Object.keys(COUNTRY_DATA).forEach(function(name){
     var flag=countryFlag(name);
-    residOpts+='<div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-residence\',\'rpick\',\''+name+'\',' +'\''+flag+'\'' + ')" data-val="'+name+'">'+flag+' '+name+'</div>';
+    residOpts+='<div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-residence\',\'rpick\',\''+name+'\',' +'\'' +flag+'\'' + ')" data-val="'+name+'">'+flag+' '+name+'</div>';
   });
   // Custom picker items for occupation/marital/goal
   var occupations=['Empleado','Independiente / Freelancer','Empresario','Estudiante','Ama/Amo de casa','Jubilado','Desempleado','Otro'];
-  var occupOpts=occupations.map(function(o){return '<div class="ppick-item" onclick="selectPPick(\'cfg-occupation\',\'opick\',\''+o+'\')" data-val="'+o+'" style="'+(p.occupation===o?'background:rgba(0,212,170,.1)':'')+'">'+o+'</div>';}).join('');
+  var occupOpts=occupations.map(function(o){return '<div class="ppick-item" onclick="selectPPick(\'cfg-occupation\',\'opick\',\''+o+'\' )" data-val="'+o+'" style="'+(p.occupation===o?'background:rgba(0,212,170,.1)':'')+'">'+o+'</div>';}).join('');
   var maritalList=['Soltero/a','Casado/a','Unión libre','Divorciado/a','Viudo/a'];
-  var maritalOpts=maritalList.map(function(m){return '<div class="ppick-item" onclick="selectPPick(\'cfg-marital\',\'mpick\',\''+m+'\')" data-val="'+m+'" style="'+(p.marital===m?'background:rgba(0,212,170,.1)':'')+'">'+m+'</div>';}).join('');
+  var maritalOpts=maritalList.map(function(m){return '<div class="ppick-item" onclick="selectPPick(\'cfg-marital\',\'mpick\',\''+m+'\' )" data-val="'+m+'" style="'+(p.marital===m?'background:rgba(0,212,170,.1)':'')+'">'+m+'</div>';}).join('');
   var goalList=['Ahorrar para emergencias','Control de gastos','Pagar deudas','Comprar vivienda','Viajar','Independencia financiera','Emprender','Jubilación','Educación','Otro'];
-  var goalOpts=goalList.map(function(g){return '<div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\''+g+'\')" data-val="'+g+'" style="'+(p.financialGoal===g?'background:rgba(0,212,170,.1)':'')+'">'+g+'</div>';}).join('');
+  var goalOpts=goalList.map(function(g){return '<div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\''+g+'\' )" data-val="'+g+'" style="'+(p.financialGoal===g?'background:rgba(0,212,170,.1)':'')+'">'+g+'</div>';}).join('');
 
   var html=''
     +'<!-- Photo section -->'
@@ -3681,7 +3702,7 @@ function buildProfileFormHTML(){
         +'</div>'
         +'<div id="cpick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
           +'<div style="padding:8px;border-bottom:1px solid var(--border)"><input class="form-input" style="font-size:13px" placeholder="Buscar país..." oninput="filterPPick(\'cpick\',this.value)"></div>'
-          +'<div style="max-height:200px;overflow-y:auto"><div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-country\',\'cpick\',\'\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+countryOpts+'</div>'
+          +'<div style="max-height:200px;overflow-y:auto"><div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-country\',\'cpick\',\'\',\'\' )" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+countryOpts+'</div>'
         +'</div>'
       +'</div>'
       +'<input type="hidden" id="cfg-country" value="'+(p.country||'')+'"></div>'
@@ -3693,18 +3714,18 @@ function buildProfileFormHTML(){
         +'</div>'
         +'<div id="rpick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
           +'<div style="padding:8px;border-bottom:1px solid var(--border)"><input class="form-input" style="font-size:13px" placeholder="Buscar país de residencia..." oninput="filterPPick(\'rpick\',this.value)"></div>'
-          +'<div style="max-height:200px;overflow-y:auto"><div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-residence\',\'rpick\',\'\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+residOpts+'</div>'
+          +'<div style="max-height:200px;overflow-y:auto"><div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-residence\',\'rpick\',\'\',\'\' )" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+residOpts+'</div>'
         +'</div>'
       +'</div>'
       +'<input type="hidden" id="cfg-residence" value="'+(p.residence||'')+'"></div>'
     +'<div class="form-group"><label class="form-label">Ocupación</label>'
       +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
-         +'<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick(\'opick\')">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick(\'opick\')">'
           +'<span style="font-size:14px;color:'+(p.occupation?'var(--text)':'var(--text3)')+'" id="cfg-occupation-lbl">'+(p.occupation||'Seleccionar ocupación')+'</span>'
           +'<span style="color:var(--primary);font-size:10px" id="opick-arrow">▼</span>'
         +'</div>'
         +'<div id="opick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
-          +'<div style="max-height:220px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-occupation\',\'opick\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+occupOpts+'</div>'
+          +'<div style="max-height:220px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-occupation\',\'opick\',\'\' )" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+occupOpts+'</div>'
         +'</div>'
       +'</div>'
       +'<input type="hidden" id="cfg-occupation" value="'+(p.occupation||'')+'"></div>'
@@ -3715,7 +3736,7 @@ function buildProfileFormHTML(){
           +'<span style="color:var(--primary);font-size:10px" id="mpick-arrow">▼</span>'
         +'</div>'
         +'<div id="mpick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
-          +'<div style="max-height:220px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-marital\',\'mpick\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+maritalOpts+'</div>'
+          +'<div style="max-height:220px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-marital\',\'mpick\',\'\' )" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+maritalOpts+'</div>'
         +'</div>'
       +'</div>'
       +'<input type="hidden" id="cfg-marital" value="'+(p.marital||'')+'"></div>'
@@ -3726,7 +3747,7 @@ function buildProfileFormHTML(){
           +'<span style="color:var(--primary);font-size:10px" id="gpick-arrow">▼</span>'
         +'</div>'
         +'<div id="gpick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
-          +'<div style="max-height:220px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\'\')" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+goalOpts+'</div>'
+          +'<div style="max-height:220px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\'\' )" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+goalOpts+'</div>'
         +'</div>'
       +'</div>'
       +'<input type="hidden" id="cfg-goal" value="'+(p.financialGoal||'')+'"></div>'
@@ -4851,34 +4872,75 @@ function buildCategoryModal(data){
   const defType=data.defaultType||S._catTab||'gasto';
   const isIngreso=defType==='ingreso';
   const isGasto=defType==='gasto';
+  const typeOpts=[['gasto','Gasto'],['ingreso','Ingreso'],['transferencia','Transferencia']];
+  const natureOpts=[['necesidades','🏠 Necesidades'],['deseos','🎯 Deseos'],['ahorros','💰 Ahorros']];
+  const incomeOpts=[['principal','⭐ Principal'],['secundario','➕ Secundario']];
+  const defNature='necesidades';
+  const defIncome='principal';
+  const typeLabel=typeOpts.find(o=>o[0]===defType)?.[1]||'Seleccionar';
   return`<div class="modal-header"><div class="modal-title">Nueva categoría</div><button class="modal-close" onclick="closeModal()">×</button></div>
   <div class="modal-body">
     <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" id="cat-name" placeholder="Ej: Mascotas"></div>
-    <div class="form-group"><label class="form-label">Tipo</label><select class="form-select" id="cat-type" onchange="updateCatModalFields(this.value)">
-      <option value="gasto" ${defType==='gasto'?'selected':''}>Gasto</option>
-      <option value="ingreso" ${defType==='ingreso'?'selected':''}>Ingreso</option>
-      <option value="transferencia" ${defType==='transferencia'?'selected':''}>Transferencia</option>
-    </select></div>
+    <div class="form-group"><label class="form-label">Tipo</label>
+      <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick('cat-type-pick')">
+          <span style="font-size:14px;color:var(--text)" id="cat-type-lbl">${typeLabel}</span>
+          <span style="color:var(--primary);font-size:10px" id="cat-type-pick-arrow">▼</span>
+        </div>
+        <div id="cat-type-pick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">
+          ${typeOpts.map(([val,lbl])=>`<div class="ppick-item" onclick="selectCatPick('cat-type','cat-type-pick','${val}','${lbl}',function(){updateCatModalFields('${val}')})" data-val="${val}" style="${defType===val?'background:rgba(0,212,170,.12);font-weight:700':''}">${lbl}</div>`).join('')}
+        </div>
+      </div>
+      <input type="hidden" id="cat-type" value="${defType}">
+    </div>
     <div id="cat-nature-group" class="form-group" style="display:${isIngreso?'none':'block'}">
       <label class="form-label">Naturaleza</label>
-      <select class="form-select" id="cat-nature">
-        <option value="necesidades">🏠 Necesidades</option>
-        <option value="deseos">🎯 Deseos</option>
-        <option value="ahorros">💰 Ahorros</option>
-      </select>
+      <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick('cat-nature-pick')">
+          <span style="font-size:14px;color:var(--text)" id="cat-nature-lbl">🏠 Necesidades</span>
+          <span style="color:var(--primary);font-size:10px" id="cat-nature-pick-arrow">▼</span>
+        </div>
+        <div id="cat-nature-pick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">
+          ${natureOpts.map(([val,lbl])=>`<div class="ppick-item" onclick="selectCatPick('cat-nature','cat-nature-pick','${val}','${lbl}')" data-val="${val}" style="${defNature===val?'background:rgba(0,212,170,.12);font-weight:700':''}">${lbl}</div>`).join('')}
+        </div>
+      </div>
+      <input type="hidden" id="cat-nature" value="${defNature}">
     </div>
     <div id="cat-income-type-group" class="form-group" style="display:${isIngreso?'block':'none'}">
       <label class="form-label">Tipo de ingreso</label>
-      <select class="form-select" id="cat-income-type">
-        <option value="principal">⭐ Principal</option>
-        <option value="secundario">➕ Secundario</option>
-      </select>
+      <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick('cat-income-pick')">
+          <span style="font-size:14px;color:var(--text)" id="cat-income-lbl">⭐ Principal</span>
+          <span style="color:var(--primary);font-size:10px" id="cat-income-pick-arrow">▼</span>
+        </div>
+        <div id="cat-income-pick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">
+          ${incomeOpts.map(([val,lbl])=>`<div class="ppick-item" onclick="selectCatPick('cat-income-type','cat-income-pick','${val}','${lbl}')" data-val="${val}" style="${defIncome===val?'background:rgba(0,212,170,.12);font-weight:700':''}">${lbl}</div>`).join('')}
+        </div>
+      </div>
+      <input type="hidden" id="cat-income-type" value="${defIncome}">
       <div style="font-size:11px;color:var(--text2);margin-top:4px">Principal: salario, trabajo activo · Secundario: rentas, apoyos, extras</div>
     </div>
     <div class="form-group"><label class="form-label">Ícono</label>${iconPickerHtml(ICONS[0],'cat-icon-val')}</div>
     <div class="form-group"><label class="form-label">Color</label>${colorPickerHtml(COLORS_PALETTE[0],'cat-color-val')}</div>
     <button class="btn btn-primary" onclick="saveCategory()">Crear categoría</button>
   </div>`;
+}
+function selectCatPick(inputId,pickId,val,label,callback){
+  var inp=document.getElementById(inputId);
+  var lbl=document.getElementById(inputId+'-lbl');
+  var pick=document.getElementById(pickId);
+  var arr=document.getElementById(pickId+'-arrow');
+  if(inp)inp.value=val;
+  if(lbl){lbl.textContent=label;lbl.style.color='var(--text)';}
+  if(pick){
+    pick.style.display='none';
+    pick.querySelectorAll('.ppick-item').forEach(function(item){
+      item.style.background=item.dataset.val===val?'rgba(0,212,170,.12)':'';
+      item.style.fontWeight=item.dataset.val===val?'700':'';
+    });
+  }
+  if(arr)arr.textContent='▼';
+  if(callback)callback();
 }
 function updateCatModalFields(type){
   const ng=document.getElementById('cat-nature-group');
