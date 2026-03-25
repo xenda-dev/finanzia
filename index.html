@@ -261,6 +261,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .theme-toggle{width:36px;height:20px;background:var(--surface3);border-radius:99px;border:1px solid var(--border);cursor:pointer;position:relative;transition:.2s;flex-shrink:0}
 .theme-knob{position:absolute;top:2px;left:2px;width:14px;height:14px;background:var(--text2);border-radius:50%;transition:.2s;font-size:9px;display:flex;align-items:center;justify-content:center}
 [data-theme="light"] .theme-knob{left:18px;background:var(--warning)}
+
+@keyframes bsFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes bsSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes bsSlideDown{from{transform:translateY(0)}to{transform:translateY(100%)}}
+.bs-item{padding:13px 12px;border-radius:10px;cursor:pointer;margin-bottom:2px;display:flex;justify-content:space-between;align-items:center;transition:background .1s}
+.bs-item:active{background:rgba(0,212,170,.1)!important}
+.bs-trigger{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:14px;transition:background .1s}
+.bs-trigger:active{background:var(--surface2)}
 </style>
 </head>
 <body>
@@ -2892,15 +2900,9 @@ function buildCambioRow(idx,row){
       +'<div style="display:flex;flex-direction:column;gap:8px">'
         +'<div>'
           +'<label class="form-label" style="font-size:11px">De</label>'
-          +'<div class="cpick-wrap" style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
-            +'<div style="padding:10px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="toggleCambioPick('+q+'cambio-pick-from-'+idx+q+','+q+'cambio-from-lbl-'+idx+q+')">'
-              +'<span id="cambio-from-lbl-'+idx+'">'+fromLabel+'</span>'
-              +'<span style="color:var(--primary);font-size:9px">▼</span>'
-            +'</div>'
-            +'<div id="cambio-pick-from-'+idx+'" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 8px 8px;box-shadow:0 6px 20px rgba(0,0,0,.25)">'
-              +'<div style="padding:6px 8px;border-bottom:1px solid var(--border)"><input class="form-input" style="font-size:12px;padding:6px 10px" placeholder="Buscar moneda..." oninput="filterCambioPick('+q+'cambio-pick-from-'+idx+q+',this.value)"></div>'
-              +'<div style="max-height:160px;overflow-y:auto" id="cambio-pick-from-'+idx+'-list">'+buildCambioPickItems(idx,'from',row.from)+'</div>'
-            +'</div>'
+          +'<div class="bs-trigger" onclick="showBS_currency('+idx+',\'from\')">'
+            +'<span id="cambio-from-lbl-'+idx+'">'+fromLabel+'</span>'
+            +'<span style="color:var(--text3);font-size:18px">›</span>'
           +'</div>'
         +'</div>'
         +'<div style="display:flex;justify-content:center">'
@@ -2908,15 +2910,9 @@ function buildCambioRow(idx,row){
         +'</div>'
         +'<div>'
           +'<label class="form-label" style="font-size:11px">A</label>'
-          +'<div class="cpick-wrap" style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
-            +'<div style="padding:10px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="toggleCambioPick('+q+'cambio-pick-to-'+idx+q+','+q+'cambio-to-lbl-'+idx+q+')">'
-              +'<span id="cambio-to-lbl-'+idx+'">'+toLabel+'</span>'
-              +'<span style="color:var(--primary);font-size:9px">▼</span>'
-            +'</div>'
-            +'<div id="cambio-pick-to-'+idx+'" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 8px 8px;box-shadow:0 6px 20px rgba(0,0,0,.25)">'
-              +'<div style="padding:6px 8px;border-bottom:1px solid var(--border)"><input class="form-input" style="font-size:12px;padding:6px 10px" placeholder="Buscar moneda..." oninput="filterCambioPick('+q+'cambio-pick-to-'+idx+q+',this.value)"></div>'
-              +'<div style="max-height:160px;overflow-y:auto" id="cambio-pick-to-'+idx+'-list">'+buildCambioPickItems(idx,'to',row.to)+'</div>'
-            +'</div>'
+          +'<div class="bs-trigger" onclick="showBS_currency('+idx+',\'to\')">'
+            +'<span id="cambio-to-lbl-'+idx+'">'+toLabel+'</span>'
+            +'<span style="color:var(--text3);font-size:18px">›</span>'
           +'</div>'
         +'</div>'
       +'</div>'
@@ -3755,6 +3751,167 @@ function selectPPickWithFlag(inputId,pickId,val,flag){
 
 function selectPPickWithFlag(inputId,pickId,val,flag){var inp=document.getElementById(inputId);var lbl=document.getElementById(inputId+'-lbl');var pick=document.getElementById(pickId);var arr=document.getElementById(pickId+'-arrow');if(inp)inp.value=val;if(lbl){var ph={'cfg-country':'Seleccionar país de origen','cfg-residence':'Seleccionar país de residencia'};lbl.textContent=val&&flag?(flag+' '+val):(ph[inputId]||'Seleccionar');lbl.style.color=val?'var(--text)':'var(--text3)';}if(pick){pick.style.display='none';}if(arr)arr.textContent='▼';if(pick)pick.querySelectorAll('.ppick-item').forEach(function(item){item.style.background=item.dataset.val===val?'rgba(0,212,170,.12)':'';item.style.fontWeight=item.dataset.val===val?'700':'';});}
 
+
+// ── Global flag helpers ────────────────────────────────
+function _iso2flag(iso){return iso?String.fromCodePoint(iso.charCodeAt(0)+127397)+String.fromCodePoint(iso.charCodeAt(1)+127397):'🌐';}
+var _PHONE_ISO={'+54':'AR','+591':'BO','+55':'BR','+56':'CL','+57':'CO','+506':'CR','+53':'CU','+1809':'DO','+593':'EC','+503':'SV','+502':'GT','+509':'HT','+504':'HN','+52':'MX','+505':'NI','+507':'PA','+595':'PY','+51':'PE','+598':'UY','+58':'VE','+34':'ES','+33':'FR','+49':'DE','+39':'IT','+351':'PT','+44':'GB','+1':'US','+81':'JP','+82':'KR','+86':'CN','+91':'IN','+7':'RU','+380':'UA','+48':'PL','+31':'NL','+32':'BE','+41':'CH','+43':'AT','+46':'SE','+47':'NO','+45':'DK','+358':'FI','+30':'GR','+36':'HU','+420':'CZ','+40':'RO','+359':'BG','+372':'EE','+371':'LV','+370':'LT','+27':'ZA','+234':'NG','+20':'EG','+254':'KE','+255':'TZ','+256':'UG','+251':'ET','+60':'MY','+65':'SG','+66':'TH','+62':'ID','+63':'PH','+84':'VN','+92':'PK','+880':'BD','+94':'LK','+98':'IR','+90':'TR','+972':'IL','+966':'SA','+971':'AE','+212':'MA','+213':'DZ','+216':'TN','+218':'LY','+61':'AU','+64':'NZ','+93':'AF','+355':'AL','+244':'AO','+374':'AM','+994':'AZ','+973':'BH','+375':'BY','+501':'BZ','+855':'KH','+237':'CM','+241':'GA','+220':'GM','+995':'GE','+233':'GH','+592':'GY','+354':'IS','+964':'IQ','+353':'IE','+225':'CI','+962':'JO','+686':'KI','+965':'KW','+856':'LA','+961':'LB','+266':'LS','+231':'LR','+352':'LU','+261':'MG','+265':'MW','+960':'MV','+223':'ML','+356':'MT','+222':'MR','+230':'MU','+258':'MZ','+264':'NA','+977':'NP','+227':'NE','+968':'OM','+675':'PG','+974':'QA','+250':'RW','+221':'SN','+232':'SL','+252':'SO','+211':'SS','+249':'SD','+597':'SR','+992':'TJ','+228':'TG','+676':'TO','+1868':'TT','+993':'TM','+998':'UZ','+678':'VU','+967':'YE','+260':'ZM','+263':'ZW','+376':'AD','+374':'AM','+1242':'BS','+1246':'BB','+229':'BJ','+975':'BT','+267':'BW','+387':'BA','+226':'BF','+257':'BI','+238':'CV','+236':'CF','+235':'TD','+269':'KM','+243':'CD','+242':'CG','+240':'GQ','+291':'ER','+268':'SZ','+679':'FJ','+245':'GW','+423':'LI','+692':'MH','+377':'MC','+976':'MN','+382':'ME','+674':'NR','+680':'PW','+970':'PS','+1869':'KN','+1758':'LC','+1784':'VC','+685':'WS','+378':'SM','+239':'ST','+381':'RS','+421':'SK','+386':'SI','+677':'SB','+886':'TW','+1876':'JM','+389':'MK','+673':'BN','+855':'KH','+996':'KG'};
+function countryFlagGlobal(name){var d=COUNTRY_DATA&&COUNTRY_DATA[name];if(!d)return'🌐';var iso=_PHONE_ISO[d.phone]||null;return iso?_iso2flag(iso):'🌐';}
+
+// ── Bottom Sheet System ────────────────────────────────
+var _bsCfg=null;
+var _bsAllItems=[];
+
+function showBottomSheet(cfg){
+  closeBottomSheet();
+  _bsCfg=cfg;
+  _bsAllItems=cfg.items||[];
+  var overlay=document.createElement('div');
+  overlay.id='bs-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
+  overlay.onclick=function(e){if(e.target===overlay)closeBottomSheet();};
+  var searchHtml=cfg.searchable
+    ?'<div style="padding:8px 16px 10px"><input id="bs-search" class="form-input" placeholder="Buscar..." oninput="_filterBS(this.value)" style="font-size:14px;padding:10px 14px"></div>'
+    :'';
+  var sheet=document.createElement('div');
+  sheet.id='bs-sheet';
+  sheet.style.cssText='width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:80vh;display:flex;flex-direction:column;animation:bsSlideUp .22s ease';
+  sheet.innerHTML=
+    '<div style="display:flex;justify-content:center;padding:10px 0 2px"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 16px 12px;border-bottom:1px solid var(--border)">'+
+      '<span style="font-size:15px;font-weight:700;color:var(--text)">'+cfg.title+'</span>'+
+      '<button onclick="closeBottomSheet()" style="width:28px;height:28px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:13px;line-height:1">✕</button>'+
+    '</div>'+
+    searchHtml+
+    '<div id="bs-list" style="overflow-y:auto;flex:1;padding:8px 8px 24px">'+_buildBSItems(_bsAllItems,cfg.selected)+'</div>';
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+  if(cfg.searchable){setTimeout(function(){var s=document.getElementById('bs-search');if(s)s.focus();},250);}
+}
+
+function _buildBSItems(items,selected){
+  return items.map(function(item){
+    var sel=item.val===selected;
+    return '<div class="bs-item" onclick="_selectBS(\''+item.val.replace(/'/g,"\\'")+'\')" style="background:'+(sel?'rgba(0,212,170,.1)':'transparent')+'">'+
+      '<span style="font-size:14px;color:var(--text);font-weight:'+(sel?'700':'400')+'">'+item.label+'</span>'+
+      (sel?'<span style="color:var(--primary);font-size:16px">✓</span>':'')+
+    '</div>';
+  }).join('');
+}
+
+function _filterBS(q){
+  if(!_bsCfg)return;
+  q=q.toLowerCase().trim();
+  var filtered=q?_bsAllItems.filter(function(i){return i.label.toLowerCase().indexOf(q)!==-1;}):_bsAllItems;
+  var list=document.getElementById('bs-list');
+  if(list)list.innerHTML=_buildBSItems(filtered,_bsCfg.selected);
+}
+
+function _selectBS(val){
+  if(_bsCfg&&_bsCfg.onSelect)_bsCfg.onSelect(val);
+  closeBottomSheet();
+}
+
+function closeBottomSheet(){
+  var o=document.getElementById('bs-overlay');
+  if(o)o.remove();
+  _bsCfg=null;
+  _bsAllItems=[];
+}
+
+// ── BS Launchers ───────────────────────────────────────
+function showBS_country(inputId){
+  var current=document.getElementById(inputId)?document.getElementById(inputId).value:'';
+  var items=Object.keys(COUNTRY_DATA).map(function(name){
+    return {val:name,label:countryFlagGlobal(name)+' '+name};
+  });
+  var ph=inputId==='cfg-country'?'País de origen':'País de residencia';
+  showBottomSheet({
+    title:ph,items:items,selected:current,searchable:true,
+    onSelect:function(val){
+      var flag=val?countryFlagGlobal(val):'';
+      var inp=document.getElementById(inputId);
+      var lbl=document.getElementById(inputId+'-lbl');
+      if(inp)inp.value=val;
+      if(lbl){lbl.textContent=val?(flag+' '+val):(ph==='País de origen'?'Seleccionar país de origen':'Seleccionar país de residencia');lbl.style.color=val?'var(--text)':'var(--text3)';}
+    }
+  });
+}
+
+function showBS_simple(inputId,lblSuffix,title,items,placeholder){
+  var current=document.getElementById(inputId)?document.getElementById(inputId).value:'';
+  var bsItems=items.map(function(o){return {val:o,label:o};});
+  showBottomSheet({
+    title:title,items:bsItems,selected:current,searchable:false,
+    onSelect:function(val){
+      var inp=document.getElementById(inputId);
+      var lbl=document.getElementById(inputId+lblSuffix);
+      if(inp)inp.value=val;
+      if(lbl){lbl.textContent=val||placeholder;lbl.style.color=val?'var(--text)':'var(--text3)';}
+    }
+  });
+}
+
+function showBS_catType(){
+  var current=document.getElementById('cat-type')?document.getElementById('cat-type').value:'gasto';
+  var items=[{val:'gasto',label:'💸 Gasto'},{val:'ingreso',label:'💰 Ingreso'},{val:'transferencia',label:'↔️ Transferencia'}];
+  showBottomSheet({
+    title:'Tipo de categoría',items:items,selected:current,searchable:false,
+    onSelect:function(val){
+      var inp=document.getElementById('cat-type');
+      var lbl=document.getElementById('cat-type-lbl');
+      var labels={gasto:'💸 Gasto',ingreso:'💰 Ingreso',transferencia:'↔️ Transferencia'};
+      if(inp)inp.value=val;
+      if(lbl){lbl.textContent=labels[val]||val;lbl.style.color='var(--text)';}
+      updateCatModalFields(val);
+    }
+  });
+}
+
+function showBS_catNature(){
+  var current=document.getElementById('cat-nature')?document.getElementById('cat-nature').value:'necesidades';
+  var items=[{val:'necesidades',label:'🏠 Necesidades'},{val:'deseos',label:'🎯 Deseos'},{val:'ahorros',label:'💰 Ahorros'}];
+  showBottomSheet({
+    title:'Naturaleza',items:items,selected:current,searchable:false,
+    onSelect:function(val){
+      var inp=document.getElementById('cat-nature');
+      var lbl=document.getElementById('cat-nature-lbl');
+      var labels={necesidades:'🏠 Necesidades',deseos:'🎯 Deseos',ahorros:'💰 Ahorros'};
+      if(inp)inp.value=val;
+      if(lbl){lbl.textContent=labels[val]||val;lbl.style.color='var(--text)';}
+    }
+  });
+}
+
+function showBS_catIncome(){
+  var current=document.getElementById('cat-income-type')?document.getElementById('cat-income-type').value:'principal';
+  var items=[{val:'principal',label:'⭐ Principal'},{val:'secundario',label:'➕ Secundario'}];
+  showBottomSheet({
+    title:'Tipo de ingreso',items:items,selected:current,searchable:false,
+    onSelect:function(val){
+      var inp=document.getElementById('cat-income-type');
+      var lbl=document.getElementById('cat-income-lbl');
+      var labels={principal:'⭐ Principal',secundario:'➕ Secundario'};
+      if(inp)inp.value=val;
+      if(lbl){lbl.textContent=labels[val]||val;lbl.style.color='var(--text)';}
+    }
+  });
+}
+
+function showBS_currency(idx,side){
+  var rows=window._cambioRows||[];
+  var row=rows[idx]||{};
+  var current=side==='from'?(row.from||''):(row.to||'');
+  var items=ALL_CURRENCIES.map(function(cur){
+    var meta=getCurrencyMeta(cur.code);
+    return {val:cur.code,label:cur.code+(meta&&meta.sym&&meta.sym!==cur.code?' '+meta.sym:'')+'  —  '+cur.name};
+  });
+  showBottomSheet({
+    title:side==='from'?'💱 Moneda de origen':'💱 Moneda destino',
+    items:items,selected:current,searchable:true,
+    onSelect:function(val){selectCambioCur(idx,side,val);}
+  });
+}
+
 function getDefaultPhoneCode(){
   try{
     var tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'';
@@ -3898,60 +4055,33 @@ function buildProfileFormHTML(){
         +'<input class="form-input" type="tel" id="cfg-phone" value="'+(p.phone||'')+'" placeholder="300 000 0000" style="flex:1;font-size:15px" maxlength="15">'
       +'</div></div>'
     +'<div class="form-group"><label class="form-label">País de origen <span style="color:var(--danger)">*</span></label>'
-      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick(\'cpick\')">'
-          +'<span style="font-size:14px;color:'+(p.country?'var(--text)':'var(--text3)')+'" id="cfg-country-lbl">'+(p.country?(countryFlag(p.country)+' '+p.country):'Seleccionar país de origen')+'</span>'
-          +'<span style="color:var(--primary);font-size:10px" id="cpick-arrow">▼</span>'
-        +'</div>'
-        +'<div id="cpick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
-          +'<div style="padding:8px;border-bottom:1px solid var(--border)"><input class="form-input" style="font-size:13px" placeholder="Buscar país..." oninput="filterPPick(\'cpick\',this.value)"></div>'
-          +'<div style="max-height:200px;overflow-y:auto"><div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-country\',\'cpick\',\'\',\'\' )" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+countryOpts+'</div>'
-        +'</div>'
+      +'<div class="bs-trigger" onclick="showBS_country(\'cfg-country\')" id="cpick-trigger">'
+        +'<span style="font-size:14px;color:'+(p.country?'var(--text)':'var(--text3)')+'" id="cfg-country-lbl">'+(p.country?(countryFlagGlobal(p.country)+' '+p.country):'Seleccionar país de origen')+'</span>'
+        +'<span style="color:var(--text3);font-size:18px">›</span>'
       +'</div>'
       +'<input type="hidden" id="cfg-country" value="'+(p.country||'')+'"></div>'
     +'<div class="form-group"><label class="form-label">País de residencia <span style="color:var(--danger)">*</span> <span style="font-size:10px;color:var(--primary);font-weight:400">🏠 moneda principal</span></label>'
-      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick(\'rpick\')">'
-          +'<span style="font-size:14px;color:'+(p.residence?'var(--text)':'var(--text3)')+'" id="cfg-residence-lbl">'+(p.residence?(countryFlag(p.residence)+' '+p.residence):'Seleccionar país de residencia')+'</span>'
-          +'<span style="color:var(--primary);font-size:10px" id="rpick-arrow">▼</span>'
-        +'</div>'
-        +'<div id="rpick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
-          +'<div style="padding:8px;border-bottom:1px solid var(--border)"><input class="form-input" style="font-size:13px" placeholder="Buscar país de residencia..." oninput="filterPPick(\'rpick\',this.value)"></div>'
-          +'<div style="max-height:200px;overflow-y:auto"><div class="ppick-item" onclick="selectPPickWithFlag(\'cfg-residence\',\'rpick\',\'\',\'\' )" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+residOpts+'</div>'
-        +'</div>'
+      +'<div class="bs-trigger" onclick="showBS_country(\'cfg-residence\')" id="rpick-trigger">'
+        +'<span style="font-size:14px;color:'+(p.residence?'var(--text)':'var(--text3)')+'" id="cfg-residence-lbl">'+(p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'Seleccionar país de residencia')+'</span>'
+        +'<span style="color:var(--text3);font-size:18px">›</span>'
       +'</div>'
       +'<input type="hidden" id="cfg-residence" value="'+(p.residence||'')+'"></div>'
     +'<div class="form-group"><label class="form-label">Ocupación</label>'
-      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick(\'opick\')">'
-          +'<span style="font-size:14px;color:'+(p.occupation?'var(--text)':'var(--text3)')+'" id="cfg-occupation-lbl">'+(p.occupation||'Seleccionar ocupación')+'</span>'
-          +'<span style="color:var(--primary);font-size:10px" id="opick-arrow">▼</span>'
-        +'</div>'
-        +'<div id="opick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
-          +'<div style="max-height:220px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-occupation\',\'opick\',\'\' )" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+occupOpts+'</div>'
-        +'</div>'
+      +'<div class="bs-trigger" onclick="showBS_simple(\'cfg-occupation\',\'-lbl\',\'Ocupación\',[\'Empleado\',\'Independiente / Freelancer\',\'Empresario\',\'Estudiante\',\'Ama/Amo de casa\',\'Jubilado\',\'Desempleado\',\'Otro\'],\'Seleccionar ocupación\')">'
+        +'<span style="font-size:14px;color:'+(p.occupation?'var(--text)':'var(--text3)')+'" id="cfg-occupation-lbl">'+(p.occupation||'Seleccionar ocupación')+'</span>'
+        +'<span style="color:var(--text3);font-size:18px">›</span>'
       +'</div>'
       +'<input type="hidden" id="cfg-occupation" value="'+(p.occupation||'')+'"></div>'
     +'<div class="form-group"><label class="form-label">Estado civil</label>'
-      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick(\'mpick\')">'
-          +'<span style="font-size:14px;color:'+(p.marital?'var(--text)':'var(--text3)')+'" id="cfg-marital-lbl">'+(p.marital||'Seleccionar estado civil')+'</span>'
-          +'<span style="color:var(--primary);font-size:10px" id="mpick-arrow">▼</span>'
-        +'</div>'
-        +'<div id="mpick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
-          +'<div style="max-height:220px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-marital\',\'mpick\',\'\' )" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+maritalOpts+'</div>'
-        +'</div>'
+      +'<div class="bs-trigger" onclick="showBS_simple(\'cfg-marital\',\'-lbl\',\'Estado civil\',[\'Soltero/a\',\'Casado/a\',\'Unión libre\',\'Divorciado/a\',\'Viudo/a\'],\'Seleccionar estado civil\')">'
+        +'<span style="font-size:14px;color:'+(p.marital?'var(--text)':'var(--text3)')+'" id="cfg-marital-lbl">'+(p.marital||'Seleccionar estado civil')+'</span>'
+        +'<span style="color:var(--text3);font-size:18px">›</span>'
       +'</div>'
       +'<input type="hidden" id="cfg-marital" value="'+(p.marital||'')+'"></div>'
     +'<div class="form-group"><label class="form-label">Objetivo financiero principal <span style="color:var(--danger)">*</span></label>'
-      +'<div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick(\'gpick\')">'
-          +'<span style="font-size:14px;color:'+(p.financialGoal?'var(--text)':'var(--text3)')+'" id="cfg-goal-lbl">'+(p.financialGoal||'Seleccionar objetivo')+'</span>'
-          +'<span style="color:var(--primary);font-size:10px" id="gpick-arrow">▼</span>'
-        +'</div>'
-        +'<div id="gpick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">'
-          +'<div style="max-height:220px;overflow-y:auto"><div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\'\' )" data-val="" style="color:var(--text3)">— Seleccionar —</div>'+goalOpts+'</div>'
-        +'</div>'
+      +'<div class="bs-trigger" onclick="showBS_simple(\'cfg-goal\',\'-lbl\',\'Objetivo financiero\',[\'Ahorrar para emergencias\',\'Control de gastos\',\'Pagar deudas\',\'Comprar vivienda\',\'Viajar\',\'Independencia financiera\',\'Emprender\',\'Jubilación\',\'Educación\',\'Otro\'],\'Seleccionar objetivo\')">'
+        +'<span style="font-size:14px;color:'+(p.financialGoal?'var(--text)':'var(--text3)')+'" id="cfg-goal-lbl">'+(p.financialGoal||'Seleccionar objetivo')+'</span>'
+        +'<span style="color:var(--text3);font-size:18px">›</span>'
       +'</div>'
       +'<input type="hidden" id="cfg-goal" value="'+(p.financialGoal||'')+'"></div>'
     +'<div style="margin-top:20px;padding-top:12px;border-top:1px solid var(--border)">'
@@ -5085,40 +5215,25 @@ function buildCategoryModal(data){
   <div class="modal-body">
     <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" id="cat-name" placeholder="Ej: Mascotas"></div>
     <div class="form-group"><label class="form-label">Tipo</label>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick('cat-type-pick')">
-          <span style="font-size:14px;color:var(--text)" id="cat-type-lbl">${typeLabel}</span>
-          <span style="color:var(--primary);font-size:10px" id="cat-type-pick-arrow">▼</span>
-        </div>
-        <div id="cat-type-pick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">
-          ${typeOpts.map(([val,lbl])=>`<div class="ppick-item" onclick="selectCatPick('cat-type','cat-type-pick','${val}','${lbl}',function(){updateCatModalFields('${val}')})" data-val="${val}" style="${defType===val?'background:rgba(0,212,170,.12);font-weight:700':''}">${lbl}</div>`).join('')}
-        </div>
+      <div class="bs-trigger" onclick="showBS_catType()">
+        <span style="font-size:14px;color:var(--text)" id="cat-type-lbl">${typeLabel}</span>
+        <span style="color:var(--text3);font-size:18px">›</span>
       </div>
       <input type="hidden" id="cat-type" value="${defType}">
     </div>
     <div id="cat-nature-group" class="form-group" style="display:${isIngreso?'none':'block'}">
       <label class="form-label">Naturaleza</label>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick('cat-nature-pick')">
-          <span style="font-size:14px;color:var(--text)" id="cat-nature-lbl">🏠 Necesidades</span>
-          <span style="color:var(--primary);font-size:10px" id="cat-nature-pick-arrow">▼</span>
-        </div>
-        <div id="cat-nature-pick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">
-          ${natureOpts.map(([val,lbl])=>`<div class="ppick-item" onclick="selectCatPick('cat-nature','cat-nature-pick','${val}','${lbl}')" data-val="${val}" style="${defNature===val?'background:rgba(0,212,170,.12);font-weight:700':''}">${lbl}</div>`).join('')}
-        </div>
+      <div class="bs-trigger" onclick="showBS_catNature()">
+        <span style="font-size:14px;color:var(--text)" id="cat-nature-lbl">🏠 Necesidades</span>
+        <span style="color:var(--text3);font-size:18px">›</span>
       </div>
       <input type="hidden" id="cat-nature" value="${defNature}">
     </div>
     <div id="cat-income-type-group" class="form-group" style="display:${isIngreso?'block':'none'}">
       <label class="form-label">Tipo de ingreso</label>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);position:relative">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px;cursor:pointer" onclick="togglePPick('cat-income-pick')">
-          <span style="font-size:14px;color:var(--text)" id="cat-income-lbl">⭐ Principal</span>
-          <span style="color:var(--primary);font-size:10px" id="cat-income-pick-arrow">▼</span>
-        </div>
-        <div id="cat-income-pick" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid var(--primary);border-top:none;border-radius:0 0 var(--radius) var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.3)">
-          ${incomeOpts.map(([val,lbl])=>`<div class="ppick-item" onclick="selectCatPick('cat-income-type','cat-income-pick','${val}','${lbl}')" data-val="${val}" style="${defIncome===val?'background:rgba(0,212,170,.12);font-weight:700':''}">${lbl}</div>`).join('')}
-        </div>
+      <div class="bs-trigger" onclick="showBS_catIncome()">
+        <span style="font-size:14px;color:var(--text)" id="cat-income-lbl">⭐ Principal</span>
+        <span style="color:var(--text3);font-size:18px">›</span>
       </div>
       <input type="hidden" id="cat-income-type" value="${defIncome}">
       <div style="font-size:11px;color:var(--text2);margin-top:4px">Principal: salario, trabajo activo · Secundario: rentas, apoyos, extras</div>
