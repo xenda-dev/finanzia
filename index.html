@@ -604,7 +604,7 @@ function saveState(){try{localStorage.setItem('finanziaState3',JSON.stringify(S)
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
 // Number inputs: format with thousand separator on display, parse on use
 function fmtNum(v){if(v===''||v===null||isNaN(v))return '';return Number(v).toLocaleString(S.language==='pl'?'pl-PL':'es-CO');}
-function parseNum(s){if(!s)return 0;return parseFloat(String(s).replace(/[^\d.,]/g,'').replace(',','.'))||0;}
+function parseNumLegacy(s){if(!s)return 0;return parseFloat(String(s).replace(/[^\d.,]/g,'').replace(',','.'))||0;}
 
 // ════════════════════════════════════════════════════════════
 // THEME
@@ -902,9 +902,9 @@ function fmt(amount,cur){
 }
 function setCurrency(c){
   S.currency=c;
-  // Update header toggle buttons
   document.querySelectorAll('.cur-btn').forEach(b=>b.classList.toggle('active',b.dataset.cur===c));
   saveState();renderPage(S.currentPage);
+  reformatNumFields();
 }
 function refreshCurrencyToggle(){
   const toggle=document.getElementById('currency-toggle');
@@ -2571,22 +2571,22 @@ function renderSimulador(){
       <!-- META (solo modo calcular) -->
       <div id="sim-meta-row" class="form-group" style="display:none">
         <label class="form-label">🎯 Meta de ahorro</label>
-        <input class="form-input" type="number" id="sim-goal" placeholder="Ej: 20.000.000" oninput="calcSim()">
+        <input class="form-input" type="text" inputmode="decimal" id="sim-goal" placeholder="Ej: 20.000.000" data-numfmt="num" oninput="numInput(this);calcSim()">
       </div>
       <!-- Capital inicial -->
       <div class="form-group">
         <label class="form-label">💰 Capital inicial (opcional)</label>
-        <input class="form-input" type="number" id="sim-initial" placeholder="Ej: 10.000.000" oninput="calcSim()">
+        <input class="form-input" type="text" inputmode="decimal" id="sim-initial" placeholder="Ej: 5.500" data-numfmt="num" oninput="numInput(this);calcSim()">
       </div>
       <!-- Aporte mensual (solo modo proyectar) -->
       <div id="sim-monthly-row" class="form-group">
         <label class="form-label">📅 Aporte mensual</label>
-        <input class="form-input" type="number" id="sim-monthly" placeholder="Ej: 500.000" oninput="calcSim()">
+        <input class="form-input" type="text" inputmode="decimal" id="sim-monthly" placeholder="Ej: 1.800" data-numfmt="num" oninput="numInput(this);calcSim()">
       </div>
       <!-- TAE -->
       <div class="form-group">
         <label class="form-label">📊 TAE (%)</label>
-        <input class="form-input" type="number" id="sim-rate" placeholder="Ej: 10" step="0.01" oninput="calcSim()">
+        <input class="form-input" type="text" inputmode="decimal" id="sim-rate" placeholder="Ej: 10%" data-numfmt="pct" oninput="pctInput(this);calcSim()">
       </div>
       <!-- Fechas -->
       <div class="form-row">
@@ -2617,21 +2617,21 @@ function renderSimulador(){
     <!-- Métricas resumen -->
     <div id="sim-metrics" style="display:none;margin-bottom:16px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:stretch">
-        <div class="card" style="padding:14px 12px;text-align:center;display:flex;flex-direction:column;justify-content:center;min-height:72px">
-          <div style="font-size:10px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Total acumulado</div>
-          <div style="font-size:15px;font-weight:800;color:var(--success);line-height:1.2" id="sim-total">—</div>
+        <div class="card" style="padding:12px;text-align:center;display:flex;flex-direction:column;justify-content:center;margin-top:0">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">Total acumulado</div>
+          <div style="font-size:14px;font-weight:800;color:var(--success);line-height:1.2" id="sim-total">—</div>
         </div>
-        <div class="card" style="padding:14px 12px;text-align:center;display:flex;flex-direction:column;justify-content:center;min-height:72px">
-          <div style="font-size:10px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Total aportado</div>
-          <div style="font-size:15px;font-weight:800;line-height:1.2" id="sim-invested">—</div>
+        <div class="card" style="padding:12px;text-align:center;display:flex;flex-direction:column;justify-content:center;margin-top:0">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">Total aportado</div>
+          <div style="font-size:14px;font-weight:800;line-height:1.2" id="sim-invested">—</div>
         </div>
-        <div class="card" style="padding:14px 12px;text-align:center;display:flex;flex-direction:column;justify-content:center;min-height:72px">
-          <div style="font-size:10px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Rendimientos</div>
-          <div style="font-size:15px;font-weight:800;color:var(--primary);line-height:1.2" id="sim-gains">—</div>
+        <div class="card" style="padding:12px;text-align:center;display:flex;flex-direction:column;justify-content:center;margin-top:0">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">Rendimientos</div>
+          <div style="font-size:14px;font-weight:800;color:var(--primary);line-height:1.2" id="sim-gains">—</div>
         </div>
-        <div class="card" style="padding:14px 12px;text-align:center;display:flex;flex-direction:column;justify-content:center;min-height:72px">
-          <div style="font-size:10px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Multiplicador</div>
-          <div style="font-size:15px;font-weight:800;color:var(--warning);line-height:1.2" id="sim-mult">—</div>
+        <div class="card" style="padding:12px;text-align:center;display:flex;flex-direction:column;justify-content:center;margin-top:0">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">Multiplicador</div>
+          <div style="font-size:14px;font-weight:800;color:var(--warning);line-height:1.2" id="sim-mult">—</div>
         </div>
       </div>
     </div>
@@ -2687,8 +2687,8 @@ function simUpdateDuration(){
 function calcSim(){
   simUpdateDuration();
   const mode=window._simMode||'proyectar';
-  const initial=parseFloat(document.getElementById('sim-initial')?.value)||0;
-  const annualRate=parseFloat(document.getElementById('sim-rate')?.value)||0;
+  const initial=parseNum(document.getElementById('sim-initial')?.value)||0;
+  const annualRate=parsePct(document.getElementById('sim-rate')?.value)||0;
   const startVal=document.getElementById('sim-start')?.value;
   const endVal=document.getElementById('sim-end')?.value;
   if(!startVal||!endVal)return;
@@ -2699,10 +2699,10 @@ function calcSim(){
   const rm=annualRate/100/12;
   let monthly=0;
   if(mode==='proyectar'){
-    monthly=parseFloat(document.getElementById('sim-monthly')?.value)||0;
+    monthly=parseNum(document.getElementById('sim-monthly')?.value)||0;
     if(!monthly&&!initial)return;
   } else {
-    const goal=parseFloat(document.getElementById('sim-goal')?.value)||0;
+    const goal=parseNum(document.getElementById('sim-goal')?.value)||0;
     if(!goal)return;
     const factor=Math.pow(1+rm,months);
     if(rm===0) monthly=(goal-initial)/months;
@@ -2795,6 +2795,105 @@ function fmtSim(v){
     catch(e){num=Math.round(v).toLocaleString();}
   }
   return pos==='before'?sym+num:num+(sym?' '+sym:'');
+}
+// ── Live number / percent formatting ─────────────────────────
+function _getLocaleInfo(){
+  var meta=getCurrencyMeta(S.currency||'');
+  var locale=meta&&meta.locale?meta.locale:'es-CO';
+  // Use Intl to detect decimal and thousands separators for this locale
+  var nf=new Intl.NumberFormat(locale);
+  var parts=nf.formatToParts(1234567.89);
+  var decSep='.';var thouSep=',';
+  parts.forEach(function(p){
+    if(p.type==='decimal')decSep=p.value;
+    if(p.type==='group')thouSep=p.value;
+  });
+  return{locale:locale,decSep:decSep,thouSep:thouSep};
+}
+function parseNum(str){
+  if(!str&&str!==0)return 0;
+  var s=String(str).trim();
+  var info=_getLocaleInfo();
+  // Remove all non-digit chars except the decimal separator
+  // First remove thousands separators (could be . , or space variants)
+  // Then normalize decimal separator to dot
+  var clean=s.replace(/[^\d,\.]/g,''); // strip spaces, symbols etc
+  if(info.decSep===','){
+    // thousands=dot, decimal=comma  → remove dots, replace comma with dot
+    clean=clean.replace(/\./g,'').replace(',','.');
+  } else {
+    // thousands=comma/space, decimal=dot → remove commas
+    clean=clean.replace(/,/g,'');
+  }
+  return parseFloat(clean)||0;
+}
+function numInput(el){
+  var raw=el.value;
+  if(!raw){return;}
+  var info=_getLocaleInfo();
+  var decSep=info.decSep;
+  var otherSep=decSep===','?'.':',';
+
+  var hasDecPart=false,decDigits='',intStr='';
+
+  // Priority 1: locale's decimal separator (definitive decimal)
+  var locDecIdx=raw.lastIndexOf(decSep);
+  if(locDecIdx>-1){
+    var afterDec=raw.slice(locDecIdx+1).replace(/\D/g,'');
+    hasDecPart=true;
+    decDigits=afterDec.slice(0,2);
+    intStr=raw.slice(0,locDecIdx).replace(/\D/g,'');
+  } else {
+    // Priority 2: "other" separator — treat as decimal ONLY if appears once AND < 3 digits after
+    var otherIdx=raw.lastIndexOf(otherSep);
+    if(otherIdx>-1){
+      var afterOther=raw.slice(otherIdx+1).replace(/\D/g,'');
+      var countOther=(raw.match(new RegExp('\\'+otherSep,'g'))||[]).length;
+      if(countOther===1&&afterOther.length<3){
+        hasDecPart=true;
+        decDigits=afterOther;
+        intStr=raw.slice(0,otherIdx).replace(/\D/g,'');
+      } else {
+        intStr=raw.replace(/\D/g,'');
+      }
+    } else {
+      intStr=raw.replace(/\D/g,'');
+    }
+  }
+
+  if(!intStr&&!hasDecPart){el.value='';return;}
+  var intNum=parseInt(intStr||'0')||0;
+  var formatted;
+  try{
+    formatted=new Intl.NumberFormat(info.locale,{
+      useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0
+    }).format(intNum);
+  }catch(e){formatted=intNum.toString();}
+  if(hasDecPart){formatted+=decSep+decDigits;}
+  el.value=formatted;
+  try{var l=formatted.length;el.setSelectionRange(l,l);}catch(e){}
+}
+function pctInput(el){
+  var raw=el.value.replace(/%/g,'').replace(/\s/g,'');
+  if(!raw){el.value='';return;}
+  var result=raw+'%';
+  el.value=result;
+  try{el.setSelectionRange(raw.length,raw.length);}catch(e){}
+}
+function parsePct(str){
+  if(!str)return 0;
+  return parseFloat(String(str).replace(/%/g,'').replace(',','.'))||0;
+}
+// Re-format all active numInput/pctInput fields when currency changes
+function reformatNumFields(){
+  var fields=document.querySelectorAll('input[data-numfmt]');
+  fields.forEach(function(el){
+    if(el.value){
+      var type=el.getAttribute('data-numfmt');
+      if(type==='num'){var v=parseNum(el.value);if(v){var i=_getLocaleInfo();try{el.value=new Intl.NumberFormat(i.locale,{useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0}).format(v);}catch(e){}}}
+      else if(type==='pct'){pctInput(el);}
+    }
+  });
 }
 function simDownloadCSV(){
   const rows=window._simRows;
