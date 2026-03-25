@@ -77,6 +77,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .drawer-item:hover,.drawer-item.active{color:var(--text);background:var(--surface2)}
 .drawer-item.active{border-left:3px solid var(--primary);padding-left:17px}
 .drawer-item-icon{width:30px;height:30px;border-radius:8px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.drawer-group-portal{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;color:var(--text2);cursor:pointer;transition:.15s;font-size:14px;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
+.drawer-group-portal:hover{color:var(--text);background:var(--surface2)}
 .ai-chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 56px - var(--nav-h) - 20px);background:var(--surface);overflow:hidden;margin:-16px -16px 0}
 .ai-chat-header{background:linear-gradient(135deg,#075E54,#128C7E);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
 .ai-chat-avatar{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
@@ -264,6 +266,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
 @keyframes bsFadeIn{from{opacity:0}to{opacity:1}}
 @keyframes bsSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes slideInLeft{from{transform:translateX(-100%)}to{transform:translateX(0)}}
 @keyframes bsSlideDown{from{transform:translateY(0)}to{transform:translateY(100%)}}
 .bs-item{padding:13px 12px;border-radius:10px;cursor:pointer;margin-bottom:2px;display:flex;justify-content:space-between;align-items:center;transition:background .1s}
 .bs-item:active{background:rgba(0,212,170,.1)!important}
@@ -287,48 +290,30 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
   <!-- Navigation -->
   <div class="drawer-nav">
-    <!-- 1. Principal -->
-    <div class="drawer-group-label" id="dgl-principal">Principal</div>
-    <button class="drawer-item active" data-page="dashboard" id="dmi-dashboard"><div class="drawer-item-icon">🏠</div><span>Inicio</span></button>
-    <!-- 2. Mi Dinero (collapsible) -->
-    <div class="drawer-group-label dgl-collapsible" id="dgl-midinero" onclick="toggleDrawerGroup('dgl-midinero-items',this)">
-      <span>Mi Dinero</span><span class="dgl-arrow">▾</span>
-    </div>
-    <div id="dgl-midinero-items">
-      <button class="drawer-item" data-page="cuentas" id="dmi-cuentas"><div class="drawer-item-icon">💳</div><span>Cuentas</span></button>
-      <button class="drawer-item" data-page="movimientos" id="dmi-movimientos"><div class="drawer-item-icon">📋</div><span>Movimientos</span></button>
-      <button class="drawer-item" data-page="deudas" id="dmi-deudas"><div class="drawer-item-icon">💸</div><span>Deudas</span></button>
-    </div>
-    <!-- 3. Planificación (collapsible) -->
-    <div class="drawer-group-label dgl-collapsible" id="dgl-planificacion" onclick="toggleDrawerGroup('dgl-planificacion-items',this)">
-      <span>Planificación</span><span class="dgl-arrow">▾</span>
-    </div>
-    <div id="dgl-planificacion-items">
-      <button class="drawer-item" data-page="presupuestos" id="dmi-presupuestos"><div class="drawer-item-icon">📊</div><span>Presupuestos</span></button>
-      <button class="drawer-item" data-page="metas" id="dmi-metas"><div class="drawer-item-icon">🎯</div><span>Metas de ahorro</span></button>
-      <button class="drawer-item" data-page="pagos" id="dmi-pagos"><div class="drawer-item-icon">🔔</div><span>Pagos programados</span></button>
-    </div>
-    <!-- 4. Inversiones -->
-    <div class="drawer-group-label" id="dgl-inversiones">Inversiones</div>
-    <button class="drawer-item" data-page="inversiones" id="dmi-inversiones"><div class="drawer-item-icon">📈</div><span>Mis inversiones</span></button>
-    <!-- 5. Reportes -->
-    <div class="drawer-group-label" id="dgl-reportes">Reportes</div>
-    <button class="drawer-item" data-page="analisis" id="dmi-analisis"><div class="drawer-item-icon">📊</div><span>Análisis financiero</span></button>
-    <!-- 6. Herramientas (collapsible) -->
-    <div class="drawer-group-label dgl-collapsible" id="dgl-herramientas" onclick="toggleDrawerGroup('dgl-herramientas-items',this)">
-      <span>Herramientas</span><span class="dgl-arrow">▾</span>
-    </div>
-    <div id="dgl-herramientas-items">
-      <button class="drawer-item" data-page="herramientas" id="dmi-herramientas"><div class="drawer-item-icon">🤖</div><span>Emiliano — Asistente IA</span></button>
-      <button class="drawer-item" data-page="calculadora" id="dmi-calculadora"><div class="drawer-item-icon">📐</div><span>Calculadora préstamo</span></button>
-      <button class="drawer-item" data-page="simulador" id="dmi-simulador"><div class="drawer-item-icon">💹</div><span>Simulador de ahorro</span></button>
-      <button class="drawer-item" data-page="estrategia" id="dmi-estrategia"><div class="drawer-item-icon">❄️</div><span>Estrategia de deudas</span></button>
-      <button class="drawer-item" data-page="cambio" id="dmi-cambio"><div class="drawer-item-icon">💱</div><span>Tipo de cambio</span></button>
-      <button class="drawer-item" data-page="listas" id="dmi-listas"><div class="drawer-item-icon">🛒</div><span>Listas de compra</span></button>
-    </div>
-    <!-- 7. Configuración -->
-    <div class="drawer-group-label" id="dgl-configuracion">Configuración</div>
-    <button class="drawer-item" data-page="configuracion" id="dmi-configuracion"><div class="drawer-item-icon">⚙️</div><span>Ajustes</span></button>
+    <button class="drawer-item" data-page="dashboard" id="dmi-dashboard" onclick="navigate('dashboard');closeDrawer()"><div class="drawer-item-icon">🏠</div><span>Inicio</span></button>
+    <div style="height:1px;background:var(--border);margin:6px 20px"></div>
+    <button class="drawer-group-portal" onclick="openDrawerGroup('midinero')">
+      <div style="display:flex;align-items:center;gap:12px"><div class="drawer-item-icon">💰</div><span>Mi Dinero</span></div>
+      <span style="color:var(--text3);font-size:22px;font-weight:200;line-height:1">›</span>
+    </button>
+    <button class="drawer-group-portal" onclick="openDrawerGroup('planificacion')">
+      <div style="display:flex;align-items:center;gap:12px"><div class="drawer-item-icon">📅</div><span>Planificación</span></div>
+      <span style="color:var(--text3);font-size:22px;font-weight:200;line-height:1">›</span>
+    </button>
+    <button class="drawer-group-portal" onclick="navigate('inversiones');closeDrawer()">
+      <div style="display:flex;align-items:center;gap:12px"><div class="drawer-item-icon">📈</div><span>Inversiones</span></div>
+      <span style="color:var(--text3);font-size:22px;font-weight:200;line-height:1">›</span>
+    </button>
+    <button class="drawer-group-portal" onclick="navigate('analisis');closeDrawer()">
+      <div style="display:flex;align-items:center;gap:12px"><div class="drawer-item-icon">📊</div><span>Reportes</span></div>
+      <span style="color:var(--text3);font-size:22px;font-weight:200;line-height:1">›</span>
+    </button>
+    <button class="drawer-group-portal" onclick="openDrawerGroup('herramientas')">
+      <div style="display:flex;align-items:center;gap:12px"><div class="drawer-item-icon">🔧</div><span>Herramientas</span></div>
+      <span style="color:var(--text3);font-size:22px;font-weight:200;line-height:1">›</span>
+    </button>
+    <div style="height:1px;background:var(--border);margin:6px 20px"></div>
+    <button class="drawer-item" data-page="configuracion" id="dmi-configuracion" onclick="navigate('configuracion');closeDrawer()"><div class="drawer-item-icon">⚙️</div><span>Configuración</span></button>
   </div>
   <!-- Footer -->
   <div class="drawer-footer">
@@ -973,6 +958,64 @@ function initExchangeWidget(){
 }
 function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('overlay').classList.add('active');}
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('overlay').classList.remove('active');}
+// ── Drawer Group Portal ─────────────────────────────────────
+var DRAWER_GROUPS={
+  midinero:{
+    label:'Mi Dinero',icon:'💰',
+    items:[
+      {icon:'💳',label:'Cuentas',page:'cuentas'},
+      {icon:'📋',label:'Movimientos',page:'movimientos'},
+      {icon:'💸',label:'Deudas',page:'deudas'},
+    ]
+  },
+  planificacion:{
+    label:'Planificación',icon:'📅',
+    items:[
+      {icon:'📊',label:'Presupuestos',page:'presupuestos'},
+      {icon:'🎯',label:'Metas de ahorro',page:'metas'},
+      {icon:'🔔',label:'Pagos programados',page:'pagos'},
+    ]
+  },
+  herramientas:{
+    label:'Herramientas',icon:'🔧',
+    items:[
+      {icon:'🤖',label:'Emiliano — Asistente IA',page:'herramientas'},
+      {icon:'📐',label:'Calculadora préstamo',page:'calculadora'},
+      {icon:'💹',label:'Simulador de ahorro',page:'simulador'},
+      {icon:'❄️',label:'Estrategia de deudas',page:'estrategia'},
+      {icon:'💱',label:'Tipo de cambio',page:'cambio'},
+      {icon:'🛒',label:'Listas de compra',page:'listas'},
+    ]
+  }
+};
+function openDrawerGroup(groupKey){
+  var g=DRAWER_GROUPS[groupKey];
+  if(!g)return;
+  var existing=document.getElementById('drawer-group-panel');
+  if(existing)existing.remove();
+  var panel=document.createElement('div');
+  panel.id='drawer-group-panel';
+  panel.style.cssText='position:fixed;top:0;left:0;width:290px;height:100%;background:var(--surface);z-index:201;display:flex;flex-direction:column;overflow:hidden;animation:slideInLeft .22s ease';
+  var itemsHtml='';
+  g.items.forEach(function(item){
+    itemsHtml+='<button class="drawer-item" onclick="navigate(\''+item.page+'\');closeDrawerGroup();closeDrawer()" style="font-size:15px;padding:15px 20px">'+
+      '<div class="drawer-item-icon" style="font-size:16px">'+item.icon+'</div>'+
+      '<span>'+item.label+'</span>'+
+    '</button>';
+  });
+  panel.innerHTML=
+    '<div style="padding:52px 16px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">'+
+      '<button onclick="closeDrawerGroup()" style="background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;padding:2px 6px;line-height:1">←</button>'+
+      '<span style="font-size:18px">'+g.icon+'</span>'+
+      '<span style="font-size:17px;font-weight:800;color:var(--text)">'+g.label+'</span>'+
+    '</div>'+
+    '<div style="flex:1;overflow-y:auto;padding-top:8px">'+itemsHtml+'</div>';
+  document.getElementById('drawer').appendChild(panel);
+}
+function closeDrawerGroup(){
+  var p=document.getElementById('drawer-group-panel');
+  if(p)p.remove();
+}
 
 // ════════════════════════════════════════════════════════════
 // TOAST & CONFIRM
