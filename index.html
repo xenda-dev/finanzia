@@ -1919,20 +1919,22 @@ function renderAnalisis(){
 // ════════════════════════════════════════════════════════════
 function closeCatPanel(){var el=document.getElementById('cat-panel-overlay');if(el)el.remove();if(S.currentPage==='configuracion')renderPage('configuracion');}
 function openCatPanel(){
-  const overlay=document.createElement('div');
+  var overlay=document.createElement('div');
   overlay.id='cat-panel-overlay';
   overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
-  const tab=S._catTab||'gasto';
+  var tab=S._catTab||'gasto';
+  var btnStyle=function(active){return'flex:1;padding:8px 6px;border-radius:50px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);transition:.15s;background:'+(active?'var(--primary)':'transparent')+';color:'+(active?'white':'var(--text2)');};
   overlay.innerHTML=
     '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'+
       '<button onclick="closeCatPanel()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px;line-height:1">←</button>'+
       '<span style="font-size:17px;font-weight:800">Categorías</span>'+
-      '<button class="btn btn-primary btn-sm" onclick="openModal(\'category\',{defaultType:S._catTab||\'gasto\'})">+ Nueva</button>'+
+      '<button class="btn btn-primary btn-sm" onclick="openModal(\'category\',{defaultType:S._catTab||\'gasto\',lockedType:true})">+ Nueva</button>'+
     '</div>'+
     '<div style="padding:12px 16px 8px;flex-shrink:0">'+
       '<div style="background:var(--surface2);border-radius:50px;padding:3px;display:flex;gap:2px">'+
-        '<button id="catpnl-gasto" onclick="setCatTab(&apos;gasto&apos;)" style="flex:1;padding:9px 16px;border-radius:50px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);background:'+(tab==='gasto'?'var(--primary)':'transparent')+';color:'+(tab==='gasto'?'white':'var(--text2)')+';transition:.15s">GASTOS</button>'+
-        '<button id="catpnl-ingreso" onclick="setCatTab(&apos;ingreso&apos;)" style="flex:1;padding:9px 16px;border-radius:50px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);background:'+(tab!=='gasto'?'var(--primary)':'transparent')+';color:'+(tab!=='gasto'?'white':'var(--text2)')+';transition:.15s">INGRESOS</button>'+
+        '<button id="catpnl-gasto" onclick="setCatTab(\'gasto\')" style="'+btnStyle(tab==='gasto')+'">GASTOS</button>'+
+        '<button id="catpnl-ingreso" onclick="setCatTab(\'ingreso\')" style="'+btnStyle(tab==='ingreso')+'">INGRESOS</button>'+
+        '<button id="catpnl-transferencia" onclick="setCatTab(\'transferencia\')" style="'+btnStyle(tab==='transferencia')+'">TRANSF.</button>'+
       '</div>'+
     '</div>'+
     '<div id="cat-panel-list" style="flex:1;overflow-y:auto;padding:0 16px 16px">'+renderCatList(tab)+'</div>';
@@ -1940,65 +1942,81 @@ function openCatPanel(){
 }
 function setCatTab(tab){
   S._catTab=tab;
-  // Update panel tab buttons
-  const g=document.getElementById('catpnl-gasto');
-  const i=document.getElementById('catpnl-ingreso');
-  if(g){g.style.background=tab==='gasto'?'var(--primary)':'transparent';g.style.color=tab==='gasto'?'white':'var(--text2)';g.style.borderRadius='50px';}
-  if(i){i.style.background=tab!=='gasto'?'var(--primary)':'transparent';i.style.color=tab!=='gasto'?'white':'var(--text2)';i.style.borderRadius='50px';}
-  // Update list in panel
-  const list=document.getElementById('cat-panel-list');
+  var tabs=['gasto','ingreso','transferencia'];
+  var ids=['catpnl-gasto','catpnl-ingreso','catpnl-transferencia'];
+  ids.forEach(function(id,idx){
+    var btn=document.getElementById(id);
+    if(!btn)return;
+    var active=tabs[idx]===tab;
+    btn.style.background=active?'var(--primary)':'transparent';
+    btn.style.color=active?'white':'var(--text2)';
+  });
+  var list=document.getElementById('cat-panel-list');
   if(list)list.innerHTML=renderCatList(tab);
 }
 function renderCatList(tab){
-  const allCats=S.categories.filter(cat=>cat.type===tab||cat.type==='transferencia');
-  if(!allCats.length)return'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
-  // For gastos tab: group by nature
-  let html='';
   if(tab==='gasto'){
-    const groups=[
-      {key:'necesidades',label:'🏠 Necesidades',color:'#EF4444'},
-      {key:'deseos',label:'🎯 Deseos',color:'#F59E0B'},
-      {key:'ahorros',label:'💰 Ahorros',color:'#00D4AA'},
-      {key:'transferencia',label:'↔️ Transferencias',color:'#6366F1'},
+    var groups=[
+      {key:'necesidades',label:'\u{1F3E0} Necesidades',color:'#EF4444'},
+      {key:'deseos',label:'\u{1F3AF} Deseos',color:'#F59E0B'},
+      {key:'ahorros',label:'\u{1F4B0} Ahorros',color:'#00D4AA'},
     ];
-    groups.forEach(g=>{
-      let cats;
-      if(g.key==='transferencia') cats=S.categories.filter(c=>c.type==='transferencia');
-      else cats=S.categories.filter(c=>c.type==='gasto'&&c.nature===g.key);
+    var html='';
+    groups.forEach(function(g){
+      var cats=S.categories.filter(function(c){return c.type==='gasto'&&c.nature===g.key;});
       if(!cats.length)return;
-      const secId='cat-sec-'+g.key;
-      html+=`<div style="margin-bottom:4px">`;
-      html+=`<div onclick="toggleCatSection('${secId}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:var(--radius-sm);background:${g.color}18;cursor:pointer;user-select:none">`;
-      html+=`<span style="font-size:12px;font-weight:700;color:${g.color};text-transform:uppercase;letter-spacing:.6px">${g.label}</span>`;
-      html+=`<span id="${secId}-arrow" style="color:${g.color};font-size:11px;transition:.2s">▶</span>`;
-      html+=`</div>`;
-      html+=`<div id="${secId}" style="display:none;padding:4px 0 6px">${cats.map(cat=>renderCatItem(cat)).join('')}</div>`;
-      html+=`</div>`;
+      var count=cats.length;
+      var emoji=g.label.split(' ')[0];
+      var name=g.label.split(' ').slice(1).join(' ');
+      html+='<div onclick="openNatureSheet(\''+g.key+'\',\''+g.label+'\',\''+g.color+'\')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface2);border-radius:var(--radius);margin-bottom:10px;cursor:pointer;border:1px solid var(--border);border-left:4px solid '+g.color+'">';
+      html+='<div style="display:flex;align-items:center;gap:12px">';
+      html+='<div style="width:44px;height:44px;border-radius:12px;background:'+g.color+'22;display:flex;align-items:center;justify-content:center;font-size:22px">'+emoji+'</div>';
+      html+='<div>';
+      html+='<div style="font-size:14px;font-weight:700;color:var(--text)">'+name+'</div>';
+      html+='<div style="font-size:12px;color:var(--text3);margin-top:2px">'+count+' categor'+(count===1?'ía':'ías')+'</div>';
+      html+='</div></div>';
+      html+='<span style="color:'+g.color+';font-size:24px;font-weight:300;line-height:1">\u203A</span>';
+      html+='</div>';
     });
-    return html||'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
+    return html||'<div class="empty-state"><div class="empty-icon">\u{1F3F7}\uFE0F</div><div class="empty-title">Sin categorías de gasto</div></div>';
   }
-  // For ingresos: group by incomeType
   if(tab==='ingreso'){
     var grpInc=[
-      {key:'principal',label:'⭐ Principal',color:'#00D4AA'},
-      {key:'secundario',label:'➕ Secundario',color:'#8B5CF6'},
+      {key:'principal',label:'\u2B50 Principal',color:'#00D4AA'},
+      {key:'secundario',label:'\u2795 Secundario',color:'#8B5CF6'},
     ];
     var grouped='';
     grpInc.forEach(function(g){
-      var cats=allCats.filter(function(cat){return cat.type==='ingreso'&&(g.key==='principal'?(!cat.incomeType||cat.incomeType==='principal'):cat.incomeType===g.key);});
+      var cats=S.categories.filter(function(cat){return cat.type==='ingreso'&&(g.key==='principal'?(!cat.incomeType||cat.incomeType==='principal'):cat.incomeType===g.key);});
       if(!cats.length)return;
-      var secId='cat-sec-inc-'+g.key;
-      grouped+='<div style="margin-bottom:4px">';
-      grouped+='<div onclick="toggleCatSection(\''+secId+'\')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:var(--radius-sm);background:'+g.color+'18;cursor:pointer;user-select:none">';
-      grouped+='<span style="font-size:12px;font-weight:700;color:'+g.color+';text-transform:uppercase;letter-spacing:.6px">'+g.label+'</span>';
-      grouped+='<span id="'+secId+'-arrow" style="color:'+g.color+';font-size:11px;transition:.2s">▶</span>';
-      grouped+='</div>';
-      grouped+='<div id="'+secId+'" style="display:none;padding:4px 0 6px">'+cats.map(function(cat){return renderCatItem(cat);}).join('')+'</div>';
+      var count=cats.length;
+      var emoji=g.label.split(' ')[0];
+      var name=g.label.split(' ').slice(1).join(' ');
+      grouped+='<div onclick="openNatureSheet(\''+g.key+'\',\''+g.label+'\',\''+g.color+'\')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface2);border-radius:var(--radius);margin-bottom:10px;cursor:pointer;border:1px solid var(--border);border-left:4px solid '+g.color+'">';
+      grouped+='<div style="display:flex;align-items:center;gap:12px">';
+      grouped+='<div style="width:44px;height:44px;border-radius:12px;background:'+g.color+'22;display:flex;align-items:center;justify-content:center;font-size:22px">'+emoji+'</div>';
+      grouped+='<div>';
+      grouped+='<div style="font-size:14px;font-weight:700;color:var(--text)">'+name+'</div>';
+      grouped+='<div style="font-size:12px;color:var(--text3);margin-top:2px">'+count+' categor'+(count===1?'ía':'ías')+'</div>';
+      grouped+='</div></div>';
+      grouped+='<span style="color:'+g.color+';font-size:24px;font-weight:300;line-height:1">\u203A</span>';
       grouped+='</div>';
     });
-    return grouped||'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
+    return grouped||'<div class="empty-state"><div class="empty-icon">\u{1F3F7}\uFE0F</div><div class="empty-title">Sin categorías de ingreso</div></div>';
   }
-  return allCats.map(cat=>renderCatItem(cat)).join('');
+  if(tab==='transferencia'){
+    var transCats=S.categories.filter(function(c){return c.type==='transferencia';});
+    if(!transCats.length)return'<div class="empty-state"><div class="empty-icon">\u21D4</div><div class="empty-title">Sin categorías de transferencia</div></div>';
+    var tcolor='#6366F1';var tcount=transCats.length;
+    var th='<div onclick="openNatureSheet(\'transferencia\',\'\u21D4\uFE0F Transferencias\',\'#6366F1\')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface2);border-radius:var(--radius);margin-bottom:10px;cursor:pointer;border:1px solid var(--border);border-left:4px solid '+tcolor+'">';
+    th+='<div style="display:flex;align-items:center;gap:12px">';
+    th+='<div style="width:44px;height:44px;border-radius:12px;background:'+tcolor+'22;display:flex;align-items:center;justify-content:center;font-size:22px">\u21D4\uFE0F</div>';
+    th+='<div><div style="font-size:14px;font-weight:700;color:var(--text)">Transferencias</div>';
+    th+='<div style="font-size:12px;color:var(--text3);margin-top:2px">'+tcount+' categor'+(tcount===1?'ía':'ías')+'</div></div></div>';
+    th+='<span style="color:'+tcolor+';font-size:24px;font-weight:300;line-height:1">\u203A</span></div>';
+    return th;
+  }
+  return'<div class="empty-state"><div class="empty-icon">\u{1F3F7}\uFE0F</div><div class="empty-title">Sin categorías</div></div>';
 }
 function renderCatItem(cat){
     const subs=S.subcategories.filter(s=>s.categoryId===cat.id);
@@ -2073,8 +2091,110 @@ function toggleCatGroup(id,header){
   const arrow=header.querySelector('.cat-arrow');
   if(arrow)arrow.textContent=el.classList.contains('hidden')?'▶':'▼';
 }
-function deleteCat(id){confirmDialog('🗑️','¿Eliminar categoría?','Se eliminarán sus subcategorías y los movimientos perderán la categoría.',()=>{S.categories=S.categories.filter(c=>c.id!==id);S.subcategories=S.subcategories.filter(s=>s.categoryId!==id);saveState();const cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Eliminada');});}
-function deleteSub(id){confirmDialog('🗑️','¿Eliminar subcategoría?','',()=>{S.subcategories=S.subcategories.filter(s=>s.id!==id);saveState();const cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Eliminada');});}
+// ── Nature Bottom Sheet ─────────────────────────────────────
+function openNatureSheet(groupKey,label,color){
+  closeNatureSheet();
+  window._nsKey=groupKey;
+  window._nsLabel=label;
+  window._nsColor=color;
+  var cats=_getNsCats(groupKey);
+  var catType=groupKey==='transferencia'?'transferencia':(groupKey==='principal'||groupKey==='secundario')?'ingreso':'gasto';
+  var emoji=label.split(' ')[0];
+  var name=label.split(' ').slice(1).join(' ');
+  var overlay=document.createElement('div');
+  overlay.id='ns-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:250;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
+  overlay.onclick=function(e){if(e.target===overlay)closeNatureSheet();};
+  var sheet=document.createElement('div');
+  sheet.id='ns-sheet';
+  sheet.style.cssText='width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:82vh;display:flex;flex-direction:column;animation:bsSlideUp .22s ease';
+  sheet.innerHTML=
+    '<div style="display:flex;justify-content:center;padding:10px 0 2px"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px 12px;border-bottom:1px solid var(--border)">'+
+      '<div style="display:flex;align-items:center;gap:10px">'+
+        '<div style="width:34px;height:34px;border-radius:10px;background:'+color+'22;display:flex;align-items:center;justify-content:center;font-size:18px">'+emoji+'</div>'+
+        '<div>'+
+          '<div style="font-size:15px;font-weight:800;color:var(--text)">'+name+'</div>'+
+          '<div id="ns-count-lbl" style="font-size:11px;color:var(--text3)">'+cats.length+' categor'+(cats.length===1?'ía':'ías')+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<button onclick="closeNatureSheet()" style="width:28px;height:28px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:13px;line-height:1">✕</button>'+
+    '</div>'+
+    '<div id="ns-cat-list" style="overflow-y:auto;flex:1;padding:10px 12px 8px">'+renderNsItems(cats)+'</div>'+
+    '<div style="padding:12px 16px 20px;border-top:1px solid var(--border)">'+
+      '<button class="btn btn-primary" style="width:100%;padding:13px" onclick="closeNatureSheet();setTimeout(function(){openModal(\'category\',{defaultType:\''+catType+'\',lockedType:true,lockedNature:\''+groupKey+'\'})},100)">+ Nueva categoría en este grupo</button>'+
+    '</div>';
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+}
+function _getNsCats(groupKey){
+  if(groupKey==='transferencia')return S.categories.filter(function(c){return c.type==='transferencia';});
+  if(groupKey==='principal')return S.categories.filter(function(c){return c.type==='ingreso'&&(!c.incomeType||c.incomeType==='principal');});
+  if(groupKey==='secundario')return S.categories.filter(function(c){return c.type==='ingreso'&&c.incomeType==='secundario';});
+  return S.categories.filter(function(c){return c.type==='gasto'&&c.nature===groupKey;});
+}
+function closeNatureSheet(){
+  var o=document.getElementById('ns-overlay');
+  if(o)o.remove();
+  window._nsKey=null;
+}
+function refreshNatureSheet(){
+  if(!window._nsKey)return;
+  var list=document.getElementById('ns-cat-list');
+  if(list){
+    var cats=_getNsCats(window._nsKey);
+    list.innerHTML=renderNsItems(cats);
+    var lbl=document.getElementById('ns-count-lbl');
+    if(lbl)lbl.textContent=cats.length+' categor'+(cats.length===1?'ía':'ías');
+  }
+  var cpnl=document.getElementById('cat-panel-list');
+  if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');
+}
+function renderNsItems(cats){
+  if(!cats.length)return'<div style="text-align:center;padding:36px 0;color:var(--text3)"><div style="font-size:36px;margin-bottom:10px">🏷️</div><div style="font-size:14px;font-weight:600;color:var(--text2)">Sin categorías</div><div style="font-size:12px;margin-top:4px">Toca el botón de abajo para crear una</div></div>';
+  return cats.map(function(cat){return renderCatItemInSheet(cat);}).join('');
+}
+function renderCatItemInSheet(cat){
+  var subs=S.subcategories.filter(function(s){return s.categoryId===cat.id;});
+  var domId='ns-catg-'+cat.id;
+  var q="'";
+  var h='';
+  h+='<div class="cat-group" style="border-left:4px solid '+(cat.color||'var(--border)')+';">';
+  h+='<div class="cat-group-header" onclick="toggleNsGroup('+q+domId+q+',this)" style="cursor:pointer">';
+  h+='<div class="cat-group-left">';
+  h+='<div style="width:38px;height:38px;border-radius:10px;background:'+(cat.color||'#64748B')+'22;display:flex;align-items:center;justify-content:center;font-size:18px">'+cat.icon+'</div>';
+  h+='<div><div style="font-size:13px;font-weight:700">'+cat.name+'</div>';
+  if(subs.length)h+='<span style="font-size:10px;color:var(--text3)">'+subs.length+' subcat'+(subs.length===1?'':'s')+'</span>';
+  h+='</div></div>';
+  h+='<div style="display:flex;gap:6px;align-items:center">';
+  h+='<button class="btn-text" style="font-size:12px" onclick="event.stopPropagation();openModal('+q+'subcategory'+q+',{categoryId:'+q+cat.id+q+'})">+ Sub</button>';
+  h+='<button class="btn-del" onclick="event.stopPropagation();deleteCat('+q+cat.id+q+')">🗑</button>';
+  if(subs.length)h+='<span class="cat-arrow" style="color:var(--text3);font-size:12px">▶</span>';
+  h+='</div></div>';
+  h+='<div id="'+domId+'" class="hidden">';
+  if(subs.length){
+    h+='<div class="subcat-list">';
+    subs.forEach(function(s){
+      h+='<div class="subcat-item"><span>'+s.icon+' '+s.name+'</span>';
+      h+='<div style="display:flex;gap:4px">';
+      h+='<button class="btn-text" style="font-size:11px" onclick="openModal('+q+'editSubcategory'+q+',{id:'+q+s.id+q+'})">✏️</button>';
+      h+='<button class="btn-del" onclick="deleteSub('+q+s.id+q+')">✕</button>';
+      h+='</div></div>';
+    });
+    h+='</div>';
+  }
+  h+='</div></div>';
+  return h;
+}
+function toggleNsGroup(id,header){
+  var el=document.getElementById(id);
+  if(!el)return;
+  el.classList.toggle('hidden');
+  var arrow=header.querySelector('.cat-arrow');
+  if(arrow)arrow.textContent=el.classList.contains('hidden')?'▶':'▼';
+}
+function deleteCat(id){confirmDialog('🗑️','¿Eliminar categoría?','Se eliminarán sus subcategorías y los movimientos perderán la categoría.',function(){S.categories=S.categories.filter(function(c){return c.id!==id;});S.subcategories=S.subcategories.filter(function(s){return s.categoryId!==id;});saveState();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Eliminada');});}
+function deleteSub(id){confirmDialog('🗑️','¿Eliminar subcategoría?','',function(){S.subcategories=S.subcategories.filter(function(s){return s.id!==id;});saveState();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Eliminada');});}
 
 // ════════════════════════════════════════════════════════════
 // I18N — Translations
@@ -5302,44 +5422,95 @@ function deletePayment(id){confirmDialog('🗑️','¿Eliminar pago?','',()=>{S.
 function buildCategoryModal(data){
   const defType=data.defaultType||S._catTab||'gasto';
   const isIngreso=defType==='ingreso';
-  const isGasto=defType==='gasto';
+  const isTransf=defType==='transferencia';
+  const locked=!!data.lockedType;
+  const lockedNature=data.lockedNature||'';
+  const lockedGroup=!!lockedNature; // full lock: type + nature from sheet
+  // Nature/income defaults
+  const natureMap={necesidades:'\uD83C\uDFE0 Necesidades',deseos:'\uD83C\uDFAF Deseos',ahorros:'\uD83D\uDCB0 Ahorros'};
+  const incomeMap={principal:'\u2B50 Principal',secundario:'\u2795 Secundario'};
+  const isLockedIncome=lockedNature==='principal'||lockedNature==='secundario';
+  const defNature=isLockedIncome?'necesidades':(lockedNature||'necesidades');
+  const defIncome=isLockedIncome?lockedNature:'principal';
+  const natureLbl=natureMap[defNature]||'\uD83C\uDFE0 Necesidades';
+  const incomeLbl=incomeMap[defIncome]||'\u2B50 Principal';
   const typeOpts=[['gasto','Gasto'],['ingreso','Ingreso'],['transferencia','Transferencia']];
-  const natureOpts=[['necesidades','🏠 Necesidades'],['deseos','🎯 Deseos'],['ahorros','💰 Ahorros']];
-  const incomeOpts=[['principal','⭐ Principal'],['secundario','➕ Secundario']];
-  const defNature='necesidades';
-  const defIncome='principal';
   const typeLabel=typeOpts.find(o=>o[0]===defType)?.[1]||'Seleccionar';
-  return`<div class="modal-header"><div class="modal-title">Nueva categoría</div><button class="modal-close" onclick="closeModal()">×</button></div>
-  <div class="modal-body">
-    <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" id="cat-name" placeholder="Ej: Mascotas"></div>
-    <div class="form-group"><label class="form-label">Tipo</label>
-      <div class="bs-trigger" onclick="showBS_catType()">
-        <span style="font-size:14px;color:var(--text)" id="cat-type-lbl">${typeLabel}</span>
-        <span style="color:var(--text3);font-size:18px">›</span>
-      </div>
-      <input type="hidden" id="cat-type" value="${defType}">
-    </div>
-    <div id="cat-nature-group" class="form-group" style="display:${isIngreso?'none':'block'}">
-      <label class="form-label">Naturaleza</label>
-      <div class="bs-trigger" onclick="showBS_catNature()">
-        <span style="font-size:14px;color:var(--text)" id="cat-nature-lbl">🏠 Necesidades</span>
-        <span style="color:var(--text3);font-size:18px">›</span>
-      </div>
-      <input type="hidden" id="cat-nature" value="${defNature}">
-    </div>
-    <div id="cat-income-type-group" class="form-group" style="display:${isIngreso?'block':'none'}">
-      <label class="form-label">Tipo de ingreso</label>
-      <div class="bs-trigger" onclick="showBS_catIncome()">
-        <span style="font-size:14px;color:var(--text)" id="cat-income-lbl">⭐ Principal</span>
-        <span style="color:var(--text3);font-size:18px">›</span>
-      </div>
-      <input type="hidden" id="cat-income-type" value="${defIncome}">
-      <div style="font-size:11px;color:var(--text2);margin-top:4px">Principal: salario, trabajo activo · Secundario: rentas, apoyos, extras</div>
-    </div>
-    <div class="form-group"><label class="form-label">Ícono</label>${iconPickerHtml(ICONS[0],'cat-icon-val')}</div>
-    <div class="form-group"><label class="form-label">Color</label>${colorPickerHtml(COLORS_PALETTE[0],'cat-color-val')}</div>
-    <button class="btn btn-primary" onclick="saveCategory()">Crear categoría</button>
-  </div>`;
+  const typeEmoji=isTransf?'\u21D4\uFE0F':isIngreso?'\uD83D\uDCCA':'\uD83D\uDCB8';
+  // Banner label for locked group (from sheet)
+  var groupLabel='';
+  if(lockedGroup){
+    if(isTransf)groupLabel='\u21D4\uFE0F Transferencia';
+    else if(isLockedIncome)groupLabel=incomeLbl;
+    else groupLabel=natureLbl;
+  }
+  // Type-locked banner (from header Nueva button — locked type, free nature)
+  var typeBannerHtml='';
+  if(locked&&!lockedGroup){
+    typeBannerHtml=
+      '<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.25);border-radius:var(--radius-sm);margin-bottom:14px">'+
+      '<span style="font-size:16px">📌</span>'+
+      '<div style="font-size:13px;color:var(--primary);font-weight:600">Tipo: '+typeEmoji+' '+typeLabel+'</div>'+
+      '<input type="hidden" id="cat-type" value="'+defType+'">'+
+      '</div>';
+  }
+  // Full group-locked section (type + nature hidden)
+  var fullLockHtml='';
+  if(lockedGroup){
+    fullLockHtml=
+      '<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.25);border-radius:var(--radius-sm);margin-bottom:14px">'+
+      '<span style="font-size:16px">📌</span>'+
+      '<div style="font-size:13px;color:var(--primary);font-weight:600">Grupo: '+groupLabel+'</div>'+
+      '<input type="hidden" id="cat-type" value="'+defType+'">'+
+      '<input type="hidden" id="cat-nature" value="'+defNature+'">'+
+      '<input type="hidden" id="cat-income-type" value="'+defIncome+'">'+
+      '</div>';
+  }
+  // Free type selector (no lock)
+  var typeSelectorHtml='';
+  if(!locked){
+    typeSelectorHtml=
+      '<div class="form-group"><label class="form-label">Tipo</label>'+
+      '<div class="bs-trigger" onclick="showBS_catType()">'+
+      '<span style="font-size:14px;color:var(--text)" id="cat-type-lbl">'+typeLabel+'</span>'+
+      '<span style="color:var(--text3);font-size:18px">›</span>'+
+      '</div>'+
+      '<input type="hidden" id="cat-type" value="'+defType+'">'+
+      '</div>';
+  }
+  // Nature/incomeType selectors (shown when type is not fully locked)
+  var natureSelectorHtml='';
+  if(!lockedGroup){
+    natureSelectorHtml=
+      '<div id="cat-nature-group" class="form-group" style="display:'+(isIngreso||isTransf?'none':'block')+'">'+
+      '<label class="form-label">Naturaleza</label>'+
+      '<div class="bs-trigger" onclick="showBS_catNature()">'+
+      '<span style="font-size:14px;color:var(--text)" id="cat-nature-lbl">'+natureLbl+'</span>'+
+      '<span style="color:var(--text3);font-size:18px">›</span>'+
+      '</div>'+
+      '<input type="hidden" id="cat-nature" value="'+defNature+'">'+
+      '</div>'+
+      '<div id="cat-income-type-group" class="form-group" style="display:'+(isIngreso?'block':'none')+'">'+
+      '<label class="form-label">Tipo de ingreso</label>'+
+      '<div class="bs-trigger" onclick="showBS_catIncome()">'+
+      '<span style="font-size:14px;color:var(--text)" id="cat-income-lbl">'+incomeLbl+'</span>'+
+      '<span style="color:var(--text3);font-size:18px">›</span>'+
+      '</div>'+
+      '<input type="hidden" id="cat-income-type" value="'+defIncome+'">'+
+      '<div style="font-size:11px;color:var(--text2);margin-top:4px">Principal: salario, trabajo activo · Secundario: rentas, apoyos, extras</div>'+
+      '</div>';
+  }
+  return'<div class="modal-header"><div class="modal-title">Nueva categoría</div><button class="modal-close" onclick="closeModal()">×</button></div>'+
+  '<div class="modal-body">'+
+  fullLockHtml+
+  typeBannerHtml+
+  typeSelectorHtml+
+  natureSelectorHtml+
+  '<div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" id="cat-name" placeholder="Ej: Mascotas"></div>'+
+  '<div class="form-group"><label class="form-label">Ícono</label>'+iconPickerHtml(ICONS[0],'cat-icon-val')+'</div>'+
+  '<div class="form-group"><label class="form-label">Color</label>'+colorPickerHtml(COLORS_PALETTE[0],'cat-color-val')+'</div>'+
+  '<button class="btn btn-primary" onclick="saveCategory()">Crear categoría</button>'+
+  '</div>';
 }
 function selectCatPick(inputId,pickId,val,label,callback){
   var inp=document.getElementById(inputId);
@@ -5368,7 +5539,7 @@ function saveCategory(){
   const name=document.getElementById('cat-name')?.value?.trim();if(!name){toast('Ingresa un nombre');return;}
   const catType=document.getElementById('cat-type')?.value||'gasto';
   const cat={id:uid(),name,type:catType,nature:catType==='ingreso'?'ahorros':(document.getElementById('cat-nature')?.value||'necesidades'),incomeType:catType==='ingreso'?(document.getElementById('cat-income-type')?.value||'principal'):undefined,color:document.getElementById('cat-color-val')?.value||COLORS_PALETTE[0],icon:document.getElementById('cat-icon-val')?.value||ICONS[0]};
-  S.categories.push(cat);saveState();closeModal();if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Categoría creada ✓');
+  S.categories.push(cat);saveState();closeModal();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Categoría creada ✓');
   setTimeout(()=>{if(window.confirm('¿Agregar subcategoría a "'+cat.name+'" ahora?'))openModal('subcategory',{categoryId:cat.id});},300);
 }
 
@@ -5390,7 +5561,7 @@ function saveSubcategory(){
   const name=document.getElementById('sub-name')?.value?.trim();
   if(!catId){toast('Selecciona una categoría');return;}if(!name){toast('Ingresa un nombre');return;}
   S.subcategories.push({id:uid(),categoryId:catId,name,icon:document.getElementById('sub-icon-val')?.value||ICONS[1]});
-  saveState();closeModal();if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Subcategoría creada ✓');
+  saveState();closeModal();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Subcategoría creada ✓');
 }
 
 // ─── EDIT SUBCATEGORY MODAL ───
@@ -5416,6 +5587,7 @@ function saveEditSubcategory(){
   sub.name=name;
   sub.icon=document.getElementById('esub-icon-val')?.value||sub.icon;
   saveState();closeModal();
+  refreshNatureSheet();
   const cpnl=document.getElementById('cat-panel-list');
   if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');
   toast('Subcategoría actualizada ✓');
