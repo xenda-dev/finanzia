@@ -998,17 +998,17 @@ function openDrawerGroup(groupKey){
   var screen=document.createElement('div');
   screen.id='grp-screen';
   screen.style.cssText='position:fixed;inset:0;z-index:210;background:var(--surface);display:flex;flex-direction:column;animation:fadeInPage .2s ease';
-  var cardsHtml='<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:20px 16px 32px">';
+  var cardsHtml='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:20px 16px 32px">';
   g.items.forEach(function(item){
     cardsHtml+=
       '<button onclick="navigate(\''+item.page+'\');closeDrawerGroup()" style="'+
         'display:flex;flex-direction:column;align-items:center;justify-content:center;'+
-        'padding:24px 12px 20px;background:var(--surface2);border:1px solid var(--border);'+
-        'border-radius:18px;cursor:pointer;transition:.15s;gap:12px;font-family:var(--font);'+
-        'min-height:120px;active-opacity:.7'+
+        'padding:20px 8px 16px;background:var(--surface2);border:1px solid var(--border);'+
+        'border-radius:18px;cursor:pointer;transition:.15s;gap:8px;font-family:var(--font);'+
+        'min-height:100px'+
       '">'+
-        '<span style="font-size:38px;line-height:1">'+item.icon+'</span>'+
-        '<span style="font-size:13px;font-weight:700;color:var(--text);text-align:center;line-height:1.3">'+item.label+'</span>'+
+        '<span style="font-size:30px;line-height:1">'+item.icon+'</span>'+
+        '<span style="font-size:11px;font-weight:700;color:var(--text);text-align:center;line-height:1.3">'+item.label+'</span>'+
       '</button>';
   });
   cardsHtml+='</div>';
@@ -2583,16 +2583,10 @@ function renderSimulador(){
         <label class="form-label">📅 Aporte mensual</label>
         <input class="form-input" type="number" id="sim-monthly" placeholder="Ej: 500.000" oninput="calcSim()">
       </div>
-      <!-- Rentabilidad + Retención -->
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">📊 Rentabilidad anual (%)</label>
-          <input class="form-input" type="number" id="sim-rate" placeholder="Ej: 10" step="0.01" oninput="calcSim()">
-        </div>
-        <div class="form-group">
-          <label class="form-label">🧾 Retención (%)</label>
-          <input class="form-input" type="number" id="sim-tax" placeholder="Ej: 7" step="0.01" oninput="calcSim()" value="">
-        </div>
+      <!-- TAE -->
+      <div class="form-group">
+        <label class="form-label">📊 TAE (%)</label>
+        <input class="form-input" type="number" id="sim-rate" placeholder="Ej: 10" step="0.01" oninput="calcSim()">
       </div>
       <!-- Fechas -->
       <div class="form-row">
@@ -2649,20 +2643,19 @@ function renderSimulador(){
     </div>
 
     <!-- Tabla mensual -->
-    <div id="sim-table-wrap" style="display:none" class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-size:12px;font-weight:700;color:var(--text2)">📋 Detalle mensual</div>
-        <button onclick="simDownloadCSV()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:11px;color:var(--text);cursor:pointer;font-family:var(--font)">⬇ CSV</button>
+    <div id="sim-table-wrap" style="display:none;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">📋 Detalle mensual</div>
+        <button onclick="simDownloadCSV()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;color:var(--text);cursor:pointer;font-family:var(--font)">⬇ CSV</button>
       </div>
-      <!-- Header fijo -->
-      <div style="display:grid;grid-template-columns:56px 1fr 1fr 1fr 1fr;gap:4px;padding:6px 4px;background:var(--surface2);border-radius:6px;margin-bottom:4px">
+      <div style="display:grid;grid-template-columns:48px 1fr 1fr 1fr 1fr;gap:2px;padding:8px 6px;background:var(--surface2);border-radius:10px 10px 0 0;border:1px solid var(--border);border-bottom:2px solid var(--border)">
         <div style="font-size:9px;font-weight:700;color:var(--text3);text-align:center">MES</div>
-        <div style="font-size:9px;font-weight:700;color:var(--text3);text-align:right">SALDO INI.</div>
+        <div style="font-size:9px;font-weight:700;color:var(--text3);text-align:right">INI.</div>
         <div style="font-size:9px;font-weight:700;color:var(--primary);text-align:right">ABONO</div>
-        <div style="font-size:9px;font-weight:700;color:var(--success);text-align:right">RENDIM.</div>
-        <div style="font-size:9px;font-weight:700;color:var(--text2);text-align:right">SALDO FINAL</div>
+        <div style="font-size:9px;font-weight:700;color:var(--success);text-align:right">REND.</div>
+        <div style="font-size:9px;font-weight:700;color:var(--text2);text-align:right">FINAL</div>
       </div>
-      <div id="sim-table-body" style="max-height:320px;overflow-y:auto"></div>
+      <div id="sim-table-body" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px"></div>
     </div>
   `;
 }
@@ -2694,7 +2687,6 @@ function calcSim(){
   const mode=window._simMode||'proyectar';
   const initial=parseFloat(document.getElementById('sim-initial')?.value)||0;
   const annualRate=parseFloat(document.getElementById('sim-rate')?.value)||0;
-  const taxRate=parseFloat(document.getElementById('sim-tax')?.value)||0;
   const startVal=document.getElementById('sim-start')?.value;
   const endVal=document.getElementById('sim-end')?.value;
   if(!startVal||!endVal)return;
@@ -2703,7 +2695,6 @@ function calcSim(){
   const months=(ed.getFullYear()-sd.getFullYear())*12+(ed.getMonth()-sd.getMonth());
   if(months<1)return;
   const rm=annualRate/100/12;
-  const taxM=taxRate/100/12;
   let monthly=0;
   if(mode==='proyectar'){
     monthly=parseFloat(document.getElementById('sim-monthly')?.value)||0;
@@ -2711,11 +2702,9 @@ function calcSim(){
   } else {
     const goal=parseFloat(document.getElementById('sim-goal')?.value)||0;
     if(!goal)return;
-    // Solve: goal = initial*(1+rm_net)^n + monthly*(((1+rm_net)^n-1)/rm_net)
-    const rm_net=rm-taxM;
-    const factor=Math.pow(1+rm_net,months);
-    if(rm_net===0) monthly=(goal-initial)/months;
-    else monthly=(goal-initial*factor)/((factor-1)/rm_net);
+    const factor=Math.pow(1+rm,months);
+    if(rm===0) monthly=(goal-initial)/months;
+    else monthly=(goal-initial*factor)/((factor-1)/rm);
     if(monthly<0)monthly=0;
     const sugEl=document.getElementById('sim-suggested-amt');
     if(sugEl)sugEl.textContent=fmt(monthly);
@@ -2733,10 +2722,8 @@ function calcSim(){
     const abono=monthly;
     bal+=abono;
     const rend=bal*rm;
-    const ret=bal*taxM;
-    const rendNeto=rend-ret;
-    bal+=rendNeto;
-    rows.push({label,saldoIni,abono,rend,ret,rendNeto,saldoFinal:bal});
+    bal+=rend;
+    rows.push({label,saldoIni,abono,rend,saldoFinal:bal});
   }
   const total=bal;
   const invested=initial+monthly*months;
@@ -2771,16 +2758,13 @@ function calcSim(){
   const tableBody=document.getElementById('sim-table-body');
   if(tableWrap&&tableBody){
     tableWrap.style.display='block';
-    const hasTax=taxRate>0;
-    const cols=hasTax?'56px 1fr 1fr 1fr 1fr 1fr':'56px 1fr 1fr 1fr 1fr';
     tableBody.innerHTML=rows.map((r,i)=>{
       const isYear=(i+1)%12===0;
-      return`<div style="display:grid;grid-template-columns:${cols};gap:4px;padding:6px 4px;border-radius:4px;background:${isYear?'rgba(0,212,170,.07)':'transparent'};border-bottom:1px solid var(--border)22">
+      return`<div style="display:grid;grid-template-columns:48px 1fr 1fr 1fr 1fr;gap:2px;padding:6px 6px;background:${isYear?'rgba(0,212,170,.07)':'transparent'};border-bottom:1px solid ${isYear?'var(--primary)22':'var(--border)22'}">
         <div style="font-size:10px;font-weight:${isYear?'800':'600'};color:${isYear?'var(--primary)':'var(--text3)'};text-align:center">${r.label}</div>
         <div style="font-size:10px;color:var(--text2);text-align:right">${fmtK(r.saldoIni)}</div>
         <div style="font-size:10px;color:var(--primary);text-align:right;font-weight:700">+${fmtK(r.abono)}</div>
-        <div style="font-size:10px;color:var(--success);text-align:right">+${fmtK(r.rendNeto)}</div>
-        ${hasTax?`<div style="font-size:10px;color:var(--danger);text-align:right">-${fmtK(r.ret)}</div>`:''}
+        <div style="font-size:10px;color:var(--success);text-align:right">+${fmtK(r.rend)}</div>
         <div style="font-size:10px;font-weight:${isYear?'800':'600'};color:${isYear?'var(--primary)':'var(--text)'};text-align:right">${fmtK(r.saldoFinal)}</div>
       </div>`;
     }).join('');
@@ -2797,10 +2781,9 @@ function fmtK(v){
 function simDownloadCSV(){
   const rows=window._simRows;
   if(!rows||!rows.length){toast('Primero calcula la proyección');return;}
-  const hasTax=parseFloat(document.getElementById('sim-tax')?.value)||0;
-  let csv='Mes,Saldo inicial,Abono,Rendimiento bruto'+(hasTax?',Retención':'')+',Rendimiento neto,Saldo final\n';
+  let csv='Mes,Saldo inicial,Abono,Rendimiento,Saldo final\n';
   rows.forEach(r=>{
-    csv+=`${r.label},${r.saldoIni.toFixed(2)},${r.abono.toFixed(2)},${r.rend.toFixed(2)}`+(hasTax?`,${r.ret.toFixed(2)}`:'')+`,${r.rendNeto.toFixed(2)},${r.saldoFinal.toFixed(2)}\n`;
+    csv+=`${r.label},${r.saldoIni.toFixed(2)},${r.abono.toFixed(2)},${r.rend.toFixed(2)},${r.saldoFinal.toFixed(2)}\n`;
   });
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
