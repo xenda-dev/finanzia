@@ -2615,23 +2615,23 @@ function renderSimulador(){
     </div>
 
     <!-- Métricas resumen -->
-    <div id="sim-metrics" style="display:none;margin-bottom:12px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div class="card" style="padding:12px;text-align:center">
-          <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Total acumulado</div>
-          <div style="font-size:16px;font-weight:800;color:var(--success)" id="sim-total">—</div>
+    <div id="sim-metrics" style="display:none;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:stretch">
+        <div class="card" style="padding:14px 12px;text-align:center;display:flex;flex-direction:column;justify-content:center;min-height:72px">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Total acumulado</div>
+          <div style="font-size:15px;font-weight:800;color:var(--success);line-height:1.2" id="sim-total">—</div>
         </div>
-        <div class="card" style="padding:12px;text-align:center">
-          <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Total aportado</div>
-          <div style="font-size:16px;font-weight:800" id="sim-invested">—</div>
+        <div class="card" style="padding:14px 12px;text-align:center;display:flex;flex-direction:column;justify-content:center;min-height:72px">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Total aportado</div>
+          <div style="font-size:15px;font-weight:800;line-height:1.2" id="sim-invested">—</div>
         </div>
-        <div class="card" style="padding:12px;text-align:center">
-          <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Rendimientos</div>
-          <div style="font-size:16px;font-weight:800;color:var(--primary)" id="sim-gains">—</div>
+        <div class="card" style="padding:14px 12px;text-align:center;display:flex;flex-direction:column;justify-content:center;min-height:72px">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Rendimientos</div>
+          <div style="font-size:15px;font-weight:800;color:var(--primary);line-height:1.2" id="sim-gains">—</div>
         </div>
-        <div class="card" style="padding:12px;text-align:center">
-          <div style="font-size:10px;color:var(--text2);margin-bottom:4px">Multiplicador</div>
-          <div style="font-size:16px;font-weight:800;color:var(--warning)" id="sim-mult">—</div>
+        <div class="card" style="padding:14px 12px;text-align:center;display:flex;flex-direction:column;justify-content:center;min-height:72px">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Multiplicador</div>
+          <div style="font-size:15px;font-weight:800;color:var(--warning);line-height:1.2" id="sim-mult">—</div>
         </div>
       </div>
     </div>
@@ -2643,19 +2643,21 @@ function renderSimulador(){
     </div>
 
     <!-- Tabla mensual -->
-    <div id="sim-table-wrap" style="display:none;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px;margin-bottom:8px">
+    <div id="sim-table-wrap" style="display:none;margin-bottom:12px;margin-top:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:0 2px">
         <div style="font-size:13px;font-weight:700;color:var(--text)">📋 Detalle mensual</div>
         <button onclick="simDownloadCSV()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;color:var(--text);cursor:pointer;font-family:var(--font)">⬇ CSV</button>
       </div>
-      <div style="display:grid;grid-template-columns:48px 1fr 1fr 1fr 1fr;gap:2px;padding:8px 6px;background:var(--surface2);border-radius:10px 10px 0 0;border:1px solid var(--border);border-bottom:2px solid var(--border)">
-        <div style="font-size:9px;font-weight:700;color:var(--text3);text-align:center">MES</div>
-        <div style="font-size:9px;font-weight:700;color:var(--text3);text-align:right">INI.</div>
-        <div style="font-size:9px;font-weight:700;color:var(--primary);text-align:right">ABONO</div>
-        <div style="font-size:9px;font-weight:700;color:var(--success);text-align:right">REND.</div>
-        <div style="font-size:9px;font-weight:700;color:var(--text2);text-align:right">FINAL</div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="display:grid;grid-template-columns:48px 1fr 1fr 1fr 1fr;gap:2px;padding:9px 10px;background:var(--surface2);border-bottom:1px solid var(--border)">
+          <div style="font-size:9px;font-weight:700;color:var(--text3);text-align:center">MES</div>
+          <div style="font-size:9px;font-weight:700;color:var(--text3);text-align:right">INI.</div>
+          <div style="font-size:9px;font-weight:700;color:var(--primary);text-align:right">ABONO</div>
+          <div style="font-size:9px;font-weight:700;color:var(--success);text-align:right">REND.</div>
+          <div style="font-size:9px;font-weight:700;color:var(--text2);text-align:right">FINAL</div>
+        </div>
+        <div id="sim-table-body" style="max-height:300px;overflow-y:auto"></div>
       </div>
-      <div id="sim-table-body" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px"></div>
     </div>
   `;
 }
@@ -2760,12 +2762,13 @@ function calcSim(){
     tableWrap.style.display='block';
     tableBody.innerHTML=rows.map((r,i)=>{
       const isYear=(i+1)%12===0;
-      return`<div style="display:grid;grid-template-columns:48px 1fr 1fr 1fr 1fr;gap:2px;padding:6px 6px;background:${isYear?'rgba(0,212,170,.07)':'transparent'};border-bottom:1px solid ${isYear?'var(--primary)22':'var(--border)22'}">
-        <div style="font-size:10px;font-weight:${isYear?'800':'600'};color:${isYear?'var(--primary)':'var(--text3)'};text-align:center">${r.label}</div>
-        <div style="font-size:10px;color:var(--text2);text-align:right">${fmtK(r.saldoIni)}</div>
-        <div style="font-size:10px;color:var(--primary);text-align:right;font-weight:700">+${fmtK(r.abono)}</div>
-        <div style="font-size:10px;color:var(--success);text-align:right">+${fmtK(r.rend)}</div>
-        <div style="font-size:10px;font-weight:${isYear?'800':'600'};color:${isYear?'var(--primary)':'var(--text)'};text-align:right">${fmtK(r.saldoFinal)}</div>
+      const bg=isYear?'rgba(0,212,170,.07)':i%2===0?'var(--surface)':'var(--surface2)22';
+      return`<div style="display:grid;grid-template-columns:48px 1fr 1fr 1fr 1fr;gap:2px;padding:8px 10px;background:${bg};border-bottom:1px solid var(--border)${isYear?';border-bottom-color:rgba(0,212,170,.3)':''}">
+        <div style="font-size:10px;font-weight:${isYear?'800':'600'};color:${isYear?'var(--primary)':'var(--text3)'};text-align:center;align-self:center">${r.label}</div>
+        <div style="font-size:10px;color:var(--text2);text-align:right;align-self:center">${fmtSim(r.saldoIni)}</div>
+        <div style="font-size:10px;color:var(--primary);text-align:right;font-weight:700;align-self:center">+${fmtSim(r.abono)}</div>
+        <div style="font-size:10px;color:var(--success);text-align:right;align-self:center">+${fmtSim(r.rend)}</div>
+        <div style="font-size:10px;font-weight:${isYear?'800':'600'};color:${isYear?'var(--primary)':'var(--text)'};text-align:right;align-self:center">${fmtSim(r.saldoFinal)}</div>
       </div>`;
     }).join('');
   }
@@ -2777,6 +2780,21 @@ function fmtK(v){
   if(Math.abs(v)>=1000000)return(v/1000000).toFixed(2)+'M';
   if(Math.abs(v)>=1000)return(v/1000).toFixed(1)+'K';
   return Math.round(v).toLocaleString();
+}
+function fmtSim(v){
+  // Currency format for simulator table — symbol + 0 decimals, abbreviated at M
+  const code=S.currency||'';
+  const meta=getCurrencyMeta(code);
+  const sym=meta?meta.sym:'';
+  const pos=meta?meta.pos:'after';
+  const abs=Math.abs(v);
+  let num;
+  if(abs>=1000000)num=(v/1000000).toFixed(1)+'M';
+  else{
+    try{num=Math.round(v).toLocaleString(meta?meta.locale:'es-CO');}
+    catch(e){num=Math.round(v).toLocaleString();}
+  }
+  return pos==='before'?sym+num:num+(sym?' '+sym:'');
 }
 function simDownloadCSV(){
   const rows=window._simRows;
