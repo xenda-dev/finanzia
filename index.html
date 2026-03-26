@@ -2701,24 +2701,24 @@ function openLoanAmortization(){
   inner+='<div style="font-size:9px;color:var(--text2);margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px">TEM</div>';
   inner+='<div style="font-size:11px;font-weight:800;color:var(--primary)">'+d.tem.toFixed(2)+'%</div></div>';
   inner+='</div></div></div>';
-  // Filters
-  inner+='<div style="display:flex;gap:8px;margin-bottom:12px;margin-top:14px">';
+  inner+='</div>'; // end scroll (summary only)
+  // Filters + table outside scroll — fixed below summary
+  inner+='<div style="display:flex;flex-direction:column;flex:1;overflow:hidden;padding:0 16px 16px">';
+  inner+='<div style="display:flex;gap:8px;margin-bottom:10px;flex-shrink:0">';
   inner+='<select id="loan-filter-year" onchange="filterLoanYear()" class="form-select" style="flex:1;font-size:12px">'+yearOpts+'</select>';
   inner+='<select id="loan-filter-cuota" onchange="renderLoanTable()" class="form-select" style="flex:1;font-size:12px">'+cuotaOpts+'</select>';
   inner+='</div>';
-  // Table — NO inner scroll, outer container scrolls
-  inner+='<div class="card" style="padding:0;overflow:hidden;margin-bottom:20px">';
-  inner+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div style="min-width:320px">';
-  inner+='<div style="display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr;padding:8px 6px;background:var(--surface2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2">';
+  inner+='<div class="card" style="padding:0;overflow:hidden;flex:1;display:flex;flex-direction:column">';
+  inner+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0">';
+  inner+='<div style="min-width:320px;display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr;padding:8px 6px;background:var(--surface2);border-bottom:2px solid var(--border)">';
   inner+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-align:center">#</div>';
   inner+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-align:right;padding-right:4px">FECHA</div>';
   inner+='<div style="font-size:9px;font-weight:700;color:var(--danger);text-align:right;padding-right:4px">INTERÉS</div>';
   inner+='<div style="font-size:9px;font-weight:700;color:var(--success);text-align:right;padding-right:4px">CAPITAL</div>';
   inner+='<div style="font-size:9px;font-weight:700;color:var(--text2);text-align:right;padding-right:4px">SALDO</div>';
-  inner+='</div>';
-  inner+='<div id="loan-amort-body"></div>';
-  inner+='</div></div></div>';
-  inner+='</div>'; // end single scroll container
+  inner+='</div></div>';
+  inner+='<div id="loan-amort-body" style="overflow-y:auto;flex:1"></div>';
+  inner+='</div></div>';
   screen.innerHTML=inner;
   document.body.appendChild(screen);
   renderLoanTable();
@@ -2828,24 +2828,23 @@ function openSimDetail(){
     inner+='<div style="font-size:11px;font-weight:800;color:var(--primary)">'+tem+'</div></div>';
     inner+='</div></div></div>';
   }
-  // Year filter
-  inner+='<div style="margin-bottom:12px">';
+  inner+='</div>'; // end scroll (summary only)
+  // Filter + table outside scroll — fixed below summary
+  inner+='<div style="display:flex;flex-direction:column;flex:1;overflow:hidden;padding:0 16px 16px">';
+  inner+='<div style="margin-bottom:10px;flex-shrink:0">';
   inner+='<select id="sim-filter-year" onchange="renderSimDetailTable()" class="form-select" style="width:100%;font-size:13px">'+yearOpts+'</select>';
   inner+='</div>';
-  // Table with sticky header
-  inner+='<div class="card" style="padding:0;overflow:hidden;margin-bottom:20px">';
-  inner+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div style="min-width:300px">';
-  // Sticky header
-  inner+='<div style="display:grid;grid-template-columns:38px 1fr 1fr 1fr 1fr;padding:8px 6px;background:var(--surface2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:2">';
+  inner+='<div class="card" style="padding:0;overflow:hidden;flex:1;display:flex;flex-direction:column">';
+  inner+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0">';
+  inner+='<div style="min-width:300px;display:grid;grid-template-columns:38px 1fr 1fr 1fr 1fr;padding:8px 6px;background:var(--surface2);border-bottom:2px solid var(--border)">';
   inner+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-align:center">MES</div>';
   inner+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-align:right;padding-right:4px">INI.</div>';
   inner+='<div style="font-size:9px;font-weight:700;color:var(--primary);text-align:right;padding-right:4px">ABONO</div>';
   inner+='<div style="font-size:9px;font-weight:700;color:var(--success);text-align:right;padding-right:4px">REND.</div>';
   inner+='<div style="font-size:9px;font-weight:700;color:var(--text2);text-align:right;padding-right:4px">FINAL</div>';
-  inner+='</div>';
-  inner+='<div id="sim-detail-body"></div>';
-  inner+='</div></div></div>';
-  inner+='</div>'; // end scroll
+  inner+='</div></div>';
+  inner+='<div id="sim-detail-body" style="overflow-y:auto;flex:1"></div>';
+  inner+='</div></div>';
   screen.innerHTML=inner;
   document.body.appendChild(screen);
   renderSimDetailTable();
@@ -3102,10 +3101,12 @@ function fmtSim(v){
   const meta=getCurrencyMeta(S.currency||'');
   const sym=meta?meta.sym:'';
   const pos=meta?meta.pos:'after';
-  // Real value, no decimals, with thousands separator
+  // Show 2 decimals when value has significant decimal part, 0 otherwise
+  const hasDecimals=Math.abs(v-Math.round(v))>0.005;
+  const dec=hasDecimals?2:0;
   let num;
-  try{num=new Intl.NumberFormat(info.locale,{useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0}).format(Math.round(v));}
-  catch(e){num=Math.round(v).toString();}
+  try{num=new Intl.NumberFormat(info.locale,{useGrouping:true,minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v);}
+  catch(e){num=v.toFixed(dec);}
   return pos==='before'?sym+num:num+(sym?' '+sym:'');
 }
 // ── Live number / percent formatting ─────────────────────────
