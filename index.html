@@ -2535,13 +2535,13 @@ function openLoanForm(typeKey){
   // Form card
   inner+='<div class="card" style="margin-bottom:14px">';
   inner+='<div class="form-group"><label class="form-label">💰 ¿Cuánto necesitas?</label>';
-  inner+='<input class="form-input" type="text" inputmode="decimal" id="loan-amount" data-numfmt="num" placeholder="Ej: 10.000.000" oninput="numInput(this);calcLoan()"></div>';
+  inner+='<input class="form-input" type="text" inputmode="numeric" id="loan-amount" data-numfmt="num" placeholder="Ej: 10.000.000" oninput="numInput(this);calcLoan()"></div>';
   inner+='<div class="form-row">';
   inner+='<div class="form-group"><label class="form-label">📅 Tiempo (años)</label>';
   inner+='<input class="form-input" type="number" id="loan-years" placeholder="Ej: 2" min="0" step="0.5" oninput="calcLoanTerms();calcLoan()">';
   inner+='<div id="loan-terms-lbl" style="font-size:10px;color:var(--primary);margin-top:4px;font-weight:600"></div></div>';
   inner+='<div class="form-group"><label class="form-label">📊 TAE (%)</label>';
-  inner+='<input class="form-input" type="text" inputmode="decimal" id="loan-rate" data-numfmt="pct" placeholder="Ej: 18%" oninput="pctInput(this);calcLoan()">';
+  inner+='<input class="form-input" type="text" inputmode="numeric" id="loan-rate" data-numfmt="pct" placeholder="Ej: 18%" oninput="pctInput(this);calcLoan()">';
   inner+='<div id="loan-rate-warn" style="font-size:10px;color:var(--danger);margin-top:4px;display:none">⚠️ Supera el máx. referencial de '+t.maxRate.toFixed(1)+'% EA</div></div>';
   inner+='</div></div>';
   // Results
@@ -2714,7 +2714,7 @@ function showLoanFilterBS(type){
     var years=[...new Set(rows.map(function(r){return r.year;}))];
     var items=[{val:'',label:'Todos los años'}].concat(years.map(function(y){return{val:String(y),label:String(y)};}));
     var cur=document.getElementById('loan-filter-year')?.value||'';
-    showBottomSheet({title:'Filtrar por año',items:items,selected:cur,onSelect:function(val){
+    showBottomSheet({title:'Filtrar por año',items:items,selected:cur,searchable:items.length>5,onSelect:function(val){
       var lbl=document.getElementById('loan-yr-lbl');
       if(lbl)lbl.textContent=val?val:'Todos los años';
       lbl&&(lbl.style.color=val?'var(--text)':'var(--text2)');
@@ -2727,7 +2727,7 @@ function showLoanFilterBS(type){
     var filtered=yearFilter?rows.filter(function(r){return r.year===parseInt(yearFilter);}):rows;
     var items2=[{val:'',label:'Todas las cuotas'}].concat(filtered.map(function(r){return{val:String(r.i),label:'Cuota '+r.i+' — '+r.date};}));
     var cur2=document.getElementById('loan-filter-cuota')?.value||'';
-    showBottomSheet({title:'Filtrar por cuota',items:items2,selected:cur2,onSelect:function(val){
+    showBottomSheet({title:'Filtrar por cuota',items:items2,selected:cur2,searchable:items2.length>10,onSelect:function(val){
       var lbl=document.getElementById('loan-qt-lbl');
       if(lbl)lbl.textContent=val?('Cuota '+val):'Todas las cuotas';
       lbl&&(lbl.style.color=val?'var(--text)':'var(--text2)');
@@ -2740,11 +2740,11 @@ function showLoanFilterBS(type){
 function showSimFilterBS(){
   var rows=window._simRows||[];
   var years=[...new Set(rows.map(function(r){var y=r.label.split('-')[1];return y?'20'+y:'';}))].filter(Boolean);
-  var items=[{val:'',label:'Todos los meses'}].concat(years.map(function(y){return{val:y,label:y};}));
+  var items=[{val:'',label:'Todos los años'}].concat(years.map(function(y){return{val:y,label:y};}));
   var cur=document.getElementById('sim-filter-year')?.value||'';
-  showBottomSheet({title:'Filtrar por año',items:items,selected:cur,onSelect:function(val){
+  showBottomSheet({title:'Filtrar por año',items:items,selected:cur,searchable:items.length>5,onSelect:function(val){
     var lbl=document.getElementById('sim-yr-lbl');
-    if(lbl)lbl.textContent=val?val:'Todos los meses';
+    if(lbl)lbl.textContent=val?val:'Todos los años';
     lbl&&(lbl.style.color=val?'var(--text)':'var(--text2)');
     var inp=document.getElementById('sim-filter-year');
     if(inp)inp.value=val;
@@ -2813,7 +2813,7 @@ function openSimDetail(){
   screen.style.cssText='position:fixed;inset:0;z-index:210;background:var(--surface);display:flex;flex-direction:column;overflow:hidden;animation:fadeInPage .2s ease';
   // Build year options
   var years=[...new Set(rows.map(function(r){var y=r.label.split('-')[1];return y?'20'+y:'';}))].filter(Boolean);
-  var yearOpts='<option value="">Todos los meses</option>'+years.map(function(y){return'<option value="'+y+'">'+y+'</option>';}).join('');
+  var yearOpts='<option value="">Todos los años</option>'+years.map(function(y){return'<option value="'+y+'">'+y+'</option>';}).join('');
   var inner='';
   inner+='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:52px 16px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">';
   inner+='<div style="display:flex;align-items:center;gap:12px">';
@@ -2859,7 +2859,7 @@ function openSimDetail(){
   inner+='</div>'; // end summary padding
   inner+='<div style="margin:10px 16px 8px;flex-shrink:0">';
   inner+='<button id="sim-yr-btn" class="bs-trigger" onclick="showSimFilterBS()" style="width:100%;font-size:13px;justify-content:space-between">';
-  inner+='<span id="sim-yr-lbl" style="color:var(--text2)">Todos los meses</span><span style="color:var(--text3)">›</span></button>';
+  inner+='<span id="sim-yr-lbl" style="color:var(--text2)">Todos los años</span><span style="color:var(--text3)">›</span></button>';
   inner+='<input type="hidden" id="sim-filter-year" value="">';
   inner+='</div>';
   inner+='<div class="card" style="padding:0;overflow:hidden;flex:1;display:flex;flex-direction:column;margin:0 16px 16px">';
@@ -2921,23 +2921,23 @@ function renderSimulador(){
       <!-- META (solo modo calcular) -->
       <div id="sim-meta-row" class="form-group" style="display:none">
         <label class="form-label">🎯 Meta de ahorro</label>
-        <input class="form-input" type="text" inputmode="decimal" id="sim-goal" placeholder="Ej: 20.000.000" data-numfmt="num" oninput="numInput(this);calcSim()">
+        <input class="form-input" type="text" inputmode="numeric" id="sim-goal" placeholder="Ej: 20.000.000" data-numfmt="num" oninput="numInput(this);calcSim()">
       </div>
       <!-- Capital inicial -->
       <div class="form-group">
         <label class="form-label">💰 Capital inicial (opcional)</label>
-        <input class="form-input" type="text" inputmode="decimal" id="sim-initial" placeholder="Ej: 5.500" data-numfmt="num" oninput="numInput(this);calcSim()">
+        <input class="form-input" type="text" inputmode="numeric" id="sim-initial" placeholder="Ej: 5.500" data-numfmt="num" oninput="numInput(this);calcSim()">
       </div>
       <!-- Aporte mensual (solo modo proyectar) -->
       <div id="sim-monthly-row" class="form-group">
         <label class="form-label">📅 Aporte mensual</label>
-        <input class="form-input" type="text" inputmode="decimal" id="sim-monthly" placeholder="Ej: 1.800" data-numfmt="num" oninput="numInput(this);calcSim()">
+        <input class="form-input" type="text" inputmode="numeric" id="sim-monthly" placeholder="Ej: 1.800" data-numfmt="num" oninput="numInput(this);calcSim()">
       </div>
       <!-- TAE + TEM auto -->
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">📊 TAE (%)</label>
-          <input class="form-input" type="text" inputmode="decimal" id="sim-rate" placeholder="Ej: 10%" data-numfmt="pct" oninput="pctInput(this);calcSim()">
+          <input class="form-input" type="text" inputmode="numeric" id="sim-rate" placeholder="Ej: 10%" data-numfmt="pct" oninput="pctInput(this);calcSim()">
         </div>
         <div class="form-group">
           <label class="form-label">📈 TEM (%)</label>
@@ -3172,62 +3172,68 @@ function parseNum(str){
   }
   return parseFloat(clean)||0;
 }
+// ── RTL number input (right-to-left fill) ──────────────────
+function _numDecimals(){
+  if(S.numFormat==='0')return 0;
+  if(S.numFormat==='2')return 2;
+  var noDec=['JPY','KRW','CLP','PYG','VND','IDR','KMF','BIF','GNF','RWF','UGX','DJF','XAF','XOF','XPF'];
+  return noDec.indexOf(S.currency||'')!==-1?0:2;
+}
 function numInput(el){
-  var raw=el.value;
-  if(!raw){return;}
+  var dec=_numDecimals();
   var info=_getLocaleInfo();
-  var decSep=info.decSep;
-  var otherSep=decSep===','?'.':',';
-
-  var hasDecPart=false,decDigits='',intStr='';
-
-  // Priority 1: locale's decimal separator (definitive decimal)
-  var locDecIdx=raw.lastIndexOf(decSep);
-  if(locDecIdx>-1){
-    var afterDec=raw.slice(locDecIdx+1).replace(/\D/g,'');
-    hasDecPart=true;
-    decDigits=afterDec.slice(0,2);
-    intStr=raw.slice(0,locDecIdx).replace(/\D/g,'');
+  // Extract only digits from current display
+  var raw=el.value.replace(/[^0-9]/g,'');
+  if(!raw){el.value='';return;}
+  if(raw.length>15)raw=raw.slice(-15);
+  if(dec===0){
+    // LTR for zero-decimal currencies — just format integer with thousands
+    var intNum=parseInt(raw)||0;
+    var formatted;
+    try{formatted=new Intl.NumberFormat(info.locale,{useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0}).format(intNum);}
+    catch(e){formatted=intNum.toString();}
+    el.value=formatted;
   } else {
-    // Priority 2: "other" separator — treat as decimal ONLY if appears once AND < 3 digits after
-    var otherIdx=raw.lastIndexOf(otherSep);
-    if(otherIdx>-1){
-      var afterOther=raw.slice(otherIdx+1).replace(/\D/g,'');
-      var countOther=(raw.match(new RegExp('\\'+otherSep,'g'))||[]).length;
-      if(countOther===1&&afterOther.length<3){
-        hasDecPart=true;
-        decDigits=afterOther;
-        intStr=raw.slice(0,otherIdx).replace(/\D/g,'');
-      } else {
-        intStr=raw.replace(/\D/g,'');
-      }
-    } else {
-      intStr=raw.replace(/\D/g,'');
-    }
+    // RTL: last `dec` digits = decimals, rest = integer
+    while(raw.length<=dec)raw='0'+raw;
+    var intDigits=raw.slice(0,-dec);
+    var decDigits=raw.slice(-dec);
+    var intNum2=parseInt(intDigits)||0;
+    var formatted2;
+    try{formatted2=new Intl.NumberFormat(info.locale,{useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0}).format(intNum2);}
+    catch(e){formatted2=intNum2.toString();}
+    el.value=formatted2+info.decSep+decDigits;
   }
-
-  if(!intStr&&!hasDecPart){el.value='';return;}
-  var intNum=parseInt(intStr||'0')||0;
-  var formatted;
-  try{
-    formatted=new Intl.NumberFormat(info.locale,{
-      useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0
-    }).format(intNum);
-  }catch(e){formatted=intNum.toString();}
-  if(hasDecPart){formatted+=decSep+decDigits;}
-  el.value=formatted;
-  try{var l=formatted.length;el.setSelectionRange(l,l);}catch(e){}
+  try{var l=el.value.length;el.setSelectionRange(l,l);}catch(e){}
+}
+function parseNum(str){
+  if(!str&&str!==0)return 0;
+  var s=String(str).trim();
+  var info=_getLocaleInfo();
+  var dec=_numDecimals();
+  // Strip everything except digits and decimal separator
+  var clean=s.replace(/[^\d,\.]/g,'');
+  if(info.decSep===','){
+    clean=clean.replace(/\./g,'').replace(',','.');
+  } else {
+    clean=clean.replace(/,/g,'');
+  }
+  return parseFloat(clean)||0;
 }
 function pctInput(el){
-  var raw=el.value.replace(/%/g,'').replace(/\s/g,'');
+  // RTL fill: digits push right-to-left, always 2 decimal places
+  var raw=el.value.replace(/%/g,'').replace(/[.,]/g,'').replace(/[^0-9]/g,'');
   if(!raw){el.value='';return;}
-  var result=raw+'%';
-  el.value=result;
-  try{el.setSelectionRange(raw.length,raw.length);}catch(e){}
+  if(raw.length>5)raw=raw.slice(-5); // max 999.99%
+  while(raw.length<3)raw='0'+raw;
+  var intPart=parseInt(raw.slice(0,-2),10).toString();
+  var decPart=raw.slice(-2);
+  el.value=intPart+'.'+decPart+'%';
+  try{var p=el.value.length-1;el.setSelectionRange(p,p);}catch(e){}
 }
 function parsePct(str){
   if(!str)return 0;
-  return parseFloat(String(str).replace(/%/g,'').replace(',','.'))||0;
+  return parseFloat(String(str).replace(/%/g,'').trim())||0;
 }
 // Re-format all active numInput/pctInput fields when currency changes
 function reformatNumFields(){
@@ -3235,8 +3241,8 @@ function reformatNumFields(){
   fields.forEach(function(el){
     if(el.value){
       var type=el.getAttribute('data-numfmt');
-      if(type==='num'){var v=parseNum(el.value);if(v){var i=_getLocaleInfo();try{el.value=new Intl.NumberFormat(i.locale,{useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0}).format(v);}catch(e){}}}
-      else if(type==='pct'){pctInput(el);}
+      if(type==='num'&&el.value){numInput(el);}
+      else if(type==='pct'&&el.value){pctInput(el);}
     }
   });
 }
@@ -3435,7 +3441,7 @@ function calcCambioRow(idx){
   }
 }
 function calcAllCambio(){
-  window._cambioAmount=parseFloat(document.getElementById('cambio-amount')?.value)||0;
+  window._cambioAmount=parseNum(document.getElementById('cambio-amount')?.value)||0;
   if(!window._cambioRows)return;
   window._cambioRows.forEach(function(_,idx){calcCambioRow(idx);});
 }
@@ -3479,7 +3485,7 @@ function renderCambio(){
       +'<div class="card-title">💱 Tipo de cambio</div>'
       +'<div class="form-group" style="margin-bottom:0">'
         +'<label class="form-label">Monto</label>'
-        +'<input class="form-input" type="number" id="cambio-amount" placeholder="Ej: 1000" oninput="calcAllCambio()" value="'+window._cambioAmount+'">'
+        +'<input class="form-input" type="text" inputmode="numeric" id="cambio-amount" data-numfmt="num" placeholder="Ej: 1.000" oninput="numInput(this);calcAllCambio()" value="'+(window._cambioAmount?fmtSim(window._cambioAmount):'')+'">'
       +'</div>'
     +'</div>'
     +rowsHtml
