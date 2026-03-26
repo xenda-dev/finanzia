@@ -2782,17 +2782,17 @@ function fmtK(v){
   return Math.round(v).toLocaleString();
 }
 function fmtSim(v){
-  // Currency format for simulator table — symbol + 0 decimals, abbreviated at M
   const code=S.currency||'';
   const meta=getCurrencyMeta(code);
   const sym=meta?meta.sym:'';
   const pos=meta?meta.pos:'after';
+  const info=_getLocaleInfo(); // already handles latin numerals
   const abs=Math.abs(v);
   let num;
   if(abs>=1000000)num=(v/1000000).toFixed(1)+'M';
   else{
-    try{num=Math.round(v).toLocaleString(meta?meta.locale:'es-CO');}
-    catch(e){num=Math.round(v).toLocaleString();}
+    try{num=new Intl.NumberFormat(info.locale,{useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0}).format(Math.round(v));}
+    catch(e){num=Math.round(v).toString();}
   }
   return pos==='before'?sym+num:num+(sym?' '+sym:'');
 }
@@ -2800,15 +2800,19 @@ function fmtSim(v){
 function _getLocaleInfo(){
   var meta=getCurrencyMeta(S.currency||'');
   var locale=meta&&meta.locale?meta.locale:'es-CO';
-  // Use Intl to detect decimal and thousands separators for this locale
-  var nf=new Intl.NumberFormat(locale);
+  // Force Latin numerals for Arabic/Persian locales (otherwise gets ١٢٣ which can't be typed/parsed)
+  var needsLatn=/^(ar|fa|ur|ps)/.test(locale);
+  var effectiveLocale=needsLatn?locale+'-u-nu-latn':locale;
+  var nf;
+  try{nf=new Intl.NumberFormat(effectiveLocale);}
+  catch(e){nf=new Intl.NumberFormat('en-US');}
   var parts=nf.formatToParts(1234567.89);
-  var decSep='.';var thouSep=',';
+  var decSep='.',thouSep=',';
   parts.forEach(function(p){
     if(p.type==='decimal')decSep=p.value;
     if(p.type==='group')thouSep=p.value;
   });
-  return{locale:locale,decSep:decSep,thouSep:thouSep};
+  return{locale:effectiveLocale,decSep:decSep,thouSep:thouSep};
 }
 function parseNum(str){
   if(!str&&str!==0)return 0;
