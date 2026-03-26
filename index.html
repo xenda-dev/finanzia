@@ -2622,7 +2622,7 @@ function calcLoan(){
   var warn=document.getElementById('loan-rate-warn');
   if(warn&&window._loanType){warn.style.display=(rPct>0&&rPct>window._loanType.maxRate)?'block':'none';}
   if(!P||!rPct||!n){if(res)res.style.display='none';return;}
-  var rm=rPct/100/12;
+  var rm=Math.pow(1+rPct/100,1/12)-1;
   var cuota=rm===0?P/n:P*rm*Math.pow(1+rm,n)/(Math.pow(1+rm,n)-1);
   var total=cuota*n;
   var interest=total-P;
@@ -3018,7 +3018,7 @@ function calcSim(){
   if(ed<=sd)return;
   const months=(ed.getFullYear()-sd.getFullYear())*12+(ed.getMonth()-sd.getMonth());
   if(months<1)return;
-  const rm=annualRate/100/12;
+  const rm=Math.pow(1+annualRate/100,1/12)-1;
   let monthly=0;
   if(mode==='proyectar'){
     monthly=parseNum(document.getElementById('sim-monthly')?.value)||0;
@@ -3611,7 +3611,7 @@ function renderEstrategia(){
     var bal=Math.abs(getBalance(a.id));
     var rate=parseFloat(a.tae)||0;
     var monthly=parseFloat(a.monthlyPayment)||(bal*0.03);
-    var r=rate/100/12;
+    var r=Math.pow(1+rate/100,1/12)-1;
     var cuotas=0;
     if(r>0&&monthly>r*bal&&bal>0){cuotas=Math.ceil(-Math.log(1-r*bal/monthly)/Math.log(1+r));}
     else if(monthly>0&&bal>0){cuotas=Math.ceil(bal/monthly);}
@@ -3637,7 +3637,7 @@ function renderEstrategia(){
       var freed=xAmt;
       ds.forEach(function(d){
         if(d.bal<=0)return;
-        var intAmt=d.bal*(d.rate/100/12);
+        var intAmt=d.bal*(Math.pow(1+d.rate/100,1/12)-1);
         var minPay=Math.min(d.bal+intAmt,d.monthly);
         var capital=Math.max(0,minPay-intAmt);
         totalInt+=intAmt;
@@ -3677,7 +3677,7 @@ function renderEstrategia(){
       var freed=extra;var rowTotalPay=0;var rowTotalInt=0;var cells=[];
       tDs.forEach(function(d){
         if(d.bal<=0){cells.push({pay:0,int:0,bal:0,done:true});return;}
-        var intAmt=d.bal*(d.rate/100/12);
+        var intAmt=d.bal*(Math.pow(1+d.rate/100,1/12)-1);
         var minPay=Math.min(d.bal+intAmt,d.monthly);
         var capital=Math.max(0,minPay-intAmt);
         var actualPay=Math.min(minPay,d.bal+intAmt);
