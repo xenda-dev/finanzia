@@ -2463,94 +2463,364 @@ function renderHerramientas(){
 }
 
 function renderCalculadora(){
-  return`
-    <div class="card" style="margin-bottom:12px">
-      <div class="card-title">📐 Calculadora de Préstamo</div>
-      <div class="form-group"><label class="form-label">Monto del préstamo</label><input class="form-input" type="number" id="loan-amount" placeholder="Ej: 10.000.000" oninput="calcLoan()"></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Tasa anual (%)</label><input class="form-input" type="number" id="loan-rate" placeholder="Ej: 18" step="0.1" oninput="calcLoan()"></div>
-        <div class="form-group"><label class="form-label">Plazo (meses)</label><input class="form-input" type="number" id="loan-months" placeholder="Ej: 24" oninput="calcLoan()"></div>
-      </div>
-      <div id="loan-result" style="display:none;margin-top:12px">
-        <div style="background:var(--surface2);border-radius:var(--radius);padding:14px;margin-bottom:12px">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Cuota mensual</div><div style="font-size:17px;font-weight:800;color:var(--primary)" id="loan-cuota">—</div></div>
-            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Total a pagar</div><div style="font-size:17px;font-weight:800" id="loan-total">—</div></div>
-            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Total intereses</div><div style="font-size:17px;font-weight:800;color:var(--danger)" id="loan-interest">—</div></div>
-            <div style="text-align:center"><div style="font-size:10px;color:var(--text2)">Costo financiero</div><div style="font-size:17px;font-weight:800;color:var(--warning)" id="loan-cost-pct">—</div></div>
-          </div>
-          <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:8px 10px;margin-top:10px;font-size:11px;color:var(--text2);line-height:1.5">
-            ℹ️ <strong>Costo financiero:</strong> el % adicional sobre el capital prestado que pagas en intereses. Ej: pides $10M y pagas $4M de intereses = 40%.
-          </div>
-        </div>
-
-        <div style="background:var(--surface2);border-radius:var(--radius);padding:14px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <div style="font-size:11px;font-weight:700;color:var(--text2)">📋 Plan de pagos</div>
-            <button id="loan-download-btn-top" style="display:none;background:none;border:1px solid var(--primary);color:var(--primary);padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--font)" onclick="downloadLoanTable()">⬇️ Descargar CSV</button>
-          </div>
-          <div style="overflow-x:auto">
-            <table style="width:100%;border-collapse:collapse;font-size:11px" id="loan-table">
-              <thead><tr style="border-bottom:1px solid var(--border)">
-                <th style="text-align:right;padding:4px 6px;color:var(--text3);font-weight:600">#</th>
-                <th style="text-align:right;padding:4px 6px;color:var(--text3);font-weight:600">Cuota</th>
-                <th style="text-align:right;padding:4px 6px;color:var(--success);font-weight:600">Capital</th>
-                <th style="text-align:right;padding:4px 6px;color:var(--danger);font-weight:600">Interés</th>
-                <th style="text-align:right;padding:4px 6px;color:var(--text3);font-weight:600">Saldo</th>
-              </tr></thead>
-              <tbody id="loan-table-body"></tbody>
-            </table>
-          </div>
-          <div id="loan-table-note" style="font-size:10px;color:var(--text3);margin-top:4px"></div>
-          <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:10px;color:var(--text2)">⚠️ <strong>Valores aproximados.</strong> Este plan no incluye seguros, comisiones ni otros cargos. Consulta con tu entidad financiera antes de tomar decisiones.</div>
-        </div>
-      </div>
-    </div>
-  `;
+  var q="'";
+  var html='';
+  html+='<div style="margin-bottom:14px">';
+  html+='<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Selecciona el tipo de crédito</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">';
+  var types=window._LOAN_TYPES||[];
+  types.forEach(function(t){
+    html+='<button onclick="openLoanForm('+q+t.key+q+')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:18px;cursor:pointer;gap:8px;font-family:var(--font);min-height:90px;border-top:3px solid '+t.color+'">';
+    html+='<span style="font-size:28px;line-height:1">'+t.icon+'</span>';
+    html+='<span style="font-size:11px;font-weight:700;color:var(--text);text-align:center;line-height:1.3">'+t.label+'</span>';
+    html+='<span style="font-size:9px;color:var(--text3)">máx. '+t.maxRate.toFixed(1)+'% EA</span>';
+    html+='</button>';
+  });
+  html+='</div></div>';
+  return html;
 }
-function downloadLoanTable(){
-  const P=parseFloat(document.getElementById('loan-amount')?.value)||0;
-  const r=parseFloat(document.getElementById('loan-rate')?.value)||0;
-  const n=parseInt(document.getElementById('loan-months')?.value)||0;
-  if(!P||!r||!n)return;
-  const rm=r/100/12;
-  const cuota=rm===0?P/n:P*rm*Math.pow(1+rm,n)/(Math.pow(1+rm,n)-1);
-  let bal=P;let csv='Cuota,Monto Cuota,Capital,Interés,Saldo\n';
-  for(let i=1;i<=n;i++){
-    const intAmt=bal*rm;const capAmt=cuota-intAmt;bal=Math.max(0,bal-capAmt);
-    csv+=`${i},${cuota.toFixed(2)},${capAmt.toFixed(2)},${intAmt.toFixed(2)},${bal.toFixed(2)}\n`;
-  }
-  const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  a.download='plan-pagos-prestamo.csv';a.click();
-  toast('Plan descargado ✓');
+var _LOAN_TYPES=[
+  {key:'libre',label:'Libre inversión',icon:'💵',maxRate:28.5,color:'#EF4444',
+   desc:'Crédito sin destinación específica. Úsalo como quieras.',
+   pros:['Destino libre','Aprobación rápida','Montos flexibles'],
+   cons:['Tasa más alta','Sin beneficio tributario','Plazo corto']},
+  {key:'personal',label:'Personal',icon:'👤',maxRate:24.0,color:'#F59E0B',
+   desc:'Para gastos personales como viajes, remodelaciones o emergencias.',
+   pros:['Sin garantía','Trámite ágil','Plazos medianos'],
+   cons:['Tasa alta','Cupo limitado por ingresos']},
+  {key:'consumo',label:'Consumo',icon:'🛒',maxRate:28.8,color:'#F97316',
+   desc:'Financia bienes y servicios de consumo como electrodomésticos o tecnología.',
+   pros:['Montos altos','Plazos amplios','Cuotas fijas'],
+   cons:['Intereses elevados','Requiere historial crediticio']},
+  {key:'hipotecario',label:'Hipotecario',icon:'🏠',maxRate:8.5,color:'#3B82F6',
+   desc:'Para compra, construcción o mejora de vivienda. Garantía: el inmueble.',
+   pros:['Tasa más baja','Plazos hasta 30 años','Beneficio tributario'],
+   cons:['Requiere inmueble como garantía','Trámite largo','Seguro obligatorio']},
+  {key:'vehicular',label:'Vehicular',icon:'🚗',maxRate:15.5,color:'#10B981',
+   desc:'Financia la compra de vehículo nuevo o usado. Garantía: el vehículo.',
+   pros:['Tasa moderada','Plazos hasta 7 años','Fácil aprobación'],
+   cons:['Vehículo queda como garantía','Seguro obligatorio']},
+  {key:'educativo',label:'Educativo',icon:'📚',maxRate:12.0,color:'#8B5CF6',
+   desc:'Para financiar estudios técnicos, universitarios o posgrados.',
+   pros:['Tasa preferencial','Período de gracia','Beneficio tributario'],
+   cons:['Solo para educación','Requiere documentación académica']},
+  {key:'rotativo',label:'Rotativo',icon:'🔄',maxRate:36.5,color:'#EC4899',
+   desc:'Cupo disponible que se renueva al pagar. Típico en tarjetas de crédito.',
+   pros:['Disponibilidad inmediata','Se renueva al pagar','Flexibilidad de uso'],
+   cons:['Tasa muy alta','Riesgo de sobreendeudamiento','Cargos adicionales']},
+  {key:'microcredito',label:'Microcrédito',icon:'🌱',maxRate:50.0,color:'#06B6D4',
+   desc:'Para microempresarios y emprendedores de bajos ingresos. Montos pequeños.',
+   pros:['Accesible sin historial','Fomenta el emprendimiento','Sin garantías reales'],
+   cons:['Tasa muy alta','Montos bajos','Plazos cortos']},
+  {key:'nanocredito',label:'Nanocrédito',icon:'🪙',maxRate:60.0,color:'#64748B',
+   desc:'Crédito de muy bajo monto para necesidades urgentes e inmediatas.',
+   pros:['Desembolso inmediato','Sin papeleo','Montos desde muy bajos'],
+   cons:['Tasa extremadamente alta','Plazos muy cortos','Solo para emergencias']}
+];
+window._LOAN_TYPES=_LOAN_TYPES;
+function openLoanForm(typeKey){
+  var t=_LOAN_TYPES.find(function(x){return x.key===typeKey;});
+  if(!t)return;
+  var existing=document.getElementById('loan-form-screen');
+  if(existing)existing.remove();
+  var screen=document.createElement('div');
+  screen.id='loan-form-screen';
+  screen.style.cssText='position:fixed;inset:0;z-index:210;background:var(--surface);display:flex;flex-direction:column;overflow:hidden;animation:fadeInPage .2s ease';
+  var inner='';
+  inner+='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:52px 16px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0">';
+  inner+='<button onclick="closeLoanForm()" style="background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:8px">←</button>';
+  inner+='<div style="width:36px;height:36px;border-radius:10px;background:'+t.color+'22;display:flex;align-items:center;justify-content:center;font-size:20px">'+t.icon+'</div>';
+  inner+='<div><div style="font-size:17px;font-weight:800;color:var(--text)">'+t.label+'</div>';
+  inner+='<div style="font-size:11px;color:var(--text3)">Tasa máx. referencial: '+t.maxRate.toFixed(1)+'% EA</div></div>';
+  inner+='</div>';
+  inner+='<div style="flex:1;overflow-y:auto;padding:16px">';
+  // Info card
+  inner+='<div class="card" style="margin-bottom:14px;padding:14px;border-left:3px solid '+t.color+'">';
+  inner+='<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">'+t.icon+' ¿Qué es el crédito '+t.label.toLowerCase()+'?</div>';
+  inner+='<div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px">'+t.desc+'</div>';
+  inner+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  inner+='<div style="background:rgba(16,185,129,.08);border-radius:var(--radius-sm);padding:8px">';
+  inner+='<div style="font-size:9px;font-weight:700;color:var(--success);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">✅ Ventajas</div>';
+  t.pros.forEach(function(p){inner+='<div style="font-size:11px;color:var(--text2);line-height:1.6">· '+p+'</div>';});
+  inner+='</div>';
+  inner+='<div style="background:rgba(239,68,68,.08);border-radius:var(--radius-sm);padding:8px">';
+  inner+='<div style="font-size:9px;font-weight:700;color:var(--danger);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">⚠️ Desventajas</div>';
+  t.cons.forEach(function(c){inner+='<div style="font-size:11px;color:var(--text2);line-height:1.6">· '+c+'</div>';});
+  inner+='</div></div></div>';
+  // Rate warning banner
+  inner+='<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--text2);line-height:1.5">';
+  inner+='⚠️ Referencia orientativa. Tasas varían según entidad y perfil. Verifica con tu banco.';
+  inner+='</div>';
+  // Form card
+  inner+='<div class="card" style="margin-bottom:14px">';
+  inner+='<div class="form-group"><label class="form-label">💰 ¿Cuánto necesitas?</label>';
+  inner+='<input class="form-input" type="text" inputmode="decimal" id="loan-amount" data-numfmt="num" placeholder="Ej: 10.000.000" oninput="numInput(this);calcLoan()"></div>';
+  inner+='<div class="form-row">';
+  inner+='<div class="form-group"><label class="form-label">📅 Tiempo (años)</label>';
+  inner+='<input class="form-input" type="number" id="loan-years" placeholder="Ej: 2" min="0" step="0.5" oninput="calcLoanTerms();calcLoan()">';
+  inner+='<div id="loan-terms-lbl" style="font-size:10px;color:var(--primary);margin-top:4px;font-weight:600"></div></div>';
+  inner+='<div class="form-group"><label class="form-label">📊 TAE (%)</label>';
+  inner+='<input class="form-input" type="text" inputmode="decimal" id="loan-rate" data-numfmt="pct" placeholder="Ej: 18%" oninput="pctInput(this);calcLoan()">';
+  inner+='<div id="loan-rate-warn" style="font-size:10px;color:var(--danger);margin-top:4px;display:none">⚠️ Supera el máx. referencial de '+t.maxRate.toFixed(1)+'% EA</div></div>';
+  inner+='</div></div>';
+  // Results
+  inner+='<div id="loan-result" style="display:none">';
+  // 4 metric cards
+  inner+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;align-items:stretch">';
+  [{id:'loan-cuota',label:'Cuota mensual',color:'var(--primary)'},
+   {id:'loan-total',label:'Total a pagar',color:'var(--text)'},
+   {id:'loan-interest',label:'Total intereses',color:'var(--danger)'},
+   {id:'loan-tem',label:'TEM mensual',color:'var(--warning)'}
+  ].forEach(function(m){
+    inner+='<div class="card" style="padding:12px;text-align:center;display:flex;flex-direction:column;justify-content:center;margin-top:0">';
+    inner+='<div style="font-size:9px;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">'+m.label+'</div>';
+    inner+='<div style="font-size:14px;font-weight:800;color:'+m.color+';line-height:1.2" id="'+m.id+'">—</div>';
+    inner+='</div>';
+  });
+  inner+='</div>';
+  // First installment card - full width
+  inner+='<div class="card" style="padding:12px;margin-bottom:10px">';
+  inner+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Primera cuota</div>';
+  inner+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  inner+='<div style="text-align:center"><div style="font-size:9px;color:var(--text2);margin-bottom:4px">Interés</div>';
+  inner+='<div style="font-size:13px;font-weight:800;color:var(--danger)" id="loan-int1">—</div></div>';
+  inner+='<div style="text-align:center"><div style="font-size:9px;color:var(--text2);margin-bottom:4px">Abono capital</div>';
+  inner+='<div style="font-size:13px;font-weight:800;color:var(--success)" id="loan-cap1">—</div></div>';
+  inner+='</div></div>';
+  // Plan button
+  inner+='<button onclick="openLoanAmortization()" style="width:100%;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:14px;font-weight:700;color:var(--text);cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
+  inner+='<span>📋 Ver plan de amortización</span><span style="color:var(--primary);font-size:20px;font-weight:300">›</span></button>';
+  // Disclaimer
+  inner+='<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:var(--radius-sm);padding:10px 12px;font-size:10px;color:var(--text2);line-height:1.5">';
+  inner+='⚠️ <strong>Valores aproximados.</strong> No incluye seguros, comisiones ni otros cargos. Consulta con tu entidad financiera.';
+  inner+='</div>';
+  inner+='</div>'; // loan-result
+  inner+='</div>'; // scroll
+  screen.innerHTML=inner;
+  document.body.appendChild(screen);
+  window._loanType=t;
+}
+function closeLoanForm(){
+  var s=document.getElementById('loan-form-screen');
+  if(s)s.remove();
+  window._loanRows=null;
+}
+function calcLoanTerms(){
+  var yrs=parseFloat(document.getElementById('loan-years')?.value)||0;
+  var lbl=document.getElementById('loan-terms-lbl');
+  if(!lbl)return;
+  if(!yrs){lbl.textContent='';return;}
+  var months=Math.round(yrs*12);
+  lbl.textContent=months+' meses · '+months+' cuotas';
 }
 function calcLoan(){
-  const P=parseFloat(document.getElementById('loan-amount')?.value)||0;
-  const r=parseFloat(document.getElementById('loan-rate')?.value)||0;
-  const n=parseInt(document.getElementById('loan-months')?.value)||0;
-  const res=document.getElementById('loan-result');
-  if(!P||!r||!n){if(res)res.style.display='none';return;}
-  const rm=r/100/12;
-  const cuota=rm===0?P/n:P*rm*Math.pow(1+rm,n)/(Math.pow(1+rm,n)-1);
-  const total=cuota*n;
-  const interest=total-P;
+  var P=parseNum(document.getElementById('loan-amount')?.value)||0;
+  var rPct=parsePct(document.getElementById('loan-rate')?.value)||0;
+  var yrs=parseFloat(document.getElementById('loan-years')?.value)||0;
+  var n=Math.round(yrs*12);
+  var res=document.getElementById('loan-result');
+  var warn=document.getElementById('loan-rate-warn');
+  if(warn&&window._loanType){warn.style.display=(rPct>0&&rPct>window._loanType.maxRate)?'block':'none';}
+  if(!P||!rPct||!n){if(res)res.style.display='none';return;}
+  var rm=rPct/100/12;
+  var cuota=rm===0?P/n:P*rm*Math.pow(1+rm,n)/(Math.pow(1+rm,n)-1);
+  var total=cuota*n;
+  var interest=total-P;
+  var tem=((Math.pow(1+rPct/100,1/12)-1)*100);
   if(res)res.style.display='block';
-  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  set('loan-cuota',fmt(cuota));set('loan-total',fmt(total));
-  set('loan-interest',fmt(interest));set('loan-cost-pct',Math.round(interest/P*100)+'%');
-  // Amortization table — show first 12 rows + last row
-  const tbody=document.getElementById('loan-table-body');
-  const note=document.getElementById('loan-table-note');
-  if(tbody){
-    let bal=P;const rows=[];
-    for(let i=1;i<=n;i++){
-      const intAmt=bal*rm;const capAmt=cuota-intAmt;bal-=capAmt;
-      rows.push({i,cuota,cap:capAmt,int:intAmt,bal:Math.max(0,bal)});
-    }
-    tbody.innerHTML=rows.map(r=>`<tr style="border-bottom:1px solid var(--border)"><td style="text-align:right;padding:5px 6px;color:var(--text3)">${r.i}</td><td style="text-align:right;padding:5px 6px">${fmt(r.cuota)}</td><td style="text-align:right;padding:5px 6px;color:var(--success)">${fmt(r.cap)}</td><td style="text-align:right;padding:5px 6px;color:var(--danger)">${fmt(r.int)}</td><td style="text-align:right;padding:5px 6px;font-weight:600">${fmt(r.bal)}</td></tr>`).join('');
-    if(note)note.textContent='Total: '+n+' cuotas';
-    const dlBtn=document.getElementById('loan-download-btn-top');if(dlBtn)dlBtn.style.display='block';  }
+  var set=function(id,v){var el=document.getElementById(id);if(el){el.textContent=v;var len=v.length;el.style.fontSize=len>14?'11px':len>10?'12px':'14px';}};
+  set('loan-cuota',fmt(cuota));
+  set('loan-total',fmt(total));
+  set('loan-interest',fmt(interest));
+  set('loan-tem',tem.toFixed(2)+'% m.v.');
+  var int1=P*rm;
+  var cap1=cuota-int1;
+  set('loan-int1',fmt(int1));
+  set('loan-cap1',fmt(cap1));
+  // Build rows
+  var rows=[];
+  var bal=P;
+  var startDate=new Date();
+  for(var i=1;i<=n;i++){
+    var d=new Date(startDate.getFullYear(),startDate.getMonth()+i,startDate.getDate());
+    var dateStr=(d.getDate()).toString().padStart(2,'0')+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getFullYear();
+    var intAmt=bal*rm;
+    var capAmt=cuota-intAmt;
+    bal=Math.max(0,bal-capAmt);
+    rows.push({i:i,date:dateStr,cuota:cuota,int:intAmt,cap:capAmt,bal:bal,year:d.getFullYear()});
+  }
+  window._loanRows=rows;
+  window._loanData={P:P,rPct:rPct,n:n,cuota:cuota,total:total,interest:interest,tem:tem};
+}
+function openLoanAmortization(){
+  if(!window._loanRows||!window._loanData){toast('Primero completa los datos del préstamo');return;}
+  var existing=document.getElementById('loan-amort-screen');
+  if(existing)existing.remove();
+  var d=window._loanData;
+  var screen=document.createElement('div');
+  screen.id='loan-amort-screen';
+  screen.style.cssText='position:fixed;inset:0;z-index:220;background:var(--surface);display:flex;flex-direction:column;overflow:hidden;animation:fadeInPage .2s ease';
+  var years=[...new Set(window._loanRows.map(function(r){return r.year;}))];
+  var yearOpts='<option value="">Todos los años</option>'+years.map(function(y){return'<option value="'+y+'">'+y+'</option>';}).join('');
+  var cuotaOpts='<option value="">Todas las cuotas</option>'+window._loanRows.map(function(r){return'<option value="'+r.i+'">Cuota '+r.i+' — '+r.date+'</option>';}).join('');
+  var inner='';
+  inner+='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:52px 16px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">';
+  inner+='<div style="display:flex;align-items:center;gap:12px">';
+  inner+='<button onclick="closeLoanAmortization()" style="background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:8px">←</button>';
+  inner+='<div><div style="font-size:17px;font-weight:800;color:var(--text)">Plan de amortización</div>';
+  inner+='<div style="font-size:11px;color:var(--text3)">'+(window._loanType?window._loanType.label:'Préstamo')+'</div></div>';
+  inner+='</div>';
+  inner+='<button onclick="downloadLoanTable()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)">⬇ CSV</button>';
+  inner+='</div>';
+  // Single scroll container — everything inside
+  inner+='<div style="flex:1;overflow-y:auto;padding:16px">';
+  // Summary card
+  inner+='<div class="card" style="margin-bottom:14px;padding:12px">';
+  inner+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  [{label:'Monto préstamo',val:fmt(d.P)},{label:'Valor cuota',val:fmt(d.cuota)},
+   {label:'Total intereses',val:fmt(d.interest)},{label:'Total a pagar',val:fmt(d.total)}
+  ].forEach(function(s){
+    var hi=s.label==='Total a pagar'||s.label==='Valor cuota';
+    inner+='<div style="text-align:center;padding:8px;background:var(--surface2);border-radius:var(--radius-sm)">';
+    inner+='<div style="font-size:9px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">'+s.label+'</div>';
+    inner+='<div style="font-size:12px;font-weight:800;color:'+(hi?'var(--primary)':'var(--text)')+';line-height:1.2;word-break:break-all">'+s.val+'</div>';
+    inner+='</div>';
+  });
+  inner+='</div>';
+  // Total cuotas + TAE/TEM row
+  inner+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">';
+  inner+='<div style="text-align:center;padding:8px;background:var(--surface2);border-radius:var(--radius-sm)">';
+  inner+='<div style="font-size:9px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Total cuotas</div>';
+  inner+='<div style="font-size:12px;font-weight:800;color:var(--warning)">'+d.n+' cuotas</div></div>';
+  inner+='<div style="padding:8px;background:var(--surface2);border-radius:var(--radius-sm);display:flex;align-items:center">';
+  inner+='<div style="flex:1;text-align:center">';
+  inner+='<div style="font-size:9px;color:var(--text2);margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px">TAE</div>';
+  inner+='<div style="font-size:11px;font-weight:800;color:var(--warning)">'+d.rPct.toFixed(2)+'%</div></div>';
+  inner+='<div style="width:1px;height:32px;background:var(--border)"></div>';
+  inner+='<div style="flex:1;text-align:center">';
+  inner+='<div style="font-size:9px;color:var(--text2);margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px">TEM</div>';
+  inner+='<div style="font-size:11px;font-weight:800;color:var(--primary)">'+d.tem.toFixed(2)+'%</div></div>';
+  inner+='</div></div></div>';
+  // Filters
+  inner+='<div style="display:flex;gap:8px;margin-bottom:12px;margin-top:14px">';
+  inner+='<select id="loan-filter-year" onchange="filterLoanYear()" class="form-select" style="flex:1;font-size:12px">'+yearOpts+'</select>';
+  inner+='<select id="loan-filter-cuota" onchange="renderLoanTable()" class="form-select" style="flex:1;font-size:12px">'+cuotaOpts+'</select>';
+  inner+='</div>';
+  // Table — NO inner scroll, outer container scrolls
+  inner+='<div class="card" style="padding:0;overflow:hidden;margin-bottom:20px">';
+  inner+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div style="min-width:320px">';
+  inner+='<div style="display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr;padding:8px 6px;background:var(--surface2);border-bottom:1px solid var(--border)">';
+  inner+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-align:center">#</div>';
+  inner+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-align:right;padding-right:4px">FECHA</div>';
+  inner+='<div style="font-size:9px;font-weight:700;color:var(--danger);text-align:right;padding-right:4px">INTERÉS</div>';
+  inner+='<div style="font-size:9px;font-weight:700;color:var(--success);text-align:right;padding-right:4px">CAPITAL</div>';
+  inner+='<div style="font-size:9px;font-weight:700;color:var(--text2);text-align:right;padding-right:4px">SALDO</div>';
+  inner+='</div>';
+  inner+='<div id="loan-amort-body"></div>';
+  inner+='</div></div></div>';
+  inner+='</div>'; // end single scroll container
+  screen.innerHTML=inner;
+  document.body.appendChild(screen);
+  renderLoanTable();
+}
+function filterLoanYear(){
+  var yearFilter=document.getElementById('loan-filter-year')?.value||'';
+  var rows=window._loanRows||[];
+  var sel=document.getElementById('loan-filter-cuota');
+  if(!sel)return;
+  var filtered=yearFilter?rows.filter(function(r){return r.year===parseInt(yearFilter);}):rows;
+  sel.innerHTML='<option value="">Todas las cuotas</option>'+filtered.map(function(r){
+    return'<option value="'+r.i+'">Cuota '+r.i+' — '+r.date+'</option>';
+  }).join('');
+  renderLoanTable();
+}
+function renderLoanTable(){
+  var rows=window._loanRows||[];
+  var yearFilter=document.getElementById('loan-filter-year')?.value||'';
+  var cuotaFilter=parseInt(document.getElementById('loan-filter-cuota')?.value)||0;
+  var filtered=rows.filter(function(r){
+    if(yearFilter&&r.year!==parseInt(yearFilter))return false;
+    if(cuotaFilter&&r.i!==cuotaFilter)return false;
+    return true;
+  });
+  var body=document.getElementById('loan-amort-body');
+  if(!body)return;
+  if(!filtered.length){body.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">Sin resultados</div>';return;}
+  body.innerHTML=filtered.map(function(r){
+    var isLast=r.bal<0.01;
+    var bg=isLast?'rgba(0,212,170,.07)':r.i%2===0?'transparent':'rgba(255,255,255,.02)';
+    return'<div style="display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr;padding:7px 6px;background:'+bg+';border-bottom:1px solid var(--border)'+(isLast?';border-bottom-color:rgba(0,212,170,.25)':'')+'">'
+      +'<div style="font-size:9px;font-weight:600;color:var(--text3);text-align:center;align-self:center">'+r.i+'</div>'
+      +'<div style="font-size:9px;color:var(--text2);text-align:right;padding-right:4px;align-self:center">'+r.date+'</div>'
+      +'<div style="font-size:9px;color:var(--danger);text-align:right;padding-right:4px;align-self:center">'+fmtSim(r.int)+'</div>'
+      +'<div style="font-size:9px;color:var(--success);text-align:right;padding-right:4px;align-self:center">'+fmtSim(r.cap)+'</div>'
+      +'<div style="font-size:9px;font-weight:'+(isLast?'800':'600')+';color:'+(isLast?'var(--primary)':'var(--text)')+';text-align:right;padding-right:4px;align-self:center">'+fmtSim(r.bal)+'</div>'
+      +'</div>';
+  }).join('');
+}
+function closeLoanAmortization(){
+  var s=document.getElementById('loan-amort-screen');
+  if(s)s.remove();
+}
+function downloadLoanTable(){
+  var rows=window._loanRows;
+  if(!rows||!rows.length){toast('Primero calcula el préstamo');return;}
+  var d=window._loanData;
+  var csv='Cuota,Fecha,Cuota mensual,Interés,Abono capital,Saldo restante\n';
+  rows.forEach(function(r){
+    csv+=r.i+','+r.date+','+r.cuota.toFixed(2)+','+r.int.toFixed(2)+','+r.cap.toFixed(2)+','+r.bal.toFixed(2)+'\n';
+  });
+  var a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='plan-amortizacion.csv';a.click();
+  toast('Plan descargado ✓');
+}
+function openSimDetail(){
+  var rows=window._simRows;
+  if(!rows||!rows.length){toast('Primero calcula la proyección');return;}
+  var existing=document.getElementById('sim-detail-screen');
+  if(existing)existing.remove();
+  var screen=document.createElement('div');
+  screen.id='sim-detail-screen';
+  screen.style.cssText='position:fixed;inset:0;z-index:210;background:var(--surface);display:flex;flex-direction:column;overflow:hidden;animation:fadeInPage .2s ease';
+  var inner='';
+  inner+='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:52px 16px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">';
+  inner+='<div style="display:flex;align-items:center;gap:12px">';
+  inner+='<button onclick="closeSimDetail()" style="background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:8px">←</button>';
+  inner+='<div style="font-size:17px;font-weight:800;color:var(--text)">Plan detallado</div>';
+  inner+='</div>';
+  inner+='<button onclick="simDownloadCSV()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)">⬇ CSV</button>';
+  inner+='</div>';
+  inner+='<div style="flex:1;overflow-y:auto;padding:16px">';
+  inner+='<div class="card" style="padding:0;overflow:hidden">';
+  inner+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><div style="min-width:300px">';
+  inner+='<div style="display:grid;grid-template-columns:38px 1fr 1fr 1fr 1fr;padding:8px 6px;background:var(--surface2);border-bottom:1px solid var(--border)">';
+  inner+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-align:center">MES</div>';
+  inner+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-align:right;padding-right:4px">INI.</div>';
+  inner+='<div style="font-size:9px;font-weight:700;color:var(--primary);text-align:right;padding-right:4px">ABONO</div>';
+  inner+='<div style="font-size:9px;font-weight:700;color:var(--success);text-align:right;padding-right:4px">REND.</div>';
+  inner+='<div style="font-size:9px;font-weight:700;color:var(--text2);text-align:right;padding-right:4px">FINAL</div>';
+  inner+='</div>';
+  inner+='<div style="max-height:none">';
+  inner+=rows.map(function(r,i){
+    var isYear=(i+1)%12===0;
+    var bg=isYear?'rgba(0,212,170,.07)':i%2===0?'transparent':'rgba(255,255,255,.02)';
+    return'<div style="display:grid;grid-template-columns:38px 1fr 1fr 1fr 1fr;padding:7px 6px;background:'+bg+';border-bottom:1px solid '+(isYear?'rgba(0,212,170,.25)':'var(--border)22')+'">'
+      +'<div style="font-size:9px;font-weight:'+(isYear?'800':'600')+';color:'+(isYear?'var(--primary)':'var(--text3)')+';text-align:center;align-self:center">'+r.label+'</div>'
+      +'<div style="font-size:9px;color:var(--text2);text-align:right;padding-right:4px;align-self:center">'+fmtSim(r.saldoIni)+'</div>'
+      +'<div style="font-size:9px;color:var(--primary);text-align:right;padding-right:4px;font-weight:700;align-self:center">+'+fmtSim(r.abono)+'</div>'
+      +'<div style="font-size:9px;color:var(--success);text-align:right;padding-right:4px;align-self:center">+'+fmtSim(r.rend)+'</div>'
+      +'<div style="font-size:9px;font-weight:'+(isYear?'800':'600')+';color:'+(isYear?'var(--primary)':'var(--text)')+';text-align:right;padding-right:4px;align-self:center">'+fmtSim(r.saldoFinal)+'</div>'
+      +'</div>';
+  }).join('');
+  inner+='</div></div></div></div>';
+  inner+='</div>';
+  screen.innerHTML=inner;
+  document.body.appendChild(screen);
+}
+function closeSimDetail(){
+  var s=document.getElementById('sim-detail-screen');
+  if(s)s.remove();
 }
 function renderSimulador(){
   const today=new Date();
@@ -2642,26 +2912,12 @@ function renderSimulador(){
       <div id="sim-bars" style="display:flex;align-items:flex-end;gap:3px;height:100px"></div>
     </div>
 
-    <!-- Tabla mensual -->
-    <div id="sim-table-wrap" style="display:none;margin-bottom:12px;margin-top:8px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:0 2px">
-        <div style="font-size:13px;font-weight:700;color:var(--text)">📋 Detalle mensual</div>
-        <button onclick="simDownloadCSV()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;color:var(--text);cursor:pointer;font-family:var(--font)">⬇ CSV</button>
-      </div>
-      <div class="card" style="padding:0;overflow:hidden">
-        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-          <div style="min-width:300px">
-            <div style="display:grid;grid-template-columns:38px 1fr 1fr 1fr 1fr;padding:8px 6px;background:var(--surface2);border-bottom:1px solid var(--border)">
-              <div style="font-size:9px;font-weight:700;color:var(--text3);text-align:center">MES</div>
-              <div style="font-size:9px;font-weight:700;color:var(--text3);text-align:right;padding-right:4px">INI.</div>
-              <div style="font-size:9px;font-weight:700;color:var(--primary);text-align:right;padding-right:4px">ABONO</div>
-              <div style="font-size:9px;font-weight:700;color:var(--success);text-align:right;padding-right:4px">REND.</div>
-              <div style="font-size:9px;font-weight:700;color:var(--text2);text-align:right;padding-right:4px">FINAL</div>
-            </div>
-            <div id="sim-table-body" style="max-height:300px;overflow-y:auto"></div>
-          </div>
-        </div>
-      </div>
+    <!-- Botón ver plan detallado -->
+    <div id="sim-detail-btn-wrap" style="display:none;margin-top:4px;margin-bottom:12px">
+      <button onclick="openSimDetail()" style="width:100%;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:14px;font-weight:700;color:var(--text);cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:space-between">
+        <span>📋 Ver plan detallado</span>
+        <span style="color:var(--primary);font-size:20px;font-weight:300">›</span>
+      </button>
     </div>
   `;
 }
@@ -2767,22 +3023,8 @@ function calcSim(){
     }
   }
   // Monthly table
-  const tableWrap=document.getElementById('sim-table-wrap');
-  const tableBody=document.getElementById('sim-table-body');
-  if(tableWrap&&tableBody){
-    tableWrap.style.display='block';
-    tableBody.innerHTML=rows.map((r,i)=>{
-      const isYear=(i+1)%12===0;
-      const bg=isYear?'rgba(0,212,170,.07)':i%2===0?'transparent':'rgba(255,255,255,.02)';
-      return`<div style="display:grid;grid-template-columns:38px 1fr 1fr 1fr 1fr;padding:7px 6px;background:${bg};border-bottom:1px solid ${isYear?'rgba(0,212,170,.25)':'var(--border)22'}">
-        <div style="font-size:9px;font-weight:${isYear?'800':'600'};color:${isYear?'var(--primary)':'var(--text3)'};text-align:center;align-self:center">${r.label}</div>
-        <div style="font-size:9px;color:var(--text2);text-align:right;padding-right:4px;align-self:center">${fmtSim(r.saldoIni)}</div>
-        <div style="font-size:9px;color:var(--primary);text-align:right;padding-right:4px;font-weight:700;align-self:center">+${fmtSim(r.abono)}</div>
-        <div style="font-size:9px;color:var(--success);text-align:right;padding-right:4px;align-self:center">+${fmtSim(r.rend)}</div>
-        <div style="font-size:9px;font-weight:${isYear?'800':'600'};color:${isYear?'var(--primary)':'var(--text)'};text-align:right;padding-right:4px;align-self:center">${fmtSim(r.saldoFinal)}</div>
-      </div>`;
-    }).join('');
-  }
+  const detailBtn=document.getElementById('sim-detail-btn-wrap');
+  if(detailBtn)detailBtn.style.display='block';
   window._simRows=rows;
   window._simMonthly=monthly;
 }
