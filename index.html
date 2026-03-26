@@ -2030,7 +2030,7 @@ function renderCatList(tab){
       html+='<span style="color:'+g.color+';font-size:24px;font-weight:300;line-height:1">\u203A</span>';
       html+='</div>';
     });
-    return html||'<div class="empty-state"><div class="empty-icon">\u{1F3F7}\uFE0F</div><div class="empty-title">Sin categorías de gasto</div></div>';
+    return html||'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías de gasto</div></div>';
   }
   if(tab==='ingreso'){
     var grpInc=[
@@ -2054,7 +2054,7 @@ function renderCatList(tab){
       grouped+='<span style="color:'+g.color+';font-size:24px;font-weight:300;line-height:1">\u203A</span>';
       grouped+='</div>';
     });
-    return grouped||'<div class="empty-state"><div class="empty-icon">\u{1F3F7}\uFE0F</div><div class="empty-title">Sin categorías de ingreso</div></div>';
+    return grouped||'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías de ingreso</div></div>';
   }
   if(tab==='transferencia'){
     var transCats=S.categories.filter(function(c){return c.type==='transferencia';});
@@ -2068,65 +2068,46 @@ function renderCatList(tab){
     th+='<span style="color:'+tcolor+';font-size:24px;font-weight:300;line-height:1">\u203A</span></div>';
     return th;
   }
-  return'<div class="empty-state"><div class="empty-icon">\u{1F3F7}\uFE0F</div><div class="empty-title">Sin categorías</div></div>';
+  return'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
 }
 function renderCatItem(cat){
-    const subs=S.subcategories.filter(s=>s.categoryId===cat.id);
-    const typeBadge=cat.type==='ingreso'?'badge-success':cat.type==='gasto'?'badge-danger':'badge-info';
-    const catDomId='catg-'+cat.id;
-    return`<div class="cat-group" style="border-left:4px solid ${cat.color||'var(--border)'}">
-      <div class="cat-group-header" onclick="toggleCatGroup('${catDomId}',this)" style="cursor:pointer">
-        <div class="cat-group-left">
-          <div style="width:38px;height:38px;border-radius:10px;background:${cat.color||'#64748B'}22;display:flex;align-items:center;justify-content:center;font-size:18px">${cat.icon}</div>
-          <div>
-            <div style="font-size:13px;font-weight:700">${cat.name}</div>
-            <span class="badge ${typeBadge}" style="font-size:9px">${cat.type==='ingreso'?'Ingreso':cat.type==='gasto'?'Gasto':'Transf.'}</span>
-            ${subs.length?`<span style="font-size:10px;color:var(--text3);margin-left:4px">${subs.length} subcats</span>`:''}
-          </div>
-        </div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <button class="btn-text" style="font-size:12px" onclick="event.stopPropagation();openModal('subcategory',{categoryId:'${cat.id}'})">+ Sub</button>
-          <button class="btn-del" onclick="event.stopPropagation();deleteCat('${cat.id}')">🗑</button>
-          <span class="cat-arrow" style="color:var(--text3);font-size:12px">▶</span>
-        </div>
-      </div>
-      <div id="${catDomId}" class="hidden">
-        ${subs.length?`<div class="subcat-list">${subs.map(s=>`<div class="subcat-item"><span>${s.icon} ${s.name}</span><div style="display:flex;gap:4px"><button class="btn-text" style="font-size:11px" onclick="openModal('editSubcategory',{id:'${s.id}'})">✏️</button><button class="btn-del" onclick="deleteSub('${s.id}')">✕</button></div></div>`).join('')}</div>`:''}
-      </div>
-    </div>`;
+  var subs=S.subcategories.filter(function(s){return s.categoryId===cat.id;});
+  var typeBadge=cat.type==='ingreso'?'badge-success':cat.type==='gasto'?'badge-danger':'badge-info';
+  var catDomId='catg-'+cat.id;
+  var q="'";
+  var h='<div class="cat-group" style="border-left:4px solid '+(cat.color||'var(--border)')+'">'+
+    '<div class="cat-group-header" onclick="toggleCatGroup('+q+catDomId+q+',this)" style="cursor:pointer">'+
+    '<div class="cat-group-left">'+
+    '<div style="width:38px;height:38px;border-radius:10px;background:'+(cat.color||'#64748B')+'22;display:flex;align-items:center;justify-content:center;font-size:18px">'+cat.icon+'</div>'+
+    '<div><div style="font-size:13px;font-weight:700">'+cat.name+'</div>'+
+    '<span class="badge '+typeBadge+'" style="font-size:9px">'+(cat.type==='ingreso'?'Ingreso':cat.type==='gasto'?'Gasto':'Transf.')+'</span>'+
+    (subs.length?'<span style="font-size:10px;color:var(--text3);margin-left:4px">'+subs.length+' subcats</span>':'')+
+    '</div></div>'+
+    '<div style="display:flex;gap:6px;align-items:center">'+
+    '<button class="btn-text" style="font-size:12px" onclick="event.stopPropagation();openModal('+q+'subcategory'+q+',{categoryId:'+q+cat.id+q+'})">+ Sub</button>'+
+    '<button class="btn-del" onclick="event.stopPropagation();deleteCat('+q+cat.id+q+')">🗑</button>'+
+    '<span class="cat-arrow" style="color:var(--text3);font-size:12px">▶</span>'+
+    '</div></div>'+
+    '<div id="'+catDomId+'" class="hidden">';
+  if(subs.length){
+    h+='<div class="subcat-list">';
+    subs.forEach(function(s){
+      h+='<div class="subcat-item"><span>'+s.icon+' '+s.name+'</span>'+
+        '<div style="display:flex;gap:4px">'+
+        '<button class="btn-text" style="font-size:11px" onclick="openModal('+q+'editSubcategory'+q+',{id:'+q+s.id+q+'})">✏️</button>'+
+        '<button class="btn-del" onclick="deleteSub('+q+s.id+q+')">✕</button>'+
+        '</div></div>';
+    });
+    h+='</div>';
+  }
+  h+='</div></div>';
+  return h;
 }
 function renderCategorias(){
-  return`
-    <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-      <button class="btn btn-primary btn-sm" onclick="openModal('category',{})">+ ${t('newCategory')||'Nueva categoría'}</button>
-    </div>
-    ${!S.categories.length?'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>':
-    S.categories.map(cat=>{
-      const subs=S.subcategories.filter(s=>s.categoryId===cat.id);
-      const typeBadge=cat.type==='ingreso'?'badge-success':cat.type==='gasto'?'badge-danger':'badge-info';
-      const catDomId='catg-'+cat.id;
-      return`<div class="cat-group" style="border-left:4px solid ${cat.color||'var(--border)'}">
-        <div class="cat-group-header" onclick="toggleCatGroup('${catDomId}',this)" style="cursor:pointer">
-          <div class="cat-group-left">
-            <div style="width:38px;height:38px;border-radius:10px;background:${cat.color||'#64748B'}22;display:flex;align-items:center;justify-content:center;font-size:18px">${cat.icon}</div>
-            <div>
-              <div style="font-size:13px;font-weight:700">${cat.name}</div>
-              <span class="badge ${typeBadge}" style="font-size:9px">${cat.type==='ingreso'?'Ingreso':cat.type==='gasto'?'Gasto':'Transf.'}</span>
-              ${subs.length?`<span style="font-size:10px;color:var(--text3);margin-left:4px">${subs.length} subcats</span>`:''}
-            </div>
-          </div>
-          <div style="display:flex;gap:6px;align-items:center">
-            <button class="btn-text" style="font-size:12px" onclick="event.stopPropagation();openModal('subcategory',{categoryId:'${cat.id}'})">+ Sub</button>
-            <button class="btn-del" onclick="event.stopPropagation();deleteCat('${cat.id}')">🗑</button>
-            <span class="cat-arrow" style="color:var(--text3);font-size:12px">▶</span>
-          </div>
-        </div>
-        <div id="${catDomId}" class="hidden">
-          ${subs.length?`<div class="subcat-list">${subs.map(s=>`<div class="subcat-item"><span>${s.icon} ${s.name}</span><div style="display:flex;gap:4px"><button class="btn-text" style="font-size:11px" onclick="openModal('editSubcategory',{id:'${s.id}'})">✏️</button><button class="btn-del" onclick="deleteSub('${s.id}')">✕</button></div></div>`).join('')}</div>`:''}
-        </div>
-      </div>`;
-    }).join('')}
-  `;
+  var btn='<div style="display:flex;justify-content:flex-end;margin-bottom:12px">'+
+    '<button class="btn btn-primary btn-sm" onclick="openModal(\'category\',{})">+ '+(t('newCategory')||'Nueva categoría')+'</button></div>';
+  if(!S.categories.length)return btn+'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
+  return btn+S.categories.map(function(cat){return renderCatItem(cat);}).join('');
 }
 function toggleCatSection(secId){
   var el=document.getElementById(secId);
@@ -2673,7 +2654,8 @@ function openLoanAmortization(){
   inner+='<button onclick="downloadLoanTable()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)">⬇ CSV</button>';
   inner+='</div>';
   // Single scroll container — everything inside
-  inner+='<div style="flex:1;overflow-y:auto;padding:16px">';
+  inner+='<div style="display:flex;flex-direction:column;flex:1;overflow:hidden">';
+  inner+='<div style="padding:16px 16px 0;flex-shrink:0">';
   // Summary card
   inner+='<div class="card" style="margin-bottom:14px;padding:12px">';
   inner+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
@@ -2701,14 +2683,17 @@ function openLoanAmortization(){
   inner+='<div style="font-size:9px;color:var(--text2);margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px">TEM</div>';
   inner+='<div style="font-size:11px;font-weight:800;color:var(--primary)">'+d.tem.toFixed(2)+'%</div></div>';
   inner+='</div></div></div>';
-  inner+='</div>'; // end scroll (summary only)
-  // Filters + table outside scroll — fixed below summary
-  inner+='<div style="display:flex;flex-direction:column;flex:1;overflow:hidden;padding:0 16px 16px">';
-  inner+='<div style="display:flex;gap:8px;margin-bottom:10px;flex-shrink:0">';
-  inner+='<select id="loan-filter-year" onchange="filterLoanYear()" class="form-select" style="flex:1;font-size:12px">'+yearOpts+'</select>';
-  inner+='<select id="loan-filter-cuota" onchange="renderLoanTable()" class="form-select" style="flex:1;font-size:12px">'+cuotaOpts+'</select>';
+  inner+='</div>'; // end summary padding
+  // Filters + table — same flex column, no gap
+  inner+='<div style="display:flex;gap:8px;margin:10px 16px 8px;flex-shrink:0">';
+  inner+='<button id="loan-yr-btn" class="bs-trigger" onclick="showLoanFilterBS(\'year\')" style="flex:1;font-size:12px;justify-content:space-between">';
+  inner+='<span id="loan-yr-lbl" style="color:var(--text2)">Todos los años</span><span style="color:var(--text3)">›</span></button>';
+  inner+='<button id="loan-qt-btn" class="bs-trigger" onclick="showLoanFilterBS(\'cuota\')" style="flex:1;font-size:12px;justify-content:space-between">';
+  inner+='<span id="loan-qt-lbl" style="color:var(--text2)">Todas las cuotas</span><span style="color:var(--text3)">›</span></button>';
   inner+='</div>';
-  inner+='<div class="card" style="padding:0;overflow:hidden;flex:1;display:flex;flex-direction:column">';
+  inner+='<input type="hidden" id="loan-filter-year" value="">';
+  inner+='<input type="hidden" id="loan-filter-cuota" value="">';
+  inner+='<div class="card" style="padding:0;overflow:hidden;flex:1;display:flex;flex-direction:column;margin:0 16px 16px">';
   inner+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0">';
   inner+='<div style="min-width:320px;display:grid;grid-template-columns:36px 1fr 1fr 1fr 1fr;padding:8px 6px;background:var(--surface2);border-bottom:2px solid var(--border)">';
   inner+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-align:center">#</div>';
@@ -2723,15 +2708,57 @@ function openLoanAmortization(){
   document.body.appendChild(screen);
   renderLoanTable();
 }
+function showLoanFilterBS(type){
+  var rows=window._loanRows||[];
+  if(type==='year'){
+    var years=[...new Set(rows.map(function(r){return r.year;}))];
+    var items=[{val:'',label:'Todos los años'}].concat(years.map(function(y){return{val:String(y),label:String(y)};}));
+    var cur=document.getElementById('loan-filter-year')?.value||'';
+    showBottomSheet({title:'Filtrar por año',items:items,selected:cur,onSelect:function(val){
+      var lbl=document.getElementById('loan-yr-lbl');
+      if(lbl)lbl.textContent=val?val:'Todos los años';
+      lbl&&(lbl.style.color=val?'var(--text)':'var(--text2)');
+      var inp=document.getElementById('loan-filter-year');
+      if(inp)inp.value=val;
+      filterLoanYear();
+    }});
+  } else {
+    var yearFilter=document.getElementById('loan-filter-year')?.value||'';
+    var filtered=yearFilter?rows.filter(function(r){return r.year===parseInt(yearFilter);}):rows;
+    var items2=[{val:'',label:'Todas las cuotas'}].concat(filtered.map(function(r){return{val:String(r.i),label:'Cuota '+r.i+' — '+r.date};}));
+    var cur2=document.getElementById('loan-filter-cuota')?.value||'';
+    showBottomSheet({title:'Filtrar por cuota',items:items2,selected:cur2,onSelect:function(val){
+      var lbl=document.getElementById('loan-qt-lbl');
+      if(lbl)lbl.textContent=val?('Cuota '+val):'Todas las cuotas';
+      lbl&&(lbl.style.color=val?'var(--text)':'var(--text2)');
+      var inp=document.getElementById('loan-filter-cuota');
+      if(inp)inp.value=val;
+      renderLoanTable();
+    }});
+  }
+}
+function showSimFilterBS(){
+  var rows=window._simRows||[];
+  var years=[...new Set(rows.map(function(r){var y=r.label.split('-')[1];return y?'20'+y:'';}))].filter(Boolean);
+  var items=[{val:'',label:'Todos los meses'}].concat(years.map(function(y){return{val:y,label:y};}));
+  var cur=document.getElementById('sim-filter-year')?.value||'';
+  showBottomSheet({title:'Filtrar por año',items:items,selected:cur,onSelect:function(val){
+    var lbl=document.getElementById('sim-yr-lbl');
+    if(lbl)lbl.textContent=val?val:'Todos los meses';
+    lbl&&(lbl.style.color=val?'var(--text)':'var(--text2)');
+    var inp=document.getElementById('sim-filter-year');
+    if(inp)inp.value=val;
+    renderSimDetailTable();
+  }});
+}
 function filterLoanYear(){
   var yearFilter=document.getElementById('loan-filter-year')?.value||'';
   var rows=window._loanRows||[];
-  var sel=document.getElementById('loan-filter-cuota');
-  if(!sel)return;
-  var filtered=yearFilter?rows.filter(function(r){return r.year===parseInt(yearFilter);}):rows;
-  sel.innerHTML='<option value="">Todas las cuotas</option>'+filtered.map(function(r){
-    return'<option value="'+r.i+'">Cuota '+r.i+' — '+r.date+'</option>';
-  }).join('');
+  // Reset cuota filter when year changes
+  var qtInp=document.getElementById('loan-filter-cuota');
+  var qtLbl=document.getElementById('loan-qt-lbl');
+  if(qtInp)qtInp.value='';
+  if(qtLbl){qtLbl.textContent='Todas las cuotas';qtLbl.style.color='var(--text2)';}
   renderLoanTable();
 }
 function renderLoanTable(){
@@ -2796,7 +2823,8 @@ function openSimDetail(){
   inner+='<button onclick="simDownloadCSV()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)">⬇ CSV</button>';
   inner+='</div>';
   // Single scroll container
-  inner+='<div style="flex:1;overflow-y:auto;padding:16px">';
+  inner+='<div style="display:flex;flex-direction:column;flex:1;overflow:hidden">';
+  inner+='<div style="padding:16px 16px 0;flex-shrink:0">';
   // Summary card
   if(d.initial!==undefined){
     var tem=d.annualRate?((Math.pow(1+d.annualRate/100,1/12)-1)*100).toFixed(2)+'%':'—';
@@ -2828,13 +2856,13 @@ function openSimDetail(){
     inner+='<div style="font-size:11px;font-weight:800;color:var(--primary)">'+tem+'</div></div>';
     inner+='</div></div></div>';
   }
-  inner+='</div>'; // end scroll (summary only)
-  // Filter + table outside scroll — fixed below summary
-  inner+='<div style="display:flex;flex-direction:column;flex:1;overflow:hidden;padding:0 16px 16px">';
-  inner+='<div style="margin-bottom:10px;flex-shrink:0">';
-  inner+='<select id="sim-filter-year" onchange="renderSimDetailTable()" class="form-select" style="width:100%;font-size:13px">'+yearOpts+'</select>';
+  inner+='</div>'; // end summary padding
+  inner+='<div style="margin:10px 16px 8px;flex-shrink:0">';
+  inner+='<button id="sim-yr-btn" class="bs-trigger" onclick="showSimFilterBS()" style="width:100%;font-size:13px;justify-content:space-between">';
+  inner+='<span id="sim-yr-lbl" style="color:var(--text2)">Todos los meses</span><span style="color:var(--text3)">›</span></button>';
+  inner+='<input type="hidden" id="sim-filter-year" value="">';
   inner+='</div>';
-  inner+='<div class="card" style="padding:0;overflow:hidden;flex:1;display:flex;flex-direction:column">';
+  inner+='<div class="card" style="padding:0;overflow:hidden;flex:1;display:flex;flex-direction:column;margin:0 16px 16px">';
   inner+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0">';
   inner+='<div style="min-width:300px;display:grid;grid-template-columns:38px 1fr 1fr 1fr 1fr;padding:8px 6px;background:var(--surface2);border-bottom:2px solid var(--border)">';
   inner+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-align:center">MES</div>';
