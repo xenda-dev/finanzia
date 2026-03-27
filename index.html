@@ -3088,69 +3088,85 @@ function _calcTestData(){
   };
 }
 function _autoSelectTest(d){
-  // Returns {qId: optIdx} for questions we can auto-calculate, plus a note
   var auto={};
-  var MIN_TX=3; // minimum transactions to trust data
+  var MIN_TX=5; // minimum transactions to trust averages
 
-  // Q1: Has budget
-  if(d.hasBudget!==undefined){
-    auto[1]={idx:0,note:'Detectamos '+S.budgets.length+' presupuesto(s) activo(s)'};
+  // Q1: Has budget — always calculable (we know if budgets exist)
+  // hasBudget=true → "Sí, y lo sigo" | false → "No tengo presupuesto"
+  if(d.hasBudget){
+    auto[1]={idx:0,note:'Detectamos '+S.budgets.length+' presupuesto(s) activo(s) en la app'};
+  } else {
+    auto[1]={idx:2,note:'No hay presupuestos registrados en la app'};
   }
 
-  // Q3: How month ends (needs transactions)
-  if(d.hasTransactions&&d.monthInc>0){
+  // Q3: How month ends — only if enough transactions this month (both income AND expenses)
+  var hasMonthData=d.monthInc>0&&d.monthExp>0&&d.hasTransactions;
+  if(hasMonthData){
     var diff=d.monthInc-d.monthExp;
     var pct=diff/d.monthInc*100;
-    if(pct>15)auto[3]={idx:0,note:'Este mes: ingresos '+fmt(d.monthInc)+', gastos '+fmt(d.monthExp)};
-    else if(pct>0)auto[3]={idx:1,note:'Este mes: ingresos '+fmt(d.monthInc)+', gastos '+fmt(d.monthExp)};
-    else if(pct>-5)auto[3]={idx:2,note:'Este mes: ingresos '+fmt(d.monthInc)+', gastos '+fmt(d.monthExp)};
+    var note3='Este mes: ingresos '+fmt(d.monthInc)+', gastos '+fmt(d.monthExp);
+    if(pct>15)auto[3]={idx:0,note:note3};
+    else if(pct>0)auto[3]={idx:1,note:note3};
+    else if(pct>=-5)auto[3]={idx:2,note:note3};
     else auto[3]={idx:3,note:'Este mes gastos ('+fmt(d.monthExp)+') superan ingresos ('+fmt(d.monthInc)+')'};
   }
 
-  // Q4: Savings rate
-  if(d.savingsRate!==null&&d.monthInc>0){
+  // Q4: Savings rate — only if enough tx AND income this month
+  // Using income vs expenses ratio (not just savings category, which may be incomplete)
+  if(d.monthInc>0&&d.hasTransactions&&d.savingsRate!==null){
     var sr=d.savingsRate;
-    var note='Calculado: '+(sr>0?Math.round(sr)+'% de ahorro este mes':'Gastos >= Ingresos este mes');
-    if(sr>20)auto[4]={idx:0,note:note};
-    else if(sr>=10)auto[4]={idx:1,note:note};
-    else if(sr>0)auto[4]={idx:2,note:note};
-    else if(sr===0)auto[4]={idx:3,note:note};
-    else auto[4]={idx:4,note:note};
+    var note4='Basado en ingresos vs gastos este mes: '+(sr>0?Math.round(sr)+'% disponible':'gastos >= ingresos');
+    if(sr>20)auto[4]={idx:0,note:note4};
+    else if(sr>=10)auto[4]={idx:1,note:note4};
+    else if(sr>0)auto[4]={idx:2,note:note4};
+    else if(sr===0)auto[4]={idx:3,note:note4};
+    else auto[4]={idx:4,note:note4};
   }
 
-  // Q5: Can cover 1.000 emergency
-  if(d.totalAssets!==null){
+  // Q5: Can cover emergency — only if user has registered accounts
+  var hasAccounts=S.accounts&&S.accounts.filter(function(a){
+    return a.type==='activo'&&(a.currency||S.currency)===S.currency;
+  }).length>0;
+  if(hasAccounts){
     var ref=1000;
-    var note5='Saldo total en cuentas: '+fmt(d.totalAssets);
+    var note5='Saldo total en cuentas registradas: '+fmt(d.totalAssets);
     if(d.totalAssets>ref*3)auto[5]={idx:0,note:note5};
     else if(d.totalAssets>ref)auto[5]={idx:1,note:note5};
     else if(d.totalAssets>0)auto[5]={idx:2,note:note5};
-    else auto[5]={idx:3,note:note5};
+    else auto[5]={idx:3,note:note5+' (puede tener ahorros externos no registrados)'};
   }
 
-  // Q7: Debt ratio
-  if(d.debtRatio!==null&&d.avgInc>0){
-    var note7='Pagos deuda: '+fmt(d.debtPayments)+'/mes vs ingresos prom. '+fmt(d.avgInc);
-    if(d.debtPayments===0)auto[7]={idx:0,note:'No hay deudas registradas en la app'};
-    else if(d.debtRatio<5)auto[7]={idx:1,note:note7};
-    else if(d.debtRatio<=10)auto[7]={idx:2,note:note7};
-    else auto[7]={idx:3,note:note7};
+  // Q7: Debt ratio — only if debts are registered AND income average is reliable
+  var hasDebts=S.debts&&S.debts.filter(function(dbt){
+    return(dbt.currency||S.currency)===S.currency;
+  }).length>0;
+  if(hasDebts&&d.avgInc>0&&d.hasTransactions){
+    var note7='Pagos deuda registrados: '+fmt(d.debtPayments)+'/mes · Ingresos prom: '+fmt(d.avgInc);
+    if(d.debtPayments===0)auto[7]={idx:0,note:'Deudas registradas sin cuota mensual asignada'};
+    else if(d.debtRatio<5)auto[7]={idx:1,note:note7+' ('+Math.round(d.debtRatio)+'%)'};
+    else if(d.debtRatio<=10)auto[7]={idx:2,note:note7+' ('+Math.round(d.debtRatio)+'%)'};
+    else auto[7]={idx:3,note:note7+' ('+Math.round(d.debtRatio)+'%)'};
   }
 
-  // Q10: Emergency fund
-  if(d.emergencyMonths!==null&&d.avgExp>0){
-    var note10='Cobertura estimada: '+d.emergencyMonths.toFixed(1)+' meses (saldo/gasto prom.)';
-    if(d.emergencyMonths>=3)auto[10]={idx:0,note:note10};
-    else if(d.emergencyMonths>=1)auto[10]={idx:1,note:note10};
-    else if(d.emergencyMonths>0)auto[10]={idx:2,note:note10};
+  // Q10 & Q11: Emergency fund / months without income
+  // Only if: accounts registered + enough expense transactions to trust avgExp
+  var recentExpTxs=S.transactions.filter(function(t){
+    var now=new Date();
+    var d2=new Date(t.date);
+    var mo=(now.getFullYear()-d2.getFullYear())*12+(now.getMonth()-d2.getMonth());
+    return t.type==='gasto'&&t.currency===S.currency&&mo>=0&&mo<=2;
+  }).length;
+  if(hasAccounts&&recentExpTxs>=MIN_TX&&d.avgExp>0){
+    var em=d.emergencyMonths;
+    var note10='Cobertura estimada: '+em.toFixed(1)+' meses (saldo '+fmt(d.totalAssets)+' / gasto prom. '+fmt(d.avgExp)+')';
+    if(em>=3)auto[10]={idx:0,note:note10};
+    else if(em>=1)auto[10]={idx:1,note:note10};
+    else if(em>0)auto[10]={idx:2,note:note10};
     else auto[10]={idx:3,note:note10};
-  }
 
-  // Q11: Months without income
-  if(d.emergencyMonths!==null&&d.avgExp>0){
-    var note11='Reservas para ~'+d.emergencyMonths.toFixed(1)+' meses sin ingresos';
-    if(d.emergencyMonths>=3)auto[11]={idx:0,note:note11};
-    else if(d.emergencyMonths>=1)auto[11]={idx:1,note:note11};
+    var note11='Reservas estimadas para ~'+em.toFixed(1)+' mes'+(em!==1?'es':'');
+    if(em>=3)auto[11]={idx:0,note:note11};
+    else if(em>=1)auto[11]={idx:1,note:note11};
     else auto[11]={idx:2,note:note11};
   }
 
