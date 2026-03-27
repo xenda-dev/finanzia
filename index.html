@@ -3246,6 +3246,52 @@ function reformatNumFields(){
     }
   });
 }
+// Thousands+decimal format without currency symbol (for tipo de cambio amount field)
+function cambioAmountFmt(v){
+  var info=_getLocaleInfo();
+  var hasDecimals=Math.abs(v-Math.round(v))>0.005;
+  var dec=hasDecimals?2:0;
+  try{return new Intl.NumberFormat(info.locale,{useGrouping:true,minimumFractionDigits:dec,maximumFractionDigits:dec}).format(v);}
+  catch(e){return v.toFixed(dec);}
+}
+// LTR formatter for cambio-amount: miles automáticos, decimales opcionales, sin símbolo
+function cambioInput(el){
+  var raw=el.value;
+  if(!raw){return;}
+  var info=_getLocaleInfo();
+  var decSep=info.decSep;
+  var otherSep=decSep===','?'.':',';
+  var hasDecPart=false,decDigits='',intStr='';
+  var locDecIdx=raw.lastIndexOf(decSep);
+  if(locDecIdx>-1){
+    hasDecPart=true;
+    decDigits=raw.slice(locDecIdx+1).replace(/\D/g,'').slice(0,2);
+    intStr=raw.slice(0,locDecIdx).replace(/\D/g,'');
+  } else {
+    var otherIdx=raw.lastIndexOf(otherSep);
+    if(otherIdx>-1){
+      var afterOther=raw.slice(otherIdx+1).replace(/\D/g,'');
+      var countOther=(raw.match(new RegExp('\\'+otherSep,'g'))||[]).length;
+      if(countOther===1&&afterOther.length<3){
+        hasDecPart=true;
+        decDigits=afterOther;
+        intStr=raw.slice(0,otherIdx).replace(/\D/g,'');
+      } else {
+        intStr=raw.replace(/\D/g,'');
+      }
+    } else {
+      intStr=raw.replace(/\D/g,'');
+    }
+  }
+  if(!intStr&&!hasDecPart){el.value='';return;}
+  var intNum=parseInt(intStr||'0')||0;
+  var formatted;
+  try{formatted=new Intl.NumberFormat(info.locale,{useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0}).format(intNum);}
+  catch(e){formatted=intNum.toString();}
+  if(hasDecPart)formatted+=decSep+decDigits;
+  el.value=formatted;
+  try{var l=formatted.length;el.setSelectionRange(l,l);}catch(e){}
+}
 function simDownloadCSV(){
   const rows=window._simRows;
   if(!rows||!rows.length){toast('Primero calcula la proyección');return;}
@@ -3485,7 +3531,7 @@ function renderCambio(){
       +'<div class="card-title">💱 Tipo de cambio</div>'
       +'<div class="form-group" style="margin-bottom:0">'
         +'<label class="form-label">Monto</label>'
-        +'<input class="form-input" type="text" inputmode="numeric" id="cambio-amount" data-numfmt="num" placeholder="Ej: 1.000" oninput="numInput(this);calcAllCambio()" value="'+(window._cambioAmount?fmtSim(window._cambioAmount):'')+'">'
+        +'<input class="form-input" type="text" inputmode="decimal" id="cambio-amount" placeholder="Ej: 1.000" oninput="cambioInput(this);calcAllCambio()" value="'+(window._cambioAmount?cambioAmountFmt(window._cambioAmount):'')+'">'
       +'</div>'
     +'</div>'
     +rowsHtml
