@@ -323,10 +323,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </nav>
 <div class="header">
-  <button class="btn-icon" onclick="openDrawer()">
+  <button class="btn-icon" onclick="openDrawer()" id="header-menu">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
-  <div class="header-title"><span style="color:var(--text)">Finanz</span><span style="color:var(--primary)">IA</span></div>
+  <button class="btn-icon" onclick="goBack()" id="header-back" style="display:none">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <div id="header-brand" style="display:flex;align-items:center"><span style="color:var(--text)">Finanz</span><span style="color:var(--primary)">IA</span></div>
+  <div id="header-title" style="display:none;font-size:16px;font-weight:800;color:var(--text);flex:1;text-align:center;margin-right:36px"></div>
   <div class="header-right">
     <div class="currency-toggle" id="currency-toggle">
       <button class="cur-btn active" data-cur="PLN" onclick="setCurrency('PLN')">PLN</button>
@@ -354,6 +358,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div id="page-listas" class="page"></div>
   <div id="page-inversiones" class="page"></div>
   <div id="page-simuladores" class="page"></div>
+  <div id="page-test" class="page"></div>
   <div id="page-jubilacion" class="page"></div>
   <div id="page-emergencia" class="page"></div>
   <div id="page-inflacion" class="page"></div>
@@ -924,7 +929,10 @@ function refreshCurrencyToggle(){
 // ════════════════════════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════════════════════════
+var _navHistory=[];
 function navigate(page){
+  if(S.currentPage&&S.currentPage!==page)_navHistory.push(S.currentPage);
+  if(_navHistory.length>20)_navHistory.shift();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
   S.currentPage=page;
@@ -933,6 +941,34 @@ function navigate(page){
   renderPage(page);
   closeDrawer();
   refreshCurrencyToggle();
+  _updateHeader(page);
+}
+function goBack(){
+  var prev=_navHistory.pop();
+  if(prev)navigate(prev);
+  else navigate('dashboard');
+}
+var _PAGE_LABELS={
+  movimientos:'Movimientos',cuentas:'Cuentas',presupuestos:'Presupuestos',
+  metas:'Metas',pagos:'Pagos programados',deudas:'Deudas',
+  analisis:'Análisis',categorias:'Categorías',configuracion:'Configuración',
+  herramientas:'Emiliano IA',calculadora:'Créditos',simulador:'Ahorro',
+  simuladores:'Simuladores',jubilacion:'Jubilación',emergencia:'Emergencia',
+  inflacion:'Inflación',rentabilidad:'Rentabilidad',
+  estrategia:'Estrategia deudas',cambio:'Tipo de cambio',
+  listas:'Listas de compra',inversiones:'Inversiones',
+  test:'Test de salud financiera'
+};
+function _updateHeader(page){
+  var hTitle=document.getElementById('header-title');
+  var hBack=document.getElementById('header-back');
+  var hBrand=document.getElementById('header-brand');
+  if(!hTitle||!hBack||!hBrand)return;
+  var isDash=page==='dashboard';
+  hBrand.style.display=isDash?'flex':'none';
+  hTitle.style.display=isDash?'none':'flex';
+  hBack.style.display=isDash?'none':'flex';
+  if(!isDash)hTitle.textContent=_PAGE_LABELS[page]||page;
 }
 function renderPage(page){
   const el=document.getElementById('page-'+page);
@@ -960,6 +996,7 @@ function renderPage(page){
     case'cambio':el.innerHTML=renderCambio();break;
     case'listas':el.innerHTML=renderListas();break;
     case'inversiones':el.innerHTML=renderInversiones();break;
+    case'test':el.innerHTML=renderTest();break;
   }
 }
 function initExchangeWidget(){
@@ -992,6 +1029,7 @@ var DRAWER_GROUPS={
     items:[
       {icon:'🤖',label:'Emiliano IA',page:'herramientas'},
       {icon:'📊',label:'Simuladores',page:'simuladores'},
+      {icon:'🏥',label:'Salud financiera',page:'test'},
       {icon:'❄️',label:'Estrategia deudas',page:'estrategia'},
       {icon:'💱',label:'Tipo de cambio',page:'cambio'},
       {icon:'🛒',label:'Listas de compra',page:'listas'},
@@ -2941,6 +2979,386 @@ function calcRentabilidad(){
   }
 }
 
+// ════════════════════════════════════════════════════════════
+// TEST DE SALUD FINANCIERA
+// ════════════════════════════════════════════════════════════
+var TEST_QUESTIONS=[
+  {id:1,cat:'Ahorro y Finanzas',q:'¿Tienes un presupuesto mensual?',
+   opts:['Sí, y lo sigo todos los meses','Sí, pero no siempre lo cumplo','No tengo un presupuesto'],pts:[6,3,0]},
+  {id:2,cat:'Ahorro y Finanzas',q:'¿Has tenido problemas para pagar recibos y gastos fijos en el último año?',
+   opts:['Nunca','Algunas veces','Con frecuencia','Casi siempre'],pts:[6,4,1,0]},
+  {id:3,cat:'Ahorro y Finanzas',q:'¿Cómo terminas el mes financieramente?',
+   opts:['Siempre me sobra y lo ahorro','Me sobra algo de dinero','Gasto todo lo que ingreso','Gasto más de lo que ingreso'],pts:[6,4,1,0]},
+  {id:4,cat:'Ahorro y Finanzas',q:'¿Qué porcentaje de tus ingresos ahorras mensualmente?',
+   opts:['Más de 20% (ideal automático)','Entre 10% y 20%','Menos de 10%','Solo si sobra algo','No ahorro / No lo sé'],pts:[6,4,2,1,0]},
+  {id:5,cat:'Inversión y Gestión de Gastos',q:'Si hoy tuvieras un gasto imprevisto de 1.000, ¿cómo lo afrontarías?',
+   opts:['Lo pago sin problema con mis ahorros','Podría preocuparme un poco','Tendría que pedir prestado parcialmente','Casi seguro tendría que endeudarme'],pts:[6,4,1,0]},
+  {id:6,cat:'Inversión y Gestión de Gastos',q:'¿Llevas un registro detallado de tus gastos?',
+   opts:['Sí, registro cada pago','Anoto lo más importante','Tengo idea general','No controlo mis gastos'],pts:[6,4,2,0]},
+  {id:7,cat:'Protección',q:'¿Qué porcentaje de tus ingresos va destinado a deudas (sin hipoteca)?',
+   opts:['No tengo deudas','Menos del 5%','Entre el 5% y 10%','Más del 10%','No lo sé'],pts:[6,5,3,0,1]},
+  {id:8,cat:'Protección',q:'¿Cómo gestionas tu tarjeta de crédito?',
+   opts:['Pago todo a fin de mes','Pago una cuota mensual','Pago el mínimo','No tengo tarjeta / No lo sé'],pts:[6,3,0,4]},
+  {id:9,cat:'Futuro e Inversión',q:'¿Inviertes actualmente parte de tus ahorros?',
+   opts:['Sí, en bolsa/fondos/planes','En depósitos o cuentas remuneradas','Aún no invierto'],pts:[6,4,0]},
+  {id:10,cat:'Futuro e Inversión',q:'¿Tienes un fondo de emergencia o seguro para imprevistos?',
+   opts:['Sí, completo y actualizado','Algo ahorrado o seguro básico','Poco o insuficiente','Nada previsto'],pts:[6,4,1,0]},
+  {id:11,cat:'Futuro e Inversión',q:'¿Podrías afrontar varios meses sin ingresos?',
+   opts:['Sí, al menos 3 meses cubiertos','Solo 1 mes','Ninguno'],pts:[6,3,0]},
+  {id:12,cat:'Planificación y Jubilación',q:'¿Tu familia podría mantener su nivel de vida sin tus ingresos?',
+   opts:['Sí, con ahorro o seguro','No'],pts:[5,0]},
+  {id:13,cat:'Planificación y Jubilación',q:'¿Podrías seguir pagando la hipoteca/arriendo sin tus ingresos?',
+   opts:['Sí, con colchón o seguro','No'],pts:[5,0]},
+  {id:14,cat:'Planificación y Jubilación',q:'¿Te ves cumpliendo tus objetivos financieros actuales?',
+   opts:['Totalmente de acuerdo','Bastante de acuerdo','Neutral','Poco de acuerdo','No lo sé'],pts:[6,4,2,1,0]},
+  {id:15,cat:'Planificación y Jubilación',q:'¿Confías en mantener tu nivel de vida al jubilarte?',
+   opts:['Sí','Parcialmente','No'],pts:[6,3,0]},
+  {id:16,cat:'Planificación y Jubilación',q:'¿Qué parte de tus gastos cubriría un 3% anual de tus inversiones?',
+   opts:['Todos mis gastos','Gastos fijos + alimentación','Gastos básicos','Pequeños gastos','Nada'],pts:[6,4,2,1,0]},
+  {id:17,cat:'Planificación y Jubilación',q:'¿Planificas tus gastos y objetivos con antelación?',
+   opts:['Totalmente de acuerdo','Bastante de acuerdo','Neutral','Poco de acuerdo','No lo hago'],pts:[6,4,2,1,0]},
+  {id:18,cat:'Planificación y Jubilación',q:'¿Tus finanzas están controladas a largo plazo?',
+   opts:['Totalmente de acuerdo','Bastante de acuerdo','Neutral','Poco de acuerdo','No lo sé'],pts:[6,4,2,1,0]}
+];
+var TEST_LEVELS=[
+  {min:0,max:24,emoji:'🔴',label:'Salud Financiera Precaria',color:'#EF4444',
+   desc:'Tu situación financiera requiere atención inmediata. Es fundamental establecer un presupuesto, crear un fondo de emergencia y buscar asesoramiento profesional.',
+   actions:['Crea un presupuesto básico: anota todos tus ingresos y gastos durante 1 mes','Elimina gastos innecesarios (suscripciones, comidas fuera, compras impulsivas)','Evita nuevas deudas y paga preferiblemente en efectivo o débito','Negocia con acreedores si tienes deudas impagadas','Busca aumentar ingresos: trabajo adicional o venta de artículos','Consulta con un asesor financiero o servicio de ayuda de deudas']},
+  {min:25,max:40,emoji:'🟠',label:'Salud Financiera Preocupante',color:'#F97316',
+   desc:'Estás en una situación frágil. Necesitas construir bases financieras sólidas y desarrollar mejores hábitos de ahorro.',
+   actions:['Establece un presupuesto mensual realista y síguelo','Crea un fondo de emergencia inicial (mínimo 1 mes de gastos)','Prioriza el pago de deudas con intereses altos','Automatiza un ahorro mínimo mensual aunque sea pequeño','Aprende educación financiera básica: libros, podcasts, cursos gratuitos']},
+  {min:41,max:59,emoji:'🟡',label:'Salud Financiera Buena',color:'#EAB308',
+   desc:'Tienes bases sólidas pero hay margen importante de mejora. Es momento de optimizar y establecer objetivos más ambiciosos.',
+   actions:['Aumenta tu fondo de emergencia (objetivo: 3-6 meses de gastos)','Establece objetivos financieros a corto, medio y largo plazo','Comienza a invertir si aún no lo haces (fondos indexados, planes de pensiones)','Revisa y optimiza tus seguros de vida, hogar y salud','Aumenta el porcentaje de ahorro mensual (objetivo: 15-20% de ingresos)']},
+  {min:60,max:79,emoji:'🟢',label:'Salud Financiera Muy Saludable',color:'#22C55E',
+   desc:'Excelente trabajo. Tienes hábitos financieros sólidos. Enfócate en maximizar tu patrimonio y planificación a largo plazo.',
+   actions:['Maximiza tus inversiones: diversifica entre renta variable, fija y alternativos','Optimiza fiscalmente tus inversiones (planes de pensiones, seguros fiscales)','Revisa tu cartera de inversión al menos 2 veces al año','Planifica tu jubilación activamente con cálculos reales','Protege tu patrimonio con seguros de vida y responsabilidad civil']},
+  {min:80,max:100,emoji:'🌟',label:'Salud Financiera Excelente',color:'#10B981',
+   desc:'Estás en la élite financiera. Tu desafío es mantener, proteger y hacer crecer tu patrimonio de forma eficiente.',
+   actions:['Trabaja con un asesor financiero para optimización fiscal y patrimonial','Diversifica internacionalmente tus inversiones','Optimiza tu estructura patrimonial si aplica','Rebalancea tu cartera regularmente según tu estrategia','Prepara plan de sucesión y disfruta de tu éxito financiero']}
+];
+var _testAnswers={};
+function _calcTestData(){
+  // Calculate financial data from real app state
+  var now=new Date();
+  var curMonth=now.getMonth(), curYear=now.getFullYear();
+  var cur=S.currency||'';
+
+  // Last 3 months transactions for averages
+  var recentTxs=S.transactions.filter(function(t){
+    if(t.currency!==cur)return false;
+    var d=new Date(t.date);
+    var monthsAgo=(curYear-d.getFullYear())*12+(curMonth-d.getMonth());
+    return monthsAgo>=0&&monthsAgo<=2;
+  });
+
+  // This month
+  var thisMonthTxs=S.transactions.filter(function(t){
+    var d=new Date(t.date);
+    return t.currency===cur&&d.getMonth()===curMonth&&d.getFullYear()===curYear;
+  });
+  var monthInc=thisMonthTxs.filter(function(t){return t.type==='ingreso';}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
+  var monthExp=thisMonthTxs.filter(function(t){return t.type==='gasto';}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
+
+  // 3-month averages
+  var avgInc=recentTxs.filter(function(t){return t.type==='ingreso';}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0)/3;
+  var avgExp=recentTxs.filter(function(t){return t.type==='gasto';}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0)/3;
+
+  // Savings rate this month
+  var savingsRate=monthInc>0?((monthInc-monthExp)/monthInc*100):null;
+
+  // Total liquid assets (activos)
+  var totalAssets=S.accounts.filter(function(a){return a.type==='activo'&&(a.currency||cur)===cur;}).reduce(function(s,a){return s+getBalance(a.id);},0);
+
+  // Monthly debt payments from debts
+  var debtPayments=S.debts?S.debts.filter(function(d){return(d.currency||cur)===cur;}).reduce(function(s,d){return s+(parseFloat(d.monthlyPayment)||0);},0):0;
+  var debtRatio=avgInc>0?(debtPayments/avgInc*100):null;
+
+  // Emergency fund coverage (months)
+  var emergencyMonths=avgExp>0?(totalAssets/avgExp):null;
+
+  // Has budget
+  var hasBudget=S.budgets&&S.budgets.length>0;
+
+  // Savings transactions (categoria ahorro)
+  var savingsCats=S.categories?S.categories.filter(function(c){return c.nature==='ahorros';}).map(function(c){return c.id;}):[];
+  var savingsTxs=thisMonthTxs.filter(function(t){return savingsCats.indexOf(t.categoryId)!==-1;});
+  var monthlySavings=savingsTxs.reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
+  var actualSavingsRate=monthInc>0?(monthlySavings/monthInc*100):null;
+
+  return{
+    monthInc:monthInc, monthExp:monthExp, avgInc:avgInc, avgExp:avgExp,
+    savingsRate:savingsRate, actualSavingsRate:actualSavingsRate,
+    totalAssets:totalAssets, debtPayments:debtPayments, debtRatio:debtRatio,
+    emergencyMonths:emergencyMonths, hasBudget:hasBudget,
+    hasTransactions:recentTxs.length>0
+  };
+}
+function _autoSelectTest(d){
+  // Returns {qId: optIdx} for questions we can auto-calculate, plus a note
+  var auto={};
+  var MIN_TX=3; // minimum transactions to trust data
+
+  // Q1: Has budget
+  if(d.hasBudget!==undefined){
+    auto[1]={idx:0,note:'Detectamos '+S.budgets.length+' presupuesto(s) activo(s)'};
+  }
+
+  // Q3: How month ends (needs transactions)
+  if(d.hasTransactions&&d.monthInc>0){
+    var diff=d.monthInc-d.monthExp;
+    var pct=diff/d.monthInc*100;
+    if(pct>15)auto[3]={idx:0,note:'Este mes: ingresos '+fmt(d.monthInc)+', gastos '+fmt(d.monthExp)};
+    else if(pct>0)auto[3]={idx:1,note:'Este mes: ingresos '+fmt(d.monthInc)+', gastos '+fmt(d.monthExp)};
+    else if(pct>-5)auto[3]={idx:2,note:'Este mes: ingresos '+fmt(d.monthInc)+', gastos '+fmt(d.monthExp)};
+    else auto[3]={idx:3,note:'Este mes gastos ('+fmt(d.monthExp)+') superan ingresos ('+fmt(d.monthInc)+')'};
+  }
+
+  // Q4: Savings rate
+  if(d.savingsRate!==null&&d.monthInc>0){
+    var sr=d.savingsRate;
+    var note='Calculado: '+(sr>0?Math.round(sr)+'% de ahorro este mes':'Gastos >= Ingresos este mes');
+    if(sr>20)auto[4]={idx:0,note:note};
+    else if(sr>=10)auto[4]={idx:1,note:note};
+    else if(sr>0)auto[4]={idx:2,note:note};
+    else if(sr===0)auto[4]={idx:3,note:note};
+    else auto[4]={idx:4,note:note};
+  }
+
+  // Q5: Can cover 1.000 emergency
+  if(d.totalAssets!==null){
+    var ref=1000;
+    var note5='Saldo total en cuentas: '+fmt(d.totalAssets);
+    if(d.totalAssets>ref*3)auto[5]={idx:0,note:note5};
+    else if(d.totalAssets>ref)auto[5]={idx:1,note:note5};
+    else if(d.totalAssets>0)auto[5]={idx:2,note:note5};
+    else auto[5]={idx:3,note:note5};
+  }
+
+  // Q7: Debt ratio
+  if(d.debtRatio!==null&&d.avgInc>0){
+    var note7='Pagos deuda: '+fmt(d.debtPayments)+'/mes vs ingresos prom. '+fmt(d.avgInc);
+    if(d.debtPayments===0)auto[7]={idx:0,note:'No hay deudas registradas en la app'};
+    else if(d.debtRatio<5)auto[7]={idx:1,note:note7};
+    else if(d.debtRatio<=10)auto[7]={idx:2,note:note7};
+    else auto[7]={idx:3,note:note7};
+  }
+
+  // Q10: Emergency fund
+  if(d.emergencyMonths!==null&&d.avgExp>0){
+    var note10='Cobertura estimada: '+d.emergencyMonths.toFixed(1)+' meses (saldo/gasto prom.)';
+    if(d.emergencyMonths>=3)auto[10]={idx:0,note:note10};
+    else if(d.emergencyMonths>=1)auto[10]={idx:1,note:note10};
+    else if(d.emergencyMonths>0)auto[10]={idx:2,note:note10};
+    else auto[10]={idx:3,note:note10};
+  }
+
+  // Q11: Months without income
+  if(d.emergencyMonths!==null&&d.avgExp>0){
+    var note11='Reservas para ~'+d.emergencyMonths.toFixed(1)+' meses sin ingresos';
+    if(d.emergencyMonths>=3)auto[11]={idx:0,note:note11};
+    else if(d.emergencyMonths>=1)auto[11]={idx:1,note:note11};
+    else auto[11]={idx:2,note:note11};
+  }
+
+  return auto;
+}
+function renderTest(){
+  _testAnswers={};
+  var data=_calcTestData();
+  var autoSel=_autoSelectTest(data);
+  // Pre-populate answers with auto-calculated ones
+  Object.keys(autoSel).forEach(function(qId){
+    _testAnswers[parseInt(qId)]=autoSel[qId].idx;
+  });
+  var history=S.testHistory||[];
+  var h='';
+  // Info card
+  h+='<div class="card" style="margin-bottom:14px;padding:14px;border-left:3px solid #7461EF">';
+  h+='<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">🏥 ¿Para qué sirve?</div>';
+  h+='<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Evalúa tu situación financiera en 5 áreas clave. Donde tenemos tus datos reales, pre-calculamos la respuesta. Siempre puedes ajustarla.</div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  h+='<div style="background:rgba(116,97,239,.08);border-radius:var(--radius-sm);padding:8px"><div style="font-size:9px;font-weight:700;color:#7461EF;margin-bottom:4px;text-transform:uppercase">18 preguntas</div><div style="font-size:11px;color:var(--text2);line-height:1.5">5 categorías · ~5 min · Sé honesto/a</div></div>';
+  h+='<div style="background:rgba(0,212,170,.08);border-radius:var(--radius-sm);padding:8px"><div style="font-size:9px;font-weight:700;color:var(--primary);margin-bottom:4px;text-transform:uppercase">Inteligente</div><div style="font-size:11px;color:var(--text2);line-height:1.5">Usa tus datos reales para pre-calcular respuestas</div></div>';
+  h+='</div></div>';
+  // Auto-calculated summary
+  var autoCount=Object.keys(autoSel).length;
+  if(autoCount>0){
+    h+='<div style="background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.25);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--text2);line-height:1.6">';
+    h+='✨ <strong>'+autoCount+' respuestas pre-calculadas</strong> con tus datos reales. Revísalas y ajusta si es necesario.';
+    h+='</div>';
+  } else if(!data.hasTransactions){
+    h+='<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--text2);line-height:1.6">';
+    h+='💡 Aún no tienes movimientos registrados. Responde todas las preguntas manualmente. Cuando registres datos, el test se personalizará aún más.';
+    h+='</div>';
+  }
+  // Last result
+  if(history.length){
+    var last=history[history.length-1];
+    var lv=TEST_LEVELS.find(function(l){return last.score>=l.min&&last.score<=l.max;})||TEST_LEVELS[0];
+    h+='<div class="card" style="margin-bottom:14px;padding:12px">';
+    h+='<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Último resultado</div>';
+    h+='<div style="display:flex;align-items:center;gap:12px">';
+    h+='<div style="width:56px;height:56px;border-radius:50%;border:4px solid '+lv.color+';display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+    h+='<div style="text-align:center"><div style="font-size:15px;font-weight:900;color:'+lv.color+'">'+last.score+'</div><div style="font-size:8px;color:var(--text3)">/ 100</div></div></div>';
+    h+='<div><div style="font-size:13px;font-weight:700;color:var(--text)">'+lv.emoji+' '+lv.label+'</div>';
+    h+='<div style="font-size:10px;color:var(--text3);margin-top:2px">'+last.date+'</div></div></div></div>';
+  }
+  // Questions
+  var currentCat='';
+  var catEmojis={'Ahorro y Finanzas':'📊','Inversión y Gestión de Gastos':'💰','Protección':'🛡️','Futuro e Inversión':'🚀','Planificación y Jubilación':'📅'};
+  TEST_QUESTIONS.forEach(function(q){
+    if(q.cat!==currentCat){
+      currentCat=q.cat;
+      h+='<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 8px;padding-left:2px">';
+      h+=(catEmojis[q.cat]||'')+' '+q.cat+'</div>';
+    }
+    var auto=autoSel[q.id];
+    h+='<div class="card" style="margin-bottom:10px;padding:14px'+(auto?';border-color:rgba(0,212,170,.3)':'')+'" id="tq-'+q.id+'">';
+    h+='<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px">';
+    h+='<div style="font-size:12px;font-weight:700;color:var(--text);line-height:1.4"><span style="color:var(--primary);font-size:11px;margin-right:6px">'+q.id+'.</span>'+q.q+'</div>';
+    if(auto){
+      h+='<div style="flex-shrink:0;background:rgba(0,212,170,.15);border-radius:20px;padding:3px 8px;font-size:9px;font-weight:700;color:var(--primary);white-space:nowrap">✦ Auto</div>';
+    }
+    h+='</div>';
+    if(auto){
+      h+='<div style="font-size:10px;color:var(--primary);margin-bottom:8px;padding:6px 10px;background:rgba(0,212,170,.08);border-radius:var(--radius-sm);line-height:1.4">📊 '+auto.note+'</div>';
+    }
+    h+='<div style="display:flex;flex-direction:column;gap:6px">';
+    q.opts.forEach(function(opt,i){
+      var isSel=_testAnswers[q.id]===i;
+      h+='<button onclick="testSelectOpt('+q.id+','+i+')" id="topt-'+q.id+'-'+i+'"';
+      h+=' style="text-align:left;padding:10px 12px;background:'+(isSel?'var(--primary)':'var(--surface2)')+';border:1.5px solid '+(isSel?'var(--primary)':'var(--border)')+';border-radius:var(--radius-sm);font-size:12px;color:'+(isSel?'white':'var(--text)')+';cursor:pointer;font-family:var(--font);transition:.15s;line-height:1.4">';
+      h+=opt+'</button>';
+    });
+    h+='</div></div>';
+  });
+  h+='<button onclick="testSubmit()" style="width:100%;padding:16px;background:linear-gradient(135deg,#7461EF,#00D4AA);border:none;border-radius:var(--radius);font-size:15px;font-weight:800;color:white;cursor:pointer;font-family:var(--font);margin-top:4px;margin-bottom:20px">Ver mi resultado →</button>';
+  return h;
+}
+
+function testSelectOpt(qId,optIdx){
+  _testAnswers[qId]=optIdx;
+  var q=TEST_QUESTIONS.find(function(x){return x.id===qId;});
+  if(!q)return;
+  q.opts.forEach(function(_,i){
+    var btn=document.getElementById('topt-'+qId+'-'+i);
+    if(!btn)return;
+    var sel=i===optIdx;
+    btn.style.background=sel?'var(--primary)':'var(--surface2)';
+    btn.style.color=sel?'white':'var(--text)';
+    btn.style.borderColor=sel?'var(--primary)':'var(--border)';
+  });
+  // Highlight card
+  var card=document.getElementById('tq-'+qId);
+  if(card)card.style.borderColor='rgba(0,212,170,.4)';
+}
+function testSubmit(){
+  var answered=Object.keys(_testAnswers).length;
+  if(answered<18){
+    toast('Responde todas las preguntas ('+(18-answered)+' pendientes)');
+    // Scroll to first unanswered
+    for(var i=1;i<=18;i++){
+      if(_testAnswers[i]===undefined){
+        var card=document.getElementById('tq-'+i);
+        if(card)card.scrollIntoView({behavior:'smooth',block:'center'});
+        card.style.borderColor='var(--danger)';
+        break;
+      }
+    }
+    return;
+  }
+  var score=0;
+  var catScores={};
+  TEST_QUESTIONS.forEach(function(q){
+    var optIdx=_testAnswers[q.id];
+    var pts=q.pts[optIdx]||0;
+    score+=pts;
+    if(!catScores[q.cat])catScores[q.cat]={pts:0,max:0};
+    catScores[q.cat].pts+=pts;
+    catScores[q.cat].max+=Math.max.apply(null,q.pts);
+  });
+  // Normalize to 100
+  var maxTotal=TEST_QUESTIONS.reduce(function(s,q){return s+Math.max.apply(null,q.pts);},0);
+  var normalized=Math.round(score/maxTotal*100);
+  // Save to history
+  if(!S.testHistory)S.testHistory=[];
+  var now=new Date();
+  var dateStr=now.getDate().toString().padStart(2,'0')+'/'+(now.getMonth()+1).toString().padStart(2,'0')+'/'+now.getFullYear();
+  S.testHistory.push({score:normalized,raw:score,date:dateStr,cats:catScores});
+  if(S.testHistory.length>10)S.testHistory.shift();
+  saveState();
+  showTestResult(normalized,catScores);
+}
+function showTestResult(score,catScores){
+  var lv=TEST_LEVELS.find(function(l){return score>=l.min&&score<=l.max;})||TEST_LEVELS[0];
+  var existing=document.getElementById('test-result-screen');
+  if(existing)existing.remove();
+  var screen=document.createElement('div');
+  screen.id='test-result-screen';
+  screen.style.cssText='position:fixed;inset:0;z-index:210;background:var(--surface);display:flex;flex-direction:column;overflow:hidden;animation:fadeInPage .2s ease';
+  var inner='';
+  inner+='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:52px 16px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">';
+  inner+='<button onclick="closeTestResult()" style="background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:8px">←</button>';
+  inner+='<div style="font-size:16px;font-weight:800;color:var(--text)">Tu resultado</div>';
+  inner+='<button onclick="navigate(\'test\')" style="font-size:12px;color:var(--primary);background:none;border:none;cursor:pointer;font-family:var(--font);font-weight:700">Repetir</button>';
+  inner+='</div>';
+  inner+='<div style="flex:1;overflow-y:auto;padding:16px">';
+  // Score hero
+  inner+='<div style="text-align:center;padding:24px 16px;margin-bottom:16px">';
+  inner+='<div style="width:100px;height:100px;border-radius:50%;border:6px solid '+lv.color+';display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px">';
+  inner+='<div><div style="font-size:32px;font-weight:900;color:'+lv.color+'">'+score+'</div><div style="font-size:11px;color:var(--text3);font-weight:600">/ 100</div></div></div>';
+  inner+='<div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:6px">'+lv.emoji+' '+lv.label+'</div>';
+  inner+='<div style="font-size:12px;color:var(--text2);line-height:1.6;max-width:320px;margin:0 auto">'+lv.desc+'</div>';
+  inner+='</div>';
+  // Category breakdown
+  inner+='<div class="card" style="margin-bottom:14px;padding:14px">';
+  inner+='<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Desglose por categoría</div>';
+  var catEmojis={'Ahorro y Finanzas':'📊','Inversión y Gestión de Gastos':'💰','Protección':'🛡️','Futuro e Inversión':'🚀','Planificación y Jubilación':'📅'};
+  Object.keys(catScores).forEach(function(cat){
+    var cs=catScores[cat];
+    var cpct=cs.max>0?Math.round(cs.pts/cs.max*100):0;
+    var ccolor=cpct>=80?'var(--success)':cpct>=60?'var(--primary)':cpct>=40?'var(--warning)':'var(--danger)';
+    inner+='<div style="margin-bottom:10px">';
+    inner+='<div style="display:flex;justify-content:space-between;margin-bottom:4px">';
+    inner+='<div style="font-size:12px;color:var(--text)">'+(catEmojis[cat]||'')+'  '+cat+'</div>';
+    inner+='<div style="font-size:12px;font-weight:700;color:'+ccolor+'">'+cpct+'%</div></div>';
+    inner+='<div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">';
+    inner+='<div style="height:100%;width:'+cpct+'%;background:'+ccolor+';border-radius:3px;transition:.5s"></div></div></div>';
+  });
+  inner+='</div>';
+  // Recommendations
+  inner+='<div class="card" style="margin-bottom:14px;padding:14px;border-left:3px solid '+lv.color+'">';
+  inner+='<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Acciones recomendadas</div>';
+  lv.actions.forEach(function(a){
+    inner+='<div style="display:flex;gap:8px;margin-bottom:8px;font-size:12px;color:var(--text2);line-height:1.5">';
+    inner+='<span style="color:'+lv.color+';flex-shrink:0;margin-top:1px">✓</span><span>'+a+'</span></div>';
+  });
+  inner+='</div>';
+  // History
+  var hist=S.testHistory||[];
+  if(hist.length>1){
+    inner+='<div class="card" style="margin-bottom:14px;padding:14px">';
+    inner+='<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Historial</div>';
+    hist.slice().reverse().forEach(function(h,i){
+      var hlv=TEST_LEVELS.find(function(l){return h.score>=l.min&&h.score<=l.max;})||TEST_LEVELS[0];
+      inner+='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border'+( i===hist.length-1?'':'')+')">';
+      inner+='<div style="font-size:12px;color:var(--text2)">'+h.date+'</div>';
+      inner+='<div style="font-size:13px;font-weight:800;color:'+hlv.color+'">'+h.score+' pts</div>';
+      inner+='<div style="font-size:10px;color:var(--text3)">'+hlv.emoji+' '+hlv.label+'</div></div>';
+    });
+    inner+='</div>';
+  }
+  inner+='<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:var(--radius-sm);padding:10px 12px;font-size:10px;color:var(--text2);line-height:1.5;margin-bottom:20px">';
+  inner+='⚠️ Este test es orientativo. Para una evaluación profesional consulta un asesor financiero certificado.';
+  inner+='</div></div>';
+  screen.innerHTML=inner;
+  document.body.appendChild(screen);
+}
+function closeTestResult(){
+  var s=document.getElementById('test-result-screen');
+  if(s)s.remove();
+}
 function renderCalculadora(){
   var q="'";
   var html='';
