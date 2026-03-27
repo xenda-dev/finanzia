@@ -293,11 +293,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div class="drawer-nav">
     <button class="drawer-item" data-page="dashboard" id="dmi-dashboard" onclick="navigate('dashboard');closeDrawer()"><div class="drawer-item-icon">🏠</div><span>Inicio</span></button>
     <div style="height:1px;background:var(--border);margin:6px 20px"></div>
-    <button class="drawer-group-portal" onclick="openDrawerGroup('midinero')">
+    <button class="drawer-group-portal" onclick="navigate('grp-midinero');closeDrawer()">
       <div style="display:flex;align-items:center;gap:12px"><div class="drawer-item-icon">💰</div><span>Mi Dinero</span></div>
       <span style="color:var(--text3);font-size:22px;font-weight:200;line-height:1">›</span>
     </button>
-    <button class="drawer-group-portal" onclick="openDrawerGroup('planificacion')">
+    <button class="drawer-group-portal" onclick="navigate('grp-planificacion');closeDrawer()">
       <div style="display:flex;align-items:center;gap:12px"><div class="drawer-item-icon">📅</div><span>Planificación</span></div>
       <span style="color:var(--text3);font-size:22px;font-weight:200;line-height:1">›</span>
     </button>
@@ -309,7 +309,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div style="display:flex;align-items:center;gap:12px"><div class="drawer-item-icon">📊</div><span>Reportes</span></div>
       <span style="color:var(--text3);font-size:22px;font-weight:200;line-height:1">›</span>
     </button>
-    <button class="drawer-group-portal" onclick="openDrawerGroup('herramientas')">
+    <button class="drawer-group-portal" onclick="navigate('grp-herramientas');closeDrawer()">
       <div style="display:flex;align-items:center;gap:12px"><div class="drawer-item-icon">🔧</div><span>Herramientas</span></div>
       <span style="color:var(--text3);font-size:22px;font-weight:200;line-height:1">›</span>
     </button>
@@ -359,6 +359,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div id="page-inversiones" class="page"></div>
   <div id="page-simuladores" class="page"></div>
   <div id="page-test" class="page"></div>
+  <div id="page-grp-midinero" class="page"></div>
+  <div id="page-grp-planificacion" class="page"></div>
+  <div id="page-grp-herramientas" class="page"></div>
   <div id="page-jubilacion" class="page"></div>
   <div id="page-emergencia" class="page"></div>
   <div id="page-inflacion" class="page"></div>
@@ -959,7 +962,10 @@ var _PAGE_LABELS={
   inflacion:'Inflación',rentabilidad:'Rentabilidad',
   estrategia:'Estrategia deudas',cambio:'Tipo de cambio',
   listas:'Listas de compra',inversiones:'Inversiones',
-  test:'Test'
+  test:'Test',
+  'grp-midinero':'Mi Dinero',
+  'grp-planificacion':'Planificación',
+  'grp-herramientas':'Herramientas'
 };
 function _updateHeader(page){
   var hTitle=document.getElementById('header-title');
@@ -999,6 +1005,9 @@ function renderPage(page){
     case'listas':el.innerHTML=renderListas();break;
     case'inversiones':el.innerHTML=renderInversiones();break;
     case'test':el.innerHTML=renderTest();break;
+    case'grp-midinero':el.innerHTML=renderDrawerGroup('midinero');break;
+    case'grp-planificacion':el.innerHTML=renderDrawerGroup('planificacion');break;
+    case'grp-herramientas':el.innerHTML=renderDrawerGroup('herramientas');break;
   }
 }
 function initExchangeWidget(){
@@ -1038,42 +1047,25 @@ var DRAWER_GROUPS={
     ]
   }
 };
-function openDrawerGroup(groupKey){
-  closeDrawer();
+function renderDrawerGroup(groupKey){
   var g=DRAWER_GROUPS[groupKey];
-  if(!g)return;
-  var existing=document.getElementById('grp-screen');
-  if(existing)existing.remove();
-  var screen=document.createElement('div');
-  screen.id='grp-screen';
-  screen.style.cssText='position:fixed;inset:0;z-index:210;background:var(--surface);display:flex;flex-direction:column;animation:fadeInPage .2s ease';
-  var cardsHtml='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:20px 16px 32px">';
+  if(!g)return'';
+  var html='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:16px 16px 32px">';
   g.items.forEach(function(item){
-    cardsHtml+=
-      '<button onclick="navigate(\''+item.page+'\');closeDrawerGroup()" style="'+
-        'display:flex;flex-direction:column;align-items:center;justify-content:center;'+
-        'padding:20px 8px 16px;background:var(--surface2);border:1px solid var(--border);'+
-        'border-radius:18px;cursor:pointer;transition:.15s;gap:8px;font-family:var(--font);'+
-        'min-height:100px'+
-      '">'+
-        '<span style="font-size:30px;line-height:1">'+item.icon+'</span>'+
-        '<span style="font-size:11px;font-weight:700;color:var(--text);text-align:center;line-height:1.3">'+item.label+'</span>'+
-      '</button>';
+    html+='<button onclick="navigate(\''+item.page+'\')" style="'+
+      'display:flex;flex-direction:column;align-items:center;justify-content:center;'+
+      'padding:20px 8px 16px;background:var(--surface);border:1px solid var(--border);'+
+      'box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;'+
+      'gap:8px;font-family:var(--font);min-height:100px">'+
+      '<span style="font-size:30px;line-height:1">'+item.icon+'</span>'+
+      '<span style="font-size:11px;font-weight:700;color:var(--text);text-align:center;line-height:1.3">'+item.label+'</span>'+
+    '</button>';
   });
-  cardsHtml+='</div>';
-  screen.innerHTML=
-    '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:52px 16px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0">'+
-      '<button onclick="closeDrawerGroup()" style="background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:8px">←</button>'+
-      '<span style="font-size:22px">'+g.icon+'</span>'+
-      '<span style="font-size:19px;font-weight:800;color:var(--text)">'+g.label+'</span>'+
-    '</div>'+
-    '<div style="flex:1;overflow-y:auto">'+cardsHtml+'</div>';
-  document.body.appendChild(screen);
+  html+='</div>';
+  return html;
 }
-function closeDrawerGroup(){
-  var s=document.getElementById('grp-screen');
-  if(s)s.remove();
-}
+function openDrawerGroup(groupKey){navigate('grp-'+groupKey);closeDrawer();}
+function closeDrawerGroup(){var s=document.getElementById('grp-screen');if(s)s.remove();}
 
 // ════════════════════════════════════════════════════════════
 // TOAST & CONFIRM
@@ -2509,17 +2501,16 @@ function renderSimuladores(){
     {icon:'💸',label:'Inflación',sub:'Protege tu poder adquisitivo',page:'inflacion',color:'#F59E0B'},
     {icon:'📊',label:'Rentabilidad',sub:'Mide el retorno de tus inversiones',page:'rentabilidad',color:'#3B82F6'},
   ];
-  var html='<div style="padding:16px">';
-  html+='<div style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.5">Elige el simulador que necesitas. Cada uno te ayuda a tomar mejores decisiones financieras.</div>';
+  var html='<div style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.5">Elige el simulador que necesitas. Cada uno te ayuda a tomar mejores decisiones financieras.</div>';
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">';
   sims.forEach(function(s){
-    html+='<button onclick="navigate(\''+s.page+'\')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 10px 16px;background:var(--surface2);border:1px solid var(--border);border-top:3px solid '+s.color+';border-radius:18px;cursor:pointer;gap:8px;font-family:var(--font);min-height:110px">';
+    html+='<button onclick="navigate(\''+s.page+'\')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 10px 16px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--card-shadow);border-top:3px solid '+s.color+';border-radius:18px;cursor:pointer;gap:8px;font-family:var(--font);min-height:110px">';
     html+='<span style="font-size:32px;line-height:1">'+s.icon+'</span>';
     html+='<span style="font-size:13px;font-weight:700;color:var(--text)">'+s.label+'</span>';
     html+='<span style="font-size:10px;color:var(--text3);text-align:center;line-height:1.3">'+s.sub+'</span>';
     html+='</button>';
   });
-  html+='</div></div>';
+  html+='</div>';
   return html;
 }
 
@@ -3301,7 +3292,7 @@ function showTestResult(score,catScores){
   screen.style.cssText='position:fixed;inset:0;z-index:210;background:var(--surface);display:flex;flex-direction:column;overflow:hidden;animation:fadeInPage .2s ease';
   var inner='';
   inner+='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:52px 16px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">';
-  inner+='<button onclick="closeTestResult()" style="background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:8px">←</button>';
+  inner+='<button onclick="closeTestResult()" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:6px 8px;line-height:1;border-radius:8px;display:flex;align-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>';
   inner+='<div style="font-size:16px;font-weight:800;color:var(--text)">Tu resultado</div>';
   inner+='<button onclick="navigate(\'test\')" style="font-size:12px;color:var(--primary);background:none;border:none;cursor:pointer;font-family:var(--font);font-weight:700">Repetir</button>';
   inner+='</div>';
@@ -3440,7 +3431,7 @@ function openLoanForm(typeKey){
   screen.style.cssText='position:fixed;inset:0;z-index:210;background:var(--surface);display:flex;flex-direction:column;overflow:hidden;animation:fadeInPage .2s ease';
   var inner='';
   inner+='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:52px 16px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0">';
-  inner+='<button onclick="closeLoanForm()" style="background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:8px">←</button>';
+  inner+='<button onclick="closeLoanForm()" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:6px 8px;line-height:1;border-radius:8px;display:flex;align-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>';
   inner+='<div style="width:36px;height:36px;border-radius:10px;background:'+t.color+'22;display:flex;align-items:center;justify-content:center;font-size:20px">'+t.icon+'</div>';
   inner+='<div><div style="font-size:17px;font-weight:800;color:var(--text)">'+t.label+'</div>';
   inner+='<div style="font-size:11px;color:var(--text3)">Tasa máx. referencial: '+t.maxRate.toFixed(1)+'% EA</div></div>';
@@ -3578,7 +3569,7 @@ function openLoanAmortization(){
   var inner='';
   inner+='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:52px 16px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">';
   inner+='<div style="display:flex;align-items:center;gap:12px">';
-  inner+='<button onclick="closeLoanAmortization()" style="background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:8px">←</button>';
+  inner+='<button onclick="closeLoanAmortization()" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:6px 8px;line-height:1;border-radius:8px;display:flex;align-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>';
   inner+='<div><div style="font-size:17px;font-weight:800;color:var(--text)">Plan de amortización</div>';
   inner+='<div style="font-size:11px;color:var(--text3)">'+(window._loanType?window._loanType.label:'Préstamo')+'</div></div>';
   inner+='</div>';
@@ -3646,11 +3637,12 @@ function showLoanFilterBS(type){
     var items=[{val:'',label:'Todos los años'}].concat(years.map(function(y){return{val:String(y),label:String(y)};}));
     var cur=document.getElementById('loan-filter-year')?.value||'';
     showBottomSheet({title:'Filtrar por año',items:items,selected:cur,searchable:items.length>5,onSelect:function(val){
+      var finalVal=val===cur?'':val;
       var lbl=document.getElementById('loan-yr-lbl');
-      if(lbl)lbl.textContent=val?val:'Todos los años';
-      lbl&&(lbl.style.color=val?'var(--text)':'var(--text2)');
+      if(lbl)lbl.textContent=finalVal?finalVal:'Todos los años';
+      lbl&&(lbl.style.color=finalVal?'var(--text)':'var(--text2)');
       var inp=document.getElementById('loan-filter-year');
-      if(inp)inp.value=val;
+      if(inp)inp.value=finalVal;
       filterLoanYear();
     }});
   } else {
@@ -3659,11 +3651,12 @@ function showLoanFilterBS(type){
     var items2=[{val:'',label:'Todas las cuotas'}].concat(filtered.map(function(r){return{val:String(r.i),label:'Cuota '+r.i+' — '+r.date};}));
     var cur2=document.getElementById('loan-filter-cuota')?.value||'';
     showBottomSheet({title:'Filtrar por cuota',items:items2,selected:cur2,searchable:items2.length>10,onSelect:function(val){
+      var finalVal2=val===cur2?'':val;
       var lbl=document.getElementById('loan-qt-lbl');
-      if(lbl)lbl.textContent=val?('Cuota '+val):'Todas las cuotas';
-      lbl&&(lbl.style.color=val?'var(--text)':'var(--text2)');
+      if(lbl)lbl.textContent=finalVal2?('Cuota '+finalVal2):'Todas las cuotas';
+      lbl&&(lbl.style.color=finalVal2?'var(--text)':'var(--text2)');
       var inp=document.getElementById('loan-filter-cuota');
-      if(inp)inp.value=val;
+      if(inp)inp.value=finalVal2;
       renderLoanTable();
     }});
   }
@@ -3674,11 +3667,12 @@ function showSimFilterBS(){
   var items=[{val:'',label:'Todos los años'}].concat(years.map(function(y){return{val:y,label:y};}));
   var cur=document.getElementById('sim-filter-year')?.value||'';
   showBottomSheet({title:'Filtrar por año',items:items,selected:cur,searchable:items.length>5,onSelect:function(val){
+    var finalVal=val===cur?'':val;
     var lbl=document.getElementById('sim-yr-lbl');
-    if(lbl)lbl.textContent=val?val:'Todos los años';
-    lbl&&(lbl.style.color=val?'var(--text)':'var(--text2)');
+    if(lbl)lbl.textContent=finalVal?finalVal:'Todos los años';
+    lbl&&(lbl.style.color=finalVal?'var(--text)':'var(--text2)');
     var inp=document.getElementById('sim-filter-year');
-    if(inp)inp.value=val;
+    if(inp)inp.value=finalVal;
     renderSimDetailTable();
   }});
 }
@@ -3748,7 +3742,7 @@ function openSimDetail(){
   var inner='';
   inner+='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:52px 16px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">';
   inner+='<div style="display:flex;align-items:center;gap:12px">';
-  inner+='<button onclick="closeSimDetail()" style="background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;padding:4px 8px;line-height:1;border-radius:8px">←</button>';
+  inner+='<button onclick="closeSimDetail()" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:6px 8px;line-height:1;border-radius:8px;display:flex;align-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>';
   inner+='<div style="font-size:17px;font-weight:800;color:var(--text)">Plan detallado</div>';
   inner+='</div>';
   inner+='<button onclick="simDownloadCSV()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)">⬇ CSV</button>';
@@ -6179,7 +6173,7 @@ function handleImportFile(e){
 }
 function resetApp(){
   confirmDialog('⚠️','¿Restaurar la app?','Se eliminarán TODOS tus datos. Esta acción es irreversible.',()=>{
-    localStorage.removeItem('finanziaState3');
+    localStorage.removeItem('finanziaState3');_testAnswers={};
     S={currency:'',currentPage:'dashboard',theme:S.theme,language:'',weekStart:'',currencies:[],accounts:[],transactions:[],categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),subcategories:JSON.parse(JSON.stringify(DEFAULT_SUBS)),budgets:[],goals:[],scheduledPayments:[],movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},analysisPeriod:'Mensual',analysisYear:new Date().getFullYear(),exchangeRate:{PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''}};
     saveState();refreshCurrencyToggle();navigate('dashboard');toast('App restaurada ✓');
   });
