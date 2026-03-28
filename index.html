@@ -366,6 +366,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div id="page-emergencia" class="page"></div>
   <div id="page-inflacion" class="page"></div>
   <div id="page-rentabilidad" class="page"></div>
+  <div id="page-form-cuenta" class="page"></div>
 </div>
 <nav class="bottom-nav">
   <button class="nav-item active" data-page="dashboard">
@@ -935,9 +936,11 @@ function refreshCurrencyToggle(){
 var _navHistory=[];
 var _goingBack=false;
 function navigate(page){
+  var _wasBack=_goingBack;
   if(!_goingBack&&S.currentPage&&S.currentPage!==page)_navHistory.push(S.currentPage);
   if(_navHistory.length>20)_navHistory.shift();
   _goingBack=false;
+  if(page==='cuentas'&&!_wasBack)S._cuentasGrupo='';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
   S.currentPage=page;
@@ -965,7 +968,8 @@ var _PAGE_LABELS={
   test:'Test',
   'grp-midinero':'Mi Dinero',
   'grp-planificacion':'Planificación',
-  'grp-herramientas':'Herramientas'
+  'grp-herramientas':'Herramientas',
+  'form-cuenta':'Nueva cuenta'
 };
 function _updateHeader(page){
   var hTitle=document.getElementById('header-title');
@@ -984,7 +988,8 @@ function renderPage(page){
   switch(page){
     case'dashboard':el.innerHTML=renderDashboard();initExchangeWidget();break;
     case'movimientos':el.innerHTML=renderMovimientos();break;
-    case'cuentas':el.innerHTML=renderCuentas();break;
+    case'cuentas':el.innerHTML=renderCuentas();if(S._cuentasGrupo){var _ht=document.getElementById('header-title');if(_ht)_ht.textContent=accGroupLabel(S._cuentasGrupo);}break;
+    case'form-cuenta':el.innerHTML=renderFormCuenta();var _htt=document.getElementById('header-title');if(_htt)_htt.textContent=(S._fcData&&S._fcData.id?'Editar cuenta':'Nueva cuenta');break;
     case'presupuestos':el.innerHTML=renderPresupuestos();break;
     case'metas':el.innerHTML=renderMetas();break;
     case'pagos':el.innerHTML=renderPagos();break;
@@ -1593,9 +1598,88 @@ function renderMovimientos(){
 }
 
 // ════════════════════════════════════════════════════════════
-// CUENTAS
+// CUENTAS — HUB + GRUPOS + FORMULARIO
 // ════════════════════════════════════════════════════════════
+
+// ─── Catálogo de grupos/subtipos ───────────────────────────
+var ACC_GROUPS=[
+  {id:'efectivo',  type:'activo',  icon:'💵', label:'Efectivo',          color:'#10B981',
+   subs:[{id:'efectivo_fisico', label:'Efectivo en físico', icon:'💵'}]},
+  {id:'banco',     type:'activo',  icon:'🏦', label:'Bancos',             color:'#3B82F6',
+   subs:[
+     {id:'ahorro',    label:'Cuenta de ahorros',  icon:'🏦'},
+     {id:'corriente', label:'Cuenta corriente',    icon:'💳'},
+     {id:'nomina',    label:'Cuenta nómina',        icon:'💼'},
+     {id:'cheques',   label:'Cuenta cheques',       icon:'🖊️'}
+   ]},
+  {id:'virtual',   type:'activo',  icon:'🌐', label:'Cuentas virtuales', color:'#8B5CF6',
+   subs:[
+     {id:'paypal',    label:'PayPal',               icon:'🅿️'},
+     {id:'wise',      label:'Wise',                 icon:'💚'},
+     {id:'payoneer',  label:'Payoneer',             icon:'🟠'},
+     {id:'skrill',    label:'Skrill',               icon:'🔵'},
+     {id:'revolut',   label:'Revolut',              icon:'⚡'},
+     {id:'digital',   label:'Billetera digital',    icon:'📱'}
+   ]},
+  {id:'inversion', type:'activo',  icon:'📈', label:'Inversiones',       color:'#F59E0B',
+   subs:[
+     {id:'broker',    label:'Cuenta broker / Acciones', icon:'📈'},
+     {id:'fondo',     label:'Fondo de inversión',        icon:'🏦'},
+     {id:'cdt',       label:'CDT / Plazo fijo',          icon:'🔒'},
+     {id:'etf',       label:'ETF',                       icon:'📊'},
+     {id:'cripto',    label:'Criptomonedas',             icon:'₿'},
+     {id:'pension',   label:'Pensión voluntaria / AFP',  icon:'👴'},
+     {id:'inv_otro',  label:'Otra inversión',            icon:'💡'}
+   ]},
+  {id:'bien',      type:'activo',  icon:'🏠', label:'Bienes',            color:'#EC4899',
+   subs:[
+     {id:'inmueble',  label:'Inmueble',             icon:'🏠'},
+     {id:'vehiculo',  label:'Vehículo',             icon:'🚗'},
+     {id:'bien_otro', label:'Otro bien',            icon:'📦'}
+   ]},
+  {id:'tc',        type:'pasivo',  icon:'💳', label:'Tarjetas de crédito', color:'#EF4444',
+   subs:[
+     {id:'visa',      label:'Visa',                 icon:'💳'},
+     {id:'mastercard',label:'Mastercard',           icon:'💳'},
+     {id:'amex',      label:'American Express',     icon:'💳'},
+     {id:'diners',    label:'Diners Club',          icon:'💳'},
+     {id:'discover',  label:'Discover',             icon:'💳'},
+     {id:'unionpay',  label:'UnionPay',             icon:'💳'},
+     {id:'tc_otra',   label:'Otra franquicia',      icon:'💳'}
+   ]},
+  {id:'prestamo',  type:'pasivo',  icon:'🏦', label:'Préstamos',         color:'#F97316',
+   subs:[
+     {id:'hipoteca',  label:'Crédito hipotecario',  icon:'🏠'},
+     {id:'vehiculo_d',label:'Crédito de vehículo',  icon:'🚗'},
+     {id:'consumo',   label:'Crédito de consumo',   icon:'🛒'},
+     {id:'personal',  label:'Préstamo personal',    icon:'🤝'},
+     {id:'micro',     label:'Microcrédito',         icon:'💵'},
+     {id:'educativo', label:'Crédito educativo',    icon:'🎓'},
+     {id:'empresarial',label:'Crédito empresarial', icon:'💼'}
+   ]},
+  {id:'informal',  type:'pasivo',  icon:'👤', label:'Deudas informales', color:'#6366F1',
+   subs:[
+     {id:'persona',   label:'Deuda con persona',    icon:'👤'}
+   ]}
+];
+
+function accGroupLabel(grpId){
+  var g=ACC_GROUPS.find(function(x){return x.id===grpId;});
+  return g?g.label:'Cuentas';
+}
+
+function getSubInfo(subId){
+  for(var i=0;i<ACC_GROUPS.length;i++){
+    var found=ACC_GROUPS[i].subs.find(function(s){return s.id===subId;});
+    if(found)return {sub:found,grp:ACC_GROUPS[i]};
+  }
+  return null;
+}
+
 function renderCuentas(){
+  var grp=S._cuentasGrupo||'';
+  if(grp){return renderCuentasGrupo(grp);}
+
   const cur=S.currency;
   const activos=S.accounts.filter(a=>a.type==='activo'&&(a.currency||cur)===cur);
   const pasivos=S.accounts.filter(a=>a.type==='pasivo'&&(a.currency||cur)===cur);
@@ -1656,19 +1740,346 @@ function renderCuentas(){
     </div>`;
   }
 
-  return`
-    <div class="summary-totals">
-      <div class="summary-total-item"><div class="summary-total-label">💚 Activos</div><div class="summary-total-val" style="color:var(--success)">${fmt(assets)}</div></div>
-      <div class="summary-total-item"><div class="summary-total-label">🔴 Pasivos</div><div class="summary-total-val" style="color:var(--danger)">${fmt(liabilities)}</div></div>
-      <div class="summary-total-item"><div class="summary-total-label">💎 Patrimonio</div><div class="summary-total-val" style="color:${net>=0?'var(--primary)':'var(--danger)'}">${fmt(net)}</div></div>
-    </div>
-    <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-      <button class="btn btn-primary btn-sm" onclick="openModal('account',{})">+ ${t('newAccount')||'Nueva cuenta'}</button>
-    </div>
-    ${activos.length===0&&pasivos.length===0?'<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-title">Sin cuentas en '+cur+'</div><div class="empty-desc">Crea tu primera cuenta</div></div>':''}
-    ${activos.length?`<div class="section-header"><div class="section-title">💚 Activos · ${fmt(assets)}</div></div>${activos.map(accCard).join('')}`:''}
-    ${pasivos.length?`<div class="section-header"><div class="section-title">🔴 Pasivos · ${fmt(liabilities)}</div></div>${pasivos.map(accCard).join('')}`:''}
-  `;
+    // ── HUB PRINCIPAL ────────────────────────────────────────
+  var activosGrp=ACC_GROUPS.filter(function(g){return g.type==='activo';});
+  var pasivosGrp=ACC_GROUPS.filter(function(g){return g.type==='pasivo';});
+
+  function grpCard(g){
+    var countAll=S.accounts.filter(function(a){
+      if((a.currency||cur)!==cur)return false;
+      if(a._grpId===g.id)return true;
+      if(g.id==='banco'&&a.subtype==='banco')return true;
+      if(g.id==='efectivo'&&a.subtype==='efectivo')return true;
+      if(g.id==='virtual'&&a.subtype==='digital')return true;
+      if(g.id==='inversion'&&a.subtype==='inversion')return true;
+      if(g.id==='tc'&&a.subtype==='tc')return true;
+      if(g.id==='prestamo'&&(a.subtype==='credito'||a.subtype==='prestamo'))return true;
+      return false;
+    }).length;
+    return '<div onclick="openAccGroup(\'' + g.id + '\')" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer">'
+      +'<div style="width:44px;height:44px;border-radius:12px;background:'+g.color+'22;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">'+g.icon+'</div>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:14px;font-weight:700;color:var(--text)">'+g.label+'</div>'
+        +'<div style="font-size:11px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+g.subs.map(function(s){return s.label;}).join(' · ')+'</div>'
+      +'</div>'
+      +(countAll>0?'<div style="background:'+g.color+'33;color:'+g.color+';border-radius:99px;padding:3px 10px;font-size:12px;font-weight:700;flex-shrink:0">'+countAll+'</div>':'<div style="color:var(--text3);font-size:20px;flex-shrink:0">&#8250;</div>')
+      +'</div>';
+  }
+  return '<div class="summary-totals">'
+    +'<div class="summary-total-item"><div class="summary-total-label">&#128154; Activos</div><div class="summary-total-val" style="color:var(--success)">'+fmt(assets)+'</div></div>'
+    +'<div class="summary-total-item"><div class="summary-total-label">&#128308; Pasivos</div><div class="summary-total-val" style="color:var(--danger)">'+fmt(liabilities)+'</div></div>'
+    +'<div class="summary-total-item"><div class="summary-total-label">&#128142; Patrimonio</div><div class="summary-total-val" style="color:'+(net>=0?'var(--primary)':'var(--danger)')+'">'+fmt(net)+'</div></div>'
+    +'</div>'
+    +'<div style="margin-bottom:6px"><div class="section-header" style="margin-bottom:8px"><div class="section-title">&#9996;&#65039; Activos</div></div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px">'+activosGrp.map(grpCard).join('')+'</div></div>'
+    +'<div style="margin-top:16px;margin-bottom:6px"><div class="section-header" style="margin-bottom:8px"><div class="section-title">&#128308; Pasivos</div></div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px">'+pasivosGrp.map(grpCard).join('')+'</div></div>';
+}
+
+function openAccGroup(grpId){
+  S._cuentasGrupo=grpId;
+  renderPage('cuentas');
+  var ht=document.getElementById('header-title');
+  if(ht)ht.textContent=accGroupLabel(grpId);
+}
+
+function renderCuentasGrupo(grpId){
+  var cur=S.currency;
+  var grp=ACC_GROUPS.find(function(g){return g.id===grpId;});
+  if(!grp)return '';
+  var cuentas=S.accounts.filter(function(a){
+    if((a.currency||cur)!==cur)return false;
+    if(a._grpId===grpId)return true;
+    if(grpId==='banco'&&a.subtype==='banco')return true;
+    if(grpId==='efectivo'&&a.subtype==='efectivo')return true;
+    if(grpId==='virtual'&&a.subtype==='digital')return true;
+    if(grpId==='inversion'&&a.subtype==='inversion')return true;
+    if(grpId==='tc'&&a.subtype==='tc')return true;
+    if(grpId==='prestamo'&&(a.subtype==='credito'||a.subtype==='prestamo'))return true;
+    return false;
+  });
+  var q='"';
+  var html='<div style="display:flex;justify-content:flex-end;margin-bottom:14px">'
+    +'<button class="btn btn-primary btn-sm" onclick="openFormCuenta(\''+grpId+'\',null)">+ Nueva cuenta</button>'
+    +'</div>';
+  grp.subs.forEach(function(sub){
+    var subCuentas=cuentas.filter(function(a){return a._subId===sub.id;});
+    html+='<div style="margin-bottom:18px">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+        +'<span style="font-size:16px">'+sub.icon+'</span>'
+        +'<span style="font-size:13px;font-weight:700;color:var(--text2)">'+sub.label+'</span>'
+        +'<button onclick="openFormCuenta(\''+grpId+'\',\''+sub.id+'\')" style="margin-left:auto;background:rgba(0,212,170,.15);color:var(--primary);border:1px solid rgba(0,212,170,.3);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">+ Agregar</button>'
+      +'</div>';
+    if(subCuentas.length===0){
+      html+='<div style="background:var(--surface2);border:1px dashed var(--border);border-radius:12px;padding:16px;text-align:center;color:var(--text3);font-size:12px">Sin cuentas en este tipo</div>';
+    } else {
+      subCuentas.forEach(function(a){html+=accCardNew(a,cur);});
+    }
+    html+='</div>';
+  });
+  return html;
+}
+
+function accCardNew(a,cur){
+  var bal=getBalance(a.id);
+  var info=getSubInfo(a._subId||a.subtype);
+  var grpColor=(info&&info.grp)?info.grp.color:'#00D4AA';
+  var grpColor2=grpColor+'BB';
+  var isActivo=a.type==='activo';
+  var subs=isActivo?(a.subAccounts||[]):[];
+  var days=a.paymentDate?(function(){var now=new Date();var d=new Date(now.getFullYear(),now.getMonth(),a.paymentDate);if(d<now)d.setMonth(d.getMonth()+1);return Math.round((d-now)/86400000);})():null;
+  var urgentOutline=days!==null&&days<=3?'outline:2px solid '+(days===0?'var(--danger)':'var(--warning)'):'';
+  var cardId='acc-'+a.id;
+  var subTotal=subs.reduce(function(s,sb){return s+(parseFloat(sb.balance)||0);},0);
+  var mainBal=(parseFloat(a.initialBalance)||0)
+    +S.transactions.filter(function(t){return t.currency===(a.currency||cur)&&t.accountId===a.id;}).reduce(function(s,t){if(t.type==='ingreso')return s+(parseFloat(t.amount)||0);if(t.type==='gasto')return s-(parseFloat(t.amount)||0);return s;},0)
+    +S.transactions.filter(function(t){return t.type==='transferencia'&&t.currency===(a.currency||cur);}).reduce(function(s,t){if(t.toAccountId===a.id)return s+(parseFloat(t.amount)||0);if(t.accountId===a.id)return s-(parseFloat(t.amount)||0);return s;},0);
+  var isTcCard=a._grpId==='tc'&&a.tcLimit;
+  var editGrp=a._grpId||'banco';
+  var editSub=a._subId||'ahorro';
+  if(a.type==='pasivo'){editGrp=a._grpId||'tc';editSub=a._subId||'visa';}
+  var subListHtml='';
+  if(subs.length){
+    var sl='<div style="margin-bottom:10px"><div style="font-size:10px;color:rgba(255,255,255,.5);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Bolsillos \xb7 '+fmt(subTotal,a.currency||cur)+'</div>';
+    subs.forEach(function(sb){
+      sl+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.1);cursor:pointer" onclick="openModal(\'subAccount\',{parentId:\''+a.id+'\',subId:\''+sb.id+'\'})">'
+        +'<div style="width:24px;height:24px;border-radius:6px;background:'+(sb.color||'var(--primary)')+'44;display:flex;align-items:center;justify-content:center;font-size:12px">'+(sb.icon||'&#128055;')+'</div>'
+        +'<div style="flex:1;font-size:12px;font-weight:600;color:white">'+sb.name+'</div>'
+        +'<div style="font-size:12px;font-weight:700;color:'+(sb.color||'#6FFFDF')+'">'+fmt(sb.balance||0,a.currency||cur)+'</div>'
+        +'</div>';
+    });
+    sl+='<div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px">Cuenta: '+fmt(mainBal,a.currency||cur)+'</div></div>';
+    subListHtml=sl;
+  }
+  var actionsHtml;
+  if(isActivo){
+    actionsHtml=subListHtml
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+        +'<button style="flex:1;min-width:80px;padding:9px 6px;border-radius:10px;border:none;background:rgba(59,130,246,.4);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="viewAccountMovements(\''+a.id+'\')">&#128203; Movimientos</button>'
+        +'<button style="flex:1;min-width:70px;padding:9px 6px;border-radius:10px;border:none;background:rgba(255,255,255,.2);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="event.stopPropagation();openFormCuenta(\''+editGrp+'\',\''+editSub+'\',\''+a.id+'\')">&#9998;&#65039; Editar</button>'
+        +(a.subtype!=='efectivo'&&!a.protected?'<button style="flex:1;min-width:80px;padding:9px 6px;border-radius:10px;border:none;background:rgba(0,212,170,.25);color:#6FFFDF;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="openModal(\'subAccount\',{parentId:\''+a.id+'\'})">&#65291; Bolsillo</button>':'')
+      +'</div>';
+  } else {
+    actionsHtml='<div style="display:flex;gap:6px">'
+      +'<button style="flex:1;padding:9px;border-radius:10px;border:none;background:rgba(59,130,246,.4);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="viewAccountMovements(\''+a.id+'\')">&#128203; Movimientos</button>'
+      +'<button style="flex:1;padding:9px;border-radius:10px;border:none;background:rgba(255,255,255,.2);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="event.stopPropagation();openFormCuenta(\''+editGrp+'\',\''+editSub+'\',\''+a.id+'\')">&#9998;&#65039; Editar cuenta</button>'
+      +'</div>';
+  }
+  return '<div class="account-card" style="background:linear-gradient(135deg,'+grpColor+','+grpColor2+');'+urgentOutline+'" onclick="toggleAccCard(\''+cardId+'\',event)">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">'
+      +'<div style="display:flex;align-items:center;gap:12px">'
+        +(a.bankEntity?bankBadge(a.bankEntity,a.currency||cur,44,a):'<div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:22px">'+(info&&info.sub?info.sub.icon:'&#128179;')+'</div>')
+        +'<div>'
+          +'<div style="font-size:15px;font-weight:800;color:white;text-shadow:0 1px 3px rgba(0,0,0,.4)">'+a.name+'</div>'
+          +'<div style="font-size:11px;color:rgba(255,255,255,.7)">'+(a.bankEntity?(function(){var b=getBank(a.bankEntity,a.currency||cur);return b?b.name:'Sin entidad';})():'Sin entidad')+' \xb7 '+(a.currency||cur)+'</div>'
+          +(info?'<div style="font-size:10px;color:rgba(255,255,255,.5)">'+info.sub.label+'</div>':'')
+        +'</div>'
+      +'</div>'
+      +'<div style="text-align:right">'
+        +(days!==null&&days<=5?'<div style="font-size:11px;color:'+(days<=2?'#FF8080':'#FFD080')+';font-weight:700">&#9888; Pago '+(days===0?'HOY':days+'d')+'</div>':'')
+        +'<div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px">toca para opciones</div>'
+      +'</div>'
+    +'</div>'
+    +'<div style="font-size:26px;font-weight:800;color:white;text-shadow:0 2px 8px rgba(0,0,0,.4);letter-spacing:-.5px">'+fmt(Math.abs(bal),a.currency||cur)+'</div>'
+    +(isTcCard?'<div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.6);margin-bottom:4px"><span>Usado</span><span>'+Math.min(100,a.tcLimit>0?Math.round(bal/a.tcLimit*100):0)+'% de '+fmt(a.tcLimit,a.currency||cur)+'</span></div><div style="height:6px;background:rgba(255,255,255,.2);border-radius:99px"><div style="height:100%;border-radius:99px;background:'+(a.tcLimit>0&&bal/a.tcLimit>0.8?'#FF8080':'#6FFFDF')+';width:'+Math.min(100,a.tcLimit>0?Math.round(bal/a.tcLimit*100):0)+'%"></div></div></div>':'')
+    +'<div id="'+cardId+'-actions" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)">'+actionsHtml+'</div>'
+    +'</div>';
+}
+function openFormCuenta(grpId,subId,accId){
+  S._fcData={grpId:grpId||'', subId:subId||'', id:accId||''};
+  navigate('form-cuenta');
+}
+
+function renderFormCuenta(){
+  var data=S._fcData||{};
+  var grpId=data.grpId||'';
+  var subId=data.subId||'';
+  var accId=data.id||'';
+  var acc=accId?S.accounts.find(function(a){return a.id===accId;}):null;
+  var grp=ACC_GROUPS.find(function(g){return g.id===grpId;})||ACC_GROUPS[0];
+  var sub=subId?grp.subs.find(function(s){return s.id===subId;}):null;
+  var defCur=acc?acc.currency:S.currency;
+  var availCurs=(S.currencies&&S.currencies.length?S.currencies:[S.currency]);
+  var subSelector='';
+  if(!subId&&grp.subs.length>1){
+    var btns='';
+    grp.subs.forEach(function(s){
+      btns+='<button onclick="selectFCSub(\''+s.id+'\')" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-family:var(--font);text-align:left;width:100%">'
+        +'<span style="font-size:20px">'+s.icon+'</span>'
+        +'<span style="font-size:13px;font-weight:600;color:var(--text)">'+s.label+'</span>'
+        +'<span style="margin-left:auto;color:var(--text3);font-size:18px">&#8250;</span>'
+        +'</button>';
+    });
+    subSelector='<div class="form-group"><label class="form-label">Tipo de cuenta</label><div style="display:flex;flex-direction:column;gap:6px">'+btns+'</div></div>';
+  }
+  var banksList=defCur==='COP'?BANKS_COP:BANKS_PLN;
+  var bankOpts='<option value="">Sin entidad</option>'+banksList.map(function(b){return '<option value="'+b.id+'"'+(acc&&acc.bankEntity===b.id?' selected':'')+'>'+b.abbr+' \xb7 '+b.name+'</option>';}).join('');
+  var extraFields=(subId||grp.subs.length===1)?buildFormCuentaFields(grpId,subId||grp.subs[0].id,acc):'';
+  var html='<div style="padding-bottom:24px">';
+  if(sub){
+    html+='<div style="display:flex;align-items:center;gap:10px;background:'+grp.color+'18;border:1px solid '+grp.color+'44;border-radius:12px;padding:12px 14px;margin-bottom:16px">'
+      +'<span style="font-size:22px">'+sub.icon+'</span>'
+      +'<div><div style="font-size:13px;font-weight:700;color:var(--text)">'+sub.label+'</div>'
+      +'<div style="font-size:11px;color:var(--text3)">'+grp.label+(grp.type==='activo'?' \xb7 Activo':' \xb7 Pasivo')+'</div></div>'
+      +'</div>';
+  } else {
+    html+='<div style="display:flex;align-items:center;gap:10px;background:'+grp.color+'18;border:1px solid '+grp.color+'44;border-radius:12px;padding:12px 14px;margin-bottom:16px">'
+      +'<span style="font-size:22px">'+grp.icon+'</span>'
+      +'<div><div style="font-size:13px;font-weight:700;color:var(--text)">'+grp.label+'</div>'
+      +'<div style="font-size:11px;color:var(--text3)">Selecciona el tipo de cuenta</div></div>'
+      +'</div>';
+  }
+  html+=subSelector;
+  if(subId||grp.subs.length===1){
+    var curOpts=availCurs.map(function(c){return '<option value="'+c+'"'+(defCur===c?' selected':'')+'>'+c+'</option>';}).join('');
+    html+='<input type="hidden" id="fc-id" value="'+(acc?acc.id||'':'')+'">'
+      +'<input type="hidden" id="fc-grpid" value="'+grpId+'">'
+      +'<input type="hidden" id="fc-subid" value="'+(subId||grp.subs[0].id)+'">'
+      +'<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
+        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Bancolombia Ahorros" value="'+(acc?acc.name:'')+'">'
+      +'</div>'
+      +'<div class="form-row">'
+        +'<div class="form-group"><label class="form-label">Moneda</label>'
+          +'<select class="form-select" id="fc-currency" onchange="updateAccBanks(this.value)">'+curOpts+'</select>'
+        +'</div>'
+        +'<div class="form-group"><label class="form-label">Tipo</label>'
+          +'<div style="padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text2)">'+(grp.type==='activo'?'&#128154; Activo':'&#128308; Pasivo')+'</div>'
+        +'</div>'
+      +'</div>'
+      +(grpId!=='efectivo'?'<div class="form-group"><label class="form-label">Entidad financiera</label><select class="form-select" id="fc-bank">'+bankOpts+'</select></div>':'')
+      +'<div class="form-group"><label class="form-label">'+(grp.type==='activo'?'Balance inicial':'Deuda actual')+'</label>'
+        +'<input class="form-input" type="number" id="fc-balance" placeholder="0.00" step="0.01" value="'+(acc?acc.initialBalance||0:0)+'">'
+      +'</div>'
+      +'<div id="fc-extra">'+extraFields+'</div>'
+      +'<div class="form-group"><label class="form-label">Color identificador</label>'+colorPickerHtml(acc?acc.color:COLORS_PALETTE[0],'fc-color-val')+'</div>'
+      +'<div class="btn-row">'
+        +(acc&&!acc.protected?'<button class="btn btn-danger" onclick="deleteAccountFC()">Eliminar</button>':'')
+        +'<button class="btn btn-primary" onclick="saveAccountFC()">Guardar</button>'
+      +'</div>';
+  }
+  html+='</div>';
+  return html;
+}
+function selectFCSub(subId){
+  var data=S._fcData||{};
+  data.subId=subId;
+  S._fcData=data;
+  renderPage('form-cuenta');
+  var ht=document.getElementById('header-title');
+  if(ht)ht.textContent='Nueva cuenta';
+}
+
+function buildFormCuentaFields(grpId,subId,acc){
+  var dayOpts='';
+  for(var i=1;i<=31;i++)dayOpts+='<option value="'+i+'"'+(acc&&acc.paymentDate===i?' selected':'')+'>'+i+'</option>';
+  var cutOpts='';
+  for(var j=1;j<=31;j++)cutOpts+='<option value="'+j+'"'+(acc&&acc.cutDate===j?' selected':'')+'>'+j+'</option>';
+  if(grpId==='tc'){
+    return '<div class="form-row">'
+      +'<div class="form-group"><label class="form-label">Limite de cupo</label><input class="form-input" type="number" id="fc-tc-limit" value="'+(acc&&acc.tcLimit?acc.tcLimit:'')+'" placeholder="Ej: 5000"></div>'
+      +'<div class="form-group"><label class="form-label">TAE (%)</label><input class="form-input" type="number" id="fc-tae" value="'+(acc&&acc.tae?acc.tae:'')+'" placeholder="Ej: 24.5" step="0.01"></div>'
+      +'</div>'
+      +'<div class="form-row">'
+      +'<div class="form-group"><label class="form-label">Dia de corte</label><select class="form-select" id="fc-cut"><option value="">Seleccionar</option>'+cutOpts+'</select></div>'
+      +'<div class="form-group"><label class="form-label">Dia de pago</label><select class="form-select" id="fc-paydate"><option value="">Seleccionar</option>'+dayOpts+'</select></div>'
+      +'</div>';
+  }
+  if(grpId==='prestamo'||grpId==='informal'){
+    return '<div class="form-row">'
+      +'<div class="form-group"><label class="form-label">Monto total</label><input class="form-input" type="number" id="fc-credit-total" value="'+(acc&&acc.creditTotal?acc.creditTotal:'')+'" placeholder="Total credito"></div>'
+      +'<div class="form-group"><label class="form-label">Cuota mensual</label><input class="form-input" type="number" id="fc-monthly" value="'+(acc&&acc.monthlyPayment?acc.monthlyPayment:'')+'" placeholder="Cuota"></div>'
+      +'</div>'
+      +'<div class="form-row">'
+      +'<div class="form-group"><label class="form-label">Dia de pago</label><select class="form-select" id="fc-paydate"><option value="">Seleccionar</option>'+dayOpts+'</select></div>'
+      +'<div class="form-group"><label class="form-label">Tasa (%)</label><input class="form-input" type="number" id="fc-tae" value="'+(acc&&acc.tae?acc.tae:'')+'" placeholder="Ej: 12" step="0.01"></div>'
+      +'</div>';
+  }
+  if(grpId==='inversion'){
+    return '<div class="form-row">'
+      +'<div class="form-group"><label class="form-label">Rendimiento esperado (%)</label><input class="form-input" type="number" id="fc-tae" value="'+(acc&&acc.tae?acc.tae:'')+'" placeholder="Ej: 8" step="0.01"></div>'
+      +'<div class="form-group"><label class="form-label">Plataforma / Broker</label><input class="form-input" type="text" id="fc-broker" value="'+(acc&&acc.broker?acc.broker:'')+'" placeholder="Ej: Degiro, Fidelity"></div>'
+      +'</div>';
+  }
+  if(grpId==='bien'){
+    return '<div class="form-row">'
+      +'<div class="form-group"><label class="form-label">Valor estimado actual</label><input class="form-input" type="number" id="fc-value" value="'+(acc&&acc.assetValue?acc.assetValue:'')+'" placeholder="Valor de mercado"></div>'
+      +'<div class="form-group"><label class="form-label">Anio de adquisicion</label><input class="form-input" type="number" id="fc-year" value="'+(acc&&acc.acquireYear?acc.acquireYear:'')+'" placeholder="Ej: 2022"></div>'
+      +'</div>';
+  }
+  return '';
+}
+
+function saveAccountFC(){
+  var name=(document.getElementById('fc-name')||{}).value;
+  if(!name||!name.trim()){toast('Ingresa un nombre para la cuenta');return;}
+  var grpId=(document.getElementById('fc-grpid')||{}).value||'';
+  var subId=(document.getElementById('fc-subid')||{}).value||'';
+  var accId=(document.getElementById('fc-id')||{}).value||'';
+  var existing=accId?S.accounts.find(function(a){return a.id===accId;}):null;
+  var grp=ACC_GROUPS.find(function(g){return g.id===grpId;});
+  if(!grp){toast('Tipo de cuenta no valido');return;}
+  var actualSubId=subId||grp.subs[0].id;
+  var info=getSubInfo(actualSubId);
+  var legacySubtype=grpId==='tc'?'tc':grpId==='prestamo'||grpId==='informal'?'prestamo':grpId==='banco'?'banco':grpId==='efectivo'?'efectivo':grpId==='virtual'?'digital':grpId==='inversion'?'inversion':'activo';
+  var acc={
+    id:existing?existing.id:uid(),
+    name:name.trim(),
+    type:grp.type,
+    subtype:legacySubtype,
+    _grpId:grpId,
+    _subId:actualSubId,
+    currency:(document.getElementById('fc-currency')||{}).value||S.currency,
+    bankEntity:(document.getElementById('fc-bank')||{}).value||'',
+    initialBalance:parseFloat((document.getElementById('fc-balance')||{}).value)||0,
+    icon:(info&&info.sub?info.sub.icon:'&#128179;'),
+    color:(document.getElementById('fc-color-val')||{}).value||COLORS_PALETTE[0],
+    subAccounts:existing?existing.subAccounts||[]:[]
+  };
+  if(grpId==='tc'){
+    acc.tcLimit=parseFloat((document.getElementById('fc-tc-limit')||{}).value)||0;
+    acc.tae=parseFloat((document.getElementById('fc-tae')||{}).value)||0;
+    acc.cutDate=parseInt((document.getElementById('fc-cut')||{}).value)||0;
+    acc.paymentDate=parseInt((document.getElementById('fc-paydate')||{}).value)||0;
+  } else if(grpId==='prestamo'||grpId==='informal'){
+    acc.creditTotal=parseFloat((document.getElementById('fc-credit-total')||{}).value)||0;
+    acc.monthlyPayment=parseFloat((document.getElementById('fc-monthly')||{}).value)||0;
+    acc.paymentDate=parseInt((document.getElementById('fc-paydate')||{}).value)||0;
+    acc.tae=parseFloat((document.getElementById('fc-tae')||{}).value)||0;
+  } else if(grpId==='inversion'){
+    acc.tae=parseFloat((document.getElementById('fc-tae')||{}).value)||0;
+    acc.broker=(document.getElementById('fc-broker')||{}).value||'';
+  } else if(grpId==='bien'){
+    acc.assetValue=parseFloat((document.getElementById('fc-value')||{}).value)||0;
+    acc.acquireYear=parseInt((document.getElementById('fc-year')||{}).value)||0;
+  }
+  if(existing){
+    var idx=S.accounts.findIndex(function(a){return a.id===accId;});
+    S.accounts[idx]=acc;
+    toast('Cuenta actualizada');
+  } else {
+    S.accounts.push(acc);
+    toast('Cuenta creada');
+  }
+  saveState();
+  S._fcData={};
+  S._cuentasGrupo=grpId;
+  navigate('cuentas');
+}
+
+function deleteAccountFC(){
+  var accId=(document.getElementById('fc-id')||{}).value||'';
+  var acc=accId?S.accounts.find(function(a){return a.id===accId;}):null;
+  if(!acc){toast('Cuenta no encontrada');return;}
+  if(acc.protected||acc.subtype==='efectivo'){toast('Esta cuenta no puede eliminarse');return;}
+  var grpId=acc._grpId||'banco';
+  confirmDialog('&#128465;&#65039;','Eliminar cuenta','Los movimientos asociados quedaran sin cuenta.',function(){
+    S.accounts=S.accounts.filter(function(a){return a.id!==accId;});
+    saveState();
+    S._fcData={};
+    S._cuentasGrupo=grpId;
+    navigate('cuentas');
+    toast('Cuenta eliminada');
+  });
 }
 
 // ════════════════════════════════════════════════════════════
