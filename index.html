@@ -1797,7 +1797,7 @@ function renderCuentas(){
 function openAccGroup(grpId){
   if(grpId==='efectivo'){
     // Efectivo va directo al formulario (solo tiene un subtipo)
-    S._fcData={grpId:'efectivo',subId:'efectivo_fisico',id:''};
+    S._fcData={grpId:'efectivo',subId:'efectivo_fisico',id:'',step:1,fields:{}};
     navigate('form-cuenta');
     return;
   }
@@ -1938,7 +1938,7 @@ function fcSaveStepFields(){
   var fields=S._fcData.fields||{};
   var ids=['fc-name','fc-currency','fc-bank','fc-balance','fc-tae','fc-tc-limit','fc-cut','fc-paydate',
            'fc-monthly','fc-credit-total','fc-broker','fc-value','fc-year','fc-color-val',
-           'fc-digits','fc-ratio','fc-ratio-notif','fc-acreedor','fc-tel-acreedor','fc-email-acreedor'];
+           'fc-digits','fc-ratio','fc-ratio-notif','fc-acreedor','fc-tel-acreedor','fc-tel-code','fc-email-acreedor','fc-foto-acreedor','fc-deadline'];
   ids.forEach(function(id){
     var el=document.getElementById(id);
     if(el)fields[id]=el.value||el.getAttribute('data-on')||'';
@@ -1962,8 +1962,7 @@ function renderFormCuenta(){
   var grpColor=grp.color||'#00D4AA';
 
   // Cuentas sin pasos (simples)
-  var simple=['efectivo','virtual'];
-  var isSimple=simple.indexOf(grpId)!==-1||grp.subs.length===1&&['efectivo','virtual'].indexOf(grpId)!==-1;
+  var isSimple=grpId==='efectivo';
 
   // Definir pasos por tipo
   var stepDefs=fcGetSteps(grpId);
@@ -1999,7 +1998,7 @@ function renderFormCuenta(){
     for(var i=1;i<=totalSteps;i++){
       var active=i===displayStep;
       var done=i<displayStep;
-      html+='<div style="flex:'+(active?'2':'1')+';height:4px;border-radius:2px;background:'+(done?'var(--primary)':active?'var(--primary)':'var(--border)')+';transition:.3s"></div>';
+      html+='<div style="flex:1;height:5px;border-radius:3px;background:'+(done?'var(--primary)':active?'var(--primary)':'var(--border)')+';transition:.3s"></div>';
     }
     html+='</div>';
     var stepLabel=isReview?'Revisar y confirmar':(stepDefs[step-1]?stepDefs[step-1].label:'');
@@ -2060,6 +2059,10 @@ function fcGroupTitle(grpId){
 
 function fcGetSteps(grpId){
   var steps={
+    virtual:[
+      {label:'Informaci\u00f3n b\u00e1sica'},
+      {label:'Saldo y ajustes'}
+    ],
     banco:[
       {label:'Informaci\u00f3n b\u00e1sica'},
       {label:'Detalles financieros'}
@@ -2120,16 +2123,28 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
 
   // ── EFECTIVO / VIRTUAL (simple, 1 pantalla) ─────────
   if(isSimple){
-    var nm=f('fc-name',acc?acc.name:(grpId==='efectivo'?'Efectivo':''));
+    var nm=f('fc-name',acc?acc.name:(grpId==='efectivo'?'Dinero en mano':''));
     return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
       +'<input class="form-input" type="text" id="fc-name" '
       +(grpId==='efectivo'?'readonly style="opacity:.7;cursor:default" ':'')
-      +'placeholder="Ej: '+(grpId==='efectivo'?'Efectivo':'Mi cuenta PayPal')+'" value="'+nm+'">'
+      +'placeholder="Ej: '+(grpId==='efectivo'?'Dinero en mano':'Mi cuenta PayPal')+'" value="'+nm+'">'
       +'</div>'
       +curHtml+balHtml
       +buildAccToggleHTML(acc);
   }
 
+  // ── VIRTUAL ─────────────────────────────────────────
+  if(grpId==='virtual'){
+    if(stepIdx===0){
+      var nm=f('fc-name',acc?acc.name:'');
+      return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
+        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Mi PayPal personal" value="'+nm+'"></div>'
+        +curHtml;
+    }
+    if(stepIdx===1){
+      return balHtml+buildAccToggleHTML(acc);
+    }
+  }
   // ── BANCO ────────────────────────────────────────────
   if(grpId==='banco'){
     if(stepIdx===0){
@@ -2146,7 +2161,7 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
       var tae=f('fc-tae',acc?acc.tae||'':'');
       return balHtml
         +'<div class="form-group"><label class="form-label">Tasa de inter\u00e9s que paga el banco (%) <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
-        +'<input class="form-input" type="number" id="fc-tae" placeholder="Ej: 4.5 EA" step="0.01" value="'+tae+'"></div>'
+        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" value="'+tae+'"></div>'
         +buildAccToggleHTML(acc);
     }
   }
@@ -2166,7 +2181,7 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
       var tae=f('fc-tae',acc?acc.tae||'':'');
       return balHtml
         +'<div class="form-group"><label class="form-label">Rendimiento esperado (%) <span style="color:var(--text3);font-weight:400">(anual)</span></label>'
-        +'<input class="form-input" type="number" id="fc-tae" placeholder="Ej: 8.0" step="0.01" value="'+tae+'"></div>'
+        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" value="'+tae+'"></div>'
         +buildAccToggleHTML(acc);
     }
   }
@@ -2210,7 +2225,7 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
         +'<div class="form-group"><label class="form-label">L\u00edmite de cupo</label>'
         +'<input class="form-input" type="text" inputmode="numeric" id="fc-tc-limit" placeholder="0,00" oninput="numInputFC(this)" style="text-align:right" value="'+lim+'"></div>'
         +'<div class="form-group"><label class="form-label">Tasa de inter\u00e9s (TAE %)</label>'
-        +'<input class="form-input" type="number" id="fc-tae" placeholder="Ej: 24.5" step="0.01" value="'+tae+'"></div>';
+        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" value="'+tae+'"></div>';
     }
     if(stepIdx===2){
       var defRatio=f('fc-ratio',acc?String(acc.utilizationRatio||30):'30');
@@ -2260,7 +2275,7 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
         +'<div class="form-group"><label class="form-label">Cuota mensual</label>'
         +'<input class="form-input" type="text" inputmode="numeric" id="fc-monthly" placeholder="0,00" oninput="numInputFC(this)" style="text-align:right" value="'+monthly+'"></div>'
         +'<div class="form-group"><label class="form-label">Tasa de inter\u00e9s (%)</label>'
-        +'<input class="form-input" type="number" id="fc-tae" placeholder="Ej: 12.5" step="0.01" value="'+tae+'"></div>';
+        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" value="'+tae+'"></div>';
     }
     if(stepIdx===2){
       return '<div class="form-group"><label class="form-label">D\u00eda de pago mensual</label>'
@@ -2288,41 +2303,13 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
         +'<div class="form-group"><label class="form-label">Nombre del acreedor <span style="color:var(--danger)">*</span></label>'
         +'<input class="form-input" type="text" id="fc-acreedor" placeholder="Nombre de la persona" value="'+acreedor+'"></div>'
         +'<input type="hidden" id="fc-name" value="'+acreedor+'">'
-        +'<div class="form-group"><label class="form-label">Tel\u00e9fono <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
-        +'<input class="form-input" type="tel" id="fc-tel-acreedor" placeholder="+57 300 000 0000" value="'+tel+'"></div>'
-        +'<div class="form-group"><label class="form-label">Correo <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
-        +'<input class="form-input" type="email" id="fc-email-acreedor" placeholder="correo@ejemplo.com" value="'+email+'"></div>';
+        +'<div class="form-group"><label class="form-label">Teléfono <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
+        +'<div style="display:flex;gap:6px">'
+          +'<select class="form-select" id="fc-tel-code" style="width:90px;flex-shrink:0"><option value="">Ind.</option><option value="+1">+1</option><option value="+34">+34</option><option value="+44">+44</option><option value="+49">+49</option><option value="+33">+33</option><option value="+39">+39</option><option value="+51">+51</option><option value="+52">+52</option><option value="+54">+54</option><option value="+55">+55</option><option value="+56">+56</option><option value="+57" selected>+57</option><option value="+58">+58</option><option value="+86">+86</option><option value="+91">+91</option><option value="+48">+48</option><option value="+380">+380</option></select>'
+          +'<input class="form-input" type="tel" id="fc-tel-acreedor" placeholder="300 000 0000" value="'+tel+'" style="flex:1">'
+        +'</div>'
+        +'</div>';
     }
-    if(stepIdx===1){
-      var total=f('fc-credit-total',acc?acc.creditTotal||'':'');
-      var deadline=f('fc-paydate',acc?acc.deadline||'':'');
-      return curHtml+balHtml
-        +'<div class="form-group"><label class="form-label">Monto total de la deuda</label>'
-        +'<input class="form-input" type="text" inputmode="numeric" id="fc-credit-total" placeholder="0,00" oninput="numInputFC(this)" style="text-align:right" value="'+total+'"></div>'
-        +'<div class="form-group"><label class="form-label">Fecha l\u00edmite de pago <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
-        +'<input class="form-input" type="date" id="fc-deadline" value="'+(acc?acc.deadline||'':'')+'"></div>'
-        +buildAccToggleHTML(acc);
-    }
-  }
-
-  // Fallback: simple
-  var nm=f('fc-name',acc?acc.name:'');
-  return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
-    +'<input class="form-input" type="text" id="fc-name" placeholder="Nombre" value="'+nm+'"></div>'
-    +curHtml+balHtml+buildAccToggleHTML(acc);
-}
-
-function fcBuildReview(grpId,subId,acc){
-  var f=fcGetField;
-  var cur=f('fc-currency',S.currency);
-  var meta=getCurrencyMeta(cur);
-  var sym=meta?meta.sym:cur;
-  function row(label,val){
-    if(!val&&val!==0)return '';
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">'
-      +'<span style="font-size:13px;color:var(--text2)">'+label+'</span>'
-      +'<span style="font-size:14px;font-weight:600;color:var(--text)">'+val+'</span>'
-      +'</div>';
   }
   var grp=ACC_GROUPS.find(function(g){return g.id===grpId;})||ACC_GROUPS[0];
   var sub=subId?grp.subs.find(function(s){return s.id===subId;}):null;
@@ -2364,6 +2351,50 @@ function toggleFcRatioNotif(el){
   if(knob){knob.style.right=newOn?'2px':'';knob.style.left=newOn?'':'2px';}
 }
 
+function fcBuildReview(grpId,subId,acc){
+  var f=fcGetField;
+  var cur=f('fc-currency',S.currency);
+  var meta=getCurrencyMeta(cur);
+  var sym=meta?meta.sym:cur;
+  var grp=ACC_GROUPS.find(function(g){return g.id===grpId;})||ACC_GROUPS[0];
+  var sub=subId?grp.subs.find(function(s){return s.id===subId;}):null;
+  var grpColor=grp.color||'#00D4AA';
+  function row(label,val){
+    if(!val&&val!==0&&val!=='')return '';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">'
+      +'<span style="font-size:13px;color:var(--text2)">'+label+'</span>'
+      +'<span style="font-size:14px;font-weight:600;color:var(--text)">'+val+'</span>'
+      +'</div>';
+  }
+  var displayName=grpId==='informal'?f('fc-acreedor',''):f('fc-name','Sin nombre');
+  var html='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:var(--card-shadow)">'
+    +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">'
+      +'<div style="width:44px;height:44px;border-radius:12px;background:'+grpColor+'22;display:flex;align-items:center;justify-content:center;font-size:22px">'+(sub?sub.icon:grp.icon)+'</div>'
+      +'<div><div style="font-size:15px;font-weight:800;color:var(--text)">'+displayName+'</div>'
+      +'<div style="font-size:12px;color:var(--text3)">'+(sub?sub.label:grp.label)+' · '+(grp.type==='activo'?'Activo':'Pasivo')+'</div></div>'
+    +'</div>';
+  html+=row('Moneda',cur+(sym&&sym!==cur?' ('+sym+')':''));
+  var bal=f('fc-balance','');if(bal)html+=row(grp.type==='activo'?'Balance inicial':'Deuda actual',bal+' '+sym);
+  var bank=f('fc-bank','');
+  if(bank){var blist=cur==='COP'?BANKS_COP:BANKS_PLN;var b=blist.find(function(x){return x.id===bank;});if(b)html+=row('Entidad',b.name);}
+  var digits=f('fc-digits','');if(digits)html+=row('Últimos 4 dígitos','****'+digits);
+  var tae=f('fc-tae','');if(tae)html+=row('Tasa de interés',tae);
+  var lim=f('fc-tc-limit','');if(lim)html+=row('Límite de cupo',lim+' '+sym);
+  var total=f('fc-credit-total','');if(total)html+=row('Monto original',total+' '+sym);
+  var monthly=f('fc-monthly','');if(monthly)html+=row('Cuota mensual',monthly+' '+sym);
+  var cut=f('fc-cut','');if(cut)html+=row('Día de corte','Día '+cut);
+  var pay=f('fc-paydate','');if(pay)html+=row('Día de pago','Día '+pay);
+  var ratio=f('fc-ratio','');if(ratio)html+=row('Ratio de utilización',ratio+'%');
+  var acreedor=f('fc-acreedor','');if(acreedor&&grpId==='informal')html+=row('Acreedor',acreedor);
+  var tel=f('fc-tel-acreedor','');if(tel)html+=row('Teléfono',tel);
+  var email=f('fc-email-acreedor','');if(email)html+=row('Correo',email);
+  var broker=f('fc-broker','');if(broker)html+=row('Plataforma/Broker',broker);
+  var val=f('fc-value','');if(val)html+=row('Valor estimado',val+' '+sym);
+  var yr=f('fc-year','');if(yr)html+=row('Año adquisición',yr);
+  html+='</div>';
+  return html;
+}
+
 function pickFotoAcreedor(){
   var wrap=document.getElementById('fc-acreedor-photo-wrap');
   var input=document.createElement('input');
@@ -2403,7 +2434,7 @@ function buildFormCuentaFields(grpId,subId,acc){
       +'<div class="form-group"><label class="form-label">Límite de cupo</label>'
         +'<input class="form-input" type="number" id="fc-tc-limit" value="'+(acc&&acc.tcLimit?acc.tcLimit:'')+'" placeholder="Ej: 5,000,000"></div>'
       +'<div class="form-group"><label class="form-label">TAE (%)</label>'
-        +'<input class="form-input" type="number" id="fc-tae" value="'+(acc&&acc.tae?acc.tae:'')+'" placeholder="Ej: 24.5" step="0.01"></div>'
+        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" value="'+(acc&&acc.tae?acc.tae:'')+'" placeholder="Ej: 24.5" step="0.01"></div>'
       +'</div>'
       +'<div class="form-row">'
         +'<div class="form-group"><label class="form-label">Día de corte</label>'
@@ -2436,13 +2467,13 @@ function buildFormCuentaFields(grpId,subId,acc){
             +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>'
           +'</div></div>'
         +'<div class="form-group"><label class="form-label">Tasa de interés (%)</label>'
-          +'<input class="form-input" type="number" id="fc-tae" value="'+(acc&&acc.tae?acc.tae:'')+'" placeholder="Ej: 12.5" step="0.01"></div>'
+          +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" value="'+(acc&&acc.tae?acc.tae:'')+'" placeholder="Ej: 12.5" step="0.01"></div>'
       +'</div>';
   }
   if(grpId==='inversion'){
     return '<div class="form-row">'
       +'<div class="form-group"><label class="form-label">Rendimiento esperado (%)</label>'
-        +'<input class="form-input" type="number" id="fc-tae" value="'+(acc&&acc.tae?acc.tae:'')+'" placeholder="Ej: 8.0" step="0.01"></div>'
+        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" value="'+(acc&&acc.tae?acc.tae:'')+'" placeholder="Ej: 8.0" step="0.01"></div>'
       +'<div class="form-group"><label class="form-label">Plataforma / Broker</label>'
         +'<input class="form-input" type="text" id="fc-broker" value="'+(acc&&acc.broker?acc.broker:'')+'" placeholder="Ej: Degiro, Fidelity"></div>'
       +'</div>';
