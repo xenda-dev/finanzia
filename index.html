@@ -1950,6 +1950,28 @@ function fcGetField(id,def){
   return f!==undefined&&f!==''?f:(def||'');
 }
 
+function buildAccToggleHTML(acc){
+  var checked=acc?!acc.excludeFromTotal:true;
+  var onTap='(function(el){'
+    +'var on=el.getAttribute(\'data-on\')===\'1\';'
+    +'on=!on;'
+    +'el.setAttribute(\'data-on\',on?\'1\':\'0\');'
+    +'el.style.background=on?\'var(--primary)\':\'var(--border)\';'
+    +'el.querySelector(\'.acc-tog-thumb\').style.left=on?\'22px\':\'2px\';'
+    +'document.getElementById(\'acc-include\').value=on?\'1\':\'0\';'
+    +'})(this)';
+  return '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--surface2);border-radius:12px;margin-top:4px">'
+    +'<div>'
+      +'<div style="font-size:14px;font-weight:600;color:var(--text)">Incluir en balance total</div>'
+      +'<div style="font-size:12px;color:var(--text3);margin-top:2px">Esta cuenta se suma al patrimonio neto</div>'
+    +'</div>'
+    +'<div data-on="'+(checked?'1':'0')+'" onclick="'+onTap+'" style="position:relative;width:44px;height:24px;border-radius:24px;background:'+(checked?'var(--primary)':'var(--border)')+';cursor:pointer;flex-shrink:0;transition:background .2s">'
+      +'<div class="acc-tog-thumb" style="position:absolute;left:'+(checked?'22':'2')+'px;top:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>'
+    +'</div>'
+    +'<input type="hidden" id="acc-include" value="'+(checked?'1':'0')+'">'
+    +'</div>';
+}
+
 function renderFormCuenta(){
   var data=S._fcData||{};
   var grpId=data.grpId||'';
@@ -2028,9 +2050,9 @@ function renderFormCuenta(){
 
   // ── Botones de navegación ──────────────────────────────
   if(isSimple){
-    html+='<div class="btn-row">'
-      +(acc&&!acc.protected?'<button class="btn btn-danger" onclick="deleteAccountFC()">Eliminar</button>':'')
-      +'<button class="btn btn-primary" onclick="saveAccountFC()">Guardar cuenta</button>'
+    html+='<div style="margin-top:24px">'
+      +(acc&&!acc.protected?'<button onclick="deleteAccountFC()" style="width:100%;padding:13px;border-radius:50px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:10px">Eliminar cuenta</button>':'')
+      +'<button onclick="saveAccountFC()" style="width:100%;padding:13px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px">Guardar</button>'
       +'</div>';
   } else if(isReview){
     html+='<div class="btn-row">'
@@ -2123,11 +2145,11 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
 
   // ── EFECTIVO / VIRTUAL (simple, 1 pantalla) ─────────
   if(isSimple){
-    var nm=f('fc-name',acc?acc.name:(grpId==='efectivo'?'Dinero en mano':''));
+    var nm=f('fc-name',acc?acc.name:(grpId==='efectivo'?'Efectivo':''));
     return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
       +'<input class="form-input" type="text" id="fc-name" '
       +(grpId==='efectivo'?'readonly style="opacity:.7;cursor:default" ':'')
-      +'placeholder="Ej: '+(grpId==='efectivo'?'Dinero en mano':'Mi cuenta PayPal')+'" value="'+nm+'">'
+      +'placeholder="Ej: '+(grpId==='efectivo'?'Efectivo':'Mi cuenta PayPal')+'" value="'+nm+'">'
       +'</div>'
       +curHtml+balHtml
       +buildAccToggleHTML(acc);
