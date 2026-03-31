@@ -379,6 +379,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div id="page-mis-cuentas" class="page"></div>
   <div id="page-cuentas-grupo" class="page"></div>
   <div id="page-form-cuenta" class="page"></div>
+  <div id="page-cuenta-detalle" class="page"></div>
 </div>
 <nav class="bottom-nav">
   <button class="nav-item active" data-page="dashboard">
@@ -1016,6 +1017,7 @@ function renderPage(page){
     case'dashboard':el.innerHTML=renderDashboard();initExchangeWidget();break;
     case'movimientos':el.innerHTML=renderMovimientos();break;
     case'mis-cuentas':el.innerHTML=renderMisCuentas();break;
+    case'cuenta-detalle':el.innerHTML=renderCuentaDetalle();var _htd=document.getElementById('header-title');if(_htd){var _da=S.accounts.find(function(a){return a.id===S._viewAccId;});_htd.textContent=_da?_da.name:'Cuenta';}break;
     case'suscripciones':el.innerHTML=renderSuscripciones();break;
     case'cuentas':el.innerHTML=renderCuentas();break;
     case'cuentas-grupo':el.innerHTML=renderCuentasGrupoPage();var _htg=document.getElementById('header-title');if(_htg)_htg.textContent=accGroupLabel(S._cuentasGrupo);break;
@@ -1872,21 +1874,7 @@ function accCardNew(a,cur){
     sl+='<div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px">Cuenta: '+fmt(mainBal,a.currency||cur)+'</div></div>';
     subListHtml=sl;
   }
-  var actionsHtml;
-  if(isActivo){
-    actionsHtml=subListHtml
-      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
-        +'<button style="flex:1;min-width:80px;padding:9px 6px;border-radius:10px;border:none;background:rgba(59,130,246,.4);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="viewAccountMovements(\''+a.id+'\')">&#128203; Movimientos</button>'
-        +'<button style="flex:1;min-width:70px;padding:9px 6px;border-radius:10px;border:none;background:rgba(255,255,255,.2);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="event.stopPropagation();openFormCuenta(\''+editGrp+'\',\''+editSub+'\',\''+a.id+'\')">&#9998;&#65039; Editar</button>'
-        +(a.subtype!=='efectivo'&&!a.protected?'<button style="flex:1;min-width:80px;padding:9px 6px;border-radius:10px;border:none;background:rgba(0,212,170,.25);color:#6FFFDF;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="openModal(\'subAccount\',{parentId:\''+a.id+'\'})">&#65291; Bolsillo</button>':'')
-      +'</div>';
-  } else {
-    actionsHtml='<div style="display:flex;gap:6px">'
-      +'<button style="flex:1;padding:9px;border-radius:10px;border:none;background:rgba(59,130,246,.4);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="viewAccountMovements(\''+a.id+'\')">&#128203; Movimientos</button>'
-      +'<button style="flex:1;padding:9px;border-radius:10px;border:none;background:rgba(255,255,255,.2);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)" onclick="event.stopPropagation();openFormCuenta(\''+editGrp+'\',\''+editSub+'\',\''+a.id+'\')">&#9998;&#65039; Editar cuenta</button>'
-      +'</div>';
-  }
-  return '<div class="account-card" style="background:linear-gradient(135deg,'+grpColor+','+grpColor2+');'+urgentOutline+'" onclick="toggleAccCard(\''+cardId+'\',event)">'
+  return '<div class="account-card" style="background:linear-gradient(135deg,'+grpColor+','+grpColor2+');'+urgentOutline+';cursor:pointer" onclick="openCuentaDetalle(\''+a.id+'\',event)">'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">'
       +'<div style="display:flex;align-items:center;gap:12px">'
         +(a.bankEntity?bankBadge(a.bankEntity,a.currency||cur,44,a):'<div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:22px">'+(info&&info.sub?info.sub.icon:'&#128179;')+'</div>')
@@ -1898,16 +1886,41 @@ function accCardNew(a,cur){
       +'</div>'
       +'<div style="text-align:right">'
         +(days!==null&&days<=5?'<div style="font-size:11px;color:'+(days<=2?'#FF8080':'#FFD080')+';font-weight:700">&#9888; Pago '+(days===0?'HOY':days+'d')+'</div>':'')
-        +'<div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px">toca para opciones</div>'
+        +'<div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px">ver detalle</div>'
       +'</div>'
     +'</div>'
     +'<div style="font-size:26px;font-weight:800;color:white;text-shadow:0 2px 8px rgba(0,0,0,.4);letter-spacing:-.5px">'+fmt(Math.abs(bal),a.currency||cur)+'</div>'
     +(isTcCard?'<div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.6);margin-bottom:4px"><span>Usado</span><span>'+Math.min(100,a.tcLimit>0?Math.round(bal/a.tcLimit*100):0)+'% de '+fmt(a.tcLimit,a.currency||cur)+'</span></div><div style="height:6px;background:rgba(255,255,255,.2);border-radius:99px"><div style="height:100%;border-radius:99px;background:'+(a.tcLimit>0&&bal/a.tcLimit>0.8?'#FF8080':'#6FFFDF')+';width:'+Math.min(100,a.tcLimit>0?Math.round(bal/a.tcLimit*100):0)+'%"></div></div></div>':'')
-    +'<div id="'+cardId+'-actions" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)">'+actionsHtml+'</div>'
     +'</div>';
 }
 function openFormCuenta(grpId,subId,accId){
-  S._fcData={grpId:grpId||'', subId:subId||'', id:accId||'', step:1, fields:{}};
+  var preFields={};
+  if(accId){
+    var ea=S.accounts.find(function(a){return a.id===accId;});
+    if(ea){
+      preFields['fc-name']=ea.name||'';
+      preFields['fc-currency']=ea.currency||S.currency;
+      preFields['fc-bank']=ea.bankEntity||'';
+      preFields['fc-balance']=String(ea.initialBalance||0);
+      preFields['fc-tae']=String(ea.tae||'');
+      preFields['fc-digits']=ea.lastDigits||'';
+      preFields['fc-broker']=ea.broker||'';
+      preFields['fc-ratio']=String(ea.utilizationRatio||30);
+      preFields['fc-ratio-notif']=ea.utilizationNotif?'1':'0';
+      preFields['fc-tc-limit']=String(ea.tcLimit||'');
+      preFields['fc-cut']=String(ea.cutDate||'');
+      preFields['fc-paydate']=String(ea.paymentDate||'');
+      preFields['fc-monthly']=String(ea.monthlyPayment||'');
+      preFields['fc-credit-total']=String(ea.creditTotal||'');
+      preFields['fc-acreedor']=ea.acreedor||ea.name||'';
+      preFields['fc-tel-acreedor']=ea.telAcreedor||'';
+      preFields['fc-email-acreedor']=ea.emailAcreedor||'';
+      preFields['fc-foto-acreedor']=ea.fotoAcreedor||'';
+      preFields['fc-deadline']=ea.deadline||'';
+      preFields['acc-include']=ea.excludeFromTotal?'0':'1';
+    }
+  }
+  S._fcData={grpId:grpId||'', subId:subId||'', id:accId||'', step:1, fields:preFields};
   navigate('form-cuenta');
 }
 function fcNext(){
@@ -1938,7 +1951,7 @@ function fcSaveStepFields(){
   var fields=S._fcData.fields||{};
   var ids=['fc-name','fc-currency','fc-bank','fc-balance','fc-tae','fc-tc-limit','fc-cut','fc-paydate',
            'fc-monthly','fc-credit-total','fc-broker','fc-value','fc-year','fc-color-val',
-           'fc-digits','fc-ratio','fc-ratio-notif','fc-acreedor','fc-tel-acreedor','fc-tel-code','fc-email-acreedor','fc-foto-acreedor','fc-deadline'];
+           'fc-digits','fc-ratio','fc-ratio-notif','fc-acreedor','fc-tel-acreedor','fc-tel-code','fc-email-acreedor','fc-foto-acreedor','fc-deadline','acc-include'];
   ids.forEach(function(id){
     var el=document.getElementById(id);
     if(el)fields[id]=el.value||el.getAttribute('data-on')||'';
@@ -2526,7 +2539,7 @@ function saveAccountFC(){
   // Nombre: para informal usar fc-acreedor
   var nameRaw=grpId==='informal'?f('fc-acreedor',''):f('fc-name','');
   if(!nameRaw.trim()){toast('Ingresa el nombre de la cuenta');return;}
-  var cur=f('fc-currency',S.currency);
+  var cur=f('fc-currency',S.currency)||S.currency;
   var toggleOn=f('fc-ratio-notif','1');
   var accInclude=f('acc-include','1');
   var acc={
@@ -2578,9 +2591,11 @@ function saveAccountFC(){
     toast('Cuenta creada ✓');
   }
   saveState();
+  var savedId=acc.id;
   S._fcData={};
   S._cuentasGrupo=grpId;
-  navigate('mis-cuentas');
+  S._viewAccId=savedId;
+  navigate('cuenta-detalle');
 }
 
 function deleteAccountFC(){
@@ -7699,7 +7714,7 @@ function buildTransactionModal(data){
     <input type="hidden" id="tx-type" value="${type}">
     <input type="hidden" id="tx-id" value="${tx?tx.id:''}">
     <div id="tx-fields-normal" ${type==='transferencia'?'class="hidden"':''}>
-      <div class="form-group"><label class="form-label">Cuenta</label><select class="form-select" id="tx-account" onchange="checkTcAccount(this.value,'${type}')">${accountOptionsByCur(tx?tx.currency:S.currency,tx?tx.accountId:'')}</select></div>
+      <div class="form-group"><label class="form-label">Cuenta</label><select class="form-select" id="tx-account" onchange="checkTcAccount(this.value,'${type}')">${accountOptionsByCur(tx?tx.currency:S.currency,tx?tx.accountId:(data.accountId||''))}</select></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Categoría</label><select class="form-select" id="tx-cat" onchange="updateSubs(this.value,'tx-sub')">${catOptions(type,catId)}</select></div>
         <div class="form-group"><label class="form-label">Subcategoría</label><select class="form-select" id="tx-sub">${catId?subOptions(catId,tx?tx.subcategoryId:''):'<option value="">Sin subcategoría</option>'}</select></div>
@@ -8274,10 +8289,92 @@ function updatePayAccounts(cur){
 // Toggle account card actions panel
 function editAcc(id){event&&event.stopPropagation();setTimeout(()=>openModal('account',{id:id}),10);}
 function newAcc(defaultType){setTimeout(()=>openModal('account',defaultType?{defaultType}:{}),10);}
+function openCuentaDetalle(accId,event){
+  if(event&&(event.target.tagName==='BUTTON'||event.target.closest('.acc-action-zone')))return;
+  S._viewAccId=accId;
+  navigate('cuenta-detalle');
+}
+
+function renderCuentaDetalle(){
+  var acc=S.accounts.find(function(a){return a.id===S._viewAccId;});
+  if(!acc)return '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Cuenta no encontrada</div></div>';
+  var cur=acc.currency||S.currency;
+  var bal=getBalance(acc.id);
+  var info=getSubInfo(acc._subId||acc.subtype);
+  var grpColor=(info&&info.grp)?info.grp.color:'#00D4AA';
+  var editGrp=acc._grpId||'banco';
+  var editSub=acc._subId||(acc.type==='pasivo'?'visa':'ahorro');
+
+  // Movimientos de esta cuenta
+  var movs=S.transactions.filter(function(t){
+    return t.accountId===acc.id||t.toAccountId===acc.id;
+  }).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+
+  // Saldo header
+  var html='<div style="background:linear-gradient(135deg,'+grpColor+','+grpColor+'99);border-radius:20px;padding:20px;margin-bottom:20px;position:relative">'
+    +'<div style="font-size:12px;color:rgba(255,255,255,.7);font-weight:600;margin-bottom:4px">Saldo actual</div>'
+    +'<div style="font-size:32px;font-weight:800;color:white;letter-spacing:-.5px">'+fmt(bal,cur)+'</div>'
+    +'<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:4px">'+(info?info.sub.label:acc.subtype)+' · '+cur+'</div>'
+    +'<button onclick="openFormCuenta(\''+editGrp+'\',\''+editSub+'\',\''+acc.id+'\')" style="position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Editar">'
+      +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
+    +'</button>'
+    +'</div>';
+
+  // 3 botones de acción
+  var btnStyle='flex:1;padding:12px 6px;border-radius:14px;border:none;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:4px';
+  html+='<div class="acc-action-zone" style="display:flex;gap:8px;margin-bottom:24px">'
+    +'<button style="'+btnStyle+';background:rgba(16,185,129,.15);color:#10B981" onclick="quickTx(\'ingreso\',\''+acc.id+'\')">'
+      +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 5 5 12"/></svg>'
+      +'Ingreso'
+    +'</button>'
+    +'<button style="'+btnStyle+';background:rgba(239,68,68,.15);color:#EF4444" onclick="quickTx(\'gasto\',\''+acc.id+'\')">'
+      +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 19 19 12"/></svg>'
+      +'Gasto'
+    +'</button>'
+    +'<button style="'+btnStyle+';background:rgba(116,97,239,.15);color:#7461EF" onclick="quickTx(\'transferencia\',\''+acc.id+'\')">'
+      +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>'
+      +'Transferir'
+    +'</button>'
+    +'</div>';
+
+  // Divisor
+  html+='<div style="height:1px;background:var(--border);margin-bottom:20px"></div>';
+
+  // Lista de movimientos
+  html+='<div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Movimientos</div>';
+
+  if(!movs.length){
+    html+='<div class="empty-state" style="padding:32px 0"><div class="empty-icon">📋</div><div class="empty-title">Sin movimientos</div><div class="empty-desc">Usa los botones de arriba para registrar</div></div>';
+  } else {
+    movs.forEach(function(t){
+      var isIn=t.type==='ingreso'||(t.type==='transferencia'&&t.toAccountId===acc.id);
+      var isOut=t.type==='gasto'||(t.type==='transferencia'&&t.accountId===acc.id);
+      var color=isIn?'var(--success)':'var(--danger)';
+      var sign=isIn?'+':'-';
+      var cat=S.categories.find(function(c){return c.id===t.categoryId;})||{};
+      var label=t.description||cat.name||t.type;
+      var dateStr=t.date?t.date.slice(0,10):'';
+      html+='<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">'
+        +'<div style="width:40px;height:40px;border-radius:12px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+(cat.icon||'💸')+'</div>'
+        +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+label+'</div>'
+          +'<div style="font-size:12px;color:var(--text3)">'+dateStr+'</div>'
+        +'</div>'
+        +'<div style="font-size:15px;font-weight:700;color:'+color+'">'+sign+fmt(Math.abs(parseFloat(t.amount)||0),cur)+'</div>'
+        +'</div>';
+    });
+  }
+  html+='<div style="height:32px"></div>';
+  return html;
+}
+
+function quickTx(type,accId){
+  openTransactionModal({type:type,accountId:accId});
+}
+
 function viewAccountMovements(accId){
-  S.movFilter={tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:accId,payMethod:''};
-  saveState();
-  navigate('movimientos');
+  S._viewAccId=accId;
+  navigate('cuenta-detalle');
 }
 function toggleAccCard(cardId,event){
   // Don't toggle if clicking inside actions panel or on a button
