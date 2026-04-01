@@ -1021,7 +1021,7 @@ function renderPage(page){
     case'suscripciones':el.innerHTML=renderSuscripciones();break;
     case'cuentas':el.innerHTML=renderCuentas();break;
     case'cuentas-grupo':el.innerHTML=renderCuentasGrupoPage();var _htg=document.getElementById('header-title');if(_htg)_htg.textContent=accGroupLabel(S._cuentasGrupo);break;
-    case'form-cuenta':el.innerHTML=renderFormCuenta();var _htt=document.getElementById('header-title');if(_htt)_htt.textContent=(S._fcData&&S._fcData.id?'Editar cuenta':'Nueva cuenta');break;
+    case'form-cuenta':el.innerHTML=renderFormCuenta();var _htt=document.getElementById('header-title');if(_htt)_htt.textContent=(S._fcData&&S._fcData.id?'Edición de cuenta':'Nueva cuenta');break;
     case'presupuestos':el.innerHTML=renderPresupuestos();break;
     case'metas':el.innerHTML=renderMetas();break;
     case'pagos':el.innerHTML=renderPagos();break;
@@ -1930,7 +1930,7 @@ function fcNext(){
   S._fcData.step=(S._fcData.step||1)+1;
   renderPage('form-cuenta');
   var ht=document.getElementById('header-title');
-  if(ht)ht.textContent=S._fcData.id?'Editar cuenta':'Nueva cuenta';
+  if(ht)ht.textContent=S._fcData.id?'Edición de cuenta':'Nueva cuenta';
 }
 function fcBack(){
   if((S._fcData.step||1)<=1){goBack();return;}
@@ -2459,7 +2459,7 @@ function selectFCSub(subId){
   S._fcData=data;
   renderPage('form-cuenta');
   var ht=document.getElementById('header-title');
-  if(ht)ht.textContent='Nueva cuenta';
+  if(ht)ht.textContent=S._fcData&&S._fcData.id?'Edición de cuenta':'Nueva cuenta';
 }
 
 function buildFormCuentaFields(grpId,subId,acc){
@@ -2594,8 +2594,9 @@ function saveAccountFC(){
   saveState();
   S._fcData={};
   S._cuentasGrupo=grpId;
-  // Limpiar del historial las páginas del flujo de creación
+  // Limpiar del historial las páginas del flujo de creación y no añadir la actual
   _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
+  _goingBack=true;
   navigate('mis-cuentas');
 }
 
@@ -2611,6 +2612,7 @@ function deleteAccountFC(){
     S._fcData={};
     S._cuentasGrupo=grpId;
     _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
+    _goingBack=true;
     navigate('mis-cuentas');
     toast('Cuenta eliminada');
   });
