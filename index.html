@@ -982,11 +982,16 @@ var _PAGE_LABELS={
   'grp-midinero':'Mi Dinero',
   'grp-planificacion':'Planificación',
   'grp-herramientas':'Herramientas',
-  'form-cuenta':'Nueva cuenta',
   'mis-cuentas':'Mis Cuentas',
   'cuentas-grupo':'Tipo de cuenta',
   'suscripciones':'Suscripciones'
 };
+function _getPageTitle(page){
+  if(page==='cuenta-detalle') return 'Detalle de Cuenta';
+  if(page==='form-cuenta') return (S._fcData&&S._fcData.id)?'Edición de cuenta':'Nueva cuenta';
+  if(page==='cuentas-grupo') return accGroupLabel(S._cuentasGrupo);
+  return _PAGE_LABELS[page]||'';
+}
 function _updateHeader(page){
   var hTitle=document.getElementById('header-title');
   var hBack=document.getElementById('header-back');
@@ -1005,7 +1010,7 @@ function _updateHeader(page){
   hBack.style.display=isDash?'none':'flex';
   if(hSpacer)hSpacer.style.display=isDash?'none':'block';
   if(!isDash){
-    hTitle.textContent=_PAGE_LABELS[page]||page;
+    hTitle.textContent=_getPageTitle(page);
     hBack.style.alignItems='center';
     hBack.style.justifyContent='center';
   }
@@ -1017,11 +1022,11 @@ function renderPage(page){
     case'dashboard':el.innerHTML=renderDashboard();initExchangeWidget();break;
     case'movimientos':el.innerHTML=renderMovimientos();break;
     case'mis-cuentas':el.innerHTML=renderMisCuentas();break;
-    case'cuenta-detalle':el.innerHTML=renderCuentaDetalle();var _htd=document.getElementById('header-title');if(_htd)_htd.textContent='Detalle de Cuenta';break;
+    case'cuenta-detalle':el.innerHTML=renderCuentaDetalle();break;
     case'suscripciones':el.innerHTML=renderSuscripciones();break;
     case'cuentas':el.innerHTML=renderCuentas();break;
-    case'cuentas-grupo':el.innerHTML=renderCuentasGrupoPage();var _htg=document.getElementById('header-title');if(_htg)_htg.textContent=accGroupLabel(S._cuentasGrupo);break;
-    case'form-cuenta':el.innerHTML=renderFormCuenta();var _htt=document.getElementById('header-title');if(_htt)_htt.textContent=(S._fcData&&S._fcData.id?'Edición de cuenta':'Nueva cuenta');break;
+    case'cuentas-grupo':el.innerHTML=renderCuentasGrupoPage();break;
+    case'form-cuenta':el.innerHTML=renderFormCuenta();break;
     case'presupuestos':el.innerHTML=renderPresupuestos();break;
     case'metas':el.innerHTML=renderMetas();break;
     case'pagos':el.innerHTML=renderPagos();break;
@@ -2525,6 +2530,16 @@ function buildFormCuentaFields(grpId,subId,acc){
   return '';
 }
 function saveAccountFC(){
+  // Validar que el perfil esté configurado
+  var hasProfile=S.profile&&S.profile.name&&S.profile.name.trim()!=='';
+  var hasCurrency=S.currencies&&S.currencies.length>0;
+  if(!hasProfile||!hasCurrency){
+    confirmDialog('⚠️','Configuración incompleta',
+      'Para crear una cuenta debes completar tu perfil y configurar al menos una moneda activa en Configuración.',
+      function(){navigate('configuracion');}
+    );
+    return;
+  }
   // Guardar campos actuales antes de procesar
   fcSaveStepFields();
   var f=fcGetField;
