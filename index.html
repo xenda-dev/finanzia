@@ -1017,7 +1017,7 @@ function renderPage(page){
     case'dashboard':el.innerHTML=renderDashboard();initExchangeWidget();break;
     case'movimientos':el.innerHTML=renderMovimientos();break;
     case'mis-cuentas':el.innerHTML=renderMisCuentas();break;
-    case'cuenta-detalle':el.innerHTML=renderCuentaDetalle();var _htd=document.getElementById('header-title');if(_htd){var _da=S.accounts.find(function(a){return a.id===S._viewAccId;});_htd.textContent=_da?_da.name:'Mi cuenta';}break;
+    case'cuenta-detalle':el.innerHTML=renderCuentaDetalle();var _htd=document.getElementById('header-title');if(_htd)_htd.textContent='Detalle de Cuenta';break;
     case'suscripciones':el.innerHTML=renderSuscripciones();break;
     case'cuentas':el.innerHTML=renderCuentas();break;
     case'cuentas-grupo':el.innerHTML=renderCuentasGrupoPage();var _htg=document.getElementById('header-title');if(_htg)_htg.textContent=accGroupLabel(S._cuentasGrupo);break;
@@ -2065,7 +2065,7 @@ function renderFormCuenta(){
   // ── Botones de navegación ──────────────────────────────
   if(isSimple){
     html+='<div style="margin-top:24px">'
-      +(acc&&!acc.protected?'<button onclick="deleteAccountFC()" style="width:100%;padding:13px;border-radius:50px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:10px">Eliminar cuenta</button>':'')
+      +(acc?'<button onclick="deleteAccountFC()" style="width:100%;padding:13px;border-radius:50px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:10px">Eliminar cuenta</button>':'')
       +'<button onclick="saveAccountFC()" style="width:100%;padding:13px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px">Guardar</button>'
       +'</div>';
   } else if(isReview){
@@ -2604,9 +2604,19 @@ function deleteAccountFC(){
   var accId=(document.getElementById('fc-id')||{}).value||'';
   var acc=accId?S.accounts.find(function(a){return a.id===accId;}):null;
   if(!acc){toast('Cuenta no encontrada');return;}
-  if(acc.protected||acc.subtype==='efectivo'){toast('Esta cuenta no puede eliminarse');return;}
+  var cur=acc.currency||S.currency;
+  // Verificar si es la última cuenta en esa moneda
+  var otherAccounts=S.accounts.filter(function(a){return a.id!==accId&&(a.currency||S.currency)===cur;});
+  if(acc.subtype==='efectivo'&&otherAccounts.length===0){
+    confirmDialog('⚠️','No se puede eliminar','Esta cuenta no puede ser eliminada. Debes tener mínimo una cuenta creada.',function(){});
+    return;
+  }
+  if(acc.protected){
+    confirmDialog('⚠️','No se puede eliminar','Esta cuenta está protegida y no puede ser eliminada.',function(){});
+    return;
+  }
   var grpId=acc._grpId||'banco';
-  confirmDialog('&#128465;&#65039;','Eliminar cuenta','Los movimientos asociados quedaran sin cuenta.',function(){
+  confirmDialog('🗑️','Eliminar cuenta','Los movimientos asociados quedarán sin cuenta. ¿Deseas continuar?',function(){
     S.accounts=S.accounts.filter(function(a){return a.id!==accId;});
     saveState();
     S._fcData={};
