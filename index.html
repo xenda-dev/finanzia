@@ -1211,7 +1211,7 @@ function getBalance(accountId){
   return bal;
 }
 function getTotalBalance(){
-  return S.accounts.filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency).reduce((s,a)=>s+getBalance(a.id),0);
+  return S.accounts.filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency&&!a.excludeFromTotal).reduce((s,a)=>s+getBalance(a.id),0);
 }
 function getNetWorth(){
   const assets=S.accounts.filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency&&!a.excludeFromTotal).reduce((s,a)=>s+getBalance(a.id),0);
@@ -1851,53 +1851,82 @@ function renderCuentasGrupo(grpId){
 function accCardNew(a,cur){
   var bal=getBalance(a.id);
   var info=getSubInfo(a._subId||a.subtype);
-  var grpColor=(info&&info.sub&&info.sub.color)?info.sub.color:((info&&info.grp)?info.grp.color:'#00D4AA');
-  var grpColor2=grpColor+'BB';
-  var isActivo=a.type==='activo';
-  var subs=isActivo?(a.subAccounts||[]):[];
+  var bank=a.bankEntity?getBank(a.bankEntity,a.currency||cur):null;
+  // Color: banco > grupo > default
+  var baseColor=bank?bank.color:((info&&info.grp)?info.grp.color:'#00D4AA');
+  var isTcCard=(a._grpId==='tc'||a.subtype==='tc')&&a.tcLimit;
   var days=a.paymentDate?(function(){var now=new Date();var d=new Date(now.getFullYear(),now.getMonth(),a.paymentDate);if(d<now)d.setMonth(d.getMonth()+1);return Math.round((d-now)/86400000);})():null;
-  var urgentOutline=days!==null&&days<=3?'outline:2px solid '+(days===0?'var(--danger)':'var(--warning)'):'';
-  var cardId='acc-'+a.id;
-  var subTotal=subs.reduce(function(s,sb){return s+(parseFloat(sb.balance)||0);},0);
-  var mainBal=(parseFloat(a.initialBalance)||0)
-    +S.transactions.filter(function(t){return t.currency===(a.currency||cur)&&t.accountId===a.id;}).reduce(function(s,t){if(t.type==='ingreso')return s+(parseFloat(t.amount)||0);if(t.type==='gasto')return s-(parseFloat(t.amount)||0);return s;},0)
-    +S.transactions.filter(function(t){return t.type==='transferencia'&&t.currency===(a.currency||cur);}).reduce(function(s,t){if(t.toAccountId===a.id)return s+(parseFloat(t.amount)||0);if(t.accountId===a.id)return s-(parseFloat(t.amount)||0);return s;},0);
-  var isTcCard=a._grpId==='tc'&&a.tcLimit;
   var subtypeToGrp2={efectivo:'efectivo',digital:'virtual',tc:'tc',prestamo:'prestamo',informal:'informal',inversion:'inversion',bien:'bien',banco:'banco'};
-  var editGrp=a._grpId||(a.subtype?subtypeToGrp2[a.subtype]:null)||'banco';
-  var editSub=a._subId||'ahorro';
-  if(a.type==='pasivo'){editGrp=a._grpId||'tc';editSub=a._subId||'visa';}
-  var subListHtml='';
-  if(subs.length){
-    var sl='<div style="margin-bottom:10px"><div style="font-size:10px;color:rgba(255,255,255,.5);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Bolsillos \xb7 '+fmt(subTotal,a.currency||cur)+'</div>';
-    subs.forEach(function(sb){
-      sl+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.1);cursor:pointer" onclick="openModal(\'subAccount\',{parentId:\''+a.id+'\',subId:\''+sb.id+'\'})">'
-        +'<div style="width:24px;height:24px;border-radius:6px;background:'+(sb.color||'var(--primary)')+'44;display:flex;align-items:center;justify-content:center;font-size:12px">'+(sb.icon||'&#128055;')+'</div>'
-        +'<div style="flex:1;font-size:12px;font-weight:600;color:white">'+sb.name+'</div>'
-        +'<div style="font-size:12px;font-weight:700;color:'+(sb.color||'#6FFFDF')+'">'+fmt(sb.balance||0,a.currency||cur)+'</div>'
-        +'</div>';
-    });
-    sl+='<div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px">Cuenta: '+fmt(mainBal,a.currency||cur)+'</div></div>';
-    subListHtml=sl;
-  }
-  return '<div class="account-card" style="background:linear-gradient(135deg,'+grpColor+','+grpColor2+');'+urgentOutline+';cursor:pointer" onclick="openCuentaDetalle(\''+a.id+'\',event)">'
-    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">'
-      +'<div style="display:flex;align-items:center;gap:12px">'
-        +(a.bankEntity?bankBadge(a.bankEntity,a.currency||cur,44,a):'<div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:22px">'+(info&&info.sub?info.sub.icon:'&#128179;')+'</div>')
-        +'<div>'
-          +'<div style="font-size:15px;font-weight:800;color:white;text-shadow:0 1px 3px rgba(0,0,0,.4)">'+a.name+'</div>'
-          +'<div style="font-size:11px;color:rgba(255,255,255,.7)">'+(a.bankEntity?(function(){var b=getBank(a.bankEntity,a.currency||cur);return b?b.name:'Sin entidad';})():'Sin entidad')+' \xb7 '+(a.currency||cur)+'</div>'
-          +(info?'<div style="font-size:10px;color:rgba(255,255,255,.5)">'+info.sub.label+'</div>':'')
-        +'</div>'
+  // Ícono tipo cuenta (derecha superior)
+  var typeIcon=a.subtype==='efectivo'?'💵':a.subtype==='tc'?'💳':a.subtype==='digital'?'📱':a.subtype==='inversion'?'📈':a.subtype==='bien'?'🏠':a.subtype==='prestamo'?'💰':'🏦';
+  // Número de tarjeta enmascarado
+  var cardNum=a.lastDigits?('•••• •••• •••• '+a.lastDigits):'•••• •••• •••• ••••';
+  // Chip SVG dorado
+  var chipSVG='<svg width="34" height="26" viewBox="0 0 34 26" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    +'<rect x="1" y="1" width="32" height="24" rx="4" fill="#C8960C" stroke="#A07800" stroke-width=".8"/>'
+    +'<rect x="1" y="8.5" width="32" height="9" fill="#A07800" opacity=".4"/>'
+    +'<rect x="11" y="1" width="12" height="24" fill="#A07800" opacity=".4"/>'
+    +'<rect x="12" y="8.5" width="10" height="9" rx="1" fill="#C8960C" stroke="#A07800" stroke-width=".6"/>'
+    +'<line x1="1" y1="8.5" x2="33" y2="8.5" stroke="#A07800" stroke-width=".6"/>'
+    +'<line x1="1" y1="17.5" x2="33" y2="17.5" stroke="#A07800" stroke-width=".6"/>'
+    +'<line x1="11" y1="1" x2="11" y2="25" stroke="#A07800" stroke-width=".6"/>'
+    +'<line x1="23" y1="1" x2="23" y2="25" stroke="#A07800" stroke-width=".6"/>'
+    +'</svg>';
+  // Contactless SVG
+  var nfcSVG='<svg width="20" height="20" viewBox="0 0 24 24" fill="none">'
+    +'<path d="M12 2C8.5 5.5 8.5 18.5 12 22" stroke="rgba(255,255,255,.7)" stroke-width="2" stroke-linecap="round"/>'
+    +'<path d="M16 5C10 9 10 15 16 19" stroke="rgba(255,255,255,.7)" stroke-width="2" stroke-linecap="round"/>'
+    +'<path d="M20 8C13 10.5 13 13.5 20 16" stroke="rgba(255,255,255,.7)" stroke-width="2" stroke-linecap="round"/>'
+    +'</svg>';
+  // Gradiente de la tarjeta
+  var grad='linear-gradient(135deg,'+baseColor+' 0%,'+baseColor+'AA 50%,'+baseColor+'66 100%)';
+  // Urgencia TC
+  var urgentBorder=days!==null&&days<=3?'box-shadow:0 0 0 2px '+(days===0?'#EF4444':'#F59E0B')+';':'';
+  // Nombre banco o tipo
+  var bankLabel=bank?bank.abbr:(info&&info.sub?info.sub.label.slice(0,6).toUpperCase():a.subtype.toUpperCase());
+  var html='<div onclick="openCuentaDetalle(\''+a.id+'\',event)" style="'
+    +'background:'+grad+';'
+    +'border-radius:20px;'
+    +'padding:20px 22px 18px;'
+    +'margin-bottom:14px;'
+    +'cursor:pointer;'
+    +'position:relative;'
+    +'overflow:hidden;'
+    +'min-height:160px;'
+    +'display:flex;flex-direction:column;justify-content:space-between;'
+    +urgentBorder
+    +'">'
+    // Círculo decorativo fondo
+    +'<div style="position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.08)"></div>'
+    +'<div style="position:absolute;right:30px;bottom:-50px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.05)"></div>'
+    // Fila superior: banco + tipo
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative">'
+      +'<div>'
+        +'<div style="font-size:13px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:1px;text-transform:uppercase">'+bankLabel+'</div>'
+        +(bank?'<div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:1px">'+bank.name+'</div>':'')
+      +'</div>'
+      +'<div style="font-size:22px">'+typeIcon+'</div>'
+    +'</div>'
+    // Chip + contactless
+    +'<div style="display:flex;align-items:center;gap:10px;position:relative">'+chipSVG+nfcSVG+'</div>'
+    // Número enmascarado
+    +'<div style="font-size:13px;color:rgba(255,255,255,.75);letter-spacing:3px;font-family:monospace;position:relative">'+cardNum+'</div>'
+    // Fila inferior: nombre + saldo
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-end;position:relative">'
+      +'<div>'
+        +'<div style="font-size:10px;color:rgba(255,255,255,.55);font-weight:600;text-transform:uppercase;letter-spacing:.5px">'+(a.type==='pasivo'?'Deuda':'Cuenta')+'</div>'
+        +'<div style="font-size:13px;font-weight:700;color:white;margin-top:1px">'+a.name+'</div>'
       +'</div>'
       +'<div style="text-align:right">'
-        +(days!==null&&days<=5?'<div style="font-size:11px;color:'+(days<=2?'#FF8080':'#FFD080')+';font-weight:700">&#9888; Pago '+(days===0?'HOY':days+'d')+'</div>':'')
-        +'<div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:4px">ver detalle</div>'
+        +(days!==null&&days<=5?'<div style="font-size:10px;color:'+(days<=2?'#FF8080':'#FFD080')+';font-weight:700;margin-bottom:2px">⚠ Pago '+(days===0?'HOY':days+'d')+'</div>':'')
+        +'<div style="font-size:11px;color:rgba(255,255,255,.55);font-weight:500">Saldo</div>'
+        +'<div style="font-size:20px;font-weight:800;color:white;letter-spacing:-.5px">'+fmt(Math.abs(bal),a.currency||cur)+'</div>'
       +'</div>'
     +'</div>'
-    +'<div style="font-size:26px;font-weight:800;color:white;text-shadow:0 2px 8px rgba(0,0,0,.4);letter-spacing:-.5px">'+fmt(Math.abs(bal),a.currency||cur)+'</div>'
-    +(isTcCard?'<div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.6);margin-bottom:4px"><span>Usado</span><span>'+Math.min(100,a.tcLimit>0?Math.round(bal/a.tcLimit*100):0)+'% de '+fmt(a.tcLimit,a.currency||cur)+'</span></div><div style="height:6px;background:rgba(255,255,255,.2);border-radius:99px"><div style="height:100%;border-radius:99px;background:'+(a.tcLimit>0&&bal/a.tcLimit>0.8?'#FF8080':'#6FFFDF')+';width:'+Math.min(100,a.tcLimit>0?Math.round(bal/a.tcLimit*100):0)+'%"></div></div></div>':'')
+    // Barra TC
+    +(isTcCard?'<div style="margin-top:10px;position:relative"><div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.6);margin-bottom:4px"><span>Usado '+Math.min(100,a.tcLimit>0?Math.round(bal/a.tcLimit*100):0)+'%</span><span>Límite '+fmt(a.tcLimit,a.currency||cur)+'</span></div><div style="height:4px;background:rgba(255,255,255,.2);border-radius:99px"><div style="height:100%;border-radius:99px;background:'+(a.tcLimit>0&&bal/a.tcLimit>0.8?'#FF8080':'rgba(255,255,255,.8)')+';width:'+Math.min(100,a.tcLimit>0?Math.round(bal/a.tcLimit*100):0)+'%;transition:width .3s"></div></div></div>':'')
     +'</div>';
+  return html;
 }
 function openFormCuenta(grpId,subId,accId){
   var preFields={};
