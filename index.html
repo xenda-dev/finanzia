@@ -572,17 +572,17 @@ function loadState(){
       S.accounts=S.accounts.filter(a=>a.id!=='efectivo-default');
     }
   }
-  // THEN: ensure one Efectivo per configured currency
+  // THEN: ensure one Efectivo per configured currency — SOLO si no existe ninguna cuenta efectivo para esa moneda
   const curs=S.currencies&&S.currencies.length?S.currencies:[];
-  if(!curs.length){return;} // no currencies yet — efectivo accounts created when user sets up profile
+  if(!curs.length){return;} // no currencies yet
   curs.forEach(cur=>{
     const efId='efectivo-'+cur;
     const efAcc=S.accounts.find(a=>a.id===efId);
-    if(!efAcc){
-      S.accounts.unshift({id:efId,name:'Efectivo',type:'activo',subtype:'efectivo',currency:cur,bankEntity:'',initialBalance:0,icon:'💵',color:'#10B981',protected:true,subAccounts:[]});
-    } else {
+    // Solo marcar como protected si ya existe la cuenta con ese ID exacto
+    if(efAcc){
       efAcc.protected=true;efAcc.subtype='efectivo';efAcc.subAccounts=[];
     }
+    // NO crear automáticamente — el usuario la crea desde el flujo de Cuentas
   });
   // Remove any duplicate efectivos (same currency, keep first)
   const seenEf=new Set();
@@ -2594,6 +2594,8 @@ function saveAccountFC(){
   saveState();
   S._fcData={};
   S._cuentasGrupo=grpId;
+  // Limpiar del historial las páginas del flujo de creación
+  _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
   navigate('mis-cuentas');
 }
 
@@ -2608,6 +2610,7 @@ function deleteAccountFC(){
     saveState();
     S._fcData={};
     S._cuentasGrupo=grpId;
+    _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
     navigate('mis-cuentas');
     toast('Cuenta eliminada');
   });
