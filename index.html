@@ -1017,7 +1017,7 @@ function renderPage(page){
     case'dashboard':el.innerHTML=renderDashboard();initExchangeWidget();break;
     case'movimientos':el.innerHTML=renderMovimientos();break;
     case'mis-cuentas':el.innerHTML=renderMisCuentas();break;
-    case'cuenta-detalle':el.innerHTML=renderCuentaDetalle();var _htd=document.getElementById('header-title');if(_htd){var _da=S.accounts.find(function(a){return a.id===S._viewAccId;});_htd.textContent=_da?_da.name:'Cuenta';}break;
+    case'cuenta-detalle':el.innerHTML=renderCuentaDetalle();var _htd=document.getElementById('header-title');if(_htd){var _da=S.accounts.find(function(a){return a.id===S._viewAccId;});_htd.textContent=_da?_da.name:'Mi cuenta';}break;
     case'suscripciones':el.innerHTML=renderSuscripciones();break;
     case'cuentas':el.innerHTML=renderCuentas();break;
     case'cuentas-grupo':el.innerHTML=renderCuentasGrupoPage();var _htg=document.getElementById('header-title');if(_htg)_htg.textContent=accGroupLabel(S._cuentasGrupo);break;
@@ -1858,7 +1858,8 @@ function accCardNew(a,cur){
     +S.transactions.filter(function(t){return t.currency===(a.currency||cur)&&t.accountId===a.id;}).reduce(function(s,t){if(t.type==='ingreso')return s+(parseFloat(t.amount)||0);if(t.type==='gasto')return s-(parseFloat(t.amount)||0);return s;},0)
     +S.transactions.filter(function(t){return t.type==='transferencia'&&t.currency===(a.currency||cur);}).reduce(function(s,t){if(t.toAccountId===a.id)return s+(parseFloat(t.amount)||0);if(t.accountId===a.id)return s-(parseFloat(t.amount)||0);return s;},0);
   var isTcCard=a._grpId==='tc'&&a.tcLimit;
-  var editGrp=a._grpId||'banco';
+  var subtypeToGrp2={efectivo:'efectivo',digital:'virtual',tc:'tc',prestamo:'prestamo',informal:'informal',inversion:'inversion',bien:'bien',banco:'banco'};
+  var editGrp=a._grpId||(a.subtype?subtypeToGrp2[a.subtype]:null)||'banco';
   var editSub=a._subId||'ahorro';
   if(a.type==='pasivo'){editGrp=a._grpId||'tc';editSub=a._subId||'visa';}
   var subListHtml='';
@@ -1901,7 +1902,7 @@ function openFormCuenta(grpId,subId,accId){
       preFields['fc-name']=ea.name||'';
       preFields['fc-currency']=ea.currency||S.currency;
       preFields['fc-bank']=ea.bankEntity||'';
-      preFields['fc-balance']=String(ea.initialBalance||0);
+      preFields['fc-balance']=fmtRTLValue(ea.initialBalance||0, ea.currency||S.currency);
       preFields['fc-tae']=String(ea.tae||'');
       preFields['fc-digits']=ea.lastDigits||'';
       preFields['fc-broker']=ea.broker||'';
@@ -2591,11 +2592,9 @@ function saveAccountFC(){
     toast('Cuenta creada ✓');
   }
   saveState();
-  var savedId=acc.id;
   S._fcData={};
   S._cuentasGrupo=grpId;
-  S._viewAccId=savedId;
-  navigate('cuenta-detalle');
+  navigate('mis-cuentas');
 }
 
 function deleteAccountFC(){
@@ -5549,6 +5548,39 @@ function parseNumSubs(str,cur){
   return parseFloat(clean)||0;
 }
 
+// Convierte un número al formato RTL que usa el campo fc-balance
+function fmtRTLValue(num,cur){
+  var n=parseFloat(num)||0;
+  var meta=getCurrencyMeta(cur||S.currency);
+  var locale=meta&&meta.locale?meta.locale:'es-CO';
+  var needsLatn=/^(ar|fa|ur|ps)/.test(locale);
+  var effectiveLocale=needsLatn?locale+'-u-nu-latn':locale;
+  var noDec=['JPY','KRW','CLP','PYG','VND','IDR','KMF','BIF','GNF','RWF','UGX','DJF','XAF','XOF','XPF'];
+  var dec=noDec.indexOf(cur||S.currency)!==-1?0:2;
+  var nf;
+  try{nf=new Intl.NumberFormat(effectiveLocale,{minimumFractionDigits:dec,maximumFractionDigits:dec,useGrouping:true});}
+  catch(e){nf=new Intl.NumberFormat('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec});}
+  var parts=nf.formatToParts(1.1);
+  var decSep='.';
+  parts.forEach(function(p){if(p.type==='decimal')decSep=p.value;});
+  // Produce raw digits like numInputFC expects: integer part * 10^dec + decimal digits
+  var raw=String(Math.round(Math.abs(n)*Math.pow(10,dec)));
+  while(raw.length<=dec)raw='0'+raw;
+  if(dec===0){
+    var intNum=parseInt(raw)||0;
+    try{return new Intl.NumberFormat(effectiveLocale,{useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0}).format(intNum);}
+    catch(e){return intNum.toString();}
+  } else {
+    var intDigits=raw.slice(0,-dec);
+    var decDigits=raw.slice(-dec);
+    var intNum2=parseInt(intDigits)||0;
+    var formatted;
+    try{formatted=new Intl.NumberFormat(effectiveLocale,{useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0}).format(intNum2);}
+    catch(e){formatted=intNum2.toString();}
+    return formatted+decSep+decDigits;
+  }
+}
+
 // Re-format all active numInput/pctInput fields when currency changes
 function reformatNumFields(){
   var fields=document.querySelectorAll('input[data-numfmt]');
@@ -8302,7 +8334,9 @@ function renderCuentaDetalle(){
   var bal=getBalance(acc.id);
   var info=getSubInfo(acc._subId||acc.subtype);
   var grpColor=(info&&info.grp)?info.grp.color:'#00D4AA';
-  var editGrp=acc._grpId||'banco';
+  // Inferir grpId real desde subtype si _grpId no fue guardado
+  var subtypeToGrp={efectivo:'efectivo',digital:'virtual',tc:'tc',prestamo:'prestamo',informal:'informal',inversion:'inversion',bien:'bien',banco:'banco'};
+  var editGrp=acc._grpId||(acc.subtype?subtypeToGrp[acc.subtype]:null)||'banco';
   var editSub=acc._subId||(acc.type==='pasivo'?'visa':'ahorro');
 
   // Movimientos de esta cuenta
@@ -8344,7 +8378,11 @@ function renderCuentaDetalle(){
   html+='<div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Movimientos</div>';
 
   if(!movs.length){
-    html+='<div class="empty-state" style="padding:32px 0"><div class="empty-icon">📋</div><div class="empty-title">Sin movimientos</div><div class="empty-desc">Usa los botones de arriba para registrar</div></div>';
+    html+='<div style="text-align:center;padding:40px 20px">'
+      +'<div style="font-size:48px;margin-bottom:12px">🌱</div>'
+      +'<div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px">Todo empieza con un movimiento</div>'
+      +'<div style="font-size:13px;color:var(--text3);line-height:1.5">Registra tu primer ingreso,<br>gasto o transferencia desde esta cuenta.</div>'
+      +'</div>';
   } else {
     movs.forEach(function(t){
       var isIn=t.type==='ingreso'||(t.type==='transferencia'&&t.toAccountId===acc.id);
