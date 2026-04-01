@@ -1764,7 +1764,9 @@ function accListItem(a,cur){
   var bal=getBalance(a.id);
   var info=getSubInfo(a._subId||a.subtype);
   var bank=a.bankEntity?getBank(a.bankEntity,a.currency||cur):null;
-  var baseColor=bank?bank.color:((info&&info.grp)?info.grp.color:'#00D4AA');
+  var subtypeColorL={efectivo:'#10B981',tc:'#7461EF',digital:'#3B82F6',inversion:'#F59E0B',bien:'#8B5CF6',prestamo:'#EF4444',informal:'#EC4899',banco:'#0EA5E9'};
+  var baseColor=bank?bank.color:((info&&info.grp&&info.grp.color)?info.grp.color:(subtypeColorL[a.subtype]||'#00D4AA'));
+  if(!baseColor||baseColor==='undefined')baseColor='#00D4AA';
   var typeIcon=a.subtype==='efectivo'?'💵':a.subtype==='tc'?'💳':a.subtype==='digital'?'📱':a.subtype==='inversion'?'📈':a.subtype==='bien'?'🏠':a.subtype==='prestamo'?'💰':'🏦';
   var isNeg=a.type==='pasivo';
   return '<div onclick="openCuentaDetalle(\''+a.id+'\',event)" style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer">'
@@ -1901,8 +1903,10 @@ function accCardNew(a,cur){
   var bal=getBalance(a.id);
   var info=getSubInfo(a._subId||a.subtype);
   var bank=a.bankEntity?getBank(a.bankEntity,a.currency||cur):null;
-  // Color: banco > grupo > default
-  var baseColor=bank?bank.color:((info&&info.grp)?info.grp.color:'#00D4AA');
+  // Color: banco > subInfo.grp > color por subtipo > default teal
+  var subtypeColor={efectivo:'#10B981',tc:'#7461EF',digital:'#3B82F6',inversion:'#F59E0B',bien:'#8B5CF6',prestamo:'#EF4444',informal:'#EC4899',banco:'#0EA5E9'};
+  var baseColor=bank?bank.color:((info&&info.grp&&info.grp.color)?info.grp.color:(subtypeColor[a.subtype]||'#00D4AA'));
+  if(!baseColor||baseColor==='undefined')baseColor='#00D4AA';
   var isTcCard=(a._grpId==='tc'||a.subtype==='tc')&&a.tcLimit;
   var days=a.paymentDate?(function(){var now=new Date();var d=new Date(now.getFullYear(),now.getMonth(),a.paymentDate);if(d<now)d.setMonth(d.getMonth()+1);return Math.round((d-now)/86400000);})():null;
   var subtypeToGrp2={efectivo:'efectivo',digital:'virtual',tc:'tc',prestamo:'prestamo',informal:'informal',inversion:'inversion',bien:'bien',banco:'banco'};
@@ -2163,10 +2167,11 @@ function renderFormCuenta(){
       +'</div>';
   } else if(isReview){
     var hasAcc=acc&&!acc.protected;
+    var btnBase='padding:13px 8px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);flex:1';
     html+='<div style="display:flex;gap:8px;margin-top:8px">'
-      +'<button onclick="saveAccountFC()" style="flex:2;padding:13px 8px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">'+(acc?'Guardar':'Crear')+'</button>'
-      +'<button onclick="fcBack()" style="flex:1;padding:13px 8px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Atrás</button>'
-      +(hasAcc?'<button onclick="deleteAccountFC()" style="flex:1;padding:13px 8px;border-radius:50px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar</button>':'')
+      +'<button onclick="fcBack()" style="'+btnBase+';border:1px solid var(--border);background:transparent;color:var(--text2)">Atrás</button>'
+      +'<button onclick="saveAccountFC()" style="'+btnBase+';background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white">'+(acc?'Guardar':'Crear')+'</button>'
+      +(hasAcc?'<button onclick="deleteAccountFC()" style="'+btnBase+';border:1px solid var(--danger);background:transparent;color:var(--danger)">Eliminar</button>':'')
       +'</div>';
   } else {
     var isLast=step===stepDefs.length;
@@ -2459,23 +2464,21 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
     if(stepIdx===2){
       var defPay=f('fc-paydate',acc?String(acc.paymentDate||''):'');
       var monthly=f('fc-monthly',acc?fmtRTLValue(acc.monthlyPayment||0,defCur):'');
-      var lastPay=f('fc-last-payment',acc?acc.lastPaymentDate||'':'');
-      // Calcular próximo pago a partir del día de pago y fecha actual
-      var nextPayLabel='Último pago registrado';
+      // Próximo pago calculado desde fecha desembolso + día de pago
+      var disbDate2=f('fc-disb-date',acc?acc.disbDate||'':'');
+      var nextPay=fcCalcNextPaymentFromDisb(disbDate2,parseInt(defPay)||0);
       return balHtml
         +'<div class="form-group"><label class="form-label">Cuota pactada <span style="color:var(--text3);font-weight:400">(valor real que pagas)</span></label>'
           +'<input class="form-input" type="text" inputmode="numeric" id="fc-monthly" placeholder="0,00" oninput="numInputFC(this)" style="text-align:right" value="'+monthly+'"></div>'
         +'<div class="form-group"><label class="form-label">Día de pago mensual</label>'
           +'<input type="hidden" id="fc-paydate" value="'+defPay+'">'
-          +'<div class="bs-trigger" onclick="showBS_fcDay(\'fc-paydate\',\'fc-paydate-lbl\',\'Día de pago\')">'
+          +'<div class="bs-trigger" onclick="showBS_fcDay(\'fc-paydate\',\'fc-paydate-lbl\',\'Día de pago\',true)">'
             +'<span id="fc-paydate-lbl" style="color:'+(defPay?'var(--text)':'var(--text3)')+';font-size:14px">'+(defPay?'Día '+defPay:'Seleccionar día')+'</span>'
             +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>'
           +'</div></div>'
-        +'<div class="form-group"><label class="form-label">Último pago registrado <span style="color:var(--text3);font-weight:400">(para calcular próximo)</span></label>'
-          +'<input class="form-input" type="date" id="fc-last-payment" value="'+lastPay+'" oninput="fcUpdateNextPayment()"></div>'
         +'<div style="background:var(--surface2);border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
           +'<div style="font-size:13px;color:var(--text2);font-weight:600">Próximo pago estimado</div>'
-          +'<div id="fc-next-pay-display" style="font-size:14px;font-weight:800;color:var(--primary)">'+fcCalcNextPayment(lastPay,parseInt(defPay)||0)+'</div>'
+          +'<div id="fc-next-pay-display" style="font-size:14px;font-weight:800;color:var(--primary)">'+nextPay+'</div>'
         +'</div>'
         +buildAccToggleHTML(acc);
     }
@@ -2547,7 +2550,7 @@ function fcUpdateLoanCalc(){
     var n=capN[capFreq]||12;
     var taeStr=taeEl.value.replace('%','').replace(',','.');
     var taeNum=parseFloat(taeStr)||0;
-    temEl.textContent=taeNum>0?((Math.pow(1+taeNum/100,1/n)-1)*100).toFixed(2)+'%':'—';
+    temEl.value=taeNum>0?((Math.pow(1+taeNum/100,1/n)-1)*100).toFixed(2)+'%':'—';
   }
 }
 
@@ -2561,14 +2564,26 @@ function fcCalcNextPayment(lastPayDate, payDay){
   }catch(e){return '—';}
 }
 
+function fcCalcNextPaymentFromDisb(disbDate, payDay){
+  if(!disbDate||!payDay) return '—';
+  try{
+    var now=new Date();
+    var d=new Date(disbDate);
+    // Avanzar mes a mes desde desembolso hasta encontrar el próximo pago futuro
+    d.setDate(payDay);
+    if(d<=now) d.setMonth(d.getMonth()+1);
+    while(d<=now) d.setMonth(d.getMonth()+1);
+    return d.toISOString().slice(0,10);
+  }catch(e){return '—';}
+}
+
 function fcUpdateNextPayment(){
-  var lastEl=document.getElementById('fc-last-payment');
   var dayEl=document.getElementById('fc-paydate');
+  var disbDate=fcGetField('fc-disb-date','');
   var dispEl=document.getElementById('fc-next-pay-display');
-  if(!lastEl||!dispEl)return;
-  var last=lastEl.value||'';
+  if(!dispEl)return;
   var day=dayEl?parseInt(dayEl.value)||0:0;
-  dispEl.textContent=fcCalcNextPayment(last,day)||'—';
+  dispEl.textContent=fcCalcNextPaymentFromDisb(disbDate,day)||'—';
 }
 
 function showBS_fcFreq(inputId,lblId,title,type){
@@ -2600,7 +2615,9 @@ function fcBuildReview(grpId,subId,acc){
   var bank=f('fc-bank','');
   var blist=cur==='COP'?BANKS_COP:BANKS_PLN;
   var bankObj=bank?blist.find(function(x){return x.id===bank;}):null;
-  var grpColor=bankObj?bankObj.color:(grp.color||'#00D4AA');
+  var subtypeColorR={efectivo:'#10B981',tc:'#7461EF',digital:'#3B82F6',inversion:'#F59E0B',bien:'#8B5CF6',prestamo:'#EF4444',informal:'#EC4899',banco:'#0EA5E9'};
+  var grpColor=bankObj?bankObj.color:((grp.color)?grp.color:(subtypeColorR[grp.id]||'#00D4AA'));
+  if(!grpColor||grpColor==='undefined')grpColor='#00D4AA';
   function row(label,val){
     if(!val&&val!==0&&val!=='')return '';
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">'
@@ -2631,41 +2648,69 @@ function fcBuildReview(grpId,subId,acc){
       +'<div style="font-size:13px;font-weight:700;color:var(--text);word-break:break-word">'+val+'</div>'
       +'</div>';
   }
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">';
-  var bal=f('fc-balance','');if(bal)html+=cell(grp.type==='activo'?'Balance inicial':'Deuda actual',bal+' '+sym);
-  var digits=f('fc-digits','');if(digits)html+=cell('Últimos 4','\u2022\u2022\u2022\u2022 '+digits);
-  var tae=f('fc-tae','');if(tae)html+=cell('TAE',tae);
-  // TEM
+  // Helper para formatear montos con fmt()
+  function fmtVal(raw){ return raw?fmt(parseNumSubs(raw,cur),cur):''; }
+  var tae=f('fc-tae','');
   var capFreq=f('fc-cap-freq','');
-  if(tae&&capFreq){
+  var payFreq=f('fc-pay-freq','');
+  // TEM solo si hay TAE y es préstamo
+  var temStr='';
+  if(tae&&grpId==='prestamo'&&capFreq){
     var capN={mensual:12,trimestral:4,semestral:2,anual:1};
     var n=capN[capFreq]||12;
     var taeNum=parseFloat(String(tae).replace('%','').replace(',','.'))||0;
-    if(taeNum>0)html+=cell('TEM',((Math.pow(1+taeNum/100,1/n)-1)*100).toFixed(2)+'%');
+    if(taeNum>0) temStr=((Math.pow(1+taeNum/100,1/n)-1)*100).toFixed(2)+'%';
   }
-  var lim=f('fc-tc-limit','');if(lim)html+=cell('Límite de cupo',lim+' '+sym);
-  var cut=f('fc-cut','');if(cut)html+=cell('Día de corte','Día '+cut);
-  var pay=f('fc-paydate','');if(pay)html+=cell('Día de pago','Día '+pay);
-  var ratio=f('fc-ratio','');if(ratio)html+=cell('Ratio utilización',ratio+'%');
-  var total=f('fc-credit-total','');if(total)html+=cell('Monto préstamo',total+' '+sym);
-  var termM=f('fc-term-months','');if(termM)html+=cell('Plazo',termM+' meses');
-  var disbDate=f('fc-disb-date','');if(disbDate)html+=cell('Desembolso',disbDate);
-  var endDate=f('fc-end-date','');if(endDate)html+=cell('Finalización',endDate);
-  if(capFreq)html+=cell('Capitalización',capFreq.charAt(0).toUpperCase()+capFreq.slice(1));
-  var payFreq=f('fc-pay-freq','');if(payFreq)html+=cell('Frec. pago',payFreq.charAt(0).toUpperCase()+payFreq.slice(1));
-  var monthly=f('fc-monthly','');if(monthly)html+=cell('Cuota pactada',monthly+' '+sym);
-  var lastPay=f('fc-last-payment','');
-  if(lastPay){
-    var nextP=fcCalcNextPayment(lastPay,parseInt(pay)||0);
-    html+=cell('Último pago',lastPay);
+
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">';
+
+  if(grpId==='tc'){
+    // Orden: límite, deuda, TAE, TEM(N/A para TC), día corte, día pago, últimos dígitos, ratio
+    var lim=f('fc-tc-limit','');if(lim)html+=cell('Límite de cupo',fmtVal(lim));
+    var bal=f('fc-balance','');if(bal)html+=cell('Deuda actual',fmtVal(bal));
+    if(tae)html+=cell('TAE',tae);
+    var cut=f('fc-cut','');if(cut)html+=cell('Día de corte','Día '+cut);
+    var pay=f('fc-paydate','');if(pay)html+=cell('Día de pago','Día '+pay);
+    var digits=f('fc-digits','');if(digits)html+=cell('Últimos 4','\u2022\u2022\u2022\u2022 '+digits);
+    var ratio=f('fc-ratio','');
+    if(ratio)html+=cell('Alerta de uso','Notificar al superar el '+ratio+'%');
+  } else if(grpId==='prestamo'){
+    var total=f('fc-credit-total','');if(total)html+=cell('Monto préstamo',fmtVal(total));
+    var bal=f('fc-balance','');if(bal)html+=cell('Saldo pendiente',fmtVal(bal));
+    if(tae)html+=cell('TAE',tae);
+    if(temStr)html+=cell('TEM',temStr);
+    var termM=f('fc-term-months','');if(termM)html+=cell('Plazo',termM+' meses');
+    var disbDate=f('fc-disb-date','');if(disbDate)html+=cell('Desembolso',disbDate);
+    var endDate=f('fc-end-date','');if(endDate)html+=cell('Finalización',endDate);
+    if(capFreq)html+=cell('Capitalización',capFreq.charAt(0).toUpperCase()+capFreq.slice(1));
+    if(payFreq)html+=cell('Frec. pago',payFreq.charAt(0).toUpperCase()+payFreq.slice(1));
+    var pay=f('fc-paydate','');if(pay)html+=cell('Día de pago','Día '+pay);
+    var monthly=f('fc-monthly','');if(monthly)html+=cell('Cuota pactada',fmtVal(monthly));
+    var disbDate2=f('fc-disb-date','');
+    var nextP=fcCalcNextPaymentFromDisb(disbDate2,parseInt(pay)||0);
     if(nextP&&nextP!=='—')html+=cell('Próximo pago',nextP);
+  } else if(grpId==='banco'){
+    var bal=f('fc-balance','');if(bal)html+=cell('Balance inicial',fmtVal(bal));
+    var digits=f('fc-digits','');if(digits)html+=cell('Últimos 4','\u2022\u2022\u2022\u2022 '+digits);
+    if(tae)html+=cell('Tasa banco',tae);
+  } else if(grpId==='virtual'){
+    var bal=f('fc-balance','');if(bal)html+=cell('Balance inicial',fmtVal(bal));
+  } else if(grpId==='inversion'){
+    var bal=f('fc-balance','');if(bal)html+=cell('Balance inicial',fmtVal(bal));
+    if(tae)html+=cell('Rendimiento esperado',tae);
+    var broker=f('fc-broker','');if(broker)html+=cell('Plataforma/Broker',broker);
+  } else if(grpId==='bien'){
+    var val=f('fc-value','');if(val)html+=cell('Valor estimado',fmtVal(val));
+    var yr=f('fc-year','');if(yr)html+=cell('Año adquisición',yr);
+  } else if(grpId==='informal'){
+    var bal=f('fc-balance','');if(bal)html+=cell('Deuda actual',fmtVal(bal));
+    var acreedor=f('fc-acreedor','');if(acreedor)html+=cell('Acreedor',acreedor);
+    var tel=f('fc-tel-acreedor','');if(tel)html+=cell('Teléfono',tel);
+    var email=f('fc-email-acreedor','');if(email)html+=cell('Correo',email);
+  } else {
+    // Genérico
+    var bal=f('fc-balance','');if(bal)html+=cell('Balance',fmtVal(bal));
   }
-  var acreedor=f('fc-acreedor','');if(acreedor&&grpId==='informal')html+=cell('Acreedor',acreedor);
-  var tel=f('fc-tel-acreedor','');if(tel)html+=cell('Teléfono',tel);
-  var email=f('fc-email-acreedor','');if(email)html+=cell('Correo',email);
-  var broker=f('fc-broker','');if(broker)html+=cell('Broker',broker);
-  var val=f('fc-value','');if(val)html+=cell('Valor estimado',val+' '+sym);
-  var yr=f('fc-year','');if(yr)html+=cell('Año adquisición',yr);
   html+='</div>';
 
   // Tabla de amortización para préstamos
@@ -3266,7 +3311,7 @@ function showBS_fcBank_refresh(cur,open){
     }
   });
 }
-function showBS_fcDay(inputId,lblId,title){
+function showBS_fcDay(inputId,lblId,title,updateNextPay){
   var current=document.getElementById(inputId)?String(document.getElementById(inputId).value):'';
   var items=[];
   for(var i=1;i<=31;i++)items.push({val:String(i),label:'Día '+i});
@@ -3280,6 +3325,7 @@ function showBS_fcDay(inputId,lblId,title){
         lbl.textContent=val?'Día '+val:'Seleccionar día';
         lbl.style.color=val?'var(--text)':'var(--text3)';
       }
+      if(updateNextPay)fcUpdateNextPayment();
     }
   });
 }
@@ -8655,7 +8701,9 @@ function renderCuentaDetalle(){
   var bal=getBalance(acc.id);
   var info=getSubInfo(acc._subId||acc.subtype);
   var bank=acc.bankEntity?getBank(acc.bankEntity,cur):null;
-  var baseColor=bank?bank.color:((info&&info.grp)?info.grp.color:'#00D4AA');
+  var subtypeColor2={efectivo:'#10B981',tc:'#7461EF',digital:'#3B82F6',inversion:'#F59E0B',bien:'#8B5CF6',prestamo:'#EF4444',informal:'#EC4899',banco:'#0EA5E9'};
+  var baseColor=bank?bank.color:((info&&info.grp&&info.grp.color)?info.grp.color:(subtypeColor2[acc.subtype]||'#00D4AA'));
+  if(!baseColor||baseColor==='undefined')baseColor='#00D4AA';
   var subtypeToGrp={efectivo:'efectivo',digital:'virtual',tc:'tc',prestamo:'prestamo',informal:'informal',inversion:'inversion',bien:'bien',banco:'banco'};
   var editGrp=acc._grpId||(acc.subtype?subtypeToGrp[acc.subtype]:null)||'banco';
   var editSub=acc._subId||(acc.type==='pasivo'?'visa':'ahorro');
@@ -8744,6 +8792,98 @@ function renderCuentaDetalle(){
   return html;
 }
 
+
+function openAmortizacionFull(){
+  // Capturar datos del form en el momento del click — antes de que navigate limpie _fcData
+  var f=fcGetField;
+  var cur=f('fc-currency',S.currency);
+  S._amortData={
+    name:   f('fc-name','Crédito'),
+    total:  parseNumSubs(f('fc-credit-total','0'),cur),
+    monthly:parseNumSubs(f('fc-monthly','0'),cur),
+    tae:    parseFloat(String(f('fc-tae','')).replace('%','').replace(',','.'))||0,
+    capFreq:f('fc-cap-freq','mensual'),
+    payFreq:f('fc-pay-freq','mensual'),
+    months: parseInt(f('fc-term-months',''))||0,
+    cur:    cur
+  };
+  navigate('amortizacion');
+}
+
+function renderAmortizacion(){
+  var d=S._amortData||{};
+  var cur=d.cur||S.currency;
+  if(!d.total||!d.tae||!d.months){
+    return '<div class="empty-state"><div class="empty-icon">📊</div>'
+      +'<div class="empty-title">Datos insuficientes</div>'
+      +'<div class="empty-desc">Completa monto, tasa y plazo para ver la tabla</div></div>';
+  }
+  var capN={mensual:12,trimestral:4,semestral:2,anual:1};
+  var payPeriods={mensual:12,quincenal:26,semanal:52};
+  var n=capN[d.capFreq||'mensual']||12;
+  var periods=payPeriods[d.payFreq||'mensual']||12;
+  var rPeriod=Math.pow(1+d.tae/100,1/periods)-1;
+  var nPeriods=d.payFreq==='mensual'?d.months:d.payFreq==='quincenal'?Math.round(d.months/12*26):Math.round(d.months/12*52);
+  var cuota=d.monthly||(rPeriod*(Math.pow(1+rPeriod,nPeriods))/(Math.pow(1+rPeriod,nPeriods)-1)*d.total);
+  var tem=((Math.pow(1+d.tae/100,1/n)-1)*100).toFixed(2);
+
+  var html='<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px">'
+    +'<div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:10px">'+d.name+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:2px">Monto</div><div style="font-size:13px;font-weight:700;color:var(--text)">'+fmt(d.total,cur)+'</div></div>'
+    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:2px">TAE</div><div style="font-size:13px;font-weight:700;color:var(--text)">'+d.tae+'%</div></div>'
+    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:2px">TEM</div><div style="font-size:13px;font-weight:700;color:var(--primary)">'+tem+'%</div></div>'
+    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:2px">Cuota</div><div style="font-size:13px;font-weight:700;color:var(--text)">'+fmt(cuota,cur)+'</div></div>'
+    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:2px">Plazo</div><div style="font-size:13px;font-weight:700;color:var(--text)">'+d.months+' meses</div></div>'
+    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:2px">Frecuencia</div><div style="font-size:13px;font-weight:700;color:var(--text)">'+(d.payFreq||'mensual')+'</div></div>'
+    +'</div></div>';
+
+  html+='<div style="overflow-x:auto;border-radius:12px;border:1px solid var(--border)">'
+    +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
+    +'<thead><tr style="background:var(--surface2)">'
+      +'<th style="padding:10px 6px;text-align:center;color:var(--text3);font-weight:700">#</th>'
+      +'<th style="padding:10px 6px;text-align:right;color:var(--text3);font-weight:700">Cuota</th>'
+      +'<th style="padding:10px 6px;text-align:right;color:var(--primary);font-weight:700">Capital</th>'
+      +'<th style="padding:10px 6px;text-align:right;color:var(--danger);font-weight:700">Interés</th>'
+      +'<th style="padding:10px 6px;text-align:right;color:var(--text3);font-weight:700">Saldo</th>'
+    +'</tr></thead><tbody>';
+
+  var saldo=d.total;
+  var totalIntereses=0;
+  for(var i=1;i<=nPeriods;i++){
+    var interest=saldo*rPeriod;
+    var capital=cuota-interest;
+    if(capital<0)capital=0;
+    if(capital>saldo)capital=saldo;
+    saldo=Math.max(0,saldo-capital);
+    totalIntereses+=interest;
+    var odd=i%2===0?'background:var(--surface2)':'';
+    html+='<tr style="'+odd+'">'
+      +'<td style="padding:7px 6px;text-align:center;color:var(--text3);font-size:11px">'+i+'</td>'
+      +'<td style="padding:7px 6px;text-align:right;font-weight:600;color:var(--text)">'+fmt(cuota,cur)+'</td>'
+      +'<td style="padding:7px 6px;text-align:right;color:var(--primary)">'+fmt(capital,cur)+'</td>'
+      +'<td style="padding:7px 6px;text-align:right;color:var(--danger)">'+fmt(interest,cur)+'</td>'
+      +'<td style="padding:7px 6px;text-align:right;color:var(--text2)">'+fmt(saldo,cur)+'</td>'
+      +'</tr>';
+  }
+  html+='</tbody></table></div>';
+  html+='<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:14px">'
+    +'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">'
+      +'<span style="font-size:13px;color:var(--text2)">Total pagado</span>'
+      +'<span style="font-size:14px;font-weight:700;color:var(--text)">'+fmt(cuota*nPeriods,cur)+'</span>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">'
+      +'<span style="font-size:13px;color:var(--text2)">Total intereses</span>'
+      +'<span style="font-size:14px;font-weight:700;color:var(--danger)">'+fmt(totalIntereses,cur)+'</span>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:space-between;padding:8px 0">'
+      +'<span style="font-size:13px;color:var(--text2)">Capital total</span>'
+      +'<span style="font-size:14px;font-weight:700;color:var(--primary)">'+fmt(d.total,cur)+'</span>'
+    +'</div>'
+    +'</div>';
+  html+='<div style="height:32px"></div>';
+  return html;
+}
 
 function quickTx(type,accId){
   openTransactionModal({type:type,accountId:accId});
