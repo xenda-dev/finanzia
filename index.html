@@ -380,6 +380,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div id="page-cuentas-grupo" class="page"></div>
   <div id="page-form-cuenta" class="page"></div>
   <div id="page-cuenta-detalle" class="page"></div>
+  <div id="page-amortizacion" class="page"></div>
 </div>
 <nav class="bottom-nav">
   <button class="nav-item active" data-page="dashboard">
@@ -442,15 +443,26 @@ const BANKS_PLN = [
   {id:'santander',name:'Santander Polska',abbr:'SAN',color:'#EC0000'},
   {id:'ing',name:'ING Bank Śląski',abbr:'ING',color:'#FF6200'},
   {id:'mbank',name:'mBank',abbr:'mBK',color:'#C0392B'},
-  {id:'pekao',name:'Bank Pekao SA',abbr:'PKO',color:'#8B0000'},
+  {id:'pekao',name:'Bank Pekao SA',abbr:'PEK',color:'#8B0000'},
   {id:'bnp',name:'BNP Paribas PL',abbr:'BNP',color:'#00A650'},
   {id:'alior',name:'Alior Bank',abbr:'ALR',color:'#E31E24'},
-  {id:'millennium',name:'Millennium',abbr:'MIL',color:'#C0392B'},
+  {id:'millennium',name:'Bank Millennium',abbr:'MIL',color:'#CC0033'},
   {id:'nest',name:'Nest Bank',abbr:'NST',color:'#E67E22'},
-  {id:'credit_agricole',name:'Crédit Agricole',abbr:'CA',color:'#00843D'},
+  {id:'credit_agricole',name:'Crédit Agricole PL',abbr:'CA',color:'#00843D'},
+  {id:'citibank',name:'Citi Handlowy',abbr:'CTI',color:'#003B8E'},
+  {id:'bos',name:'Bank Ochrony Środowiska',abbr:'BOS',color:'#006633'},
+  {id:'sgb',name:'SGB Bank',abbr:'SGB',color:'#E2001A'},
+  {id:'bs_lodz',name:'Bank Spółdzielczy',abbr:'BSP',color:'#1A5276'},
+  {id:'toyota',name:'Toyota Bank',abbr:'TOY',color:'#EB0A1E'},
+  {id:'getin',name:'Getin Noble Bank',abbr:'GNB',color:'#E31E24'},
+  {id:'pocztowy',name:'Bank Pocztowy',abbr:'POC',color:'#C0392B'},
+  {id:'plus',name:'Plus Bank',abbr:'PLB',color:'#E67E22'},
   {id:'revolut',name:'Revolut',abbr:'REV',color:'#0666EB'},
   {id:'wise',name:'Wise',abbr:'WSE',color:'#00B9A5'},
   {id:'blik',name:'BLIK',abbr:'BLK',color:'#E2001A'},
+  {id:'n26',name:'N26',abbr:'N26',color:'#26AEE6'},
+  {id:'vivus',name:'Vivus',abbr:'VVS',color:'#FF6600'},
+  {id:'kobo',name:'Kobo Pay',abbr:'KBP',color:'#4B0082'},
   {id:'other_pln',name:'Otro banco',abbr:'???',color:'#64748B'},
 ];
 const BANKS_COP = [
@@ -462,13 +474,27 @@ const BANKS_COP = [
   {id:'popular',name:'Banco Popular',abbr:'POP',color:'#1A5276'},
   {id:'caja_social',name:'Banco Caja Social',abbr:'BCS',color:'#17618F'},
   {id:'colpatria',name:'Scotiabank Colpatria',abbr:'COL',color:'#B03A2E'},
+  {id:'itau',name:'Itaú Colombia',abbr:'ITA',color:'#EC7000'},
+  {id:'hsbc',name:'HSBC Colombia',abbr:'HSB',color:'#DB0011'},
+  {id:'citibank_co',name:'Citibank Colombia',abbr:'CTI',color:'#003B8E'},
+  {id:'av_villas',name:'Banco AV Villas',abbr:'AVV',color:'#E31E24'},
+  {id:'coopcentral',name:'Coopcentral',abbr:'CPC',color:'#006633'},
+  {id:'gnb_sudameris',name:'GNB Sudameris',abbr:'GNB',color:'#1A2E6B'},
+  {id:'agrario',name:'Banco Agrario',abbr:'AGR',color:'#2E8B57'},
+  {id:'w',name:'Banco W',abbr:'BKW',color:'#FF6200'},
+  {id:'mundo_mujer',name:'Banco Mundo Mujer',abbr:'MMJ',color:'#9B59B6'},
+  {id:'ban100',name:'Ban100',abbr:'B100',color:'#E74C3C'},
+  {id:'bancamia',name:'Bancamía',abbr:'BMA',color:'#1A5276'},
+  {id:'confiar',name:'Confiar Cooperativa',abbr:'CNF',color:'#27AE60'},
+  {id:'coofinep',name:'Coofinep',abbr:'CFP',color:'#2980B9'},
   {id:'nequi',name:'Nequi',abbr:'NEQ',color:'#6C3483'},
   {id:'daviplata',name:'Daviplata',abbr:'DVP',color:'#B7950B'},
   {id:'nubank',name:'Nubank',abbr:'NUB',color:'#6A0DAD'},
-  {id:'lulo',name:'Lulo Bank',abbr:'LUL',color:'#C0392B'},
+  {id:'lulo',name:'Lulo Bank',abbr:'LUL',color:'#00D4AA'},
   {id:'rappipay',name:'RappiPay',abbr:'RPP',color:'#E74C3C'},
   {id:'falabella',name:'Banco Falabella',abbr:'FAL',color:'#1E8449'},
-  {id:'bancamia',name:'Bancamía',abbr:'BMA',color:'#1A5276'},
+  {id:'pichincha',name:'Banco Pichincha',abbr:'PIC',color:'#1A3A6B'},
+  {id:'cooperativa_financiera',name:'Coofinanciera',abbr:'COF',color:'#196F3D'},
   {id:'other_cop',name:'Otro banco',abbr:'???',color:'#64748B'},
 ];
 
@@ -988,6 +1014,7 @@ var _PAGE_LABELS={
 };
 function _getPageTitle(page){
   if(page==='cuenta-detalle') return 'Detalle de Cuenta';
+  if(page==='amortizacion') return 'Tabla de Amortización';
   if(page==='form-cuenta') return (S._fcData&&S._fcData.id)?'Edición de cuenta':'Nueva cuenta';
   if(page==='cuentas-grupo') return accGroupLabel(S._cuentasGrupo);
   return _PAGE_LABELS[page]||'';
@@ -1023,6 +1050,7 @@ function renderPage(page){
     case'movimientos':el.innerHTML=renderMovimientos();break;
     case'mis-cuentas':el.innerHTML=renderMisCuentas();break;
     case'cuenta-detalle':el.innerHTML=renderCuentaDetalle();break;
+    case'amortizacion':el.innerHTML=renderAmortizacion();break;
     case'suscripciones':el.innerHTML=renderSuscripciones();break;
     case'cuentas':el.innerHTML=renderCuentas();break;
     case'cuentas-grupo':el.innerHTML=renderCuentasGrupoPage();break;
@@ -1942,11 +1970,18 @@ function openFormCuenta(grpId,subId,accId){
       preFields['fc-broker']=ea.broker||'';
       preFields['fc-ratio']=String(ea.utilizationRatio||30);
       preFields['fc-ratio-notif']=ea.utilizationNotif?'1':'0';
-      preFields['fc-tc-limit']=String(ea.tcLimit||'');
+      preFields['fc-tc-limit']=ea.tcLimit?fmtRTLValue(ea.tcLimit,ea.currency||S.currency):'';
       preFields['fc-cut']=String(ea.cutDate||'');
       preFields['fc-paydate']=String(ea.paymentDate||'');
-      preFields['fc-monthly']=String(ea.monthlyPayment||'');
-      preFields['fc-credit-total']=String(ea.creditTotal||'');
+      preFields['fc-monthly']=ea.monthlyPayment?fmtRTLValue(ea.monthlyPayment,ea.currency||S.currency):'';
+      preFields['fc-credit-total']=ea.creditTotal?fmtRTLValue(ea.creditTotal,ea.currency||S.currency):'';
+      preFields['fc-term-years']=String(ea.termYears||'');
+      preFields['fc-term-months']=String(ea.termMonths||'');
+      preFields['fc-disb-date']=ea.disbDate||'';
+      preFields['fc-end-date']=ea.endDate||'';
+      preFields['fc-cap-freq']=ea.capFreq||'mensual';
+      preFields['fc-pay-freq']=ea.payFreq||'mensual';
+      preFields['fc-last-payment']=ea.lastPaymentDate||'';
       preFields['fc-acreedor']=ea.acreedor||ea.name||'';
       preFields['fc-tel-acreedor']=ea.telAcreedor||'';
       preFields['fc-email-acreedor']=ea.emailAcreedor||'';
@@ -1986,7 +2021,10 @@ function fcSaveStepFields(){
   var fields=S._fcData.fields||{};
   var ids=['fc-name','fc-currency','fc-bank','fc-balance','fc-tae','fc-tc-limit','fc-cut','fc-paydate',
            'fc-monthly','fc-credit-total','fc-broker','fc-value','fc-year','fc-color-val',
-           'fc-digits','fc-ratio','fc-ratio-notif','fc-acreedor','fc-tel-acreedor','fc-tel-code','fc-email-acreedor','fc-foto-acreedor','fc-deadline','acc-include'];
+           'fc-digits','fc-ratio','fc-ratio-notif','fc-acreedor','fc-tel-acreedor','fc-tel-code',
+           'fc-email-acreedor','fc-foto-acreedor','fc-deadline','acc-include',
+           'fc-term-years','fc-term-months','fc-disb-date','fc-end-date',
+           'fc-cap-freq','fc-pay-freq','fc-last-payment'];
   ids.forEach(function(id){
     var el=document.getElementById(id);
     if(el)fields[id]=el.value||el.getAttribute('data-on')||'';
@@ -2103,19 +2141,19 @@ function renderFormCuenta(){
       +'<button onclick="saveAccountFC()" style="width:100%;padding:13px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px">Guardar</button>'
       +'</div>';
   } else if(isReview){
-    html+='<div class="btn-row">'
-      +(acc&&!acc.protected?'<button class="btn btn-danger" onclick="deleteAccountFC()">Eliminar</button>':'')
-      +'<button class="btn btn-primary" onclick="saveAccountFC()">&#10003; Confirmar y crear</button>'
+    var hasAcc=acc&&!acc.protected;
+    html+='<div style="display:flex;gap:8px;margin-top:8px">'
+      +'<button onclick="saveAccountFC()" style="flex:2;padding:13px 8px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">'+(acc?'Guardar':'Crear')+'</button>'
+      +'<button onclick="fcBack()" style="flex:1;padding:13px 8px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Atrás</button>'
+      +(hasAcc?'<button onclick="deleteAccountFC()" style="flex:1;padding:13px 8px;border-radius:50px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar</button>':'')
       +'</div>';
-    html+='<button onclick="fcBack()" style="width:100%;margin-top:8px;padding:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text2);font-size:14px;cursor:pointer;font-family:var(--font)">&#8592; Volver a editar</button>';
   } else {
     var isLast=step===stepDefs.length;
-    html+='<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="fcNext()">'
-      +(isLast?'Ver resumen':'Siguiente &#8250;')
-      +'</button>';
-    if(step>1){
-      html+='<button onclick="fcBack()" style="width:100%;margin-top:8px;padding:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text2);font-size:14px;cursor:pointer;font-family:var(--font)">&#8592; Atr\u00e1s</button>';
-    }
+    html+='<div style="display:flex;gap:8px;margin-top:8px">'
+      +'<button onclick="fcNext()" style="flex:'+(step>1?'2':'1')+';padding:13px 8px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">'
+      +(isLast?'Ver resumen':'Siguiente')+'</button>'
+      +(step>1?'<button onclick="fcBack()" style="flex:1;padding:13px 8px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Atrás</button>':'')
+      +'</div>';
   }
 
   html+='</div>';
@@ -2152,8 +2190,8 @@ function fcGetSteps(grpId){
     ],
     prestamo:[
       {label:'Informaci\u00f3n b\u00e1sica'},
-      {label:'Detalles del cr\u00e9dito'},
-      {label:'Condiciones de pago'}
+      {label:'Condiciones del cr\u00e9dito'},
+      {label:'Pagos y seguimiento'}
     ],
     informal:[
       {label:'Datos del acreedor'},
@@ -2181,57 +2219,52 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
       +'<span id="fc-bank-lbl" style="color:'+(defBank?'var(--text)':'var(--text3)')+';font-size:14px">'+(defBankName||'Sin entidad')+'</span>'
       +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>'
     +'</div></div>';
-  var balLabel=(function(){var m={tc:'Saldo actual (deuda)',prestamo:'Saldo actual (deuda)',informal:'Saldo actual (deuda)'};return m[grpId]||'Balance inicial';})();
-  var defBal=f('fc-balance',acc&&acc.initialBalance?acc.initialBalance:'');
+  var defBal=f('fc-balance',acc&&acc.initialBalance?fmtRTLValue(acc.initialBalance,defCur):'');
+  var balLabel=(function(){var m={tc:'Saldo actual (deuda)',prestamo:'Saldo pendiente actual',informal:'Saldo actual (deuda)'};return m[grpId]||'Balance inicial';})();
   var balHtml='<div class="form-group"><label class="form-label">'+balLabel+'</label>'
     +'<input class="form-input" type="text" inputmode="numeric" id="fc-balance" placeholder="0,00" oninput="numInputFC(this)" style="text-align:right" value="'+defBal+'">'
     +'</div>';
-  var dayOpts='<option value="">Seleccionar</option>';
-  for(var i=1;i<=31;i++)dayOpts+='<option value="'+i+'"'+(f('fc-paydate',acc?acc.paymentDate||'':'')==String(i)?' selected':'')+'>'+i+'</option>';
-  var cutOpts='<option value="">Seleccionar</option>';
-  for(var j=1;j<=31;j++)cutOpts+='<option value="'+j+'"'+(f('fc-cut',acc?acc.cutDate||'':'')==String(j)?' selected':'')+'>'+j+'</option>';
 
-  // ── EFECTIVO / VIRTUAL (simple, 1 pantalla) ─────────
+  // ── EFECTIVO (simple) ────────────────────────────────
   if(isSimple){
     var nm=f('fc-name',acc?acc.name:(grpId==='efectivo'?'Efectivo':''));
     return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
       +'<input class="form-input" type="text" id="fc-name" '
       +(grpId==='efectivo'?'readonly style="opacity:.7;cursor:default" ':'')
-      +'placeholder="Ej: '+(grpId==='efectivo'?'Efectivo':'Mi cuenta PayPal')+'" value="'+nm+'">'
+      +'placeholder="Mi cuenta de efectivo" value="'+nm+'">'
       +'</div>'
       +curHtml+balHtml
       +buildAccToggleHTML(acc);
   }
 
-  // ── VIRTUAL ─────────────────────────────────────────
+  // ── VIRTUAL ──────────────────────────────────────────
   if(grpId==='virtual'){
     if(stepIdx===0){
       var nm=f('fc-name',acc?acc.name:'');
       return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
-        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Mi PayPal personal" value="'+nm+'"></div>'
+        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Mi billetera digital" value="'+nm+'"></div>'
         +curHtml;
     }
-    if(stepIdx===1){
-      return balHtml+buildAccToggleHTML(acc);
-    }
+    if(stepIdx===1){ return balHtml+buildAccToggleHTML(acc); }
   }
+
   // ── BANCO ────────────────────────────────────────────
   if(grpId==='banco'){
     if(stepIdx===0){
       var nm=f('fc-name',acc?acc.name:'');
       var digits=f('fc-digits',acc?acc.lastDigits||'':'');
       return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
-        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Bancolombia Ahorros" value="'+nm+'"></div>'
+        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Cuenta de ahorros principal" value="'+nm+'"></div>'
         +curHtml+bankHtml
-        +'<div class="form-group"><label class="form-label">\u00daltimos 4 d\u00edgitos <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
-        +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">\ud83d\udd12 Por seguridad ingresa solo los \u00faltimos 4 d\u00edgitos de tu cuenta</div>'
-        +'<input class="form-input" type="text" id="fc-digits" placeholder="ej: 4521" maxlength="4" value="'+digits+'"></div>';
+        +'<div class="form-group"><label class="form-label">Últimos 4 dígitos <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
+        +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">🔒 Por seguridad ingresa solo los últimos 4 dígitos</div>'
+        +'<input class="form-input" type="text" id="fc-digits" placeholder="Ej: 4521" maxlength="4" value="'+digits+'"></div>';
     }
     if(stepIdx===1){
       var tae=f('fc-tae',acc?acc.tae||'':'');
       return balHtml
-        +'<div class="form-group"><label class="form-label">Tasa de inter\u00e9s que paga el banco (%) <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
-        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" value="'+tae+'"></div>'
+        +'<div class="form-group"><label class="form-label">Tasa de interés del banco (%) <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
+        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" value="'+tae+'"></div>'
         +buildAccToggleHTML(acc);
     }
   }
@@ -2242,16 +2275,16 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
       var nm=f('fc-name',acc?acc.name:'');
       var broker=f('fc-broker',acc?acc.broker||'':'');
       return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
-        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Portafolio acciones" value="'+nm+'"></div>'
+        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Mi portafolio de acciones" value="'+nm+'"></div>'
         +curHtml
         +'<div class="form-group"><label class="form-label">Plataforma / Broker <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
-        +'<input class="form-input" type="text" id="fc-broker" placeholder="Ej: Degiro, Fidelity" value="'+broker+'"></div>';
+        +'<input class="form-input" type="text" id="fc-broker" placeholder="Ej: Mi broker principal" value="'+broker+'"></div>';
     }
     if(stepIdx===1){
       var tae=f('fc-tae',acc?acc.tae||'':'');
       return balHtml
         +'<div class="form-group"><label class="form-label">Rendimiento esperado (%) <span style="color:var(--text3);font-weight:400">(anual)</span></label>'
-        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" value="'+tae+'"></div>'
+        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" value="'+tae+'"></div>'
         +buildAccToggleHTML(acc);
     }
   }
@@ -2261,15 +2294,15 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
     if(stepIdx===0){
       var nm=f('fc-name',acc?acc.name:'');
       return '<div class="form-group"><label class="form-label">Nombre del bien</label>'
-        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Apartamento Bogot\u00e1" value="'+nm+'"></div>'
+        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Inmueble residencial" value="'+nm+'"></div>'
         +curHtml;
     }
     if(stepIdx===1){
-      var val=f('fc-value',acc?acc.assetValue||'':'');
+      var val=f('fc-value',acc?fmtRTLValue(acc.assetValue||0,defCur):'');
       var yr=f('fc-year',acc?acc.acquireYear||'':'');
       return '<div class="form-group"><label class="form-label">Valor estimado actual</label>'
         +'<input class="form-input" type="text" inputmode="numeric" id="fc-value" placeholder="0,00" oninput="numInputFC(this)" style="text-align:right" value="'+val+'"></div>'
-        +'<div class="form-group"><label class="form-label">A\u00f1o de adquisici\u00f3n</label>'
+        +'<div class="form-group"><label class="form-label">Año de adquisición</label>'
         +'<input class="form-input" type="number" id="fc-year" placeholder="Ej: 2020" value="'+yr+'"></div>'
         +buildAccToggleHTML(acc);
     }
@@ -2279,34 +2312,49 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
   if(grpId==='tc'){
     if(stepIdx===0){
       var nm=f('fc-name',acc?acc.name:'');
+      var digits=f('fc-digits',acc?acc.lastDigits||'':'');
       var subInfo=getSubInfo(subId);
       var fran=subInfo?subInfo.sub.label:'';
-      return '<div style="display:flex;align-items:center;gap:10px;background:var(--danger)18;border:1px solid var(--danger)40;border-radius:12px;padding:12px;margin-bottom:16px">'
+      return '<div style="display:flex;align-items:center;gap:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:12px;margin-bottom:16px">'
         +'<span style="font-size:22px">'+((subInfo&&subInfo.sub.icon)||'💳')+'</span>'
-        +'<div><div style="font-size:13px;font-weight:700;color:var(--text)">'+fran+'</div><div style="font-size:11px;color:var(--text3)">Tarjeta de cr\u00e9dito</div></div></div>'
+        +'<div><div style="font-size:13px;font-weight:700;color:var(--text)">'+fran+'</div><div style="font-size:11px;color:var(--text3)">Tarjeta de crédito</div></div></div>'
         +'<div class="form-group"><label class="form-label">Nombre de la tarjeta</label>'
-        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Visa Oro Bancolombia" value="'+nm+'"></div>'
-        +curHtml+bankHtml;
+        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Mi tarjeta principal" value="'+nm+'"></div>'
+        +curHtml+bankHtml
+        +'<div class="form-group"><label class="form-label">Últimos 4 dígitos <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
+        +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">🔒 Por seguridad ingresa solo los últimos 4 dígitos</div>'
+        +'<input class="form-input" type="text" id="fc-digits" placeholder="Ej: 8765" maxlength="4" value="'+digits+'"></div>';
     }
     if(stepIdx===1){
-      var lim=f('fc-tc-limit',acc?acc.tcLimit||'':'');
+      var lim=f('fc-tc-limit',acc?fmtRTLValue(acc.tcLimit||0,defCur):'');
       var tae=f('fc-tae',acc?acc.tae||'':'');
       return balHtml
-        +'<div class="form-group"><label class="form-label">L\u00edmite de cupo</label>'
+        +'<div class="form-group"><label class="form-label">Límite de cupo</label>'
         +'<input class="form-input" type="text" inputmode="numeric" id="fc-tc-limit" placeholder="0,00" oninput="numInputFC(this)" style="text-align:right" value="'+lim+'"></div>'
-        +'<div class="form-group"><label class="form-label">Tasa de inter\u00e9s (TAE %)</label>'
-        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" value="'+tae+'"></div>';
+        +'<div class="form-group"><label class="form-label">Tasa de interés anual (TAE %)</label>'
+        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" value="'+tae+'"></div>';
     }
     if(stepIdx===2){
+      var defCut=f('fc-cut',acc?String(acc.cutDate||''):'');
+      var defPay=f('fc-paydate',acc?String(acc.paymentDate||''):'');
       var defRatio=f('fc-ratio',acc?String(acc.utilizationRatio||30):'30');
       var defNotif=f('fc-ratio-notif',acc?(acc.utilizationNotif?'1':'0'):'1');
       return '<div class="form-row">'
-        +'<div class="form-group"><label class="form-label">D\u00eda de corte</label>'
-          +'<select class="form-select" id="fc-cut">'+cutOpts+'</select></div>'
-        +'<div class="form-group"><label class="form-label">D\u00eda de pago</label>'
-          +'<select class="form-select" id="fc-paydate">'+dayOpts+'</select></div></div>'
+        +'<div class="form-group"><label class="form-label">Día de corte</label>'
+          +'<input type="hidden" id="fc-cut" value="'+defCut+'">'
+          +'<div class="bs-trigger" onclick="showBS_fcDay(\'fc-cut\',\'fc-cut-lbl\',\'Día de corte\')">'
+            +'<span id="fc-cut-lbl" style="color:'+(defCut?'var(--text)':'var(--text3)')+';font-size:14px">'+(defCut?'Día '+defCut:'Seleccionar día')+'</span>'
+            +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>'
+          +'</div></div>'
+        +'<div class="form-group"><label class="form-label">Día de pago</label>'
+          +'<input type="hidden" id="fc-paydate" value="'+defPay+'">'
+          +'<div class="bs-trigger" onclick="showBS_fcDay(\'fc-paydate\',\'fc-paydate-lbl\',\'Día de pago\')">'
+            +'<span id="fc-paydate-lbl" style="color:'+(defPay?'var(--text)':'var(--text3)')+';font-size:14px">'+(defPay?'Día '+defPay:'Seleccionar día')+'</span>'
+            +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>'
+          +'</div></div>'
+        +'</div>'
         +'<div class="form-group" style="margin-top:8px">'
-          +'<label class="form-label">Ratio de utilizaci\u00f3n recomendado</label>'
+          +'<label class="form-label">Ratio de utilización recomendado</label>'
           +'<div style="font-size:11px;color:var(--text3);margin-bottom:10px">Se recomienda no superar el 30% del cupo disponible</div>'
           +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
             +'<span style="font-size:13px;color:var(--text2)">0%</span>'
@@ -2319,7 +2367,7 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
         +'</div>'
         +'<div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);margin-top:8px">'
           +'<div style="flex:1"><div style="font-size:14px;font-weight:600">Notificar al superar el ratio</div>'
-          +'<div style="font-size:12px;color:var(--text2);margin-top:2px">Recibir alerta cuando tu uso supere el l\u00edmite configurado</div></div>'
+          +'<div style="font-size:12px;color:var(--text2);margin-top:2px">Recibir alerta cuando tu uso supere el límite configurado</div></div>'
           +'<div onclick="toggleFcRatioNotif(this)" id="fc-ratio-notif" data-on="'+defNotif+'" style="width:44px;height:24px;border-radius:12px;background:'+(defNotif==='1'?'var(--primary)':'var(--border)')+';cursor:pointer;position:relative;flex-shrink:0">'
             +'<div style="width:20px;height:20px;border-radius:50%;background:white;position:absolute;top:2px;'+(defNotif==='1'?'right:2px':'left:2px')+';box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>'
           +'</div></div>'
@@ -2327,29 +2375,84 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
     }
   }
 
-  // ── PRÉSTAMOS ────────────────────────────────────────
+  // ── PRÉSTAMOS / CRÉDITO ──────────────────────────────
   if(grpId==='prestamo'){
     if(stepIdx===0){
       var nm=f('fc-name',acc?acc.name:'');
-      return '<div class="form-group"><label class="form-label">Nombre del cr\u00e9dito</label>'
-        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Cr\u00e9dito hipotecario Bancolombia" value="'+nm+'"></div>'
+      return '<div class="form-group"><label class="form-label">Nombre del crédito</label>'
+        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Mi crédito hipotecario" value="'+nm+'"></div>'
         +curHtml+bankHtml;
     }
     if(stepIdx===1){
-      var total=f('fc-credit-total',acc?acc.creditTotal||'':'');
-      var monthly=f('fc-monthly',acc?acc.monthlyPayment||'':'');
-      var tae=f('fc-tae',acc?acc.tae||'':'');
-      return balHtml
-        +'<div class="form-group"><label class="form-label">Monto original del cr\u00e9dito</label>'
+      var total=f('fc-credit-total',acc?fmtRTLValue(acc.creditTotal||0,defCur):'');
+      var tae=f('fc-tae',acc?String(acc.tae||''):'');
+      var termYears=f('fc-term-years',acc?String(acc.termYears||''):'');
+      var termMonths=f('fc-term-months',acc?String(acc.termMonths||''):'');
+      var disbDate=f('fc-disb-date',acc?acc.disbDate||'':'');
+      var endDate=f('fc-end-date',acc?acc.endDate||'':'');
+      var capFreq=f('fc-cap-freq',acc?acc.capFreq||'mensual':'mensual');
+      var payFreq=f('fc-pay-freq',acc?acc.payFreq||'mensual':'mensual');
+      // TEM calculada
+      var capFreqN={mensual:12,trimestral:4,semestral:2,anual:1};
+      var n=capFreqN[capFreq]||12;
+      var taeNum=parseFloat(String(tae).replace('%','').replace(',','.'))||0;
+      var temVal=taeNum>0?((Math.pow(1+taeNum/100,1/n)-1)*100):0;
+      var temStr=taeNum>0?temVal.toFixed(4)+'%':'—';
+      var capFreqOpts=[{val:'mensual',label:'Mensual'},{val:'trimestral',label:'Trimestral'},{val:'semestral',label:'Semestral'},{val:'anual',label:'Anual'}];
+      var payFreqOpts=[{val:'mensual',label:'Mensual'},{val:'quincenal',label:'Quincenal'},{val:'semanal',label:'Semanal'}];
+      var capLabel=capFreqOpts.find(function(x){return x.val===capFreq;})||capFreqOpts[0];
+      var payLabel=payFreqOpts.find(function(x){return x.val===payFreq;})||payFreqOpts[0];
+      return '<div class="form-group"><label class="form-label">Monto del préstamo</label>'
         +'<input class="form-input" type="text" inputmode="numeric" id="fc-credit-total" placeholder="0,00" oninput="numInputFC(this)" style="text-align:right" value="'+total+'"></div>'
-        +'<div class="form-group"><label class="form-label">Cuota mensual</label>'
-        +'<input class="form-input" type="text" inputmode="numeric" id="fc-monthly" placeholder="0,00" oninput="numInputFC(this)" style="text-align:right" value="'+monthly+'"></div>'
-        +'<div class="form-group"><label class="form-label">Tasa de inter\u00e9s (%)</label>'
-        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" value="'+tae+'"></div>';
+        +'<div class="form-row">'
+          +'<div class="form-group"><label class="form-label">Plazo en años</label>'
+            +'<input class="form-input" type="number" id="fc-term-years" placeholder="Ej: 5" min="1" max="30" value="'+termYears+'" oninput="fcUpdateLoanCalc()"></div>'
+          +'<div class="form-group"><label class="form-label">Plazo en meses</label>'
+            +'<input class="form-input" type="text" id="fc-term-months" placeholder="Auto" readonly style="background:var(--surface2);opacity:.8" value="'+termMonths+'"></div>'
+        +'</div>'
+        +'<div class="form-row">'
+          +'<div class="form-group"><label class="form-label">Fecha desembolso</label>'
+            +'<input class="form-input" type="date" id="fc-disb-date" value="'+disbDate+'" oninput="fcUpdateLoanCalc()"></div>'
+          +'<div class="form-group"><label class="form-label">Fecha finalización</label>'
+            +'<input class="form-input" type="text" id="fc-end-date" placeholder="Auto" readonly style="background:var(--surface2);opacity:.8" value="'+endDate+'"></div>'
+        +'</div>'
+        +'<div class="form-group"><label class="form-label">TAE — Tasa anual efectiva (%)</label>'
+          +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this);fcUpdateLoanCalc()" style="text-align:right" id="fc-tae" placeholder="0.00%" value="'+tae+'"></div>'
+        +'<div class="form-row">'
+          +'<div class="form-group"><label class="form-label">Frecuencia capitalización</label>'
+            +'<input type="hidden" id="fc-cap-freq" value="'+capFreq+'">'
+            +'<div class="bs-trigger" onclick="showBS_fcFreq(\'fc-cap-freq\',\'fc-cap-freq-lbl\',\'Capitalización\',\'cap\')">'
+              +'<span id="fc-cap-freq-lbl" style="font-size:14px;color:var(--text)">'+capLabel.label+'</span>'
+              +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>'
+            +'</div></div>'
+          +'<div class="form-group"><label class="form-label">Frecuencia de pago</label>'
+            +'<input type="hidden" id="fc-pay-freq" value="'+payFreq+'">'
+            +'<div class="bs-trigger" onclick="showBS_fcFreq(\'fc-pay-freq\',\'fc-pay-freq-lbl\',\'Pago\',\'pay\')">'
+              +'<span id="fc-pay-freq-lbl" style="font-size:14px;color:var(--text)">'+payLabel.label+'</span>'
+              +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>'
+            +'</div></div>'
+        +'</div>'
+        +'<div style="background:var(--surface2);border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between">'
+          +'<div><div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px">TEM calculada</div>'
+            +'<div style="font-size:11px;color:var(--text3);margin-top:2px">Tasa efectiva por período de capitalización</div></div>'
+          +'<div id="fc-tem-display" style="font-size:18px;font-weight:800;color:var(--primary)">'+temStr+'</div>'
+        +'</div>';
     }
     if(stepIdx===2){
-      return '<div class="form-group"><label class="form-label">D\u00eda de pago mensual</label>'
-        +'<select class="form-select" id="fc-paydate">'+dayOpts+'</select></div>'
+      var defPay=f('fc-paydate',acc?String(acc.paymentDate||''):'');
+      var monthly=f('fc-monthly',acc?fmtRTLValue(acc.monthlyPayment||0,defCur):'');
+      var lastPay=f('fc-last-payment',acc?acc.lastPaymentDate||'':'');
+      return balHtml
+        +'<div class="form-group"><label class="form-label">Cuota pactada <span style="color:var(--text3);font-weight:400">(valor real que pagas)</span></label>'
+          +'<input class="form-input" type="text" inputmode="numeric" id="fc-monthly" placeholder="0,00" oninput="numInputFC(this)" style="text-align:right" value="'+monthly+'"></div>'
+        +'<div class="form-group"><label class="form-label">Día de pago mensual</label>'
+          +'<input type="hidden" id="fc-paydate" value="'+defPay+'">'
+          +'<div class="bs-trigger" onclick="showBS_fcDay(\'fc-paydate\',\'fc-paydate-lbl\',\'Día de pago\')">'
+            +'<span id="fc-paydate-lbl" style="color:'+(defPay?'var(--text)':'var(--text3)')+';font-size:14px">'+(defPay?'Día '+defPay:'Seleccionar día')+'</span>'
+            +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>'
+          +'</div></div>'
+        +'<div class="form-group"><label class="form-label">Última fecha de pago registrada <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
+          +'<input class="form-input" type="date" id="fc-last-payment" value="'+lastPay+'"></div>'
         +buildAccToggleHTML(acc);
     }
   }
@@ -2359,57 +2462,34 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
     if(stepIdx===0){
       var acreedor=f('fc-acreedor',acc?acc.acreedor||'':'');
       var tel=f('fc-tel-acreedor',acc?acc.telAcreedor||'':'');
-      var email=f('fc-email-acreedor',acc?acc.emailAcreedor||'':'');
-      // Foto del acreedor
       var fotoSrc=acc&&acc.fotoAcreedor?acc.fotoAcreedor:'';
       return '<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:20px">'
         +'<div style="width:80px;height:80px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:8px" id="fc-acreedor-photo-wrap">'
           +(fotoSrc?'<img src="'+fotoSrc+'" style="width:100%;height:100%;object-fit:cover" id="fc-acreedor-img">'
-            :'<span style="font-size:32px" id="fc-acreedor-img">👤</span>')
+            :'<span style="font-size:32px" id="fc-acreedor-img">\u{1F464}</span>')
         +'</div>'
         +'<button onclick="pickFotoAcreedor()" style="font-size:12px;color:var(--primary);background:none;border:none;cursor:pointer;font-family:var(--font)">📷 Agregar foto</button>'
         +'<input type="hidden" id="fc-foto-acreedor" value="'+fotoSrc+'">'
         +'</div>'
         +'<div class="form-group"><label class="form-label">Nombre del acreedor <span style="color:var(--danger)">*</span></label>'
-        +'<input class="form-input" type="text" id="fc-acreedor" placeholder="Nombre de la persona" value="'+acreedor+'"></div>'
+        +'<input class="form-input" type="text" id="fc-acreedor" placeholder="Nombre completo" value="'+acreedor+'"></div>'
         +'<input type="hidden" id="fc-name" value="'+acreedor+'">'
         +'<div class="form-group"><label class="form-label">Teléfono <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
-        +'<div style="display:flex;gap:6px">'
-          +'<select class="form-select" id="fc-tel-code" style="width:90px;flex-shrink:0"><option value="">Ind.</option><option value="+1">+1</option><option value="+34">+34</option><option value="+44">+44</option><option value="+49">+49</option><option value="+33">+33</option><option value="+39">+39</option><option value="+51">+51</option><option value="+52">+52</option><option value="+54">+54</option><option value="+55">+55</option><option value="+56">+56</option><option value="+57" selected>+57</option><option value="+58">+58</option><option value="+86">+86</option><option value="+91">+91</option><option value="+48">+48</option><option value="+380">+380</option></select>'
-          +'<input class="form-input" type="tel" id="fc-tel-acreedor" placeholder="300 000 0000" value="'+tel+'" style="flex:1">'
-        +'</div>'
-        +'</div>';
+        +'<input class="form-input" type="tel" id="fc-tel-acreedor" placeholder="Número de contacto" value="'+tel+'"></div>';
+    }
+    if(stepIdx===1){
+      var email=f('fc-email-acreedor',acc?acc.emailAcreedor||'':'');
+      var deadline=f('fc-deadline',acc?acc.deadline||'':'');
+      return balHtml
+        +'<div class="form-group"><label class="form-label">Correo electrónico <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
+        +'<input class="form-input" type="email" id="fc-email-acreedor" placeholder="correo@ejemplo.com" value="'+email+'"></div>'
+        +'<div class="form-group"><label class="form-label">Fecha límite <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
+        +'<input class="form-input" type="date" id="fc-deadline" value="'+deadline+'"></div>'
+        +buildAccToggleHTML(acc);
     }
   }
-  var grp=ACC_GROUPS.find(function(g){return g.id===grpId;})||ACC_GROUPS[0];
-  var sub=subId?grp.subs.find(function(s){return s.id===subId;}):null;
-  var info=getSubInfo(subId);
-  var grpColor=grp.color||'#00D4AA';
-  var html='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px">'
-    +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">'
-      +'<div style="width:44px;height:44px;border-radius:12px;background:'+grpColor+'22;display:flex;align-items:center;justify-content:center;font-size:22px">'+(sub?sub.icon:grp.icon)+'</div>'
-      +'<div><div style="font-size:15px;font-weight:800;color:var(--text)">'+(f('fc-acreedor','')||f('fc-name','Sin nombre'))+'</div>'
-      +'<div style="font-size:12px;color:var(--text3)">'+(sub?sub.label:grp.label)+' \xb7 '+(grp.type==='activo'?'Activo':'Pasivo')+'</div></div>'
-    +'</div>';
-  html+=row('Moneda',cur+' '+sym);
-  var bal=f('fc-balance','');
-  if(bal)html+=row('Saldo / Deuda',bal+' '+sym);
-  var bank=f('fc-bank','');
-  if(bank){var blist=cur==='COP'?BANKS_COP:BANKS_PLN;var b=blist.find(function(x){return x.id===bank;});if(b)html+=row('Entidad',b.name);}
-  var digits=f('fc-digits','');if(digits)html+=row('Últimos 4 dígitos','****'+digits);
-  var tae=f('fc-tae','');if(tae)html+=row('Tasa de interés',tae+'%');
-  var lim=f('fc-tc-limit','');if(lim)html+=row('Límite de cupo',lim+' '+sym);
-  var total=f('fc-credit-total','');if(total)html+=row('Monto original',total+' '+sym);
-  var monthly=f('fc-monthly','');if(monthly)html+=row('Cuota mensual',monthly+' '+sym);
-  var cut=f('fc-cut','');if(cut)html+=row('Día de corte','Día '+cut);
-  var pay=f('fc-paydate','');if(pay)html+=row('Día de pago','Día '+pay);
-  var ratio=f('fc-ratio','');if(ratio)html+=row('Ratio de utilización',ratio+'%');
-  var acreedor=f('fc-acreedor','');if(acreedor)html+=row('Acreedor',acreedor);
-  var tel=f('fc-tel-acreedor','');if(tel)html+=row('Teléfono acreedor',tel);
-  var broker=f('fc-broker','');if(broker)html+=row('Plataforma/Broker',broker);
-  var yr=f('fc-year','');if(yr)html+=row('Año adquisición',yr);
-  html+='</div>';
-  return html;
+
+  return '';
 }
 
 function toggleFcRatioNotif(el){
@@ -2421,6 +2501,51 @@ function toggleFcRatioNotif(el){
   if(knob){knob.style.right=newOn?'2px':'';knob.style.left=newOn?'':'2px';}
 }
 
+function fcUpdateLoanCalc(){
+  var years=parseInt((document.getElementById('fc-term-years')||{}).value)||0;
+  var months=years*12;
+  var mEl=document.getElementById('fc-term-months');
+  if(mEl)mEl.value=months||'';
+  // Fecha finalización
+  var disbEl=document.getElementById('fc-disb-date');
+  var endEl=document.getElementById('fc-end-date');
+  if(disbEl&&disbEl.value&&months>0){
+    var d=new Date(disbEl.value);d.setMonth(d.getMonth()+months);
+    if(endEl)endEl.value=d.toISOString().slice(0,10);
+  } else if(endEl)endEl.value='';
+  // TEM
+  var taeEl=document.getElementById('fc-tae');
+  var capEl=document.getElementById('fc-cap-freq');
+  var temEl=document.getElementById('fc-tem-display');
+  if(taeEl&&temEl){
+    var capFreq=capEl?capEl.value:'mensual';
+    var capN={mensual:12,trimestral:4,semestral:2,anual:1};
+    var n=capN[capFreq]||12;
+    var taeStr=taeEl.value.replace('%','').replace(',','.');
+    var taeNum=parseFloat(taeStr)||0;
+    temEl.textContent=taeNum>0?((Math.pow(1+taeNum/100,1/n)-1)*100).toFixed(4)+'%':'—';
+  }
+}
+
+function showBS_fcFreq(inputId,lblId,title,type){
+  var current=document.getElementById(inputId)?document.getElementById(inputId).value:'mensual';
+  var opts=type==='pay'
+    ?[{val:'mensual',label:'Mensual'},{val:'quincenal',label:'Quincenal'},{val:'semanal',label:'Semanal'}]
+    :[{val:'mensual',label:'Mensual'},{val:'trimestral',label:'Trimestral'},{val:'semestral',label:'Semestral'},{val:'anual',label:'Anual'}];
+  var items=opts.map(function(o){return {val:o.val,label:o.label};});
+  showBottomSheet({
+    title:'Frecuencia de '+title,items:items,selected:current,searchable:false,
+    onSelect:function(val){
+      var inp=document.getElementById(inputId);
+      var lbl=document.getElementById(lblId);
+      var found=opts.find(function(o){return o.val===val;});
+      if(inp)inp.value=val;
+      if(lbl)lbl.textContent=found?found.label:val;
+      fcUpdateLoanCalc();
+    }
+  });
+}
+
 function fcBuildReview(grpId,subId,acc){
   var f=fcGetField;
   var cur=f('fc-currency',S.currency);
@@ -2428,7 +2553,10 @@ function fcBuildReview(grpId,subId,acc){
   var sym=meta?meta.sym:cur;
   var grp=ACC_GROUPS.find(function(g){return g.id===grpId;})||ACC_GROUPS[0];
   var sub=subId?grp.subs.find(function(s){return s.id===subId;}):null;
-  var grpColor=grp.color||'#00D4AA';
+  var bank=f('fc-bank','');
+  var blist=cur==='COP'?BANKS_COP:BANKS_PLN;
+  var bankObj=bank?blist.find(function(x){return x.id===bank;}):null;
+  var grpColor=bankObj?bankObj.color:(grp.color||'#00D4AA');
   function row(label,val){
     if(!val&&val!==0&&val!=='')return '';
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">'
@@ -2437,24 +2565,44 @@ function fcBuildReview(grpId,subId,acc){
       +'</div>';
   }
   var displayName=grpId==='informal'?f('fc-acreedor',''):f('fc-name','Sin nombre');
-  var html='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:var(--card-shadow)">'
-    +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">'
-      +'<div style="width:44px;height:44px;border-radius:12px;background:'+grpColor+'22;display:flex;align-items:center;justify-content:center;font-size:22px">'+(sub?sub.icon:grp.icon)+'</div>'
-      +'<div><div style="font-size:15px;font-weight:800;color:var(--text)">'+displayName+'</div>'
-      +'<div style="font-size:12px;color:var(--text3)">'+(sub?sub.label:grp.label)+' · '+(grp.type==='activo'?'Activo':'Pasivo')+'</div></div>'
+
+  // Tarjeta resumen estilo visual
+  var html='<div style="background:linear-gradient(135deg,'+grpColor+','+grpColor+'99);border-radius:18px;padding:18px;margin-bottom:16px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">'
+      +'<div>'
+        +'<div style="font-size:12px;color:rgba(255,255,255,.7);font-weight:600;text-transform:uppercase;letter-spacing:.5px">'+(sub?sub.label:grp.label)+'</div>'
+        +'<div style="font-size:18px;font-weight:800;color:white;margin-top:2px">'+displayName+'</div>'
+        +(bankObj?'<div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px">'+bankObj.name+'</div>':'')
+      +'</div>'
+      +'<div style="font-size:28px">'+(sub?sub.icon:grp.icon)+'</div>'
+    +'</div>'
+    +'<div style="font-size:24px;font-weight:800;color:white;margin-bottom:4px">'+cur+' '+sym+'</div>'
     +'</div>';
-  html+=row('Moneda',cur+(sym&&sym!==cur?' ('+sym+')':''));
+
+  // Detalles según tipo
+  html+='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;box-shadow:var(--card-shadow)">';
   var bal=f('fc-balance','');if(bal)html+=row(grp.type==='activo'?'Balance inicial':'Deuda actual',bal+' '+sym);
-  var bank=f('fc-bank','');
-  if(bank){var blist=cur==='COP'?BANKS_COP:BANKS_PLN;var b=blist.find(function(x){return x.id===bank;});if(b)html+=row('Entidad',b.name);}
-  var digits=f('fc-digits','');if(digits)html+=row('Últimos 4 dígitos','****'+digits);
-  var tae=f('fc-tae','');if(tae)html+=row('Tasa de interés',tae);
+  var digits=f('fc-digits','');if(digits)html+=row('Últimos 4 dígitos','\u2022\u2022\u2022\u2022 '+digits);
+  var tae=f('fc-tae','');if(tae)html+=row('TAE',tae);
   var lim=f('fc-tc-limit','');if(lim)html+=row('Límite de cupo',lim+' '+sym);
-  var total=f('fc-credit-total','');if(total)html+=row('Monto original',total+' '+sym);
-  var monthly=f('fc-monthly','');if(monthly)html+=row('Cuota mensual',monthly+' '+sym);
   var cut=f('fc-cut','');if(cut)html+=row('Día de corte','Día '+cut);
   var pay=f('fc-paydate','');if(pay)html+=row('Día de pago','Día '+pay);
-  var ratio=f('fc-ratio','');if(ratio)html+=row('Ratio de utilización',ratio+'%');
+  var ratio=f('fc-ratio','');if(ratio)html+=row('Ratio utilización',ratio+'%');
+  var total=f('fc-credit-total','');if(total)html+=row('Monto del préstamo',total+' '+sym);
+  var termM=f('fc-term-months','');if(termM)html+=row('Plazo',termM+' meses');
+  var disbDate=f('fc-disb-date','');if(disbDate)html+=row('Fecha desembolso',disbDate);
+  var endDate=f('fc-end-date','');if(endDate)html+=row('Fecha finalización',endDate);
+  var capFreq=f('fc-cap-freq','');if(capFreq)html+=row('Capitalización',capFreq.charAt(0).toUpperCase()+capFreq.slice(1));
+  var payFreq=f('fc-pay-freq','');if(payFreq)html+=row('Frecuencia de pago',payFreq.charAt(0).toUpperCase()+payFreq.slice(1));
+  // TEM
+  if(tae&&capFreq){
+    var capN={mensual:12,trimestral:4,semestral:2,anual:1};
+    var n=capN[capFreq]||12;
+    var taeNum=parseFloat(String(tae).replace('%','').replace(',','.'))||0;
+    if(taeNum>0)html+=row('TEM',((Math.pow(1+taeNum/100,1/n)-1)*100).toFixed(4)+'%');
+  }
+  var monthly=f('fc-monthly','');if(monthly)html+=row('Cuota pactada',monthly+' '+sym);
+  var lastPay=f('fc-last-payment','');if(lastPay)html+=row('Último pago',lastPay);
   var acreedor=f('fc-acreedor','');if(acreedor&&grpId==='informal')html+=row('Acreedor',acreedor);
   var tel=f('fc-tel-acreedor','');if(tel)html+=row('Teléfono',tel);
   var email=f('fc-email-acreedor','');if(email)html+=row('Correo',email);
@@ -2462,6 +2610,59 @@ function fcBuildReview(grpId,subId,acc){
   var val=f('fc-value','');if(val)html+=row('Valor estimado',val+' '+sym);
   var yr=f('fc-year','');if(yr)html+=row('Año adquisición',yr);
   html+='</div>';
+
+  // Tabla de amortización para préstamos
+  if(grpId==='prestamo'){
+    var totalNum=parseNumSubs(total,cur);
+    var monthlyNum=parseNumSubs(monthly,cur);
+    var taeNum2=parseFloat(String(tae).replace('%','').replace(',','.'))||0;
+    var capFreq2=capFreq||'mensual';
+    var payFreq2=payFreq||'mensual';
+    var capN2={mensual:12,trimestral:4,semestral:2,anual:1};
+    var n2=capN2[capFreq2]||12;
+    var termMNum=parseInt(termM)||0;
+    if(totalNum>0&&taeNum2>0&&termMNum>0){
+      // Tasa por período de pago
+      var payPeriods={mensual:12,quincenal:26,semanal:52};
+      var periods=payPeriods[payFreq2]||12;
+      // Convertir TAE a tasa por período de pago
+      var rPeriod=Math.pow(1+taeNum2/100,1/periods)-1;
+      // Cuotas totales
+      var nPeriods=payFreq2==='mensual'?termMNum:payFreq2==='quincenal'?Math.round(termMNum/12*26):Math.round(termMNum/12*52);
+      // Generar tabla (máx 12 cuotas en vista previa)
+      html+='<div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Tabla de amortización</div>';
+      html+='<div style="overflow-x:auto;border-radius:10px;border:1px solid var(--border)">'
+        +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
+        +'<thead><tr style="background:var(--surface2)">'
+          +'<th style="padding:8px 6px;text-align:center;color:var(--text3);font-weight:700">#</th>'
+          +'<th style="padding:8px 6px;text-align:right;color:var(--text3);font-weight:700">Cuota</th>'
+          +'<th style="padding:8px 6px;text-align:right;color:var(--text3);font-weight:700">Capital</th>'
+          +'<th style="padding:8px 6px;text-align:right;color:var(--text3);font-weight:700">Interés</th>'
+          +'<th style="padding:8px 6px;text-align:right;color:var(--text3);font-weight:700">Saldo</th>'
+        +'</tr></thead><tbody>';
+      var saldo=totalNum;
+      var preview=Math.min(12,nPeriods);
+      for(var i=1;i<=preview;i++){
+        var interest=saldo*rPeriod;
+        var cuota=monthlyNum||((rPeriod*(Math.pow(1+rPeriod,nPeriods)))/(Math.pow(1+rPeriod,nPeriods)-1)*totalNum);
+        var capital=cuota-interest;
+        if(capital<0)capital=0;
+        saldo=Math.max(0,saldo-capital);
+        var odd=i%2===0?'background:var(--surface2)':'';
+        html+='<tr style="'+odd+'">'
+          +'<td style="padding:7px 6px;text-align:center;color:var(--text3)">'+i+'</td>'
+          +'<td style="padding:7px 6px;text-align:right;font-weight:600;color:var(--text)">'+fmt(cuota,cur)+'</td>'
+          +'<td style="padding:7px 6px;text-align:right;color:var(--primary)">'+fmt(capital,cur)+'</td>'
+          +'<td style="padding:7px 6px;text-align:right;color:var(--danger)">'+fmt(interest,cur)+'</td>'
+          +'<td style="padding:7px 6px;text-align:right;color:var(--text2)">'+fmt(saldo,cur)+'</td>'
+          +'</tr>';
+      }
+      html+='</tbody></table></div>';
+      if(nPeriods>12){
+        html+='<button onclick="openAmortizacionFull()" style="width:100%;margin-top:10px;padding:12px;border-radius:50px;border:1px solid var(--primary);background:transparent;color:var(--primary);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Ver tabla completa ('+nPeriods+' cuotas)</button>';
+      }
+    }
+  }
   return html;
 }
 
@@ -2614,6 +2815,13 @@ function saveAccountFC(){
     acc.creditTotal=parseNumSubs(f('fc-credit-total','0'),cur);
     acc.monthlyPayment=parseNumSubs(f('fc-monthly','0'),cur);
     acc.paymentDate=parseInt(f('fc-paydate',''))||0;
+    acc.termYears=parseInt(f('fc-term-years',''))||0;
+    acc.termMonths=parseInt(f('fc-term-months',''))||0;
+    acc.disbDate=f('fc-disb-date','');
+    acc.endDate=f('fc-end-date','');
+    acc.capFreq=f('fc-cap-freq','mensual');
+    acc.payFreq=f('fc-pay-freq','mensual');
+    acc.lastPaymentDate=f('fc-last-payment','');
   } else if(grpId==='informal'){
     acc.creditTotal=parseNumSubs(f('fc-credit-total','0'),cur);
     acc.acreedor=f('fc-acreedor','');
@@ -8392,60 +8600,67 @@ function renderCuentaDetalle(){
   var cur=acc.currency||S.currency;
   var bal=getBalance(acc.id);
   var info=getSubInfo(acc._subId||acc.subtype);
-  var grpColor=(info&&info.grp)?info.grp.color:'#00D4AA';
-  // Inferir grpId real desde subtype si _grpId no fue guardado
+  var bank=acc.bankEntity?getBank(acc.bankEntity,cur):null;
+  // Color igual que en la tarjeta de Mis Cuentas
+  var baseColor=bank?bank.color:((info&&info.grp)?info.grp.color:'#00D4AA');
   var subtypeToGrp={efectivo:'efectivo',digital:'virtual',tc:'tc',prestamo:'prestamo',informal:'informal',inversion:'inversion',bien:'bien',banco:'banco'};
   var editGrp=acc._grpId||(acc.subtype?subtypeToGrp[acc.subtype]:null)||'banco';
   var editSub=acc._subId||(acc.type==='pasivo'?'visa':'ahorro');
+  var isTc=(acc._grpId==='tc'||acc.subtype==='tc')&&acc.tcLimit;
+  var used=isTc?Math.abs(bal):0;
+  var avail=isTc?Math.max(0,acc.tcLimit-used):0;
 
   // Movimientos de esta cuenta
   var movs=S.transactions.filter(function(t){
     return t.accountId===acc.id||t.toAccountId===acc.id;
   }).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
 
-  // Saldo header
-  var html='<div style="background:linear-gradient(135deg,'+grpColor+','+grpColor+'99);border-radius:20px;padding:20px;margin-bottom:20px;position:relative">'
-    +'<div style="font-size:12px;color:rgba(255,255,255,.7);font-weight:600;margin-bottom:4px">Saldo actual</div>'
-    +'<div style="font-size:32px;font-weight:800;color:white;letter-spacing:-.5px">'+fmt(bal,cur)+'</div>'
-    +'<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:4px">'+(info?info.sub.label:acc.subtype)+' · '+cur+'</div>'
-    +'<button onclick="openFormCuenta(\''+editGrp+'\',\''+editSub+'\',\''+acc.id+'\')" style="position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Editar">'
-      +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
-    +'</button>'
+  // Tarjeta header estilo tarjeta bancaria
+  var html='<div style="background:linear-gradient(135deg,'+baseColor+','+baseColor+'99);border-radius:20px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden">'
+    // Círculos decorativos
+    +'<div style="position:absolute;right:-20px;top:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.07)"></div>'
+    +'<div style="position:absolute;left:-10px;bottom:-30px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.05)"></div>'
+    // Fila top: banco + ícono editar
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;position:relative">'
+      +'<div>'
+        +(bank?'<div style="font-size:12px;color:rgba(255,255,255,.7);font-weight:700;letter-spacing:1px;text-transform:uppercase">'+bank.abbr+'</div>':'')
+        +'<div style="font-size:16px;font-weight:800;color:white">'+acc.name+'</div>'
+        +(bank?'<div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:1px">'+bank.name+'</div>':'')
+      +'</div>'
+      +'<button onclick="openFormCuenta(\''+editGrp+'\',\''+editSub+'\',\''+acc.id+'\')" style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+        +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
+      +'</button>'
+    +'</div>'
+    // Saldo
+    +'<div style="position:relative">'
+      +'<div style="font-size:11px;color:rgba(255,255,255,.6);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">'+(acc.type==='pasivo'?'Deuda pendiente':'Saldo actual')+'</div>'
+      +'<div style="font-size:30px;font-weight:800;color:white;letter-spacing:-.5px">'+fmt(Math.abs(bal),cur)+'</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">'+(info?info.sub.label:acc.subtype)+' · '+cur+'</div>'
+    +'</div>'
+    // Barra TC con monto usado y disponible
+    +(isTc?'<div style="margin-top:12px;position:relative"><div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.7);margin-bottom:5px"><span>Usado: '+fmt(used,cur)+'</span><span>Disp: '+fmt(avail,cur)+'</span></div><div style="height:5px;background:rgba(255,255,255,.2);border-radius:99px"><div style="height:100%;border-radius:99px;background:'+(acc.tcLimit>0&&used/acc.tcLimit>0.8?'#FF8080':'rgba(255,255,255,.85)')+';width:'+Math.min(100,acc.tcLimit>0?Math.round(used/acc.tcLimit*100):0)+'%;transition:width .3s"></div></div><div style="text-align:center;font-size:10px;color:rgba(255,255,255,.6);margin-top:4px">'+Math.min(100,acc.tcLimit>0?Math.round(used/acc.tcLimit*100):0)+'% del límite ('+fmt(acc.tcLimit,cur)+')</div></div>':'')
     +'</div>';
 
-  // 3 botones de acción
-  var btnStyle='flex:1;padding:12px 6px;border-radius:14px;border:none;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:4px';
-  html+='<div class="acc-action-zone" style="display:flex;gap:8px;margin-bottom:24px">'
-    +'<button style="'+btnStyle+';background:rgba(16,185,129,.15);color:#10B981" onclick="quickTx(\'ingreso\',\''+acc.id+'\')">'
-      +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 5 5 12"/></svg>'
-      +'Ingreso'
-    +'</button>'
-    +'<button style="'+btnStyle+';background:rgba(239,68,68,.15);color:#EF4444" onclick="quickTx(\'gasto\',\''+acc.id+'\')">'
-      +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 19 19 12"/></svg>'
-      +'Gasto'
-    +'</button>'
-    +'<button style="'+btnStyle+';background:rgba(116,97,239,.15);color:#7461EF" onclick="quickTx(\'transferencia\',\''+acc.id+'\')">'
-      +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>'
-      +'Transferir'
-    +'</button>'
+  // 3 botones acción: cápsulas en fila
+  html+='<div class="acc-action-zone" style="display:flex;gap:8px;margin-bottom:20px">'
+    +'<button onclick="quickTx(\'ingreso\',\''+acc.id+'\')" style="flex:1;padding:11px 6px;border-radius:50px;border:none;background:rgba(16,185,129,.15);color:#10B981;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">↑ Ingreso</button>'
+    +'<button onclick="quickTx(\'gasto\',\''+acc.id+'\')" style="flex:1;padding:11px 6px;border-radius:50px;border:none;background:rgba(239,68,68,.15);color:#EF4444;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">↓ Gasto</button>'
+    +'<button onclick="quickTx(\'transferencia\',\''+acc.id+'\')" style="flex:1;padding:11px 6px;border-radius:50px;border:none;background:rgba(116,97,239,.15);color:#7461EF;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">↔ Transf.</button>'
     +'</div>';
 
-  // Divisor
-  html+='<div style="height:1px;background:var(--border);margin-bottom:20px"></div>';
-
-  // Lista de movimientos
-  html+='<div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Movimientos</div>';
+  // Divisor + movimientos
+  html+='<div style="height:1px;background:var(--border);margin-bottom:16px"></div>';
+  html+='<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Movimientos</div>';
 
   if(!movs.length){
     html+='<div style="text-align:center;padding:40px 20px">'
       +'<div style="font-size:48px;margin-bottom:12px">🌱</div>'
       +'<div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px">Todo empieza con un movimiento</div>'
-      +'<div style="font-size:13px;color:var(--text3);line-height:1.5">Registra tu primer ingreso,<br>gasto o transferencia desde esta cuenta.</div>'
+      +'<div style="font-size:13px;color:var(--text3);line-height:1.5">Registra tu primer ingreso,<br>gasto o transferencia.</div>'
       +'</div>';
   } else {
     movs.forEach(function(t){
       var isIn=t.type==='ingreso'||(t.type==='transferencia'&&t.toAccountId===acc.id);
-      var isOut=t.type==='gasto'||(t.type==='transferencia'&&t.accountId===acc.id);
       var color=isIn?'var(--success)':'var(--danger)';
       var sign=isIn?'+':'-';
       var cat=S.categories.find(function(c){return c.id===t.categoryId;})||{};
@@ -8461,6 +8676,100 @@ function renderCuentaDetalle(){
         +'</div>';
     });
   }
+  html+='<div style="height:32px"></div>';
+  return html;
+}
+
+
+function openAmortizacionFull(){
+  // Guardar datos del préstamo en contexto temporal
+  S._amortData={
+    total:   parseNumSubs(fcGetField('fc-credit-total','0'), fcGetField('fc-currency',S.currency)),
+    monthly: parseNumSubs(fcGetField('fc-monthly','0'),      fcGetField('fc-currency',S.currency)),
+    tae:     parseFloat(String(fcGetField('fc-tae','')).replace('%','').replace(',','.'))||0,
+    capFreq: fcGetField('fc-cap-freq','mensual'),
+    payFreq: fcGetField('fc-pay-freq','mensual'),
+    months:  parseInt(fcGetField('fc-term-months',''))||0,
+    cur:     fcGetField('fc-currency',S.currency),
+    name:    fcGetField('fc-name','Crédito')
+  };
+  navigate('amortizacion');
+}
+
+function renderAmortizacion(){
+  var d=S._amortData||{};
+  var cur=d.cur||S.currency;
+  if(!d.total||!d.tae||!d.months){
+    return '<div class="empty-state"><div class="empty-icon">📊</div>'
+      +'<div class="empty-title">Datos insuficientes</div>'
+      +'<div class="empty-desc">Completa monto, tasa y plazo para ver la tabla</div></div>';
+  }
+  var capN={mensual:12,trimestral:4,semestral:2,anual:1};
+  var payPeriods={mensual:12,quincenal:26,semanal:52};
+  var n=capN[d.capFreq||'mensual']||12;
+  var periods=payPeriods[d.payFreq||'mensual']||12;
+  var rPeriod=Math.pow(1+d.tae/100,1/periods)-1;
+  var nPeriods=d.payFreq==='mensual'?d.months:d.payFreq==='quincenal'?Math.round(d.months/12*26):Math.round(d.months/12*52);
+  var cuota=d.monthly||(rPeriod*(Math.pow(1+rPeriod,nPeriods))/(Math.pow(1+rPeriod,nPeriods)-1)*d.total);
+  var tem=((Math.pow(1+d.tae/100,1/n)-1)*100).toFixed(4);
+
+  var html='<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px">'
+    +'<div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:10px">'+d.name+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700">Monto</div><div style="font-size:14px;font-weight:700;color:var(--text)">'+fmt(d.total,cur)+'</div></div>'
+    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700">TAE</div><div style="font-size:14px;font-weight:700;color:var(--text)">'+d.tae+'%</div></div>'
+    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700">TEM</div><div style="font-size:14px;font-weight:700;color:var(--primary)">'+tem+'%</div></div>'
+    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700">Cuota</div><div style="font-size:14px;font-weight:700;color:var(--text)">'+fmt(cuota,cur)+'</div></div>'
+    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700">Plazo</div><div style="font-size:14px;font-weight:700;color:var(--text)">'+d.months+' meses</div></div>'
+    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700">Frecuencia</div><div style="font-size:14px;font-weight:700;color:var(--text)">'+(d.payFreq||'mensual')+'</div></div>'
+    +'</div></div>';
+
+  html+='<div style="overflow-x:auto;border-radius:12px;border:1px solid var(--border)">'
+    +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
+    +'<thead><tr style="background:var(--surface2)">'
+      +'<th style="padding:10px 6px;text-align:center;color:var(--text3);font-weight:700">#</th>'
+      +'<th style="padding:10px 6px;text-align:right;color:var(--text3);font-weight:700">Cuota</th>'
+      +'<th style="padding:10px 6px;text-align:right;color:var(--primary);font-weight:700">Capital</th>'
+      +'<th style="padding:10px 6px;text-align:right;color:var(--danger);font-weight:700">Interés</th>'
+      +'<th style="padding:10px 6px;text-align:right;color:var(--text3);font-weight:700">Saldo</th>'
+    +'</tr></thead><tbody>';
+
+  var saldo=d.total;
+  var totalIntereses=0;
+  for(var i=1;i<=nPeriods;i++){
+    var interest=saldo*rPeriod;
+    var capital=cuota-interest;
+    if(capital<0)capital=0;
+    if(capital>saldo)capital=saldo;
+    saldo=Math.max(0,saldo-capital);
+    totalIntereses+=interest;
+    var odd=i%2===0?'background:var(--surface2)':'';
+    html+='<tr style="'+odd+'">'
+      +'<td style="padding:7px 6px;text-align:center;color:var(--text3);font-size:11px">'+i+'</td>'
+      +'<td style="padding:7px 6px;text-align:right;font-weight:600;color:var(--text)">'+fmt(cuota,cur)+'</td>'
+      +'<td style="padding:7px 6px;text-align:right;color:var(--primary)">'+fmt(capital,cur)+'</td>'
+      +'<td style="padding:7px 6px;text-align:right;color:var(--danger)">'+fmt(interest,cur)+'</td>'
+      +'<td style="padding:7px 6px;text-align:right;color:var(--text2)">'+fmt(saldo,cur)+'</td>'
+      +'</tr>';
+  }
+  html+='</tbody></table></div>';
+
+  // Totales
+  html+='<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:14px">'
+    +'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">'
+      +'<span style="font-size:13px;color:var(--text2)">Total pagado</span>'
+      +'<span style="font-size:14px;font-weight:700;color:var(--text)">'+fmt(cuota*nPeriods,cur)+'</span>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">'
+      +'<span style="font-size:13px;color:var(--text2)">Total intereses</span>'
+      +'<span style="font-size:14px;font-weight:700;color:var(--danger)">'+fmt(totalIntereses,cur)+'</span>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:space-between;padding:8px 0">'
+      +'<span style="font-size:13px;color:var(--text2)">Capital pagado</span>'
+      +'<span style="font-size:14px;font-weight:700;color:var(--primary)">'+fmt(d.total,cur)+'</span>'
+    +'</div>'
+    +'</div>';
+
   html+='<div style="height:32px"></div>';
   return html;
 }
