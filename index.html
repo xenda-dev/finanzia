@@ -937,6 +937,8 @@ function buildCurrencyOptions(selected){
   return curs.map(c=>`<option value="${c}" ${c===selected?'selected':''}>${c}</option>`).join('');
 }
 function getCurrencyMeta(code){return CURRENCY_META[code]||{sym:code,locale:'en-US',pos:'before'};}
+// Convierte YYYY-MM-DD a DD/MM/YYYY
+function fmtDate(d){if(!d)return '—';var p=String(d).split('-');if(p.length!==3)return d;return p[2]+'/'+p[1]+'/'+p[0];}
 function fmt(amount,cur){
   const code=cur||S.currency||'';
   const n=parseFloat(amount)||0;
@@ -1765,15 +1767,18 @@ function accListItem(a,cur){
   var info=getSubInfo(a._subId||a.subtype);
   var bank=a.bankEntity?getBank(a.bankEntity,a.currency||cur):null;
   var subtypeColorL={efectivo:'#10B981',tc:'#7461EF',digital:'#3B82F6',inversion:'#F59E0B',bien:'#8B5CF6',prestamo:'#EF4444',informal:'#EC4899',banco:'#0EA5E9'};
-  var baseColor=bank?bank.color:((info&&info.grp&&info.grp.color)?info.grp.color:(subtypeColorL[a.subtype]||'#00D4AA'));
+  var grpObjL=ACC_GROUPS.find(function(g){return g.id===(a._grpId||a.subtype);});
+  var baseColor=bank?bank.color:((info&&info.grp&&info.grp.color)?info.grp.color:(grpObjL&&grpObjL.color)?grpObjL.color:(subtypeColorL[a.subtype]||'#00D4AA'));
   if(!baseColor||baseColor==='undefined')baseColor='#00D4AA';
   var typeIcon=a.subtype==='efectivo'?'💵':a.subtype==='tc'?'💳':a.subtype==='digital'?'📱':a.subtype==='inversion'?'📈':a.subtype==='bien'?'🏠':a.subtype==='prestamo'?'💰':'🏦';
+  // Tipo de cuenta: sub label o grp label
+  var tipoLabel=(info&&info.sub&&info.sub.label)?info.sub.label:(grpObjL?grpObjL.label:(a.subtype||'Cuenta'));
   var isNeg=a.type==='pasivo';
   return '<div onclick="openCuentaDetalle(\''+a.id+'\',event)" style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer">'
     +'<div style="width:44px;height:44px;border-radius:14px;background:'+baseColor+'22;border:1px solid '+baseColor+'44;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">'+typeIcon+'</div>'
     +'<div style="flex:1;min-width:0">'
       +'<div style="font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+a.name+'</div>'
-      +'<div style="font-size:12px;color:var(--text3);margin-top:1px">'+(bank?bank.abbr+' · ':'')+cur+'</div>'
+      +'<div style="font-size:12px;color:var(--text3);margin-top:1px">'+tipoLabel+(bank?' · '+bank.abbr:'')+'</div>'
     +'</div>'
     +'<div style="text-align:right;flex-shrink:0">'
       +'<div style="font-size:15px;font-weight:800;color:'+(isNeg?'var(--danger)':'var(--text)')+'">'+fmt(Math.abs(bal),cur)+'</div>'
@@ -1903,9 +1908,9 @@ function accCardNew(a,cur){
   var bal=getBalance(a.id);
   var info=getSubInfo(a._subId||a.subtype);
   var bank=a.bankEntity?getBank(a.bankEntity,a.currency||cur):null;
-  // Color: banco > subInfo.grp > color por subtipo > default teal
   var subtypeColor={efectivo:'#10B981',tc:'#7461EF',digital:'#3B82F6',inversion:'#F59E0B',bien:'#8B5CF6',prestamo:'#EF4444',informal:'#EC4899',banco:'#0EA5E9'};
-  var baseColor=bank?bank.color:((info&&info.grp&&info.grp.color)?info.grp.color:(subtypeColor[a.subtype]||'#00D4AA'));
+  var grpObjAcc=ACC_GROUPS.find(function(g){return g.id===(a._grpId||a.subtype);});
+  var baseColor=bank?bank.color:((info&&info.grp&&info.grp.color)?info.grp.color:(grpObjAcc&&grpObjAcc.color)?grpObjAcc.color:(subtypeColor[a.subtype]||'#00D4AA'));
   if(!baseColor||baseColor==='undefined')baseColor='#00D4AA';
   var isTcCard=(a._grpId==='tc'||a.subtype==='tc')&&a.tcLimit;
   var days=a.paymentDate?(function(){var now=new Date();var d=new Date(now.getFullYear(),now.getMonth(),a.paymentDate);if(d<now)d.setMonth(d.getMonth()+1);return Math.round((d-now)/86400000);})():null;
@@ -2034,10 +2039,14 @@ function fcBack(){
 function fcValidateStep(){
   var step=S._fcData.step||1;
   var grpId=S._fcData.grpId||'';
-  // Paso 1 siempre requiere nombre
   if(step===1){
-    var nm=(document.getElementById('fc-name')||{}).value||'';
-    if(!nm.trim()&&grpId!=='efectivo'){toast('Ingresa un nombre para la cuenta');return false;}
+    if(grpId==='informal'){
+      var acr=(document.getElementById('fc-acreedor')||{}).value||'';
+      if(!acr.trim()){toast('Ingresa el nombre del acreedor');return false;}
+    } else if(grpId!=='efectivo'){
+      var nm=(document.getElementById('fc-name')||{}).value||'';
+      if(!nm.trim()){toast('Ingresa un nombre para la cuenta');return false;}
+    }
   }
   return true;
 }
@@ -2094,8 +2103,8 @@ function renderFormCuenta(){
   var sub=subId?grp.subs.find(function(s){return s.id===subId;}):null;
   var grpColor=grp.color||'#00D4AA';
 
-  // Cuentas sin pasos (simples)
-  var isSimple=grpId==='efectivo';
+  // Cuentas sin pasos (simples) — solo TC y préstamo son multipantalla
+  var isSimple=(grpId==='efectivo'||grpId==='banco'||grpId==='virtual'||grpId==='inversion'||grpId==='bien'||grpId==='informal');
 
   // Definir pasos por tipo
   var stepDefs=fcGetSteps(grpId);
@@ -2159,29 +2168,25 @@ function renderFormCuenta(){
     html+=fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple);
   }
 
-  // ── Botones de navegación ──────────────────────────────
+  // ── Botones de navegación (sticky bottom) ──────────────
+  var btns='';
   if(isSimple){
-    html+='<div style="margin-top:24px">'
-      +(acc?'<button onclick="deleteAccountFC()" style="width:100%;padding:13px;border-radius:50px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:10px">Eliminar cuenta</button>':'')
-      +'<button onclick="saveAccountFC()" style="width:100%;padding:13px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px">Guardar</button>'
-      +'</div>';
+    btns+=(acc?'<button onclick="deleteAccountFC()" style="flex:1;padding:13px 8px;border-radius:50px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar</button>':'');
+    btns+='<button onclick="saveAccountFC()" style="flex:2;padding:13px 8px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Guardar</button>';
   } else if(isReview){
     var hasAcc=acc&&!acc.protected;
     var btnBase='padding:13px 8px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);flex:1';
-    html+='<div style="display:flex;gap:8px;margin-top:8px">'
-      +'<button onclick="fcBack()" style="'+btnBase+';border:1px solid var(--border);background:transparent;color:var(--text2)">Atrás</button>'
+    btns='<button onclick="fcBack()" style="'+btnBase+';border:1px solid var(--border);background:transparent;color:var(--text2)">Atrás</button>'
       +'<button onclick="saveAccountFC()" style="'+btnBase+';background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white">'+(acc?'Guardar':'Crear')+'</button>'
-      +(hasAcc?'<button onclick="deleteAccountFC()" style="'+btnBase+';border:1px solid var(--danger);background:transparent;color:var(--danger)">Eliminar</button>':'')
-      +'</div>';
+      +(hasAcc?'<button onclick="deleteAccountFC()" style="'+btnBase+';border:1px solid var(--danger);background:transparent;color:var(--danger)">Eliminar</button>':'');
   } else {
-    var isLast=step===stepDefs.length;
-    html+='<div style="display:flex;gap:8px;margin-top:8px">'
-      +(step>1?'<button onclick="fcBack()" style="flex:1;padding:13px 8px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Atrás</button>':'')
-      +'<button onclick="fcNext()" style="flex:1;padding:13px 8px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Siguiente</button>'
-      +'</div>';
+    btns+=(step>1?'<button onclick="fcBack()" style="flex:1;padding:13px 8px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Atrás</button>':'');
+    btns+='<button onclick="fcNext()" style="flex:1;padding:13px 8px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Siguiente</button>';
   }
-
-  html+='</div>';
+  html+='<div style="height:80px"></div></div>'
+    +'<div style="position:sticky;bottom:0;left:0;right:0;background:var(--bg);padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;z-index:10">'
+    +btns
+    +'</div>';
   return html;
 }
 
@@ -2278,8 +2283,10 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
     if(stepIdx===0){
       var nm=f('fc-name',acc?acc.name:'');
       var digits=f('fc-digits',acc?acc.lastDigits||'':'');
+      var bankPH={corriente:'Mi cuenta corriente',ahorros:'Mi cuenta de ahorros',cdts:'Mi CDT',fiduciaria:'Mi fiduciaria',nequi:'Mi Nequi',daviplata:'Mi Daviplata'};
+      var bankPlaceholder=bankPH[subId]||'Mi cuenta bancaria';
       return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
-        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Cuenta de ahorros principal" value="'+nm+'"></div>'
+        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: '+bankPlaceholder+'" value="'+nm+'"></div>'
         +curHtml+bankHtml
         +'<div class="form-group"><label class="form-label">Últimos 4 dígitos <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
         +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">🔒 Por seguridad ingresa solo los últimos 4 dígitos</div>'
@@ -2404,8 +2411,10 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
   if(grpId==='prestamo'){
     if(stepIdx===0){
       var nm=f('fc-name',acc?acc.name:'');
+      var loanPlaceholders={hipoteca:'Mi crédito hipotecario',vehiculo_d:'Mi crédito de vehículo',consumo:'Mi crédito de consumo',personal:'Mi préstamo personal',micro:'Mi microcrédito',educativo:'Mi crédito educativo',empresarial:'Mi crédito empresarial'};
+      var loanPH=loanPlaceholders[subId]||'Mi crédito';
       return '<div class="form-group"><label class="form-label">Nombre del crédito</label>'
-        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Mi crédito hipotecario" value="'+nm+'"></div>'
+        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: '+loanPH+'" value="'+nm+'"></div>'
         +curHtml+bankHtml;
     }
     if(stepIdx===1){
@@ -2486,34 +2495,52 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
 
   // ── DEUDAS INFORMALES ────────────────────────────────
   if(grpId==='informal'){
-    if(stepIdx===0){
-      var acreedor=f('fc-acreedor',acc?acc.acreedor||'':'');
-      var tel=f('fc-tel-acreedor',acc?acc.telAcreedor||'':'');
-      var fotoSrc=acc&&acc.fotoAcreedor?acc.fotoAcreedor:'';
-      return '<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:20px">'
-        +'<div style="width:80px;height:80px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:8px" id="fc-acreedor-photo-wrap">'
-          +(fotoSrc?'<img src="'+fotoSrc+'" style="width:100%;height:100%;object-fit:cover" id="fc-acreedor-img">'
-            :'<span style="font-size:32px" id="fc-acreedor-img">\u{1F464}</span>')
+    // Siempre isSimple para informal — todos los campos en una pantalla
+    var acreedor=f('fc-acreedor',acc?acc.acreedor||'':'');
+    var tel=f('fc-tel-acreedor',acc?acc.telAcreedor||'':'');
+    var telCode=f('fc-tel-code',acc?acc.telCode||'+57':'+57');
+    var email=f('fc-email-acreedor',acc?acc.emailAcreedor||'':'');
+    var deadline=f('fc-deadline',acc?acc.deadline||'':'');
+    var fotoSrc=f('fc-foto-acreedor',acc?acc.fotoAcreedor||'':'');
+    // Generar opciones de indicativo (reutilizar mismo sistema que perfil)
+    var phoneMapI={};
+    var flagsI={};
+    Object.keys(COUNTRY_DATA).forEach(function(name){
+      var cd=COUNTRY_DATA[name];
+      if(cd.phone&&!phoneMapI[cd.phone]){phoneMapI[cd.phone]=cd.phone;}
+    });
+    var phoneOptsI='<option value="">Ind.</option>';
+    Object.keys(phoneMapI).sort().forEach(function(code){
+      phoneOptsI+='<option value="'+code+'"'+(telCode===code?' selected':'')+'>'+code+'</option>';
+    });
+    return '<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:20px">'
+      +'<div onclick="showPhotoSheetAcreedor()" style="width:90px;height:90px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;position:relative" id="fc-acreedor-photo-wrap">'
+        +(fotoSrc
+          ?'<img src="'+fotoSrc+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" id="fc-acreedor-img">'
+          :'<span style="font-size:36px" id="fc-acreedor-img">👤</span>')
+        +'<div style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;border:2px solid var(--surface)">'
+          +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
         +'</div>'
-        +'<button onclick="pickFotoAcreedor()" style="font-size:12px;color:var(--primary);background:none;border:none;cursor:pointer;font-family:var(--font)">📷 Agregar foto</button>'
-        +'<input type="hidden" id="fc-foto-acreedor" value="'+fotoSrc+'">'
-        +'</div>'
-        +'<div class="form-group"><label class="form-label">Nombre del acreedor <span style="color:var(--danger)">*</span></label>'
-        +'<input class="form-input" type="text" id="fc-acreedor" placeholder="Nombre completo" value="'+acreedor+'"></div>'
-        +'<input type="hidden" id="fc-name" value="'+acreedor+'">'
-        +'<div class="form-group"><label class="form-label">Teléfono <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
-        +'<input class="form-input" type="tel" id="fc-tel-acreedor" placeholder="Número de contacto" value="'+tel+'"></div>';
-    }
-    if(stepIdx===1){
-      var email=f('fc-email-acreedor',acc?acc.emailAcreedor||'':'');
-      var deadline=f('fc-deadline',acc?acc.deadline||'':'');
-      return balHtml
-        +'<div class="form-group"><label class="form-label">Correo electrónico <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
+      +'</div>'
+      +'<input type="file" id="fc-acreedor-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleFotoAcreedor(event)">'
+      +'<input type="file" id="fc-acreedor-gal-input" accept="image/*" style="display:none" onchange="handleFotoAcreedor(event)">'
+      +'<input type="hidden" id="fc-foto-acreedor" value="'+fotoSrc+'">'
+      +'<div style="font-size:12px;color:var(--text3);margin-top:8px">Toca para cambiar foto</div>'
+      +'</div>'
+      +'<div class="form-group"><label class="form-label">Nombre del acreedor <span style="color:var(--danger)">*</span></label>'
+        +'<input class="form-input" type="text" id="fc-acreedor" placeholder="Nombre completo" value="'+acreedor+'" oninput="document.getElementById(\'fc-name\').value=this.value"></div>'
+      +'<input type="hidden" id="fc-name" value="'+acreedor+'">'
+      +'<div class="form-group"><label class="form-label">Teléfono <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
+        +'<div style="display:flex;gap:6px">'
+          +'<select class="form-select" id="fc-tel-code" style="width:90px;flex-shrink:0">'+phoneOptsI+'</select>'
+          +'<input class="form-input" type="tel" id="fc-tel-acreedor" placeholder="Número de contacto" value="'+tel+'" style="flex:1">'
+        +'</div></div>'
+      +'<div class="form-group"><label class="form-label">Correo electrónico <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
         +'<input class="form-input" type="email" id="fc-email-acreedor" placeholder="correo@ejemplo.com" value="'+email+'"></div>'
-        +'<div class="form-group"><label class="form-label">Fecha límite <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
+      +balHtml
+      +'<div class="form-group"><label class="form-label">Fecha límite <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
         +'<input class="form-input" type="date" id="fc-deadline" value="'+deadline+'"></div>'
-        +buildAccToggleHTML(acc);
-    }
+      +buildAccToggleHTML(acc);
   }
 
   return '';
@@ -2673,22 +2700,28 @@ function fcBuildReview(grpId,subId,acc){
     var pay=f('fc-paydate','');if(pay)html+=cell('Día de pago','Día '+pay);
     var digits=f('fc-digits','');if(digits)html+=cell('Últimos 4','\u2022\u2022\u2022\u2022 '+digits);
     var ratio=f('fc-ratio','');
-    if(ratio)html+=cell('Alerta de uso','Notificar al superar el '+ratio+'%');
+    if(ratio)html+='<div style="grid-column:1/-1;background:rgba(116,97,239,.1);border:1px solid rgba(116,97,239,.25);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px">'
+      +'<div style="font-size:20px">⚡</div>'
+      +'<div>'
+        +'<div style="font-size:12px;font-weight:700;color:var(--secondary)">Límite de uso establecido</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">Se te notificará cuando el uso de tu tarjeta supere el <strong>'+ratio+'%</strong> del cupo disponible.</div>'
+      +'</div>'
+      +'</div>';
   } else if(grpId==='prestamo'){
     var total=f('fc-credit-total','');if(total)html+=cell('Monto préstamo',fmtVal(total));
     var bal=f('fc-balance','');if(bal)html+=cell('Saldo pendiente',fmtVal(bal));
     if(tae)html+=cell('TAE',tae);
     if(temStr)html+=cell('TEM',temStr);
     var termM=f('fc-term-months','');if(termM)html+=cell('Plazo',termM+' meses');
-    var disbDate=f('fc-disb-date','');if(disbDate)html+=cell('Desembolso',disbDate);
-    var endDate=f('fc-end-date','');if(endDate)html+=cell('Finalización',endDate);
+    var disbDate=f('fc-disb-date','');if(disbDate)html+=cell('Desembolso',fmtDate(disbDate));
+    var endDate=f('fc-end-date','');if(endDate)html+=cell('Finalización',fmtDate(endDate));
     if(capFreq)html+=cell('Capitalización',capFreq.charAt(0).toUpperCase()+capFreq.slice(1));
     if(payFreq)html+=cell('Frec. pago',payFreq.charAt(0).toUpperCase()+payFreq.slice(1));
     var pay=f('fc-paydate','');if(pay)html+=cell('Día de pago','Día '+pay);
     var monthly=f('fc-monthly','');if(monthly)html+=cell('Cuota pactada',fmtVal(monthly));
     var disbDate2=f('fc-disb-date','');
     var nextP=fcCalcNextPaymentFromDisb(disbDate2,parseInt(pay)||0);
-    if(nextP&&nextP!=='—')html+=cell('Próximo pago',nextP);
+    if(nextP&&nextP!=='—')html+=cell('Próximo pago',fmtDate(nextP));
   } else if(grpId==='banco'){
     var bal=f('fc-balance','');if(bal)html+=cell('Balance inicial',fmtVal(bal));
     var digits=f('fc-digits','');if(digits)html+=cell('Últimos 4','\u2022\u2022\u2022\u2022 '+digits);
@@ -2765,28 +2798,49 @@ function fcBuildReview(grpId,subId,acc){
   return html;
 }
 
-function pickFotoAcreedor(){
-  var wrap=document.getElementById('fc-acreedor-photo-wrap');
-  var input=document.createElement('input');
-  input.type='file';input.accept='image/*';
-  input.onchange=function(e){
-    var file=e.target.files[0];if(!file)return;
-    var reader=new FileReader();
-    reader.onload=function(ev){
-      var src=ev.target.result;
-      var hidden=document.getElementById('fc-foto-acreedor');
-      if(hidden)hidden.value=src;
-      var img=document.getElementById('fc-acreedor-img');
-      if(img){img.src=src;img.style.width='100%';img.style.height='100%';img.style.objectFit='cover';img.style.borderRadius='50%';}
-      // Sync nombre
-      var acNm=document.getElementById('fc-acreedor');
-      var nm=document.getElementById('fc-name');
-      if(acNm&&nm)nm.value=acNm.value;
-    };
-    reader.readAsDataURL(file);
-  };
-  input.click();
+function showPhotoSheetAcreedor(){
+  var s=document.createElement('div');
+  s.style.cssText='position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;justify-content:flex-end';
+  var hasFoto=!!(document.getElementById('fc-foto-acreedor')&&document.getElementById('fc-foto-acreedor').value);
+  s.innerHTML='<div style="flex:1;background:rgba(0,0,0,.5)" onclick="this.parentElement.remove()"></div>'
+    +'<div style="background:var(--surface);border-radius:16px 16px 0 0;padding:16px;display:flex;flex-direction:column;gap:8px">'
+    +'<div style="font-size:11px;font-weight:700;color:var(--text3);text-align:center;padding-bottom:4px">FOTO DE PERFIL</div>'
+    +'<button onclick="document.getElementById(\'fc-acreedor-cam-input\').click();this.closest(\'div[style*=fixed]\').remove()" style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--surface2);color:var(--text);font-size:15px;cursor:pointer;font-family:var(--font);text-align:left">📷 Tomar foto</button>'
+    +'<button onclick="document.getElementById(\'fc-acreedor-gal-input\').click();this.closest(\'div[style*=fixed]\').remove()" style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--surface2);color:var(--text);font-size:15px;cursor:pointer;font-family:var(--font);text-align:left">🖼️ Elegir de galería</button>'
+    +(hasFoto?'<button onclick="removeFotoAcreedor();this.closest(\'div[style*=fixed]\').remove()" style="width:100%;padding:14px;border-radius:12px;border:none;background:rgba(239,68,68,.1);color:var(--danger);font-size:15px;cursor:pointer;font-family:var(--font)">🗑️ Quitar foto</button>':'')
+    +'<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--surface2);color:var(--text2);font-size:15px;cursor:pointer;font-family:var(--font);margin-top:4px">Cancelar</button>'
+    +'</div>';
+  document.body.appendChild(s);
 }
+function handleFotoAcreedor(e){
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var src=ev.target.result;
+    var hidden=document.getElementById('fc-foto-acreedor');
+    if(hidden)hidden.value=src;
+    var wrap=document.getElementById('fc-acreedor-photo-wrap');
+    if(wrap){
+      wrap.innerHTML='<img src="'+src+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" id="fc-acreedor-img">'
+        +'<div style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;border:2px solid var(--surface)">'
+          +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
+        +'</div>';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+function removeFotoAcreedor(){
+  var hidden=document.getElementById('fc-foto-acreedor');
+  if(hidden)hidden.value='';
+  var wrap=document.getElementById('fc-acreedor-photo-wrap');
+  if(wrap)wrap.innerHTML='<span style="font-size:36px" id="fc-acreedor-img">👤</span>'
+    +'<div style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;border:2px solid var(--surface)">'
+      +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
+    +'</div>';
+}
+// Mantener pickFotoAcreedor como alias por compatibilidad
+function pickFotoAcreedor(){showPhotoSheetAcreedor();}
+
 function selectFCSub(subId){
   var data=S._fcData||{};
   data.subId=subId;
@@ -7586,7 +7640,7 @@ function buildProfileFormHTML(){
     +'<div class="form-group"><label class="form-label">Nombre completo <span style="color:var(--danger)">*</span></label>'
       +'<input class="form-input" type="text" id="cfg-name" value="'+(p.name||'')+'" placeholder="Tu nombre completo"></div>'
     +'<div class="form-group"><label class="form-label">Fecha de nacimiento</label>'
-      +'<input class="form-input" type="date" id="cfg-birthdate" value="'+(p.birthdate||'')+'" max="2026-03-19"></div>'
+      +'<input class="form-input" type="date" id="cfg-birthdate" value="'+(p.birthdate||'')+'" max="'+new Date().toISOString().slice(0,10)+'"></div>'
     +'<div class="form-group"><label class="form-label">Email <span style="color:var(--danger)">*</span></label>'
       +'<input class="form-input" type="email" id="cfg-email" value="'+(p.email||'')+'" placeholder="tu@email.com"></div>'
     +'<div class="form-group"><label class="form-label">Teléfono <span style="color:var(--danger)">*</span></label>'
@@ -8702,7 +8756,8 @@ function renderCuentaDetalle(){
   var info=getSubInfo(acc._subId||acc.subtype);
   var bank=acc.bankEntity?getBank(acc.bankEntity,cur):null;
   var subtypeColor2={efectivo:'#10B981',tc:'#7461EF',digital:'#3B82F6',inversion:'#F59E0B',bien:'#8B5CF6',prestamo:'#EF4444',informal:'#EC4899',banco:'#0EA5E9'};
-  var baseColor=bank?bank.color:((info&&info.grp&&info.grp.color)?info.grp.color:(subtypeColor2[acc.subtype]||'#00D4AA'));
+  var grpFromId=ACC_GROUPS.find(function(g){return g.id===(acc._grpId||acc.subtype);});
+  var baseColor=bank?bank.color:((info&&info.grp&&info.grp.color)?info.grp.color:(grpFromId&&grpFromId.color)?grpFromId.color:(subtypeColor2[acc.subtype]||'#00D4AA'));
   if(!baseColor||baseColor==='undefined')baseColor='#00D4AA';
   var subtypeToGrp={efectivo:'efectivo',digital:'virtual',tc:'tc',prestamo:'prestamo',informal:'informal',inversion:'inversion',bien:'bien',banco:'banco'};
   var editGrp=acc._grpId||(acc.subtype?subtypeToGrp[acc.subtype]:null)||'banco';
@@ -8826,30 +8881,27 @@ function renderAmortizacion(){
   var nPeriods=d.payFreq==='mensual'?d.months:d.payFreq==='quincenal'?Math.round(d.months/12*26):Math.round(d.months/12*52);
   var cuota=d.monthly||(rPeriod*(Math.pow(1+rPeriod,nPeriods))/(Math.pow(1+rPeriod,nPeriods)-1)*d.total);
   var tem=((Math.pow(1+d.tae/100,1/n)-1)*100).toFixed(2);
-
+  function amCell(lbl,val,color){
+    return '<div style="background:var(--surface2);border-radius:10px;padding:10px">'
+      +'<div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:2px">'+lbl+'</div>'
+      +'<div style="font-size:13px;font-weight:700;color:'+(color||'var(--text)')+'">'+val+'</div>'
+      +'</div>';
+  }
+  // Tarjeta: Monto, Cuota, TAE, TEM, Frecuencia, Plazo
   var html='<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px">'
     +'<div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:10px">'+d.name+'</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
-    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:2px">Monto</div><div style="font-size:13px;font-weight:700;color:var(--text)">'+fmt(d.total,cur)+'</div></div>'
-    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:2px">TAE</div><div style="font-size:13px;font-weight:700;color:var(--text)">'+d.tae+'%</div></div>'
-    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:2px">TEM</div><div style="font-size:13px;font-weight:700;color:var(--primary)">'+tem+'%</div></div>'
-    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:2px">Cuota</div><div style="font-size:13px;font-weight:700;color:var(--text)">'+fmt(cuota,cur)+'</div></div>'
-    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:2px">Plazo</div><div style="font-size:13px;font-weight:700;color:var(--text)">'+d.months+' meses</div></div>'
-    +'<div style="background:var(--surface2);border-radius:10px;padding:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:2px">Frecuencia</div><div style="font-size:13px;font-weight:700;color:var(--text)">'+(d.payFreq||'mensual')+'</div></div>'
+    +amCell('Monto',fmt(d.total,cur))
+    +amCell('Cuota',fmt(cuota,cur))
+    +amCell('TAE',d.tae+'%')
+    +amCell('TEM',tem+'%','var(--primary)')
+    +amCell('Frecuencia',(d.payFreq||'mensual'))
+    +amCell('Plazo',d.months+' meses')
     +'</div></div>';
-
-  html+='<div style="overflow-x:auto;border-radius:12px;border:1px solid var(--border)">'
-    +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
-    +'<thead><tr style="background:var(--surface2)">'
-      +'<th style="padding:10px 6px;text-align:center;color:var(--text3);font-weight:700">#</th>'
-      +'<th style="padding:10px 6px;text-align:right;color:var(--text3);font-weight:700">Cuota</th>'
-      +'<th style="padding:10px 6px;text-align:right;color:var(--primary);font-weight:700">Capital</th>'
-      +'<th style="padding:10px 6px;text-align:right;color:var(--danger);font-weight:700">Interés</th>'
-      +'<th style="padding:10px 6px;text-align:right;color:var(--text3);font-weight:700">Saldo</th>'
-    +'</tr></thead><tbody>';
-
+  // Calcular totales
   var saldo=d.total;
   var totalIntereses=0;
+  var rows=[];
   for(var i=1;i<=nPeriods;i++){
     var interest=saldo*rPeriod;
     var capital=cuota-interest;
@@ -8857,17 +8909,10 @@ function renderAmortizacion(){
     if(capital>saldo)capital=saldo;
     saldo=Math.max(0,saldo-capital);
     totalIntereses+=interest;
-    var odd=i%2===0?'background:var(--surface2)':'';
-    html+='<tr style="'+odd+'">'
-      +'<td style="padding:7px 6px;text-align:center;color:var(--text3);font-size:11px">'+i+'</td>'
-      +'<td style="padding:7px 6px;text-align:right;font-weight:600;color:var(--text)">'+fmt(cuota,cur)+'</td>'
-      +'<td style="padding:7px 6px;text-align:right;color:var(--primary)">'+fmt(capital,cur)+'</td>'
-      +'<td style="padding:7px 6px;text-align:right;color:var(--danger)">'+fmt(interest,cur)+'</td>'
-      +'<td style="padding:7px 6px;text-align:right;color:var(--text2)">'+fmt(saldo,cur)+'</td>'
-      +'</tr>';
+    rows.push({i:i,cuota:cuota,capital:capital,interest:interest,saldo:saldo});
   }
-  html+='</tbody></table></div>';
-  html+='<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:14px">'
+  // Totales ANTES de la tabla
+  html+='<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px">'
     +'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">'
       +'<span style="font-size:13px;color:var(--text2)">Total pagado</span>'
       +'<span style="font-size:14px;font-weight:700;color:var(--text)">'+fmt(cuota*nPeriods,cur)+'</span>'
@@ -8879,8 +8924,28 @@ function renderAmortizacion(){
     +'<div style="display:flex;justify-content:space-between;padding:8px 0">'
       +'<span style="font-size:13px;color:var(--text2)">Capital total</span>'
       +'<span style="font-size:14px;font-weight:700;color:var(--primary)">'+fmt(d.total,cur)+'</span>'
-    +'</div>'
-    +'</div>';
+    +'</div></div>';
+  // Tabla
+  html+='<div style="border-radius:12px;border:1px solid var(--border)">'
+    +'<table style="width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed">'
+    +'<thead><tr style="background:var(--surface2)">'
+      +'<th style="padding:8px 4px;text-align:center;color:var(--text3);font-weight:700">#</th>'
+      +'<th style="padding:8px 4px;text-align:right;color:var(--text3);font-weight:700">Cuota</th>'
+      +'<th style="padding:8px 4px;text-align:right;color:var(--primary);font-weight:700">Capital</th>'
+      +'<th style="padding:8px 4px;text-align:right;color:var(--danger);font-weight:700">Interés</th>'
+      +'<th style="padding:8px 4px;text-align:right;color:var(--text3);font-weight:700">Saldo</th>'
+    +'</tr></thead><tbody>';
+  rows.forEach(function(r){
+    var odd=r.i%2===0?'background:var(--surface2)':'';
+    html+='<tr style="'+odd+'">'
+      +'<td style="padding:6px 4px;text-align:center;color:var(--text3)">'+r.i+'</td>'
+      +'<td style="padding:6px 4px;text-align:right;font-weight:600;color:var(--text)">'+fmt(r.cuota,cur)+'</td>'
+      +'<td style="padding:6px 4px;text-align:right;color:var(--primary)">'+fmt(r.capital,cur)+'</td>'
+      +'<td style="padding:6px 4px;text-align:right;color:var(--danger)">'+fmt(r.interest,cur)+'</td>'
+      +'<td style="padding:6px 4px;text-align:right;color:var(--text2)">'+fmt(r.saldo,cur)+'</td>'
+      +'</tr>';
+  });
+  html+='</tbody></table></div>';
   html+='<div style="height:32px"></div>';
   return html;
 }
