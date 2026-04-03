@@ -1772,13 +1772,25 @@ function accListItem(a,cur){
   if(!baseColor||baseColor==='undefined')baseColor='#00D4AA';
   var typeIcon=a.subtype==='efectivo'?'💵':a.subtype==='tc'?'💳':a.subtype==='digital'?'📱':a.subtype==='inversion'?'📈':a.subtype==='bien'?'🏠':a.subtype==='prestamo'?'💰':'🏦';
   // Tipo de cuenta: sub label o grp label
-  var tipoLabel=(info&&info.sub&&info.sub.label)?info.sub.label:(grpObjL?grpObjL.label:(a.subtype||'Cuenta'));
+  // Subtítulo: tipo de cuenta (+ banco si aplica, solo cuando hay info de entidad)
+  var grpLabelL=grpObjL?grpObjL.label:'';
+  var subLabelL=(info&&info.sub&&info.sub.label)?info.sub.label:'';
+  var tipoLabel='';
+  if(a._grpId==='tc'||a.subtype==='tc'){
+    // TC: "Tarjeta de crédito · Visa"
+    tipoLabel='Tarjeta de crédito'+(subLabelL?' · '+subLabelL:'');
+  } else if(bank){
+    // Cuenta con banco: "Cuenta de ahorros · BCO"
+    tipoLabel=(subLabelL||grpLabelL)+(bank?' · '+bank.abbr:'');
+  } else {
+    tipoLabel=subLabelL||grpLabelL||a.subtype||'Cuenta';
+  }
   var isNeg=a.type==='pasivo';
   return '<div onclick="openCuentaDetalle(\''+a.id+'\',event)" style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer">'
     +'<div style="width:44px;height:44px;border-radius:14px;background:'+baseColor+'22;border:1px solid '+baseColor+'44;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">'+typeIcon+'</div>'
     +'<div style="flex:1;min-width:0">'
       +'<div style="font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+a.name+'</div>'
-      +'<div style="font-size:12px;color:var(--text3);margin-top:1px">'+tipoLabel+(bank?' · '+bank.abbr:'')+'</div>'
+      +'<div style="font-size:12px;color:var(--text3);margin-top:1px">'+tipoLabel+'</div>'
     +'</div>'
     +'<div style="text-align:right;flex-shrink:0">'
       +'<div style="font-size:15px;font-weight:800;color:'+(isNeg?'var(--danger)':'var(--text)')+'">'+fmt(Math.abs(bal),cur)+'</div>'
@@ -1995,7 +2007,7 @@ function openFormCuenta(grpId,subId,accId){
       preFields['fc-currency']=ea.currency||S.currency;
       preFields['fc-bank']=ea.bankEntity||'';
       preFields['fc-balance']=fmtRTLValue(ea.initialBalance||0, ea.currency||S.currency);
-      preFields['fc-tae']=String(ea.tae||'');
+      preFields['fc-tae']=ea.tae?ea.tae.toFixed(2)+'%':'';
       preFields['fc-digits']=ea.lastDigits||'';
       preFields['fc-broker']=ea.broker||'';
       preFields['fc-ratio']=String(ea.utilizationRatio||30);
@@ -2183,8 +2195,8 @@ function renderFormCuenta(){
     btns+=(step>1?'<button onclick="fcBack()" style="flex:1;padding:13px 8px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Atrás</button>':'');
     btns+='<button onclick="fcNext()" style="flex:1;padding:13px 8px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Siguiente</button>';
   }
-  html+='<div style="height:80px"></div></div>'
-    +'<div style="position:sticky;bottom:0;left:0;right:0;background:var(--bg);padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;z-index:10">'
+  html+='<div style="height:calc(var(--nav-h) + 68px)"></div></div>'
+    +'<div style="position:fixed;bottom:var(--nav-h);left:0;right:0;background:var(--bg);padding:10px 16px;display:flex;gap:8px;z-index:10;box-shadow:0 -1px 0 var(--border)">'
     +btns
     +'</div>';
   return html;
@@ -2271,8 +2283,10 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
   if(grpId==='virtual'){
     if(stepIdx===0){
       var nm=f('fc-name',acc?acc.name:'');
+      var virtualPH={paypal:'Mi cuenta PayPal',wise:'Mi cuenta Wise',payoneer:'Mi cuenta Payoneer',skrill:'Mi cuenta Skrill',revolut:'Mi cuenta Revolut',digital:'Mi billetera digital'};
+      var virtualPlaceholder=virtualPH[subId]||'Mi billetera digital';
       return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
-        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Mi billetera digital" value="'+nm+'"></div>'
+        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: '+virtualPlaceholder+'" value="'+nm+'"></div>'
         +curHtml;
     }
     if(stepIdx===1){ return balHtml+buildAccToggleHTML(acc); }
@@ -2283,7 +2297,7 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
     if(stepIdx===0){
       var nm=f('fc-name',acc?acc.name:'');
       var digits=f('fc-digits',acc?acc.lastDigits||'':'');
-      var bankPH={corriente:'Mi cuenta corriente',ahorros:'Mi cuenta de ahorros',cdts:'Mi CDT',fiduciaria:'Mi fiduciaria',nequi:'Mi Nequi',daviplata:'Mi Daviplata'};
+      var bankPH={corriente:'Mi cuenta corriente',ahorros:'Mi cuenta de ahorros',ahorro:'Mi cuenta de ahorros',nomina:'Mi cuenta nómina',cdts:'Mi CDT',cheques:'Mi cuenta de cheques',fiduciaria:'Mi fiduciaria',nequi:'Mi Nequi',daviplata:'Mi Daviplata'};
       var bankPlaceholder=bankPH[subId]||'Mi cuenta bancaria';
       return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
         +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: '+bankPlaceholder+'" value="'+nm+'"></div>'
@@ -2306,8 +2320,10 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
     if(stepIdx===0){
       var nm=f('fc-name',acc?acc.name:'');
       var broker=f('fc-broker',acc?acc.broker||'':'');
+      var invPH={broker:'Mi portafolio de acciones',fondo:'Mi fondo de inversión',cdt:'Mi CDT',etf:'Mi ETF',cripto:'Mi cartera cripto',pension:'Mi pensión voluntaria',inv_otro:'Mi inversión'};
+      var invPlaceholder=invPH[subId]||'Mi inversión';
       return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
-        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Mi portafolio de acciones" value="'+nm+'"></div>'
+        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: '+invPlaceholder+'" value="'+nm+'"></div>'
         +curHtml
         +'<div class="form-group"><label class="form-label">Plataforma / Broker <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
         +'<input class="form-input" type="text" id="fc-broker" placeholder="Ej: Mi broker principal" value="'+broker+'"></div>';
@@ -2325,8 +2341,10 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
   if(grpId==='bien'){
     if(stepIdx===0){
       var nm=f('fc-name',acc?acc.name:'');
+      var bienPH={inmueble:'Mi inmueble',vehiculo:'Mi vehículo',bien_otro:'Mi bien'};
+      var bienPlaceholder=bienPH[subId]||'Mi bien';
       return '<div class="form-group"><label class="form-label">Nombre del bien</label>'
-        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: Inmueble residencial" value="'+nm+'"></div>'
+        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: '+bienPlaceholder+'" value="'+nm+'"></div>'
         +curHtml;
     }
     if(stepIdx===1){
@@ -2446,7 +2464,8 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
           +'<div class="form-group"><label class="form-label">Fecha desembolso</label>'
             +'<input class="form-input" type="date" id="fc-disb-date" value="'+disbDate+'" oninput="fcUpdateLoanCalc()"></div>'
           +'<div class="form-group"><label class="form-label">Fecha finalización</label>'
-            +'<input class="form-input" type="text" id="fc-end-date" placeholder="Auto" readonly style="background:var(--surface2);opacity:.8" value="'+endDate+'"></div>'
+            +'<input class="form-input" type="text" id="fc-end-date-display" readonly style="background:var(--surface2);opacity:.8" value="'+(endDate?fmtDate(endDate):'Auto')+'">'
+            +'<input type="hidden" id="fc-end-date" value="'+endDate+'"></div>'
         +'</div>'
         // TAE + TEM en la misma fila
         +'<div class="form-row">'
@@ -2479,7 +2498,7 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
       return balHtml
         +'<div class="form-group"><label class="form-label">Cuota pactada <span style="color:var(--text3);font-weight:400">(valor real que pagas)</span></label>'
           +'<input class="form-input" type="text" inputmode="numeric" id="fc-monthly" placeholder="0,00" oninput="numInputFC(this)" style="text-align:right" value="'+monthly+'"></div>'
-        +'<div class="form-group"><label class="form-label">Día de pago mensual</label>'
+        +'<div class="form-group"><label class="form-label">Día de pago</label>'
           +'<input type="hidden" id="fc-paydate" value="'+defPay+'">'
           +'<div class="bs-trigger" onclick="showBS_fcDay(\'fc-paydate\',\'fc-paydate-lbl\',\'Día de pago\',true)">'
             +'<span id="fc-paydate-lbl" style="color:'+(defPay?'var(--text)':'var(--text3)')+';font-size:14px">'+(defPay?'Día '+defPay:'Seleccionar día')+'</span>'
@@ -2538,8 +2557,8 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
       +'<div class="form-group"><label class="form-label">Correo electrónico <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
         +'<input class="form-input" type="email" id="fc-email-acreedor" placeholder="correo@ejemplo.com" value="'+email+'"></div>'
       +balHtml
-      +'<div class="form-group"><label class="form-label">Fecha límite <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
-        +'<input class="form-input" type="date" id="fc-deadline" value="'+deadline+'"></div>'
+      +'<div class="form-group"><label class="form-label">Tasa de interés (%) <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
+        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" value="'+(f('fc-tae',acc?acc.tae?acc.tae.toFixed(2)+'%':'' :'')||'')+'"></div>'
       +buildAccToggleHTML(acc);
   }
 
@@ -2563,10 +2582,16 @@ function fcUpdateLoanCalc(){
   // Fecha finalización
   var disbEl=document.getElementById('fc-disb-date');
   var endEl=document.getElementById('fc-end-date');
+  var endDispEl=document.getElementById('fc-end-date-display');
   if(disbEl&&disbEl.value&&months>0){
     var d=new Date(disbEl.value);d.setMonth(d.getMonth()+months);
-    if(endEl)endEl.value=d.toISOString().slice(0,10);
-  } else if(endEl)endEl.value='';
+    var isoVal=d.toISOString().slice(0,10);
+    if(endEl)endEl.value=isoVal;
+    if(endDispEl)endDispEl.value=fmtDate(isoVal);
+  } else {
+    if(endEl)endEl.value='';
+    if(endDispEl)endDispEl.value='Auto';
+  }
   // TEM
   var taeEl=document.getElementById('fc-tae');
   var capEl=document.getElementById('fc-cap-freq');
@@ -2692,13 +2717,12 @@ function fcBuildReview(grpId,subId,acc){
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">';
 
   if(grpId==='tc'){
-    // Orden: límite, deuda, TAE, TEM(N/A para TC), día corte, día pago, últimos dígitos, ratio
     var lim=f('fc-tc-limit','');if(lim)html+=cell('Límite de cupo',fmtVal(lim));
     var bal=f('fc-balance','');if(bal)html+=cell('Deuda actual',fmtVal(bal));
     if(tae)html+=cell('TAE',tae);
+    var digits=f('fc-digits','');if(digits)html+=cell('Últimos 4','\u2022\u2022\u2022\u2022 '+digits);
     var cut=f('fc-cut','');if(cut)html+=cell('Día de corte','Día '+cut);
     var pay=f('fc-paydate','');if(pay)html+=cell('Día de pago','Día '+pay);
-    var digits=f('fc-digits','');if(digits)html+=cell('Últimos 4','\u2022\u2022\u2022\u2022 '+digits);
     var ratio=f('fc-ratio','');
     if(ratio)html+='<div style="grid-column:1/-1;background:rgba(116,97,239,.1);border:1px solid rgba(116,97,239,.25);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px">'
       +'<div style="font-size:20px">⚡</div>'
@@ -2712,11 +2736,11 @@ function fcBuildReview(grpId,subId,acc){
     var bal=f('fc-balance','');if(bal)html+=cell('Saldo pendiente',fmtVal(bal));
     if(tae)html+=cell('TAE',tae);
     if(temStr)html+=cell('TEM',temStr);
-    var termM=f('fc-term-months','');if(termM)html+=cell('Plazo',termM+' meses');
     var disbDate=f('fc-disb-date','');if(disbDate)html+=cell('Desembolso',fmtDate(disbDate));
     var endDate=f('fc-end-date','');if(endDate)html+=cell('Finalización',fmtDate(endDate));
-    if(capFreq)html+=cell('Capitalización',capFreq.charAt(0).toUpperCase()+capFreq.slice(1));
     if(payFreq)html+=cell('Frec. pago',payFreq.charAt(0).toUpperCase()+payFreq.slice(1));
+    var termM=f('fc-term-months','');if(termM)html+=cell('Plazo',termM+' meses');
+    if(capFreq)html+=cell('Capitalización',capFreq.charAt(0).toUpperCase()+capFreq.slice(1));
     var pay=f('fc-paydate','');if(pay)html+=cell('Día de pago','Día '+pay);
     var monthly=f('fc-monthly','');if(monthly)html+=cell('Cuota pactada',fmtVal(monthly));
     var disbDate2=f('fc-disb-date','');
@@ -2935,9 +2959,15 @@ function saveAccountFC(){
   var actualSubId=subId||grp.subs[0].id;
   var info=getSubInfo(actualSubId);
   var legacySubtype=grpId==='tc'?'tc':grpId==='prestamo'||grpId==='informal'?'prestamo':grpId==='banco'?'banco':grpId==='efectivo'?'efectivo':grpId==='virtual'?'digital':grpId==='inversion'?'inversion':'activo';
-  // Nombre: para informal usar fc-acreedor
-  var nameRaw=grpId==='informal'?f('fc-acreedor',''):f('fc-name','');
-  if(!nameRaw.trim()){toast('Ingresa el nombre de la cuenta');return;}
+  // Para informal: sincronizar fc-acreedor → fc-name antes de guardar
+  if(grpId==='informal'){
+    var acrEl=document.getElementById('fc-acreedor');
+    var nmEl=document.getElementById('fc-name');
+    if(acrEl&&nmEl)nmEl.value=acrEl.value;
+  }
+  // Nombre: para informal usar fc-acreedor del DOM directamente
+  var nameRaw=grpId==='informal'?(document.getElementById('fc-acreedor')||{}).value||f('fc-acreedor',''):f('fc-name','');
+  if(!nameRaw.trim()){toast('Ingresa el nombre'+(grpId==='informal'?' del acreedor':' de la cuenta'));return;}
   var cur=f('fc-currency',S.currency)||S.currency;
   var toggleOn=f('fc-ratio-notif','1');
   var accInclude=f('acc-include','1');
@@ -8779,7 +8809,7 @@ function renderCuentaDetalle(){
   var chipSVG='<svg width="34" height="26" viewBox="0 0 34 26" fill="none"><rect x="1" y="1" width="32" height="24" rx="4" fill="#C8960C" stroke="#A07800" stroke-width=".8"/><rect x="1" y="8.5" width="32" height="9" fill="#A07800" opacity=".4"/><rect x="11" y="1" width="12" height="24" fill="#A07800" opacity=".4"/><rect x="12" y="8.5" width="10" height="9" rx="1" fill="#C8960C" stroke="#A07800" stroke-width=".6"/><line x1="1" y1="8.5" x2="33" y2="8.5" stroke="#A07800" stroke-width=".6"/><line x1="1" y1="17.5" x2="33" y2="17.5" stroke="#A07800" stroke-width=".6"/><line x1="11" y1="1" x2="11" y2="25" stroke="#A07800" stroke-width=".6"/><line x1="23" y1="1" x2="23" y2="25" stroke="#A07800" stroke-width=".6"/></svg>';
   var nfcSVG='<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.5 5.5 8.5 18.5 12 22" stroke="rgba(255,255,255,.7)" stroke-width="2" stroke-linecap="round"/><path d="M16 5C10 9 10 15 16 19" stroke="rgba(255,255,255,.7)" stroke-width="2" stroke-linecap="round"/><path d="M20 8C13 10.5 13 13.5 20 16" stroke="rgba(255,255,255,.7)" stroke-width="2" stroke-linecap="round"/></svg>';
 
-  var html='<div style="'+grad+';border-radius:20px;padding:20px 22px 18px;margin-bottom:16px;position:relative;overflow:hidden;min-height:160px;display:flex;flex-direction:column;justify-content:space-between">'
+  var html='<div style="background:'+grad+';border-radius:20px;padding:20px 22px 18px;margin-bottom:16px;position:relative;overflow:hidden;min-height:160px;display:flex;flex-direction:column;justify-content:space-between">'
     +'<div style="position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.08)"></div>'
     +'<div style="position:absolute;right:30px;bottom:-50px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.05)"></div>'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative">'
