@@ -10,12 +10,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   navigate((S.currentPage&&S.currentPage!=='configuracion')?S.currentPage:'dashboard');
   checkAutoPayments();
   fetchExchangeRate();
-  // Register Service Worker - requires /sw.js file on the server
-  if('serviceWorker'in navigator){
-    navigator.serviceWorker.register('/sw.js').then(reg=>{
-      console.log('SW registered');
-    }).catch(e=>console.log('SW error:',e));
-  }
   // Swipe to open drawer
   let touchStartX=0;
   document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;},{passive:true});
