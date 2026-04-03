@@ -3,7 +3,7 @@
 // ════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>{
   loadState();
-  document.querySelectorAll('[data-page]').forEach(el=>el.addEventListener('click',()=>navigate(el.dataset.page)));
+  document.querySelectorAll('[data-page]').forEach(el=>{if(!el.getAttribute('onclick'))el.addEventListener('click',()=>navigate(el.dataset.page));});
   refreshCurrencyToggle();
   applyLanguage();
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){if(S.theme==='auto')applyThemeMode();});

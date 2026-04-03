@@ -53,6 +53,8 @@ var _navHistory=[];
 var _goingBack=false;
 function navigate(page){
   var _wasBack=_goingBack;
+  closeModal();
+  closeBottomSheet();
   if(!_goingBack&&S.currentPage&&S.currentPage!==page)_navHistory.push(S.currentPage);
   if(_navHistory.length>20)_navHistory.shift();
   _goingBack=false;
@@ -7615,7 +7617,7 @@ function saveNewList(){
 function deleteList(id){
   confirmDialog('🗑️','¿Eliminar lista?','',function(){
     S.shoppingLists=(S.shoppingLists||[]).filter(function(x){return x.id!==id;});
-    saveState();renderPage('listas');toast('Lista eliminada');
+    saveState();closeListDetail();toast('Lista eliminada');
   });
 }
 function shareList(listId){
