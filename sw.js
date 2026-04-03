@@ -1,6 +1,6 @@
 // Finanzía Service Worker v2.0
 // ⚡ Network-first: always tries to load fresh from server
-const CACHE_NAME = 'finanzía-v2';
+const CACHE_NAME = 'finanzía-v3';
 const ASSETS = ['/'];
 
 self.addEventListener('install', e => {
