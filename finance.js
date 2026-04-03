@@ -426,13 +426,7 @@ function subOptions(catId,selSubId){
 }
 function updateSubs(catId,targetId,selectedSubId){
   const el=document.getElementById(targetId);if(el)el.innerHTML=subOptions(catId,selectedSubId||'');
-}
-function accountOptions(filterCur){
-  const cur=filterCur||S.currency;
-  const accs=S.accounts.filter(a=>(a.currency||S.currency)===cur);
-  return '<option value="">Seleccionar cuenta</option>'+accs.map(a=>`<option value="${a.id}">${a.icon||'💳'} ${a.name}</option>`).join('');
-}
-function catOptions(type,selectedId){
+}function catOptions(type,selectedId){
   let cats=S.categories;
   if(type==='gasto')cats=cats.filter(c=>c.type!=='ingreso');
   if(type==='ingreso')cats=cats.filter(c=>c.type!=='gasto');

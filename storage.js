@@ -209,16 +209,7 @@ function loadState(){
   applyThemeMode();
   // Update drawer profile
   updateDrawerProfile();
-}
-function toggleDrawerGroup(groupId, labelEl){
-  var el=document.getElementById(groupId);
-  if(!el)return;
-  var isCollapsed=el.style.display==='none';
-  el.style.display=isCollapsed?'block':'none';
-  var arrow=labelEl?labelEl.querySelector('.dgl-arrow'):null;
-  if(arrow)arrow.style.transform=isCollapsed?'rotate(0deg)':'rotate(-90deg)';
-}
-function updateDrawerProfile(){
+}function updateDrawerProfile(){
   const name=S.profile&&S.profile.name?S.profile.name:'Mi Perfil';
   const email=S.profile&&S.profile.email?S.profile.email:'Toca para configurar';
   const photo=S.profile&&S.profile.photo?S.profile.photo:'';
@@ -236,6 +227,3 @@ function updateDrawerProfile(){
 function saveState(){try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
 // Number inputs: format with thousand separator on display, parse on use
-function fmtNum(v){if(v===''||v===null||isNaN(v))return '';return Number(v).toLocaleString(S.language==='pl'?'pl-PL':'es-CO');}
-function parseNumLegacy(s){if(!s)return 0;return parseFloat(String(s).replace(/[^\d.,]/g,'').replace(',','.'))||0;}
-

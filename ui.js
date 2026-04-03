@@ -216,18 +216,9 @@ function renderDrawerGroup(groupKey){
   html+='</div>';
   return html;
 }
-function openDrawerGroup(groupKey){navigate('grp-'+groupKey);closeDrawer();}
-function closeDrawerGroup(){var s=document.getElementById('grp-screen');if(s)s.remove();}
-
 // ════════════════════════════════════════════════════════════
 // TOAST & CONFIRM
-// ════════════════════════════════════════════════════════════
-function showToast(msg){
-  const el=document.createElement('div');
-  el.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:14px 18px;font-size:13px;line-height:1.5;max-width:300px;text-align:center;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.3);animation:scaleIn .2s ease';
-  el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),4500);
-}
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+// ════════════════════════════════════════════════════════════function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
 let _confirmCb=null;
 function confirmDialog(icon,title,msg,cb,okLabel='Confirmar',okClass='btn-danger'){
@@ -1403,17 +1394,6 @@ function fcUpdateLoanCalc(){
     temEl.value=taeNum>0?((Math.pow(1+taeNum/100,1/n)-1)*100).toFixed(2)+'%':'—';
   }
 }
-
-function fcCalcNextPayment(lastPayDate, payDay){
-  if(!lastPayDate||!payDay) return '—';
-  try{
-    var d=new Date(lastPayDate);
-    d.setMonth(d.getMonth()+1);
-    d.setDate(payDay);
-    return d.toISOString().slice(0,10);
-  }catch(e){return '—';}
-}
-
 function fcCalcNextPaymentFromDisb(disbDate, payDay){
   if(!disbDate||!payDay) return '—';
   try{
@@ -1662,80 +1642,7 @@ function removeFotoAcreedor(){
     +'</div>';
 }
 // Mantener pickFotoAcreedor como alias por compatibilidad
-function pickFotoAcreedor(){showPhotoSheetAcreedor();}
-
-function selectFCSub(subId){
-  var data=S._fcData||{};
-  data.subId=subId;
-  S._fcData=data;
-  renderPage('form-cuenta');
-  var ht=document.getElementById('header-title');
-  if(ht)ht.textContent=S._fcData&&S._fcData.id?'Edición de cuenta':'Nueva cuenta';
-}
-
-function buildFormCuentaFields(grpId,subId,acc){
-  if(grpId==='tc'){
-    var defCut=acc?acc.cutDate||'':'';
-    var defPay=acc?acc.paymentDate||'':'';
-    return '<div class="form-row">'
-      +'<div class="form-group"><label class="form-label">Límite de cupo</label>'
-        +'<input class="form-input" type="number" id="fc-tc-limit" value="'+(acc&&acc.tcLimit?acc.tcLimit:'')+'" placeholder="Ej: 5,000,000"></div>'
-      +'<div class="form-group"><label class="form-label">TAE (%)</label>'
-        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" value="'+(acc&&acc.tae?acc.tae:'')+'" placeholder="Ej: 24.5" step="0.01"></div>'
-      +'</div>'
-      +'<div class="form-row">'
-        +'<div class="form-group"><label class="form-label">Día de corte</label>'
-          +'<input type="hidden" id="fc-cut" value="'+defCut+'">'
-          +'<div class="bs-trigger" onclick="showBS_fcDay(\'fc-cut\',\'fc-cut-lbl\',\'Día de corte\')">'
-            +'<span id="fc-cut-lbl" style="color:'+(defCut?'var(--text)':'var(--text3)')+';font-size:14px">'+(defCut||'Seleccionar día')+'</span>'
-            +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>'
-          +'</div></div>'
-        +'<div class="form-group"><label class="form-label">Día de pago</label>'
-          +'<input type="hidden" id="fc-paydate" value="'+defPay+'">'
-          +'<div class="bs-trigger" onclick="showBS_fcDay(\'fc-paydate\',\'fc-paydate-lbl\',\'Día de pago\')">'
-            +'<span id="fc-paydate-lbl" style="color:'+(defPay?'var(--text)':'var(--text3)')+';font-size:14px">'+(defPay||'Seleccionar día')+'</span>'
-            +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>'
-          +'</div></div>'
-      +'</div>';
-  }
-  if(grpId==='prestamo'||grpId==='informal'){
-    var defPay2=acc?acc.paymentDate||'':'';
-    return '<div class="form-row">'
-      +'<div class="form-group"><label class="form-label">Monto total del crédito</label>'
-        +'<input class="form-input" type="number" id="fc-credit-total" value="'+(acc&&acc.creditTotal?acc.creditTotal:'')+'" placeholder="Monto original"></div>'
-      +'<div class="form-group"><label class="form-label">Cuota mensual</label>'
-        +'<input class="form-input" type="number" id="fc-monthly" value="'+(acc&&acc.monthlyPayment?acc.monthlyPayment:'')+'" placeholder="Cuota pactada"></div>'
-      +'</div>'
-      +'<div class="form-row">'
-        +'<div class="form-group"><label class="form-label">Día de pago</label>'
-          +'<input type="hidden" id="fc-paydate" value="'+defPay2+'">'
-          +'<div class="bs-trigger" onclick="showBS_fcDay(\'fc-paydate\',\'fc-paydate-lbl\',\'Día de pago\')">'
-            +'<span id="fc-paydate-lbl" style="color:'+(defPay2?'var(--text)':'var(--text3)')+';font-size:14px">'+(defPay2||'Seleccionar día')+'</span>'
-            +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>'
-          +'</div></div>'
-        +'<div class="form-group"><label class="form-label">Tasa de interés (%)</label>'
-          +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" value="'+(acc&&acc.tae?acc.tae:'')+'" placeholder="Ej: 12.5" step="0.01"></div>'
-      +'</div>';
-  }
-  if(grpId==='inversion'){
-    return '<div class="form-row">'
-      +'<div class="form-group"><label class="form-label">Rendimiento esperado (%)</label>'
-        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" value="'+(acc&&acc.tae?acc.tae:'')+'" placeholder="Ej: 8.0" step="0.01"></div>'
-      +'<div class="form-group"><label class="form-label">Plataforma / Broker</label>'
-        +'<input class="form-input" type="text" id="fc-broker" value="'+(acc&&acc.broker?acc.broker:'')+'" placeholder="Ej: Degiro, Fidelity"></div>'
-      +'</div>';
-  }
-  if(grpId==='bien'){
-    return '<div class="form-row">'
-      +'<div class="form-group"><label class="form-label">Valor estimado actual</label>'
-        +'<input class="form-input" type="number" id="fc-value" value="'+(acc&&acc.assetValue?acc.assetValue:'')+'" placeholder="Valor de mercado"></div>'
-      +'<div class="form-group"><label class="form-label">Año de adquisición</label>'
-        +'<input class="form-input" type="number" id="fc-year" value="'+(acc&&acc.acquireYear?acc.acquireYear:'')+'" placeholder="Ej: 2022"></div>'
-      +'</div>';
-  }
-  return '';
-}
-function saveAccountFC(){
+function pickFotoAcreedor(){showPhotoSheetAcreedor();}function saveAccountFC(){
   // Validar que el perfil esté configurado
   var hasProfile=S.profile&&S.profile.name&&S.profile.name.trim()!=='';
   var hasCurrency=S.currencies&&S.currencies.length>0;
@@ -2696,16 +2603,7 @@ function renderCategorias(){
     '<button class="btn btn-primary btn-sm" onclick="openModal(\'category\',{})">+ '+(t('newCategory')||'Nueva categoría')+'</button></div>';
   if(!S.categories.length)return btn+'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
   return btn+S.categories.map(function(cat){return renderCatItem(cat);}).join('');
-}
-function toggleCatSection(secId){
-  var el=document.getElementById(secId);
-  var arr=document.getElementById(secId+'-arrow');
-  if(!el)return;
-  var open=el.style.display!=='none';
-  el.style.display=open?'none':'block';
-  if(arr)arr.textContent=open?'▶':'▼';
-}
-function toggleCatGroup(id,header){
+}function toggleCatGroup(id,header){
   const el=document.getElementById(id);
   if(!el)return;
   el.classList.toggle('hidden');
@@ -4157,14 +4055,7 @@ function calcSim(){
   window._simRows=rows;
   window._simMonthly=monthly;
   window._simData={initial:initial,monthly:monthly,total:total,invested:invested,gains:gains,annualRate:annualRate};
-}
-function fmtK(v){
-  if(Math.abs(v)<1)return'0';
-  if(Math.abs(v)>=1000000)return(v/1000000).toFixed(2)+'M';
-  if(Math.abs(v)>=1000)return(v/1000).toFixed(1)+'K';
-  return Math.round(v).toLocaleString();
-}
-function fmtSim(v){
+}function fmtSim(v){
   const info=_getLocaleInfo();
   const meta=getCurrencyMeta(S.currency||'');
   const sym=meta?meta.sym:'';
@@ -4725,43 +4616,7 @@ function buildCambioRow(idx,row){
       +'</div>'
       +resultHtml
     +'</div>';
-}
-function buildCambioPickItems(idx,side,selected){
-  var q="'";
-  var html='';
-  ALL_CURRENCIES.forEach(function(cur){
-    var meta=getCurrencyMeta(cur.code);
-    var sel=cur.code===selected;
-    html+='<div class="ppick-item" onclick="selectCambioCur('+q+idx+q+','+q+side+q+','+q+cur.code+q+')" data-val="'+cur.code+'" style="padding:10px 12px;cursor:pointer;background:'+(sel?'rgba(0,212,170,.12)':'')+';display:flex;align-items:center;gap:10px">'
-      +'<input type="checkbox" '+(sel?'checked':'')+' disabled style="width:16px;height:16px;accent-color:var(--primary);flex-shrink:0;pointer-events:none">'
-      +'<div style="flex:1">'
-        +'<div style="font-size:14px;font-weight:700;color:'+(sel?'var(--primary)':'var(--text)')+'">'+cur.code+' <span style="color:var(--primary)">'+meta.sym+'</span></div>'
-        +'<div style="font-size:11px;color:var(--text3)">'+cur.name+'</div>'
-      +'</div>'
-      +(sel?'<span style="color:var(--primary);font-size:16px">✓</span>':'')
-      +'</div>';
-  });
-  return html;
-}
-function getCurName(code){
-  var found=ALL_CURRENCIES.find(function(c){return c.code===code;});
-  return found?found.name:code;
-}
-function toggleCambioPick(pickId,lblId){
-  var el=document.getElementById(pickId);
-  if(!el)return;
-  var isOpen=el.style.display!=='none';
-  // Close all other pickers first
-  document.querySelectorAll('[id^="cambio-pick-"]').forEach(function(p){
-    if(!p.id.endsWith('-list'))p.style.display='none';
-  });
-  el.style.display=isOpen?'none':'block';
-  if(!isOpen){
-    var inp=el.querySelector('input');
-    if(inp){inp.value='';filterCambioPick(pickId,'');setTimeout(function(){inp.focus();},50);}
-  }
-}
-function filterCambioPick(pickId,val){
+}function filterCambioPick(pickId,val){
   var listId=pickId+'-list';
   var list=document.getElementById(listId);
   if(!list)return;
@@ -5126,32 +4981,13 @@ function renderConfiguracion(){
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
     <div style="margin-top:32px;text-align:center;color:var(--text3);font-size:11px">${t('version')}</div>
   `;
-}
-function filterLangs(q){
-  document.getElementById('lang-list')?.querySelectorAll('div').forEach(el=>{
-    el.style.display=el.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
-  });
-}
-function filterCurs(q){
-  document.getElementById('cur-list')?.querySelectorAll('label').forEach(el=>{
-    el.style.display=el.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
-  });
-}
-function togglePPick(id){
+}function togglePPick(id){
   var el=document.getElementById(id);var arr=document.getElementById(id+'-arrow');
   if(!el)return;
   var isOpen=el.style.display!=='none';
   el.style.display=isOpen?'none':'block';
   if(arr)arr.textContent=isOpen?'▼':'▲';
-}
-function filterPPick(pickId,q){
-  var el=document.getElementById(pickId);
-  if(!el)return;
-  el.querySelectorAll('.ppick-item').forEach(function(item){
-    item.style.display=item.dataset.val.toLowerCase().includes(q.toLowerCase())?'':'none';
-  });
-}
-function selectPPick(inputId,pickId,val){
+}function selectPPick(inputId,pickId,val){
   var inp=document.getElementById(inputId);
   var lbl=document.getElementById(inputId+'-lbl');
   var pick=document.getElementById(pickId);
@@ -5170,26 +5006,6 @@ function selectPPick(inputId,pickId,val){
     item.style.fontWeight=item.dataset.val===val?'700':'';
   });
 }
-
-function selectPPickWithFlag(inputId,pickId,val,flag){
-  var inp=document.getElementById(inputId);
-  var lbl=document.getElementById(inputId+'-lbl');
-  var pick=document.getElementById(pickId);
-  var arr=document.getElementById(pickId+'-arrow');
-  if(inp)inp.value=val;
-  if(lbl){
-    var ph={'cfg-country':'Seleccionar país de origen','cfg-residence':'Seleccionar país de residencia'};
-    lbl.textContent=val&&flag?(flag+' '+val):(ph[inputId]||'Seleccionar');
-    lbl.style.color=val?'var(--text)':'var(--text3)';
-  }
-  if(pick){pick.style.display='none';}
-  if(arr)arr.textContent='▼';
-  if(pick)pick.querySelectorAll('.ppick-item').forEach(function(item){
-    item.style.background=item.dataset.val===val?'rgba(0,212,170,.12)':'';
-    item.style.fontWeight=item.dataset.val===val?'700':'';
-  });
-}
-
 
 function selectPPickWithFlag(inputId,pickId,val,flag){var inp=document.getElementById(inputId);var lbl=document.getElementById(inputId+'-lbl');var pick=document.getElementById(pickId);var arr=document.getElementById(pickId+'-arrow');if(inp)inp.value=val;if(lbl){var ph={'cfg-country':'Seleccionar país de origen','cfg-residence':'Seleccionar país de residencia'};lbl.textContent=val&&flag?(flag+' '+val):(ph[inputId]||'Seleccionar');lbl.style.color=val?'var(--text)':'var(--text3)';}if(pick){pick.style.display='none';}if(arr)arr.textContent='▼';if(pick)pick.querySelectorAll('.ppick-item').forEach(function(item){item.style.background=item.dataset.val===val?'rgba(0,212,170,.12)':'';item.style.fontWeight=item.dataset.val===val?'700':'';});}
 
@@ -6003,22 +5819,7 @@ function removeProfilePhoto(){
     closeProfilePage();
     openProfilePage();
   });
-}
-function pickProfilePhoto(){
-  var s=document.createElement('div');
-  s.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;justify-content:flex-end';
-  var hasPhoto=!!(S.profile&&S.profile.photo);
-  s.innerHTML='<div style="flex:1;background:rgba(0,0,0,.5)" onclick="this.parentElement.remove()"></div>'
-    +'<div style="background:var(--surface);border-radius:16px 16px 0 0;padding:16px;display:flex;flex-direction:column;gap:8px">'
-    +'<div style="font-size:11px;font-weight:700;color:var(--text3);text-align:center;padding-bottom:4px">FOTO DE PERFIL</div>'
-    +'<button onclick="document.getElementById(\'profile-cam-input\').click();this.closest(\'[style*=fixed]\').remove()" style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--surface2);color:var(--text);font-size:15px;cursor:pointer;font-family:var(--font);text-align:left">📷 Tomar foto</button>'
-    +'<button onclick="document.getElementById(\'profile-gal-input\').click();this.closest(\'[style*=fixed]\').remove()" style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--surface2);color:var(--text);font-size:15px;cursor:pointer;font-family:var(--font);text-align:left">🖼️ Elegir de galería</button>'
-    +(hasPhoto?'<button onclick="removeProfilePhoto();this.closest(\'[style*=fixed]\').remove()" style="width:100%;padding:14px;border-radius:12px;border:none;background:rgba(239,68,68,.1);color:var(--danger);font-size:15px;cursor:pointer;font-family:var(--font)">🗑️ Quitar foto</button>':'')
-    +'<button onclick="this.closest(\'[style*=fixed]\').remove()" style="width:100%;padding:14px;border-radius:12px;border:none;background:var(--surface3);color:var(--text2);font-size:15px;cursor:pointer;font-family:var(--font);margin-top:4px">Cancelar</button>'
-    +'</div>';
-  document.body.appendChild(s);
-}
-function handleProfilePhoto(e){
+}function handleProfilePhoto(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=ev=>{
@@ -6027,14 +5828,7 @@ function handleProfilePhoto(e){
     saveState();updateDrawerProfile();renderPage('configuracion');
   };
   reader.readAsDataURL(file);
-}
-function setCurrencyFormat(val){
-  S.currencyFormat=val;
-  saveState();
-  renderPage('configuracion');
-  if(S.currentPage!=='configuracion')renderPage(S.currentPage);
-}
-function saveLanguage(v){
+}function saveLanguage(v){
   S.language=v;saveState();
   applyLanguage();
   renderPage(S.currentPage);
@@ -6767,9 +6561,6 @@ function updatePayAccounts(cur){
   const el=document.getElementById('pay-account');
   if(el)el.innerHTML=accountOptionsByCur(cur,'');
 }
-// Toggle account card actions panel
-function editAcc(id){event&&event.stopPropagation();setTimeout(()=>openModal('account',{id:id}),10);}
-function newAcc(defaultType){setTimeout(()=>openModal('account',defaultType?{defaultType}:{}),10);}
 function openCuentaDetalle(accId,event){
   if(event&&(event.target.tagName==='BUTTON'||event.target.closest('.acc-action-zone')))return;
   S._viewAccId=accId;
@@ -7026,22 +6817,7 @@ function renderAmortizacion(){
 
 function quickTx(type,accId){
   openTransactionModal({type:type,accountId:accId});
-}
-
-function viewAccountMovements(accId){
-  S._viewAccId=accId;
-  navigate('cuenta-detalle');
-}
-function toggleAccCard(cardId,event){
-  // Don't toggle if clicking inside actions panel or on a button
-  if(event&&(event.target.tagName==='BUTTON'||event.target.tagName==='SELECT'||event.target.closest('#'+cardId+'-actions')))return;
-  const el=document.getElementById(cardId+'-actions');
-  if(!el)return;
-  const isOpen=el.style.display==='block';
-  document.querySelectorAll('[id$="-actions"]').forEach(e=>e.style.display='none');
-  if(!isOpen)el.style.display='block';
-}
-function getAccIcon(a){
+}function getAccIcon(a){
   if(!a)return '💳';
   if(a.id&&a.id.startsWith('efectivo-')||a.subtype==='efectivo')return '💵';
   if(a.subtype==='digital')return '📱';
@@ -7176,25 +6952,7 @@ function buildCategoryModal(data){
   '<div class="form-group"><label class="form-label">Color</label>'+colorPickerHtml(COLORS_PALETTE[0],'cat-color-val')+'</div>'+
   '<button class="btn btn-primary" onclick="saveCategory()">Crear categoría</button>'+
   '</div>';
-}
-function selectCatPick(inputId,pickId,val,label,callback){
-  var inp=document.getElementById(inputId);
-  var lbl=document.getElementById(inputId+'-lbl');
-  var pick=document.getElementById(pickId);
-  var arr=document.getElementById(pickId+'-arrow');
-  if(inp)inp.value=val;
-  if(lbl){lbl.textContent=label;lbl.style.color='var(--text)';}
-  if(pick){
-    pick.style.display='none';
-    pick.querySelectorAll('.ppick-item').forEach(function(item){
-      item.style.background=item.dataset.val===val?'rgba(0,212,170,.12)':'';
-      item.style.fontWeight=item.dataset.val===val?'700':'';
-    });
-  }
-  if(arr)arr.textContent='▼';
-  if(callback)callback();
-}
-function updateCatModalFields(type){
+}function updateCatModalFields(type){
   const ng=document.getElementById('cat-nature-group');
   const ig=document.getElementById('cat-income-type-group');
   if(ng)ng.style.display=type==='ingreso'?'none':'block';
