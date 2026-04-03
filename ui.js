@@ -235,10 +235,12 @@ function closeConfirm(){document.getElementById('confirm-root').classList.remove
 // message: string para toast | null/undefined para omitir
 function completeAction(callback,renderTarget,message){
   try{
+    console.log('Executing action:',callback&&callback.name?callback.name:'anonymous');
     if(callback && typeof callback==='function')callback();
     saveState();
   }catch(e){
     console.error('Action error:',e);
+    alert('Error en la acción: '+(e.message||e));
   }finally{
     closeModal();
     closeConfirm();
