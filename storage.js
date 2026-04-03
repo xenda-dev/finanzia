@@ -206,7 +206,7 @@ function loadState(){
   if(!S.theme)S.theme='auto';
   // language and weekStart stay empty until user chooses
   // currencies stay empty until user sets up profile
-  applyThemeMode();
+  if(typeof applyThemeMode==='function')applyThemeMode();
   // Update drawer profile
   updateDrawerProfile();
 }function updateDrawerProfile(){

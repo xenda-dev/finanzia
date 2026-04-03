@@ -240,7 +240,6 @@ function completeAction(callback,renderTarget,message){
     saveState();
   }catch(e){
     console.error('Action error:',e);
-    alert('Error en la acción: '+(e.message||e));
   }finally{
     closeModal();
     closeConfirm();
