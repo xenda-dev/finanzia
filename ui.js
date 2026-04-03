@@ -2000,6 +2000,44 @@ function openSubsModal(data){
   openModal('custom',{html:html});
 }
 
+function saveSubs(){
+  var id=document.getElementById('subs-id')&&document.getElementById('subs-id').value||'';
+  var nombre=(document.getElementById('subs-nombre')||{}).value||'';
+  if(!nombre.trim()){toast('Ingresa el nombre del servicio');return;}
+  var cur=(document.getElementById('subs-moneda')||{}).value||S.currency;
+  var monto=parseNumSubs((document.getElementById('subs-monto')||{}).value||'0',cur);
+  var obj={
+    id:id||uid(),
+    nombre:nombre.trim(),
+    monto:monto,
+    ciclo:(document.getElementById('subs-ciclo')||{}).value||'mensual',
+    categoria:(document.getElementById('subs-cat')||{}).value||'entretenimiento',
+    estado:(document.getElementById('subs-estado')||{}).value||'activa',
+    moneda:cur,
+    diaCobro:(document.getElementById('subs-dia')||{}).value||'',
+    notas:(document.getElementById('subs-notas')||{}).value||''
+  };
+  if(!S.subscriptions)S.subscriptions=[];
+  if(id){
+    var idx=S.subscriptions.findIndex(function(x){return x.id===id;});
+    if(idx>=0)S.subscriptions[idx]=obj;else S.subscriptions.push(obj);
+  } else {
+    S.subscriptions.push(obj);
+  }
+  saveState();
+  closeModal();
+  renderPage('suscripciones');
+  toast(id?'Suscripción actualizada ✓':'Suscripción guardada ✓');
+}
+function deleteSubs(id){
+  confirmDialog('🗑️','¿Eliminar suscripción?','Esta acción no se puede deshacer.',function(){
+    S.subscriptions=(S.subscriptions||[]).filter(function(x){return x.id!==id;});
+    saveState();
+    closeModal();
+    renderPage('suscripciones');
+    toast('Suscripción eliminada');
+  });
+}
 // BS helpers para suscripciones
 function showBS_subsCat(){
   var cur=document.getElementById('subs-cat')?document.getElementById('subs-cat').value:'';
