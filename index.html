@@ -955,6 +955,12 @@ function fmt(amount,cur){
   catch(e){numStr=n.toFixed(decimals);}
   return meta.pos==='before'?meta.sym+numStr:numStr+' '+meta.sym;
 }
+function fmtC(val,cur){
+  var absV=Math.abs(val);
+  if(absV>=1000000){return (val<0?'-':'')+(absV/1000000).toFixed(1).replace(/\.0$/,'')+'M';}
+  if(absV>=10000){return (val<0?'-':'')+(absV/1000).toFixed(1).replace(/\.0$/,'')+'K';}
+  return fmt(val,cur);
+}
 function setCurrency(c){
   S.currency=c;
   document.querySelectorAll('.cur-btn').forEach(b=>b.classList.toggle('active',b.dataset.cur===c));
@@ -2116,7 +2122,7 @@ function renderFormCuenta(){
   var grpColor=grp.color||'#00D4AA';
 
   // Cuentas sin pasos (simples) — solo TC y préstamo son multipantalla
-  var isSimple=(grpId==='efectivo'||grpId==='banco'||grpId==='virtual'||grpId==='inversion'||grpId==='bien'||grpId==='informal');
+  var isSimple=(grpId==='efectivo'||grpId==='virtual'||grpId==='inversion'||grpId==='bien'||grpId==='informal');
 
   // Definir pasos por tipo
   var stepDefs=fcGetSteps(grpId);
@@ -2184,7 +2190,7 @@ function renderFormCuenta(){
   var btns='';
   if(isSimple){
     btns+=(acc?'<button onclick="deleteAccountFC()" style="flex:1;padding:13px 8px;border-radius:50px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar</button>':'');
-    btns+='<button onclick="saveAccountFC()" style="flex:2;padding:13px 8px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Guardar</button>';
+    btns+='<button onclick="saveAccountFC()" style="flex:1;padding:13px 8px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Guardar</button>';
   } else if(isReview){
     var hasAcc=acc&&!acc.protected;
     var btnBase='padding:13px 8px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);flex:1';
@@ -2214,8 +2220,7 @@ function fcGetSteps(grpId){
       {label:'Saldo y ajustes'}
     ],
     banco:[
-      {label:'Informaci\u00f3n b\u00e1sica'},
-      {label:'Detalles financieros'}
+      {label:'Datos de la cuenta'}
     ],
     inversion:[
       {label:'Informaci\u00f3n b\u00e1sica'},
@@ -2267,7 +2272,27 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
     +'<input class="form-input" type="text" inputmode="numeric" id="fc-balance" placeholder="0,00" oninput="numInputFC(this)" style="text-align:right" value="'+defBal+'">'
     +'</div>';
 
-  // ── EFECTIVO (simple) ────────────────────────────────
+  // ── BANCO (pantalla única con todos los campos) ──────
+  if(grpId==='banco'){
+    var nm=f('fc-name',acc?acc.name:'');
+    var digits=f('fc-digits',acc?acc.lastDigits||'':'');
+    var tae=f('fc-tae',acc?acc.tae?String(acc.tae.toFixed(2))+'%':'':'');
+    var bankPH={corriente:'Mi cuenta corriente',ahorros:'Mi cuenta de ahorros',ahorro:'Mi cuenta de ahorros',nomina:'Mi cuenta nómina',cdts:'Mi CDT',cheques:'Mi cuenta de cheques',fiduciaria:'Mi fiduciaria',nequi:'Mi Nequi',daviplata:'Mi Daviplata'};
+    var bankPlaceholder=bankPH[subId]||'Mi cuenta bancaria';
+    return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
+      +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: '+bankPlaceholder+'" value="'+nm+'"></div>'
+      +curHtml
+      +bankHtml
+      +'<div class="form-group"><label class="form-label">Últimos 4 dígitos <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
+      +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">🔒 Por seguridad ingresa solo los últimos 4 dígitos</div>'
+      +'<input class="form-input" type="text" id="fc-digits" placeholder="Ej: 4521" maxlength="4" value="'+digits+'"></div>'
+      +balHtml
+      +'<div class="form-group"><label class="form-label">Tasa de interés (%) <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
+      +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" value="'+tae+'"></div>'
+      +buildAccToggleHTML(acc);
+  }
+
+  // ── EFECTIVO y otros tipos simples ───────────────────
   if(isSimple){
     var nm=f('fc-name',acc?acc.name:(grpId==='efectivo'?'Efectivo':''));
     return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
@@ -2292,28 +2317,6 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
     if(stepIdx===1){ return balHtml+buildAccToggleHTML(acc); }
   }
 
-  // ── BANCO ────────────────────────────────────────────
-  if(grpId==='banco'){
-    if(stepIdx===0){
-      var nm=f('fc-name',acc?acc.name:'');
-      var digits=f('fc-digits',acc?acc.lastDigits||'':'');
-      var bankPH={corriente:'Mi cuenta corriente',ahorros:'Mi cuenta de ahorros',ahorro:'Mi cuenta de ahorros',nomina:'Mi cuenta nómina',cdts:'Mi CDT',cheques:'Mi cuenta de cheques',fiduciaria:'Mi fiduciaria',nequi:'Mi Nequi',daviplata:'Mi Daviplata'};
-      var bankPlaceholder=bankPH[subId]||'Mi cuenta bancaria';
-      return '<div class="form-group"><label class="form-label">Nombre de la cuenta</label>'
-        +'<input class="form-input" type="text" id="fc-name" placeholder="Ej: '+bankPlaceholder+'" value="'+nm+'"></div>'
-        +curHtml+bankHtml
-        +'<div class="form-group"><label class="form-label">Últimos 4 dígitos <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
-        +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px">🔒 Por seguridad ingresa solo los últimos 4 dígitos</div>'
-        +'<input class="form-input" type="text" id="fc-digits" placeholder="Ej: 4521" maxlength="4" value="'+digits+'"></div>';
-    }
-    if(stepIdx===1){
-      var tae=f('fc-tae',acc?acc.tae||'':'');
-      return balHtml
-        +'<div class="form-group"><label class="form-label">Tasa de interés del banco (%) <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
-        +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" value="'+tae+'"></div>'
-        +buildAccToggleHTML(acc);
-    }
-  }
 
   // ── INVERSIÓN ────────────────────────────────────────
   if(grpId==='inversion'){
@@ -2559,6 +2562,8 @@ function fcBuildStepContent(grpId,subId,acc,stepIdx,isSimple){
       +balHtml
       +'<div class="form-group"><label class="form-label">Tasa de interés (%) <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
         +'<input class="form-input" type="text" inputmode="decimal" oninput="pctInput(this)" style="text-align:right" id="fc-tae" placeholder="0.00%" value="'+(f('fc-tae',acc?acc.tae?acc.tae.toFixed(2)+'%':'' :'')||'')+'"></div>'
+      +'<div class="form-group"><label class="form-label">Fecha límite de pago <span style="color:var(--text3);font-weight:400">(opcional)</span></label>'
+        +'<input class="form-input" type="date" id="fc-deadline" value="'+deadline+'" max="2099-12-31"></div>'
       +buildAccToggleHTML(acc);
   }
 
@@ -2800,20 +2805,21 @@ function fcBuildReview(grpId,subId,acc){
           +'<th style="padding:8px 6px;text-align:right;color:var(--text3);font-weight:700">Saldo</th>'
         +'</tr></thead><tbody>';
       var saldo=totalNum;
+      var cuotaFixed=monthlyNum||((rPeriod*(Math.pow(1+rPeriod,nPeriods)))/(Math.pow(1+rPeriod,nPeriods)-1)*totalNum);
       var preview=Math.min(12,nPeriods);
       for(var i=1;i<=preview;i++){
         var interest=saldo*rPeriod;
-        var cuota=monthlyNum||((rPeriod*(Math.pow(1+rPeriod,nPeriods)))/(Math.pow(1+rPeriod,nPeriods)-1)*totalNum);
-        var capital=cuota-interest;
+        var capital=cuotaFixed-interest;
         if(capital<0)capital=0;
+        if(capital>saldo)capital=saldo;
         saldo=Math.max(0,saldo-capital);
         var odd=i%2===0?'background:var(--surface2)':'';
         html+='<tr style="'+odd+'">'
           +'<td style="padding:7px 6px;text-align:center;color:var(--text3)">'+i+'</td>'
-          +'<td style="padding:7px 6px;text-align:right;font-weight:600;color:var(--text)">'+fmt(cuota,cur)+'</td>'
-          +'<td style="padding:7px 6px;text-align:right;color:var(--primary)">'+fmt(capital,cur)+'</td>'
-          +'<td style="padding:7px 6px;text-align:right;color:var(--danger)">'+fmt(interest,cur)+'</td>'
-          +'<td style="padding:7px 6px;text-align:right;color:var(--text2)">'+fmt(saldo,cur)+'</td>'
+          +'<td style="padding:7px 6px;text-align:right;font-weight:600;color:var(--text)">'+fmtC(cuotaFixed,cur)+'</td>'
+          +'<td style="padding:7px 6px;text-align:right;color:var(--primary)">'+fmtC(capital,cur)+'</td>'
+          +'<td style="padding:7px 6px;text-align:right;color:var(--danger)">'+fmtC(interest,cur)+'</td>'
+          +'<td style="padding:7px 6px;text-align:right;color:var(--text2)">'+fmtC(saldo,cur)+'</td>'
           +'</tr>';
       }
       html+='</tbody></table></div>';
@@ -8806,37 +8812,73 @@ function renderCuentaDetalle(){
   var typeIcon=acc.subtype==='efectivo'?'💵':acc.subtype==='tc'?'💳':acc.subtype==='digital'?'📱':acc.subtype==='inversion'?'📈':acc.subtype==='bien'?'🏠':acc.subtype==='prestamo'?'💰':'🏦';
   var cardNum=acc.lastDigits?('•••• •••• •••• '+acc.lastDigits):'•••• •••• •••• ••••';
   var bankLabel=bank?bank.abbr:(info&&info.sub?info.sub.label.slice(0,6).toUpperCase():acc.subtype.toUpperCase());
+  // Para TC: obtener franquicia del subId
+  var tcFranchiseMap={visa:'Visa',mastercard:'Mastercard',amex:'American Express',diners:'Diners Club',discover:'Discover',unionpay:'UnionPay',tc_otra:'Tarjeta de Crédito'};
+  var franchise=isTc?(tcFranchiseMap[acc._subId||editSub]||'Tarjeta de Crédito'):'';
   var chipSVG='<svg width="34" height="26" viewBox="0 0 34 26" fill="none"><rect x="1" y="1" width="32" height="24" rx="4" fill="#C8960C" stroke="#A07800" stroke-width=".8"/><rect x="1" y="8.5" width="32" height="9" fill="#A07800" opacity=".4"/><rect x="11" y="1" width="12" height="24" fill="#A07800" opacity=".4"/><rect x="12" y="8.5" width="10" height="9" rx="1" fill="#C8960C" stroke="#A07800" stroke-width=".6"/><line x1="1" y1="8.5" x2="33" y2="8.5" stroke="#A07800" stroke-width=".6"/><line x1="1" y1="17.5" x2="33" y2="17.5" stroke="#A07800" stroke-width=".6"/><line x1="11" y1="1" x2="11" y2="25" stroke="#A07800" stroke-width=".6"/><line x1="23" y1="1" x2="23" y2="25" stroke="#A07800" stroke-width=".6"/></svg>';
   var nfcSVG='<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.5 5.5 8.5 18.5 12 22" stroke="rgba(255,255,255,.7)" stroke-width="2" stroke-linecap="round"/><path d="M16 5C10 9 10 15 16 19" stroke="rgba(255,255,255,.7)" stroke-width="2" stroke-linecap="round"/><path d="M20 8C13 10.5 13 13.5 20 16" stroke="rgba(255,255,255,.7)" stroke-width="2" stroke-linecap="round"/></svg>';
+  var usedPct=isTc?(acc.tcLimit>0?Math.min(100,Math.round(used/acc.tcLimit*100)):0):0;
+  var barColor=usedPct>80?'#FF8080':'rgba(255,255,255,.85)';
+
+  // Fila superior: para TC → "Tarjeta de Crédito" + entidad; para otros → iniciales banco + nombre
+  var topLeftHTML=isTc
+    ?('<div style="font-size:11px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:.5px;text-transform:uppercase">Tarjeta de Crédito</div>'
+      +(bank?'<div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:1px">'+bank.name+'</div>':''))
+    :('<div style="font-size:13px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:1px;text-transform:uppercase">'+bankLabel+'</div>'
+      +(bank?'<div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:1px">'+bank.name+'</div>':''));
+
+  // Fila superior derecha: para TC → franquicia; para otros → icono tipo
+  var topRightHTML=isTc
+    ?('<div style="font-size:13px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:.5px">'+franchise+'</div>'
+      +'<button onclick="openFormCuenta(\''+editGrp+'\',\''+editSub+'\',\''+acc.id+'\')" style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:4px;margin-left:auto">'
+        +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
+      +'</button>')
+    :('<div style="display:flex;align-items:center;gap:8px">'
+      +'<span style="font-size:22px">'+typeIcon+'</span>'
+      +'<button onclick="openFormCuenta(\''+editGrp+'\',\''+editSub+'\',\''+acc.id+'\')" style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center">'
+        +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
+      +'</button>'
+      +'</div>');
+
+  // Fila inferior izquierda: para TC → nombre de cuenta (el usuario la llamó)
+  var botLeftLabel=isTc?franchise:(acc.type==='pasivo'?'Deuda':'Cuenta');
+  var botLeftValue=acc.name;
+
+  // Fila inferior derecha: para TC → Disponible; para otros → Saldo
+  var botRightLabel=isTc?'Disponible':'Saldo';
+  var botRightValue=isTc?fmt(avail,cur):fmt(Math.abs(bal),cur);
 
   var html='<div style="background:'+grad+';border-radius:20px;padding:20px 22px 18px;margin-bottom:16px;position:relative;overflow:hidden;min-height:160px;display:flex;flex-direction:column;justify-content:space-between">'
     +'<div style="position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.08)"></div>'
     +'<div style="position:absolute;right:30px;bottom:-50px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.05)"></div>'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative">'
-      +'<div>'
-        +'<div style="font-size:13px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:1px;text-transform:uppercase">'+bankLabel+'</div>'
-        +(bank?'<div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:1px">'+bank.name+'</div>':'')
-      +'</div>'
-      +'<div style="display:flex;align-items:center;gap:8px">'
-        +'<span style="font-size:22px">'+typeIcon+'</span>'
-        +'<button onclick="openFormCuenta(\''+editGrp+'\',\''+editSub+'\',\''+acc.id+'\')" style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center">'
-          +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
-        +'</button>'
-      +'</div>'
+      +'<div>'+topLeftHTML+'</div>'
+      +'<div style="display:flex;flex-direction:column;align-items:flex-end">'+topRightHTML+'</div>'
     +'</div>'
     +'<div style="display:flex;align-items:center;gap:10px;position:relative">'+chipSVG+nfcSVG+'</div>'
     +'<div style="font-size:13px;color:rgba(255,255,255,.75);letter-spacing:3px;font-family:monospace;position:relative">'+cardNum+'</div>'
     +'<div style="display:flex;justify-content:space-between;align-items:flex-end;position:relative">'
       +'<div>'
-        +'<div style="font-size:10px;color:rgba(255,255,255,.55);font-weight:600;text-transform:uppercase;letter-spacing:.5px">'+(acc.type==='pasivo'?'Deuda':'Cuenta')+'</div>'
-        +'<div style="font-size:13px;font-weight:700;color:white;margin-top:1px">'+acc.name+'</div>'
+        +'<div style="font-size:10px;color:rgba(255,255,255,.55);font-weight:600;text-transform:uppercase;letter-spacing:.5px">'+botLeftLabel+'</div>'
+        +'<div style="font-size:13px;font-weight:700;color:white;margin-top:1px">'+botLeftValue+'</div>'
       +'</div>'
       +'<div style="text-align:right">'
-        +'<div style="font-size:11px;color:rgba(255,255,255,.55)">Saldo</div>'
-        +'<div style="font-size:20px;font-weight:800;color:white;letter-spacing:-.5px">'+fmt(Math.abs(bal),cur)+'</div>'
+        +'<div style="font-size:11px;color:rgba(255,255,255,.55)">'+botRightLabel+'</div>'
+        +'<div style="font-size:20px;font-weight:800;color:white;letter-spacing:-.5px">'+botRightValue+'</div>'
       +'</div>'
     +'</div>'
-    +(isTc?'<div style="margin-top:10px;position:relative"><div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.7);margin-bottom:4px"><span>Usado: '+fmt(used,cur)+'</span><span>Disp: '+fmt(avail,cur)+'</span></div><div style="height:4px;background:rgba(255,255,255,.2);border-radius:99px"><div style="height:100%;border-radius:99px;background:'+(acc.tcLimit>0&&used/acc.tcLimit>0.8?'#FF8080':'rgba(255,255,255,.85)')+';width:'+Math.min(100,acc.tcLimit>0?Math.round(used/acc.tcLimit*100):0)+'%;transition:width .3s"></div></div><div style="text-align:center;font-size:10px;color:rgba(255,255,255,.6);margin-top:3px">'+Math.min(100,acc.tcLimit>0?Math.round(used/acc.tcLimit*100):0)+'% del límite ('+fmt(acc.tcLimit,cur)+')</div></div>':'')
+    +(isTc
+      ?'<div style="margin-top:10px;position:relative">'
+        +'<div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.7);margin-bottom:4px">'
+          +'<span>Usado: '+usedPct+'%</span>'
+          +'<span>Límite: '+fmt(acc.tcLimit,cur)+'</span>'
+        +'</div>'
+        +'<div style="height:4px;background:rgba(255,255,255,.2);border-radius:99px">'
+          +'<div style="height:100%;border-radius:99px;background:'+barColor+';width:'+usedPct+'%;transition:width .3s"></div>'
+        +'</div>'
+        +'<div style="text-align:center;font-size:10px;color:rgba(255,255,255,.6);margin-top:3px">Deuda: '+fmt(used,cur)+'</div>'
+      +'</div>'
+      :'')
     +'</div>';
 
   // 3 botones acción cápsula en fila
@@ -8931,6 +8973,7 @@ function renderAmortizacion(){
   // Calcular totales
   var saldo=d.total;
   var totalIntereses=0;
+  var totalCapital=0;
   var rows=[];
   for(var i=1;i<=nPeriods;i++){
     var interest=saldo*rPeriod;
@@ -8939,27 +8982,36 @@ function renderAmortizacion(){
     if(capital>saldo)capital=saldo;
     saldo=Math.max(0,saldo-capital);
     totalIntereses+=interest;
+    totalCapital+=capital;
     rows.push({i:i,cuota:cuota,capital:capital,interest:interest,saldo:saldo});
+  }
+  var totalPagado=totalCapital+totalIntereses;
+  // Función formato compacto para montos grandes en tabla
+  function fmtAmort(val,c){
+    var absV=Math.abs(val);
+    if(absV>=1000000){return (val<0?'-':'')+(absV/1000000).toFixed(1).replace(/\.0$/,'')+'M';}
+    if(absV>=10000){return (val<0?'-':'')+(absV/1000).toFixed(1).replace(/\.0$/,'')+'K';}
+    return fmt(val,c);
   }
   // Totales ANTES de la tabla
   html+='<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px">'
     +'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">'
-      +'<span style="font-size:13px;color:var(--text2)">Total pagado</span>'
-      +'<span style="font-size:14px;font-weight:700;color:var(--text)">'+fmt(cuota*nPeriods,cur)+'</span>'
+      +'<span style="font-size:13px;color:var(--text2)">Total a pagar</span>'
+      +'<span style="font-size:14px;font-weight:700;color:var(--text)">'+fmt(totalPagado,cur)+'</span>'
     +'</div>'
     +'<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">'
       +'<span style="font-size:13px;color:var(--text2)">Total intereses</span>'
       +'<span style="font-size:14px;font-weight:700;color:var(--danger)">'+fmt(totalIntereses,cur)+'</span>'
     +'</div>'
     +'<div style="display:flex;justify-content:space-between;padding:8px 0">'
-      +'<span style="font-size:13px;color:var(--text2)">Capital total</span>'
+      +'<span style="font-size:13px;color:var(--text2)">Capital prestado</span>'
       +'<span style="font-size:14px;font-weight:700;color:var(--primary)">'+fmt(d.total,cur)+'</span>'
     +'</div></div>';
-  // Tabla
-  html+='<div style="border-radius:12px;border:1px solid var(--border)">'
+  // Tabla (C2: fmtAmort para evitar desbordamiento)
+  html+='<div style="border-radius:12px;border:1px solid var(--border);overflow:hidden">'
     +'<table style="width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed">'
     +'<thead><tr style="background:var(--surface2)">'
-      +'<th style="padding:8px 4px;text-align:center;color:var(--text3);font-weight:700">#</th>'
+      +'<th style="padding:8px 4px;text-align:center;color:var(--text3);font-weight:700;width:28px">#</th>'
       +'<th style="padding:8px 4px;text-align:right;color:var(--text3);font-weight:700">Cuota</th>'
       +'<th style="padding:8px 4px;text-align:right;color:var(--primary);font-weight:700">Capital</th>'
       +'<th style="padding:8px 4px;text-align:right;color:var(--danger);font-weight:700">Interés</th>'
@@ -8969,10 +9021,10 @@ function renderAmortizacion(){
     var odd=r.i%2===0?'background:var(--surface2)':'';
     html+='<tr style="'+odd+'">'
       +'<td style="padding:6px 4px;text-align:center;color:var(--text3)">'+r.i+'</td>'
-      +'<td style="padding:6px 4px;text-align:right;font-weight:600;color:var(--text)">'+fmt(r.cuota,cur)+'</td>'
-      +'<td style="padding:6px 4px;text-align:right;color:var(--primary)">'+fmt(r.capital,cur)+'</td>'
-      +'<td style="padding:6px 4px;text-align:right;color:var(--danger)">'+fmt(r.interest,cur)+'</td>'
-      +'<td style="padding:6px 4px;text-align:right;color:var(--text2)">'+fmt(r.saldo,cur)+'</td>'
+      +'<td style="padding:6px 4px;text-align:right;font-weight:600;color:var(--text)">'+fmtAmort(r.cuota,cur)+'</td>'
+      +'<td style="padding:6px 4px;text-align:right;color:var(--primary)">'+fmtAmort(r.capital,cur)+'</td>'
+      +'<td style="padding:6px 4px;text-align:right;color:var(--danger)">'+fmtAmort(r.interest,cur)+'</td>'
+      +'<td style="padding:6px 4px;text-align:right;color:var(--text2)">'+fmtAmort(r.saldo,cur)+'</td>'
       +'</tr>';
   });
   html+='</tbody></table></div>';
