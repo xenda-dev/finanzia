@@ -13,7 +13,7 @@
   --primary:#00D4AA;--primary2:#00B896;--secondary:#7461EF;
   --danger:#EF4444;--warning:#F59E0B;--success:#10B981;--info:#3B82F6;
   --radius:16px;--radius-sm:10px;--radius-lg:24px;
-  --nav-h:68px;--header-h:60px;
+  --nav-h:82px;--header-h:60px;
   --font:'Helvetica Neue',Arial,sans-serif;
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden;transition:background .3s,color .3s}
@@ -27,12 +27,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .page{display:none;padding:16px 16px calc(var(--nav-h) + 24px);min-height:100%}
 #page-herramientas{padding:0;overflow:hidden}#page-form-cuenta .form-input,#page-form-cuenta .bs-trigger{background:var(--surface)}
 .page.active{display:block}
-.bottom-nav{height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;flex-shrink:0;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+.bottom-nav{height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;flex-shrink:0;z-index:50;padding-bottom:max(env(safe-area-inset-bottom),14px)}
 .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border:none;background:none;color:var(--text3);cursor:pointer;transition:.2s;flex:1;font-size:10px;font-family:var(--font)}
 .nav-item.active{color:var(--primary)}
-.nav-icon{width:22px;height:22px;pointer-events:none}
-/* Los hijos de botones e interactivos no interceptan clics */
-button>svg,button>span,button>div,button>img,.nav-item>*,.config-item>*,.bs-trigger>*,.chip>span,.cur-btn>span,.btn>span,.type-btn>*{pointer-events:none}
+.nav-icon{width:22px;height:22px}
 .nav-fab{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 20px rgba(0,212,170,.5);font-size:26px;line-height:1;flex-shrink:0;margin-top:-16px}
 #drawer{position:fixed;top:0;left:-290px;width:290px;height:100%;background:var(--surface);z-index:200;transition:.3s ease;overflow-y:auto;padding-bottom:40px}
 #drawer.open{left:0;box-shadow:4px 0 32px rgba(0,0,0,.6)}
