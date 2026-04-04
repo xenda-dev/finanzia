@@ -3,8 +3,8 @@
 // Cargar DESPUÉS de supabase CDN, ANTES de app.js
 // ════════════════════════════════════════════════════════════
 
-var SUPABASE_URL  = 'https://TU_PROJECT_ID.supabase.co';  // ← reemplazar
-var SUPABASE_KEY  = 'TU_ANON_KEY';                         // ← reemplazar
+var SUPABASE_URL  = 'https://dshwbvqvfbjtlbcqqviz.supabase.co';  // ← reemplazar
+var SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzaHdidnF2ZmJqdGxiY3Fxdml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTM1OTYsImV4cCI6MjA5MDg4OTU5Nn0.kjie4SHtxJZYkX1rspJK2JNpOWfbd-Xdx3UZfgqydXU';                         // ← reemplazar
 
 var _supabase = null;
 
