@@ -246,18 +246,24 @@ function closeConfirm(){document.getElementById('confirm-root').classList.remove
 // message: string para toast | null/undefined para omitir
 function completeAction(callback,renderTarget,message){
   try{
-    console.log('Executing action:',callback&&callback.name?callback.name:'anonymous');
-    if(callback && typeof callback==='function')callback();
+    if(callback&&typeof callback==='function')callback();
     saveState();
   }catch(e){
-    console.error('Action error:',e);
+    console.error('completeAction error:',e);
   }finally{
     closeModal();
     closeConfirm();
     closeBottomSheet();
   }
-  if(typeof renderTarget==='function')renderTarget();
-  else if(renderTarget)renderPage(renderTarget);
+  if(typeof renderTarget==='function'){
+    renderTarget();
+  }else if(renderTarget){
+    if(renderTarget===S.currentPage){
+      try{renderPage(renderTarget);}catch(e){console.error('renderPage error:',e);}
+    }else{
+      navigate(renderTarget);
+    }
+  }
   if(message)toast(message);
 }
 
@@ -1763,7 +1769,7 @@ function pickFotoAcreedor(){showPhotoSheetAcreedor();}function saveAccountFC(){
   S._cuentasGrupo=grpId;
   _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
   toast(existing?'Cuenta actualizada ✓':'Cuenta creada ✓');
-  navigate('mis-cuentas');
+  _switchPage('mis-cuentas');
 }
 
 function deleteAccountFC(){
@@ -1789,7 +1795,7 @@ function deleteAccountFC(){
     S._cuentasGrupo=grpId;
     _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
     toast('Cuenta eliminada');
-    navigate('mis-cuentas');
+    _switchPage('mis-cuentas');
   });
 }
 
@@ -5478,18 +5484,8 @@ function openProfilePage(){
   document.body.appendChild(overlay);
 }
 function closeProfilePage(){
-  try{var el=document.getElementById('profile-page-overlay');if(el)el.remove();}catch(e){console.error('closeProfilePage remove:',e);}
-  try{
-    var pc=document.getElementById('page-configuracion');
-    if(pc){
-      document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-      pc.classList.add('active');
-      S.currentPage='configuracion';
-      pc.innerHTML=renderConfiguracion();
-      _updateHeader('configuracion');
-      try{document.getElementById('main').scrollTo(0,0);}catch(e){}
-    }
-  }catch(e){console.error('closeProfilePage render:',e);}
+  try{var el=document.getElementById('profile-page-overlay');if(el)el.remove();}catch(e){}
+  try{renderPage('configuracion');}catch(e){}
 }
 function buildProfileFormHTML(){
   var p=S.profile||{};
@@ -5799,7 +5795,17 @@ function saveProfile(){
   const g=(id)=>document.getElementById(id)?.value||'';
   // Required field validation
   const reqName=g('cfg-name').trim();
+  const reqEmail=g('cfg-email').trim();
+  const reqPhone=g('cfg-phone').trim();
+  const reqCountry=g('cfg-country').trim();
+  const reqResidence=g('cfg-residence').trim();
+  const reqGoal=g('cfg-goal').trim();
   if(!reqName){toast('⚠️ El nombre es obligatorio');document.getElementById('cfg-name')?.focus();return;}
+  if(!reqEmail){toast('⚠️ El correo es obligatorio');document.getElementById('cfg-email')?.focus();return;}
+  if(!reqPhone){toast('⚠️ El teléfono es obligatorio');document.getElementById('cfg-phone')?.focus();return;}
+  if(!reqCountry){toast('⚠️ El país de origen es obligatorio');return;}
+  if(!reqResidence){toast('⚠️ El país de residencia es obligatorio');return;}
+  if(!reqGoal){toast('⚠️ El objetivo financiero es obligatorio');return;}
   S.profile.name=g('cfg-name');S.profile.email=g('cfg-email');
   S.profile.birthdate=g('cfg-birthdate');
   S.profile.phone=g('cfg-phone');S.profile.phoneCode=g('cfg-phone-code');
@@ -6360,12 +6366,12 @@ function saveSubAccount(){
   const existing=subId?parent.subAccounts.find(s=>s.id===subId):null;
   const sub={id:existing?existing.id:uid(),name,balance:parseFloat(document.getElementById('subacc-balance')?.value)||0,icon:document.getElementById('subacc-icon-val')?.value||'🐷',color:document.getElementById('subacc-color-val')?.value||COLORS_PALETTE[16]};
   var _subMsg=existing?'Bolsillo actualizado ✓':'Bolsillo creado ✓';
-  completeAction(function(){if(existing){var idx=parent.subAccounts.findIndex(function(s){return s.id===subId;});parent.subAccounts[idx]=sub;}else{parent.subAccounts.push(sub);}},'cuentas',_subMsg);
+  completeAction(function(){if(existing){var idx=parent.subAccounts.findIndex(function(s){return s.id===subId;});parent.subAccounts[idx]=sub;}else{parent.subAccounts.push(sub);};},'cuenta-detalle',_subMsg);
 }
 function deleteSubAccount(parentId,subId){
   confirmDialog('🗑️','¿Eliminar bolsillo?','El saldo de este bolsillo dejará de contarse en la cuenta.',()=>{
     const parent=S.accounts.find(a=>a.id===parentId);
-    completeAction(function(){var parent=S.accounts.find(function(a){return a.id===parentId;});if(parent&&parent.subAccounts)parent.subAccounts=parent.subAccounts.filter(function(s){return s.id!==subId;});},'cuentas','Bolsillo eliminado');
+    completeAction(function(){var parent=S.accounts.find(function(a){return a.id===parentId;});if(parent&&parent.subAccounts)parent.subAccounts=parent.subAccounts.filter(function(s){return s.id!==subId;});},'cuenta-detalle','Bolsillo eliminado');
   });
 }
 
@@ -6434,7 +6440,7 @@ function saveAccount(){
   if(type==='pasivo'&&subtype==='tc'){acc.tcLimit=parseFloat(document.getElementById('acc-tc-limit')?.value)||0;acc.tae=parseFloat(document.getElementById('acc-tae')?.value)||0;acc.cutDate=parseInt(document.getElementById('acc-cut')?.value)||0;acc.paymentDate=parseInt(document.getElementById('acc-paydate')?.value)||0;}
   else if(type==='pasivo'){acc.creditTotal=parseFloat(document.getElementById('acc-credit-total')?.value)||0;acc.monthlyPayment=parseFloat(document.getElementById('acc-monthly-payment')?.value)||0;acc.paymentDate=parseInt(document.getElementById('acc-paydate')?.value)||0;acc.tae=parseFloat(document.getElementById('acc-tae')?.value)||0;}
   var _accMsg=existing?'Cuenta actualizada ✓':'Cuenta creada ✓';
-  completeAction(function(){if(existing){var idx=S.accounts.findIndex(function(a){return a.id===id;});S.accounts[idx]=acc;}else{S.accounts.push(acc);}},S.currentPage,_accMsg);
+  completeAction(function(){if(existing){var idx=S.accounts.findIndex(function(a){return a.id===id;});S.accounts[idx]=acc;}else{S.accounts.push(acc);};},'mis-cuentas',_accMsg);
 }
 function deleteAccount(id){const acc=S.accounts.find(a=>a.id===id);if(acc&&(acc.protected||acc.subtype==='efectivo')){toast('Esta cuenta no puede eliminarse');return;}confirmDialog('🗑️','¿Eliminar cuenta?','Los movimientos asociados quedarán sin cuenta.',()=>{completeAction(function(){S.accounts=S.accounts.filter(a=>a.id!==id);},'cuentas','Cuenta eliminada');});}
 
@@ -6457,7 +6463,7 @@ function saveBudget(){
   const id=document.getElementById('bud-id')?.value;const existing=id?S.budgets.find(b=>b.id===id):null;
   const bud={id:existing?existing.id:uid(),categoryId:catId,subcategoryId:document.getElementById('bud-sub')?.value||'',amount,currency:document.getElementById('bud-currency')?.value||S.currency,color:document.getElementById('bud-color-val')?.value||COLORS_PALETTE[0]};
   var _budMsg=existing?'Actualizado ✓':'Creado ✓';
-  completeAction(function(){if(existing){var idx=S.budgets.findIndex(function(b){return b.id===id;});S.budgets[idx]=bud;}else{S.budgets.push(bud);}},S.currentPage,_budMsg);
+  completeAction(function(){if(existing){var idx=S.budgets.findIndex(function(b){return b.id===id;});S.budgets[idx]=bud;}else{S.budgets.push(bud);};},'presupuestos',_budMsg);
 }
 function deleteBudget(id){confirmDialog('🗑️','¿Eliminar presupuesto?','',()=>{completeAction(function(){S.budgets=S.budgets.filter(b=>b.id!==id);},'presupuestos','Eliminado');});}
 
@@ -6512,7 +6518,7 @@ function saveGoal(){
   const id=document.getElementById('goal-id')?.value;const existing=id?S.goals.find(g=>g.id===id):null;
   const goal={id:existing?existing.id:uid(),name,target,current:parseFloat(document.getElementById('goal-current')?.value)||0,currency:document.getElementById('goal-currency')?.value||S.currency,deadline:document.getElementById('goal-deadline')?.value||'',icon:document.getElementById('goal-icon-val')?.value||'🎯',color:document.getElementById('goal-color-val')?.value||COLORS_PALETTE[16],accountId:document.getElementById('goal-account')?.value||'',categoryId:document.getElementById('goal-cat')?.value||'',subcategoryId:document.getElementById('goal-sub')?.value||''};
   var _goalMsg=existing?'Meta actualizada ✓':'Meta creada ✓';
-  completeAction(function(){if(existing){var idx=S.goals.findIndex(function(g){return g.id===id;});S.goals[idx]=goal;}else{S.goals.push(goal);}},S.currentPage,_goalMsg);
+  completeAction(function(){if(existing){var idx=S.goals.findIndex(function(g){return g.id===id;});S.goals[idx]=goal;}else{S.goals.push(goal);};},'metas',_goalMsg);
 }
 function deleteGoal(id){confirmDialog('🗑️','¿Eliminar meta?','',()=>{completeAction(function(){S.goals=S.goals.filter(g=>g.id!==id);},'metas','Meta eliminada');});}
 
@@ -6909,7 +6915,7 @@ function savePayment(){
   const id=document.getElementById('pay-id')?.value;const existing=id?S.scheduledPayments.find(p=>p.id===id):null;
   const pay={id:existing?existing.id:uid(),name,amount,currency:document.getElementById('pay-currency')?.value||S.currency,categoryId:document.getElementById('pay-cat')?.value||'',subcategoryId:document.getElementById('pay-sub')?.value||'',frequency:document.getElementById('pay-freq')?.value||'Mensual',nextDate,accountId:document.getElementById('pay-account')?.value||'',isAuto:document.getElementById('pay-is-auto')?.value==='1',color:document.getElementById('pay-color-val')?.value||COLORS_PALETTE[0]};
   var _payMsg=existing?'Actualizado ✓':'Pago programado ✓';
-  completeAction(function(){if(existing){var idx=S.scheduledPayments.findIndex(function(p){return p.id===id;});S.scheduledPayments[idx]=pay;}else{S.scheduledPayments.push(pay);}},S.currentPage,_payMsg);
+  completeAction(function(){if(existing){var idx=S.scheduledPayments.findIndex(function(p){return p.id===id;});S.scheduledPayments[idx]=pay;}else{S.scheduledPayments.push(pay);};},'pagos',_payMsg);
 }
 function deletePayment(id){confirmDialog('🗑️','¿Eliminar pago?','',()=>{completeAction(function(){S.scheduledPayments=S.scheduledPayments.filter(p=>p.id!==id);},'pagos','Eliminado');});}
 
