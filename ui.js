@@ -48,28 +48,38 @@ function toggleTheme(){
 var _navHistory=[];
 var _goingBack=false;
 function navigate(page){
-  try{closeModal();}catch(e){}
-  try{closeBottomSheet();}catch(e){}
+  var _wasBack=_goingBack;
+  closeModal();
+  closeBottomSheet();
   if(!_goingBack&&S.currentPage&&S.currentPage!==page)_navHistory.push(S.currentPage);
   if(_navHistory.length>20)_navHistory.shift();
   _goingBack=false;
   if(page==='cuentas')S._cuentasGrupo='';
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  document.querySelectorAll('[data-page]').forEach(function(b){b.classList.toggle('active',b.dataset.page===page);});
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
   S.currentPage=page;
-  var pageEl=document.getElementById('page-'+page);
-  if(pageEl)pageEl.classList.add('active');
-  var mainEl=document.getElementById('main');
-  if(mainEl)mainEl.scrollTo(0,0);
-  try{renderPage(page);}catch(e){console.error('renderPage error:',e);}
-  try{closeDrawer();}catch(e){}
-  try{refreshCurrencyToggle();}catch(e){}
-  try{_updateHeader(page);}catch(e){}
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('main').scrollTo(0,0);
+  renderPage(page);
+  closeDrawer();
+  refreshCurrencyToggle();
+  _updateHeader(page);
 }
 function goBack(){
   var prev=_navHistory.pop()||'dashboard';
   _goingBack=true;
   navigate(prev);
+}
+function _switchPage(page){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('[data-page]').forEach(function(b){b.classList.toggle('active',b.dataset.page===page);});
+  S.currentPage=page;
+  var el=document.getElementById('page-'+page);
+  if(el)el.classList.add('active');
+  try{document.getElementById('main').scrollTo(0,0);}catch(e){}
+  try{renderPage(page);}catch(e){}
+  try{refreshCurrencyToggle();}catch(e){}
+  try{_updateHeader(page);}catch(e){}
 }
 var _PAGE_LABELS={
   movimientos:'Movimientos',cuentas:'Cuentas',presupuestos:'Presupuestos',
@@ -1753,15 +1763,7 @@ function pickFotoAcreedor(){showPhotoSheetAcreedor();}function saveAccountFC(){
   S._cuentasGrupo=grpId;
   _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
   toast(existing?'Cuenta actualizada ✓':'Cuenta creada ✓');
-  // Cambio directo de página (NO usar navigate)
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  var tgt=document.getElementById('page-mis-cuentas');
-  if(tgt)tgt.classList.add('active');
-  S.currentPage='mis-cuentas';
-  try{document.getElementById('main').scrollTo(0,0);}catch(e){}
-  try{renderPage('mis-cuentas');}catch(e){}
-  try{refreshCurrencyToggle();}catch(e){}
-  try{_updateHeader('mis-cuentas');}catch(e){}
+  _switchPage('mis-cuentas');
 }
 
 function deleteAccountFC(){
@@ -1787,14 +1789,7 @@ function deleteAccountFC(){
     S._cuentasGrupo=grpId;
     _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
     toast('Cuenta eliminada');
-    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-    var tgt=document.getElementById('page-mis-cuentas');
-    if(tgt)tgt.classList.add('active');
-    S.currentPage='mis-cuentas';
-    try{document.getElementById('main').scrollTo(0,0);}catch(e){}
-    try{renderPage('mis-cuentas');}catch(e){}
-    try{refreshCurrencyToggle();}catch(e){}
-    try{_updateHeader('mis-cuentas');}catch(e){}
+    _switchPage('mis-cuentas');
   });
 }
 
@@ -5825,9 +5820,9 @@ function saveProfile(){
       S.currency = newCurs[0];
       refreshCurrencyToggle();
     }
-  }catch(e){}
+  }catch(e){console.error('saveProfile currencies:',e);}
   saveState();
-  try{updateDrawerProfile();}catch(e){}
+  try{updateDrawerProfile();}catch(e){console.error('saveProfile drawer:',e);}
   toast('Perfil guardado ✓');
   closeProfilePage();
 }
