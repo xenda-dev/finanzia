@@ -16,12 +16,12 @@ function initSupabase(){
 
 async function signUp(email, password){
   var {data, error} = await _supabase.auth.signUp({email, password});
-  if(error) return {ok:false, msg:_authMsg(error.message)};
+  if(error) return _authMsg(error.message);
   return {ok:true};
 }
 async function signIn(email, password){
   var {data, error} = await _supabase.auth.signInWithPassword({email, password});
-  if(error) return {ok:false, msg:_authMsg(error.message)};
+  if(error) return _authMsg(error.message);
   _currentUser = data.user;
   return {ok:true, user:data.user};
 }
@@ -124,11 +124,28 @@ async function handleRegister(){
   if(!email||!pass||!pass2){_setError('rg','Completa todos los campos');return;}
   if(pass!==pass2){_setError('rg','Las contraseñas no coinciden');return;}
   if(pass.length<6){_setError('rg','Mínimo 6 caracteres');return;}
+  var exists=document.getElementById('auth-rg-exists');
+  if(exists)exists.style.display='none';
   _setError('rg',''); _setBusy('rg-btn',true,'Crear cuenta');
   var res=await signUp(email,pass);
   _setBusy('rg-btn',false,'Crear cuenta');
-  if(!res.ok){_setError('rg',res.msg);return;}
+  if(!res.ok){
+    if(res.isExists){
+      if(exists)exists.style.display='block';
+    }else{
+      _setError('rg',res.msg);
+    }
+    return;
+  }
   _showScreen('verify');
+}
+function goToLoginWithEmail(){
+  var email=(document.getElementById('rg-email').value||'').trim();
+  goToLogin();
+  setTimeout(function(){
+    var li=document.getElementById('li-email');
+    if(li&&email)li.value=email;
+  },100);
 }
 
 async function _afterLogin(user){
@@ -141,6 +158,14 @@ async function _afterLogin(user){
   hideAuthScreen();
   if(typeof initApp==='function') initApp();
   _injectLogoutBtn(user);
+  // Si el perfil está vacío → abrir Mi Perfil automáticamente
+  setTimeout(function(){
+    try{
+      if(!S.profile||!S.profile.name||!S.profile.name.trim()){
+        if(typeof openProfilePage==='function') openProfilePage();
+      }
+    }catch(e){}
+  }, 400);
 }
 
 async function handleBioUnlock(){
@@ -160,12 +185,14 @@ function handleBioFallback(){ localStorage.removeItem('_bioEnabled'); localStora
 function _injectLogoutBtn(user){
   if(document.getElementById('drawer-logout-btn'))return;
   var drawer=document.getElementById('drawer'); if(!drawer)return;
-  var email=user?user.email:'';
   var div=document.createElement('div');
   div.id='drawer-logout-btn';
-  div.style.cssText='padding:16px;border-top:1px solid var(--border);margin-top:8px';
-  div.innerHTML='<div style="font-size:11px;color:var(--text3);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px">'+email+'</div>'
-    +'<button onclick="signOut()" style="width:100%;padding:11px;border-radius:50px;border:1.5px solid var(--danger);background:transparent;color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">🚪 Cerrar sesión</button>';
+  div.style.cssText='padding:12px 16px;border-top:1px solid var(--border);margin-top:4px';
+  var svgIcon='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
+  div.innerHTML='<button onclick="signOut()" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:50px;border:none;background:rgba(239,68,68,.08);color:var(--danger);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:.15s">'
+    +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+svgIcon+'</div>'
+    +'<span>Cerrar sesión</span>'
+    +'</button>';
   drawer.appendChild(div);
 }
 
@@ -175,14 +202,15 @@ function authKey(e,fn){if(e.key==='Enter'&&typeof window[fn]==='function')window
 function togglePass(iId,bId){var i=document.getElementById(iId),b=document.getElementById(bId);if(!i)return;i.type=i.type==='password'?'text':'password';if(b)b.textContent=i.type==='password'?'👁️':'🙈';}
 
 function _authMsg(msg){
-  if(!msg)return'Error desconocido';
-  if(msg.includes('Invalid login'))return'Correo o contraseña incorrectos';
-  if(msg.includes('already registered'))return'Este correo ya tiene una cuenta';
-  if(msg.includes('Password should'))return'Mínimo 6 caracteres';
-  if(msg.includes('valid email'))return'Ingresa un correo válido';
-  if(msg.includes('Email not confirmed'))return'Confirma tu correo antes de entrar';
-  if(msg.includes('rate limit'))return'Demasiados intentos. Espera unos minutos';
-  return msg;
+  if(!msg)return{ok:false,msg:'Error desconocido'};
+  if(msg.includes('already registered'))return{ok:false,msg:'',isExists:true};
+  if(msg.includes('User already registered'))return{ok:false,msg:'',isExists:true};
+  if(msg.includes('Invalid login'))return{ok:false,msg:'Correo o contraseña incorrectos'};
+  if(msg.includes('Password should'))return{ok:false,msg:'Mínimo 6 caracteres'};
+  if(msg.includes('valid email'))return{ok:false,msg:'Ingresa un correo válido'};
+  if(msg.includes('Email not confirmed'))return{ok:false,msg:'Confirma tu correo antes de entrar'};
+  if(msg.includes('rate limit'))return{ok:false,msg:'Demasiados intentos. Espera unos minutos'};
+  return{ok:false,msg:msg};
 }
 
 // ════════════════════════════════════════════════════════════
