@@ -13,36 +13,95 @@
 <title>FinanzIA</title>
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="styles.css">
-<!-- Supabase CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
-<!-- PANTALLA LOGIN -->
-<div id="auth-screen" style="display:none;position:fixed;inset:0;z-index:9999;background:#0A0F1E;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
-  <div style="margin-bottom:32px;text-align:center">
+
+<!-- ══════════════════════════════════════════
+     PANTALLA AUTH — 4 subpantallas
+     login | register | bio | verify
+     ══════════════════════════════════════════ -->
+<div id="auth-screen" style="display:none;position:fixed;inset:0;z-index:9999;background:#0A0F1E;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow-y:auto">
+
+  <!-- BRAND -->
+  <div style="margin-bottom:28px;text-align:center;flex-shrink:0">
     <div style="font-size:36px;font-weight:900;color:white;letter-spacing:-1px">Finanz<span style="color:#00D4AA">IA</span></div>
-    <div style="font-size:13px;color:#64748B;margin-top:4px">Tu copiloto financiero</div>
+    <div style="font-size:12px;color:#475569;margin-top:4px">Tu copiloto financiero</div>
   </div>
-  <div style="width:100%;max-width:360px;background:#111827;border:1px solid #1F2D40;border-radius:20px;padding:28px 24px">
-    <div style="font-size:18px;font-weight:700;color:white;margin-bottom:20px">Iniciar sesión</div>
-    <div style="margin-bottom:14px">
-      <label style="display:block;font-size:12px;font-weight:600;color:#94A3B8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Correo</label>
-      <input id="auth-email" type="email" autocomplete="email" placeholder="tu@correo.com" onkeydown="authKeydown(event)" style="width:100%;height:48px;background:#1A2235;border:1.5px solid #1F2D40;border-radius:10px;color:white;font-size:15px;padding:0 14px;outline:none;box-sizing:border-box;font-family:inherit">
-    </div>
-    <div style="margin-bottom:20px">
-      <label style="display:block;font-size:12px;font-weight:600;color:#94A3B8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Contraseña</label>
-      <div style="position:relative">
-        <input id="auth-pass" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres" onkeydown="authKeydown(event)" style="width:100%;height:48px;background:#1A2235;border:1.5px solid #1F2D40;border-radius:10px;color:white;font-size:15px;padding:0 44px 0 14px;outline:none;box-sizing:border-box;font-family:inherit">
-        <button id="auth-pass-toggle" onclick="toggleAuthPass()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;line-height:1;pointer-events:all">👁️</button>
+
+  <!-- ── LOGIN ── -->
+  <div id="auth-login" style="display:block;width:100%;max-width:360px">
+    <div style="background:#111827;border:1px solid #1F2D40;border-radius:20px;padding:28px 24px">
+      <div style="font-size:18px;font-weight:700;color:white;margin-bottom:20px">Iniciar sesión</div>
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:11px;font-weight:600;color:#64748B;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">Correo</label>
+        <input id="li-email" type="email" autocomplete="email" placeholder="tu@correo.com" onkeydown="authKey(event,'handleLogin')" style="width:100%;height:48px;background:#1A2235;border:1.5px solid #1F2D40;border-radius:10px;color:white;font-size:15px;padding:0 14px;outline:none;box-sizing:border-box;font-family:inherit">
       </div>
+      <div style="margin-bottom:18px">
+        <label style="display:block;font-size:11px;font-weight:600;color:#64748B;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">Contraseña</label>
+        <div style="position:relative">
+          <input id="li-pass" type="password" autocomplete="current-password" placeholder="Tu contraseña" onkeydown="authKey(event,'handleLogin')" style="width:100%;height:48px;background:#1A2235;border:1.5px solid #1F2D40;border-radius:10px;color:white;font-size:15px;padding:0 44px 0 14px;outline:none;box-sizing:border-box;font-family:inherit">
+          <button id="li-eye" onclick="togglePass('li-pass','li-eye')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;pointer-events:all">👁️</button>
+        </div>
+      </div>
+      <div id="auth-err-li" style="display:none;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 12px;font-size:13px;color:#EF4444;margin-bottom:14px;text-align:center"></div>
+      <button id="li-btn" onclick="handleLogin()" style="width:100%;height:48px;background:linear-gradient(135deg,#00D4AA,#7461EF);border:none;border-radius:50px;color:white;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;font-family:inherit">Entrar</button>
+      <button onclick="goToRegister()" style="width:100%;height:44px;background:transparent;border:1.5px solid #1F2D40;border-radius:50px;color:#64748B;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Crear cuenta nueva</button>
     </div>
-    <div id="auth-error" style="display:none;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 12px;font-size:13px;color:#EF4444;margin-bottom:16px;text-align:center"></div>
-    <button id="auth-btn-login" onclick="handleLogin()" style="width:100%;height:48px;background:linear-gradient(135deg,#00D4AA,#7461EF);border:none;border-radius:50px;color:white;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;font-family:inherit">Entrar</button>
-    <button id="auth-btn-register" onclick="handleRegister()" style="width:100%;height:48px;background:transparent;border:1.5px solid #1F2D40;border-radius:50px;color:#94A3B8;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Crear cuenta</button>
   </div>
-  <div style="margin-top:20px;font-size:11px;color:#334155;text-align:center">Tus datos se guardan localmente en este dispositivo</div>
+
+  <!-- ── REGISTRO ── -->
+  <div id="auth-register" style="display:none;width:100%;max-width:360px">
+    <div style="background:#111827;border:1px solid #1F2D40;border-radius:20px;padding:28px 24px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+        <button onclick="goToLogin()" style="background:none;border:none;color:#64748B;font-size:22px;cursor:pointer;padding:0;line-height:1;pointer-events:all">←</button>
+        <div style="font-size:18px;font-weight:700;color:white">Crear cuenta</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:11px;font-weight:600;color:#64748B;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">Correo</label>
+        <input id="rg-email" type="email" autocomplete="email" placeholder="tu@correo.com" style="width:100%;height:48px;background:#1A2235;border:1.5px solid #1F2D40;border-radius:10px;color:white;font-size:15px;padding:0 14px;outline:none;box-sizing:border-box;font-family:inherit">
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:11px;font-weight:600;color:#64748B;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">Contraseña</label>
+        <div style="position:relative">
+          <input id="rg-pass" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres" style="width:100%;height:48px;background:#1A2235;border:1.5px solid #1F2D40;border-radius:10px;color:white;font-size:15px;padding:0 44px 0 14px;outline:none;box-sizing:border-box;font-family:inherit">
+          <button id="rg-eye" onclick="togglePass('rg-pass','rg-eye')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;pointer-events:all">👁️</button>
+        </div>
+      </div>
+      <div style="margin-bottom:18px">
+        <label style="display:block;font-size:11px;font-weight:600;color:#64748B;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">Confirmar contraseña</label>
+        <input id="rg-pass2" type="password" autocomplete="new-password" placeholder="Repite la contraseña" onkeydown="authKey(event,'handleRegister')" style="width:100%;height:48px;background:#1A2235;border:1.5px solid #1F2D40;border-radius:10px;color:white;font-size:15px;padding:0 14px;outline:none;box-sizing:border-box;font-family:inherit">
+      </div>
+      <div id="auth-err-rg" style="display:none;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 12px;font-size:13px;color:#EF4444;margin-bottom:14px;text-align:center"></div>
+      <button id="rg-btn" onclick="handleRegister()" style="width:100%;height:48px;background:linear-gradient(135deg,#00D4AA,#7461EF);border:none;border-radius:50px;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Crear cuenta</button>
+    </div>
+  </div>
+
+  <!-- ── VERIFICAR CORREO ── -->
+  <div id="auth-verify" style="display:none;width:100%;max-width:360px">
+    <div style="background:#111827;border:1px solid #1F2D40;border-radius:20px;padding:36px 24px;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">📬</div>
+      <div style="font-size:18px;font-weight:700;color:white;margin-bottom:10px">Revisa tu correo</div>
+      <div style="font-size:14px;color:#64748B;line-height:1.6;margin-bottom:24px">Te enviamos un enlace de confirmación. Haz clic en él y luego inicia sesión.</div>
+      <button onclick="goToLogin()" style="width:100%;height:48px;background:transparent;border:1.5px solid #00D4AA;border-radius:50px;color:#00D4AA;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Ir al login</button>
+    </div>
+  </div>
+
+  <!-- ── BIOMETRÍA ── -->
+  <div id="auth-bio" style="display:none;width:100%;max-width:360px">
+    <div style="background:#111827;border:1px solid #1F2D40;border-radius:20px;padding:36px 24px;text-align:center">
+      <div style="font-size:56px;margin-bottom:16px">🔒</div>
+      <div style="font-size:18px;font-weight:700;color:white;margin-bottom:6px">Bienvenido de nuevo</div>
+      <div id="bio-email" style="font-size:13px;color:#64748B;margin-bottom:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+      <div id="auth-err-bio" style="display:none;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 12px;font-size:13px;color:#EF4444;margin-bottom:14px"></div>
+      <button id="bio-btn" onclick="handleBioUnlock()" style="width:100%;height:52px;background:linear-gradient(135deg,#00D4AA,#7461EF);border:none;border-radius:50px;color:white;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:12px;font-family:inherit">🔓 Usar huella / Face ID</button>
+      <button onclick="handleBioFallback()" style="background:none;border:none;color:#475569;font-size:13px;cursor:pointer;font-family:inherit">Usar contraseña</button>
+    </div>
+  </div>
+
 </div>
-<!-- FIN LOGIN -->
+<!-- ══ FIN AUTH ══ -->
+
 <div id="app">
 <div id="overlay" onclick="closeDrawer()"></div>
 <nav id="drawer">

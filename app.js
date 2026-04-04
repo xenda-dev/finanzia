@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════
-// ERROR HANDLER — diagnóstico (quitar en producción)
+// ERROR HANDLER
 // ════════════════════════════════════════════════════════════
 window.onerror=function(msg,src,line){
   console.error('ERR:',msg,'L:'+line);
@@ -18,7 +18,6 @@ function initApp(){
   navigate((S.currentPage&&S.currentPage!=='configuracion')?S.currentPage:'dashboard');
   checkAutoPayments();
   fetchExchangeRate();
-  // Swipe to open drawer
   let touchStartX=0;
   document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;},{passive:true});
   document.addEventListener('touchend',e=>{
@@ -31,10 +30,5 @@ function initApp(){
 // ARRANQUE
 // ════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>{
-  if(typeof initAuth==='function'){
-    initAuth();  // auth.js decide cuándo llamar initApp()
-  }else{
-    initApp();   // sin auth.js → arranque directo (compatibilidad)
-  }
+  if(typeof initAuth==='function'){initAuth();}else{initApp();}
 });
-

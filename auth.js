@@ -1,161 +1,210 @@
 // ════════════════════════════════════════════════════════════
-// AUTH.JS — Supabase Authentication
-// Cargar DESPUÉS de supabase CDN, ANTES de app.js
+// AUTH.JS — Supabase + Biometría WebAuthn
 // ════════════════════════════════════════════════════════════
 
-var SUPABASE_URL  = 'https://dshwbvqvfbjtlbcqqviz.supabase.co';  // ← reemplazar
-var SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzaHdidnF2ZmJqdGxiY3Fxdml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTM1OTYsImV4cCI6MjA5MDg4OTU5Nn0.kjie4SHtxJZYkX1rspJK2JNpOWfbd-Xdx3UZfgqydXU';                         // ← reemplazar
+var SUPABASE_URL = 'https://dshwbvqvfbjtlbcqqviz.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzaHdidnF2ZmJqdGxiY3Fxdml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTM1OTYsImV4cCI6MjA5MDg4OTU5Nn0.kjie4SHtxJZYkX1rspJK2JNpOWfbd-Xdx3UZfgqydXU';
 
 var _supabase = null;
+var _currentUser = null;
 
 function initSupabase(){
-  if(typeof supabase === 'undefined'){
-    console.error('Supabase CDN no cargó');
-    return false;
-  }
+  if(typeof supabase === 'undefined'){ console.error('Supabase CDN no cargó'); return false; }
   _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   return true;
 }
 
-// ── Registro ─────────────────────────────────────────────
 async function signUp(email, password){
   var {data, error} = await _supabase.auth.signUp({email, password});
-  if(error) return {ok: false, msg: _authMsg(error.message)};
-  return {ok: true, msg: 'Cuenta creada. Revisa tu correo para confirmar.'};
+  if(error) return {ok:false, msg:_authMsg(error.message)};
+  return {ok:true};
 }
-
-// ── Login ─────────────────────────────────────────────────
 async function signIn(email, password){
   var {data, error} = await _supabase.auth.signInWithPassword({email, password});
-  if(error) return {ok: false, msg: _authMsg(error.message)};
-  return {ok: true, user: data.user};
+  if(error) return {ok:false, msg:_authMsg(error.message)};
+  _currentUser = data.user;
+  return {ok:true, user:data.user};
 }
-
-// ── Logout ────────────────────────────────────────────────
 async function signOut(){
+  localStorage.removeItem('_bioEnabled');
+  localStorage.removeItem('_bioCredId');
   await _supabase.auth.signOut();
+  _currentUser = null;
+  _showScreen('login');
   showAuthScreen();
 }
-
-// ── Usuario actual ────────────────────────────────────────
 async function getCurrentUser(){
   var {data} = await _supabase.auth.getSession();
   return data.session ? data.session.user : null;
 }
 
-// ── Observar cambios de sesión ────────────────────────────
-function onAuthChange(callback){
-  _supabase.auth.onAuthStateChange(function(event, session){
-    callback(event, session ? session.user : null);
-  });
+// ════════════════════════════════════════════════════════════
+// BIOMETRÍA — WebAuthn
+// ════════════════════════════════════════════════════════════
+function _isBioAvailable(){
+  return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.create);
+}
+function _isBioEnabled(){
+  return localStorage.getItem('_bioEnabled') === '1' && !!localStorage.getItem('_bioCredId');
+}
+function _b64ToBuffer(b64){ var bin=atob(b64),buf=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++)buf[i]=bin.charCodeAt(i); return buf.buffer; }
+function _randomChallenge(){ var arr=new Uint8Array(32); crypto.getRandomValues(arr); return arr; }
+
+async function bioRegister(userId, email){
+  if(!_isBioAvailable()) return false;
+  try{
+    var cred = await navigator.credentials.create({publicKey:{
+      challenge: _randomChallenge(),
+      rp: {name:'FinanzIA'},
+      user: {id: new TextEncoder().encode(userId), name: email, displayName: email},
+      pubKeyCredParams: [{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+      authenticatorSelection: {authenticatorAttachment:'platform', userVerification:'required'},
+      timeout: 60000
+    }});
+    var arr = new Uint8Array(cred.rawId);
+    localStorage.setItem('_bioCredId', btoa(String.fromCharCode(...arr)));
+    localStorage.setItem('_bioEnabled','1');
+    return true;
+  }catch(e){ console.log('Bio register cancelled:',e.message); return false; }
 }
 
-// ── Mensajes de error legibles ────────────────────────────
+async function bioAuthenticate(){
+  if(!_isBioEnabled()) return false;
+  try{
+    var assertion = await navigator.credentials.get({publicKey:{
+      challenge: _randomChallenge(),
+      allowCredentials: [{type:'public-key', id:_b64ToBuffer(localStorage.getItem('_bioCredId'))}],
+      userVerification: 'required',
+      timeout: 60000
+    }});
+    return !!assertion;
+  }catch(e){ console.log('Bio auth cancelled:',e.message); return false; }
+}
+
+// ════════════════════════════════════════════════════════════
+// UI
+// ════════════════════════════════════════════════════════════
+function showAuthScreen(){
+  var el=document.getElementById('auth-screen'); if(el)el.style.display='flex';
+  var app=document.getElementById('app'); if(app)app.style.display='none';
+}
+function hideAuthScreen(){
+  var el=document.getElementById('auth-screen'); if(el)el.style.display='none';
+  var app=document.getElementById('app'); if(app)app.style.display='flex';
+}
+function _showScreen(name){
+  ['login','register','bio','verify'].forEach(function(id){
+    var el=document.getElementById('auth-'+id); if(el)el.style.display='none';
+  });
+  var t=document.getElementById('auth-'+name); if(t)t.style.display='block';
+}
+function _setError(id,msg){
+  var el=document.getElementById('auth-err-'+id);
+  if(el){el.textContent=msg||'';el.style.display=msg?'block':'none';}
+}
+function _setBusy(id,busy,label){
+  var b=document.getElementById(id); if(!b)return; b.disabled=busy; if(label)b.textContent=busy?'...':label;
+}
+
+async function handleLogin(){
+  var email=(document.getElementById('li-email').value||'').trim();
+  var pass=(document.getElementById('li-pass').value||'').trim();
+  if(!email||!pass){_setError('li','Completa todos los campos');return;}
+  _setError('li',''); _setBusy('li-btn',true,'Entrar');
+  var res=await signIn(email,pass);
+  _setBusy('li-btn',false,'Entrar');
+  if(!res.ok){_setError('li',res.msg);return;}
+  await _afterLogin(res.user);
+}
+
+async function handleRegister(){
+  var email=(document.getElementById('rg-email').value||'').trim();
+  var pass=(document.getElementById('rg-pass').value||'').trim();
+  var pass2=(document.getElementById('rg-pass2').value||'').trim();
+  if(!email||!pass||!pass2){_setError('rg','Completa todos los campos');return;}
+  if(pass!==pass2){_setError('rg','Las contraseñas no coinciden');return;}
+  if(pass.length<6){_setError('rg','Mínimo 6 caracteres');return;}
+  _setError('rg',''); _setBusy('rg-btn',true,'Crear cuenta');
+  var res=await signUp(email,pass);
+  _setBusy('rg-btn',false,'Crear cuenta');
+  if(!res.ok){_setError('rg',res.msg);return;}
+  _showScreen('verify');
+}
+
+async function _afterLogin(user){
+  if(_isBioAvailable()&&!_isBioEnabled()){
+    if(confirm('¿Activar acceso con huella digital para la próxima vez?')){
+      var ok=await bioRegister(user.id,user.email);
+      if(ok){try{toast('Huella activada ✓');}catch(e){}}
+    }
+  }
+  hideAuthScreen();
+  if(typeof initApp==='function') initApp();
+  _injectLogoutBtn(user);
+}
+
+async function handleBioUnlock(){
+  _setBusy('bio-btn',true,'🔓 Desbloquear');
+  var ok=await bioAuthenticate();
+  _setBusy('bio-btn',false,'🔓 Desbloquear');
+  if(ok){
+    hideAuthScreen();
+    if(typeof initApp==='function') initApp();
+    _injectLogoutBtn(_currentUser);
+  }else{
+    _setError('bio','No se reconoció. Intenta de nuevo.');
+  }
+}
+function handleBioFallback(){ localStorage.removeItem('_bioEnabled'); localStorage.removeItem('_bioCredId'); _showScreen('login'); }
+
+function _injectLogoutBtn(user){
+  if(document.getElementById('drawer-logout-btn'))return;
+  var drawer=document.getElementById('drawer'); if(!drawer)return;
+  var email=user?user.email:'';
+  var div=document.createElement('div');
+  div.id='drawer-logout-btn';
+  div.style.cssText='padding:16px;border-top:1px solid var(--border);margin-top:8px';
+  div.innerHTML='<div style="font-size:11px;color:var(--text3);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px">'+email+'</div>'
+    +'<button onclick="signOut()" style="width:100%;padding:11px;border-radius:50px;border:1.5px solid var(--danger);background:transparent;color:var(--danger);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">🚪 Cerrar sesión</button>';
+  drawer.appendChild(div);
+}
+
+function goToRegister(){_setError('li','');_showScreen('register');}
+function goToLogin(){_setError('rg','');_showScreen('login');}
+function authKey(e,fn){if(e.key==='Enter'&&typeof window[fn]==='function')window[fn]();}
+function togglePass(iId,bId){var i=document.getElementById(iId),b=document.getElementById(bId);if(!i)return;i.type=i.type==='password'?'text':'password';if(b)b.textContent=i.type==='password'?'👁️':'🙈';}
+
 function _authMsg(msg){
-  if(!msg) return 'Error desconocido';
-  if(msg.includes('Invalid login')) return 'Correo o contraseña incorrectos';
-  if(msg.includes('already registered')) return 'Este correo ya tiene una cuenta';
-  if(msg.includes('Password should')) return 'La contraseña debe tener al menos 6 caracteres';
-  if(msg.includes('valid email')) return 'Ingresa un correo válido';
-  if(msg.includes('Email not confirmed')) return 'Confirma tu correo antes de entrar';
-  if(msg.includes('rate limit')) return 'Demasiados intentos. Espera unos minutos';
+  if(!msg)return'Error desconocido';
+  if(msg.includes('Invalid login'))return'Correo o contraseña incorrectos';
+  if(msg.includes('already registered'))return'Este correo ya tiene una cuenta';
+  if(msg.includes('Password should'))return'Mínimo 6 caracteres';
+  if(msg.includes('valid email'))return'Ingresa un correo válido';
+  if(msg.includes('Email not confirmed'))return'Confirma tu correo antes de entrar';
+  if(msg.includes('rate limit'))return'Demasiados intentos. Espera unos minutos';
   return msg;
 }
 
 // ════════════════════════════════════════════════════════════
-// UI DEL LOGIN
+// ARRANQUE
 // ════════════════════════════════════════════════════════════
-
-function showAuthScreen(){
-  var el = document.getElementById('auth-screen');
-  if(el) el.style.display = 'flex';
-  var app = document.getElementById('app');
-  if(app) app.style.display = 'none';
-}
-
-function hideAuthScreen(){
-  var el = document.getElementById('auth-screen');
-  if(el) el.style.display = 'none';
-  var app = document.getElementById('app');
-  if(app) app.style.display = 'flex';
-}
-
-function _setAuthError(msg){
-  var el = document.getElementById('auth-error');
-  if(el){ el.textContent = msg; el.style.display = msg ? 'block' : 'none'; }
-}
-
-function _setAuthLoading(loading){
-  var btn = document.getElementById('auth-btn-login');
-  var btnR = document.getElementById('auth-btn-register');
-  if(btn){ btn.disabled = loading; btn.textContent = loading ? '...' : 'Entrar'; }
-  if(btnR){ btnR.disabled = loading; }
-}
-
-async function handleLogin(){
-  var email = (document.getElementById('auth-email').value || '').trim();
-  var pass  = (document.getElementById('auth-pass').value || '').trim();
-  if(!email || !pass){ _setAuthError('Completa todos los campos'); return; }
-  _setAuthError('');
-  _setAuthLoading(true);
-  var res = await signIn(email, pass);
-  _setAuthLoading(false);
-  if(!res.ok){ _setAuthError(res.msg); return; }
-  hideAuthScreen();
-  if(typeof initApp === 'function') initApp();
-}
-
-async function handleRegister(){
-  var email = (document.getElementById('auth-email').value || '').trim();
-  var pass  = (document.getElementById('auth-pass').value || '').trim();
-  if(!email || !pass){ _setAuthError('Completa todos los campos'); return; }
-  if(pass.length < 6){ _setAuthError('La contraseña debe tener al menos 6 caracteres'); return; }
-  _setAuthError('');
-  _setAuthLoading(true);
-  var res = await signUp(email, pass);
-  _setAuthLoading(false);
-  _setAuthError(res.msg);
-}
-
-function toggleAuthPass(){
-  var i = document.getElementById('auth-pass');
-  var b = document.getElementById('auth-pass-toggle');
-  if(!i) return;
-  i.type = i.type === 'password' ? 'text' : 'password';
-  if(b) b.textContent = i.type === 'password' ? '👁️' : '🙈';
-}
-
-// ── Enter en campos ────────────────────────────────────────
-function authKeydown(e){
-  if(e.key === 'Enter') handleLogin();
-}
-
-// ════════════════════════════════════════════════════════════
-// ARRANQUE — llamado desde app.js
-// ════════════════════════════════════════════════════════════
-
 async function initAuth(){
   if(!initSupabase()){
-    // Si Supabase falla, arrancar app sin auth (modo offline)
-    console.warn('Supabase no disponible — modo offline');
-    hideAuthScreen();
-    if(typeof initApp === 'function') initApp();
-    return;
+    hideAuthScreen(); if(typeof initApp==='function')initApp(); return;
   }
-
-  // Escuchar cambios de sesión
-  onAuthChange(function(event, user){
-    if(event === 'SIGNED_OUT'){
-      showAuthScreen();
-    }
+  _supabase.auth.onAuthStateChange(function(event,session){
+    if(event==='SIGNED_OUT'){showAuthScreen();_showScreen('login');}
   });
-
-  // Verificar si ya hay sesión activa
-  var user = await getCurrentUser();
+  var user=await getCurrentUser();
   if(user){
-    hideAuthScreen();
-    if(typeof initApp === 'function') initApp();
-  } else {
-    showAuthScreen();
+    _currentUser=user;
+    if(_isBioEnabled()){
+      showAuthScreen(); _showScreen('bio');
+      var be=document.getElementById('bio-email'); if(be)be.textContent=user.email;
+    }else{
+      hideAuthScreen(); if(typeof initApp==='function')initApp(); _injectLogoutBtn(user);
+    }
+  }else{
+    showAuthScreen(); _showScreen('login');
   }
 }
