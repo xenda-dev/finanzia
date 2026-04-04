@@ -1,8 +1,9 @@
 // ════════════════════════════════════════════════════════════
 // ERROR HANDLER — diagnóstico (quitar en producción)
 // ════════════════════════════════════════════════════════════
-window.onerror=function(msg,src,line,col,err){
-  console.error('GLOBAL ERROR:',msg,'at',src,line,col,err);
+window.onerror=function(msg,src,line){
+  console.error('ERR:',msg,'L:'+line);
+  try{toast('⚠️ '+msg);}catch(e){}
   return false;
 };
 // ════════════════════════════════════════════════════════════
