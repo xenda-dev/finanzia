@@ -1763,7 +1763,7 @@ function pickFotoAcreedor(){showPhotoSheetAcreedor();}function saveAccountFC(){
   S._cuentasGrupo=grpId;
   _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
   toast(existing?'Cuenta actualizada ✓':'Cuenta creada ✓');
-  _switchPage('mis-cuentas');
+  navigate('mis-cuentas');
 }
 
 function deleteAccountFC(){
@@ -1789,7 +1789,7 @@ function deleteAccountFC(){
     S._cuentasGrupo=grpId;
     _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
     toast('Cuenta eliminada');
-    _switchPage('mis-cuentas');
+    navigate('mis-cuentas');
   });
 }
 
@@ -5478,8 +5478,18 @@ function openProfilePage(){
   document.body.appendChild(overlay);
 }
 function closeProfilePage(){
-  try{var el=document.getElementById('profile-page-overlay');if(el)el.remove();}catch(e){}
-  try{renderPage('configuracion');}catch(e){}
+  try{var el=document.getElementById('profile-page-overlay');if(el)el.remove();}catch(e){console.error('closeProfilePage remove:',e);}
+  try{
+    var pc=document.getElementById('page-configuracion');
+    if(pc){
+      document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+      pc.classList.add('active');
+      S.currentPage='configuracion';
+      pc.innerHTML=renderConfiguracion();
+      _updateHeader('configuracion');
+      try{document.getElementById('main').scrollTo(0,0);}catch(e){}
+    }
+  }catch(e){console.error('closeProfilePage render:',e);}
 }
 function buildProfileFormHTML(){
   var p=S.profile||{};
@@ -5789,17 +5799,7 @@ function saveProfile(){
   const g=(id)=>document.getElementById(id)?.value||'';
   // Required field validation
   const reqName=g('cfg-name').trim();
-  const reqEmail=g('cfg-email').trim();
-  const reqPhone=g('cfg-phone').trim();
-  const reqCountry=g('cfg-country').trim();
-  const reqResidence=g('cfg-residence').trim();
-  const reqGoal=g('cfg-goal').trim();
   if(!reqName){toast('⚠️ El nombre es obligatorio');document.getElementById('cfg-name')?.focus();return;}
-  if(!reqEmail){toast('⚠️ El correo es obligatorio');document.getElementById('cfg-email')?.focus();return;}
-  if(!reqPhone){toast('⚠️ El teléfono es obligatorio');document.getElementById('cfg-phone')?.focus();return;}
-  if(!reqCountry){toast('⚠️ El país de origen es obligatorio');return;}
-  if(!reqResidence){toast('⚠️ El país de residencia es obligatorio');return;}
-  if(!reqGoal){toast('⚠️ El objetivo financiero es obligatorio');return;}
   S.profile.name=g('cfg-name');S.profile.email=g('cfg-email');
   S.profile.birthdate=g('cfg-birthdate');
   S.profile.phone=g('cfg-phone');S.profile.phoneCode=g('cfg-phone-code');
