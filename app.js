@@ -7,9 +7,9 @@ window.onerror=function(msg,src,line){
   return false;
 };
 // ════════════════════════════════════════════════════════════
-// INIT
+// INIT APP — llamado por auth.js tras login exitoso
 // ════════════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded',()=>{
+function initApp(){
   loadState();
   document.querySelectorAll('[data-page]').forEach(el=>{if(!el.getAttribute('onclick'))el.addEventListener('click',()=>navigate(el.dataset.page));});
   refreshCurrencyToggle();
@@ -26,4 +26,15 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(touchStartX<30&&dx>60)openDrawer();
     if(dx<-60&&document.getElementById('drawer').classList.contains('open'))closeDrawer();
   },{passive:true});
+}
+// ════════════════════════════════════════════════════════════
+// ARRANQUE
+// ════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  if(typeof initAuth==='function'){
+    initAuth();  // auth.js decide cuándo llamar initApp()
+  }else{
+    initApp();   // sin auth.js → arranque directo (compatibilidad)
+  }
 });
+
