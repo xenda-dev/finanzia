@@ -1744,18 +1744,16 @@ function pickFotoAcreedor(){showPhotoSheetAcreedor();}function saveAccountFC(){
   if(existing){
     var idx=S.accounts.findIndex(function(a){return a.id===accId;});
     S.accounts[idx]=acc;
-    toast('Cuenta actualizada ✓');
   } else {
     S.accounts.push(acc);
-    toast('Cuenta creada ✓');
   }
   saveState();
   S._fcData={};
   S._cuentasGrupo=grpId;
-  // Limpiar del historial las páginas del flujo de creación y no añadir la actual
   _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
   _goingBack=true;
-  navigate('mis-cuentas');
+  toast(existing?'Cuenta actualizada ✓':'Cuenta creada ✓');
+  try{navigate('mis-cuentas');}catch(e){console.error('saveAccountFC nav:',e);renderPage('mis-cuentas');}
 }
 
 function deleteAccountFC(){
@@ -5802,20 +5800,21 @@ function saveProfile(){
   S.profile.occupation=g('cfg-occupation');S.profile.marital=g('cfg-marital');
   S.profile.marital=g('cfg-marital');S.profile.financialGoal=g('cfg-goal');
   // Auto-set currencies based on countries
-  const countryCurrency = COUNTRY_DATA ? Object.fromEntries(Object.entries(COUNTRY_DATA).map(([k,v])=>[k,v.cur])) : {};
-  const originCur = countryCurrency[S.profile.country] || '';
-  const residenceCur = countryCurrency[S.profile.residence] || '';
-  const newCurs = [];
-  // Residence currency is primary (first)
-  if(residenceCur && Object.keys(CURRENCY_META).includes(residenceCur)) newCurs.push(residenceCur);
-  if(originCur && originCur !== residenceCur && Object.keys(CURRENCY_META).includes(originCur)) newCurs.push(originCur);
-  // Limit to 2, keep existing if countries not mapped
-  if(newCurs.length > 0){
-    S.currencies = newCurs.slice(0,2);
-    S.currency = newCurs[0];
-    refreshCurrencyToggle();
-  }
-  saveState();updateDrawerProfile();
+  try{
+    var countryCurrency = COUNTRY_DATA ? Object.fromEntries(Object.entries(COUNTRY_DATA).map(function(e){return[e[0],e[1].cur];})) : {};
+    var originCur = countryCurrency[S.profile.country] || '';
+    var residenceCur = countryCurrency[S.profile.residence] || '';
+    var newCurs = [];
+    if(residenceCur && Object.keys(CURRENCY_META).includes(residenceCur)) newCurs.push(residenceCur);
+    if(originCur && originCur !== residenceCur && Object.keys(CURRENCY_META).includes(originCur)) newCurs.push(originCur);
+    if(newCurs.length > 0){
+      S.currencies = newCurs.slice(0,2);
+      S.currency = newCurs[0];
+      refreshCurrencyToggle();
+    }
+  }catch(e){console.error('saveProfile currencies:',e);}
+  saveState();
+  try{updateDrawerProfile();}catch(e){console.error('saveProfile drawer:',e);}
   toast('Perfil guardado ✓');
   closeProfilePage();
 }
