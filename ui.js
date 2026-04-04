@@ -258,10 +258,14 @@ function completeAction(callback,renderTarget,message){
   if(typeof renderTarget==='function'){
     renderTarget();
   }else if(renderTarget){
-    if(renderTarget===S.currentPage){
+    var pg=document.getElementById('page-'+renderTarget);
+    if(pg){
+      document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+      pg.classList.add('active');
+      S.currentPage=renderTarget;
       try{renderPage(renderTarget);}catch(e){console.error('renderPage error:',e);}
-    }else{
-      navigate(renderTarget);
+      _updateHeader(renderTarget);
+      try{document.getElementById('main').scrollTo(0,0);}catch(e){}
     }
   }
   if(message)toast(message);
@@ -6141,7 +6145,7 @@ function saveTx(){
     }
   }
   var _txMsg=existing?'Actualizado ✓':'Registrado ✓';
-  completeAction(function(){if(existing){var idx=S.transactions.findIndex(function(t){return t.id===id;});S.transactions[idx]=tx;}else{S.transactions.push(tx);}},S.currentPage,_txMsg);
+  completeAction(function(){if(existing){var idx=S.transactions.findIndex(function(t){return t.id===id;});S.transactions[idx]=tx;}else{S.transactions.push(tx);}},S.currentPage||'movimientos',_txMsg);
 }
 function editTx(id){
   openModal('transaction',{id:id});
@@ -6371,7 +6375,7 @@ function saveSubAccount(){
 function deleteSubAccount(parentId,subId){
   confirmDialog('🗑️','¿Eliminar bolsillo?','El saldo de este bolsillo dejará de contarse en la cuenta.',()=>{
     const parent=S.accounts.find(a=>a.id===parentId);
-    completeAction(function(){var parent=S.accounts.find(function(a){return a.id===parentId;});if(parent&&parent.subAccounts)parent.subAccounts=parent.subAccounts.filter(function(s){return s.id!==subId;});},'cuenta-detalle','Bolsillo eliminado');
+    completeAction(function(){var parent=S.accounts.find(function(a){return a.id===parentId;});if(parent&&parent.subAccounts)parent.subAccounts=parent.subAccounts.filter(function(s){return s.id!==subId;});},'cuentas','Bolsillo eliminado');
   });
 }
 
