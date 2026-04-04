@@ -129,42 +129,52 @@ function _updateHeader(page){
   }
 }
 function renderPage(page){
-  const el=document.getElementById('page-'+page);
-  if(!el)return;
-  switch(page){
-    case'dashboard':el.innerHTML=renderDashboard();initExchangeWidget();break;
-    case'movimientos':el.innerHTML=renderMovimientos();break;
-    case'mis-cuentas':el.innerHTML=renderMisCuentas();break;
-    case'cuenta-detalle':el.innerHTML=renderCuentaDetalle();break;
-    case'amortizacion':el.innerHTML=renderAmortizacion();break;
-    case'suscripciones':el.innerHTML=renderSuscripciones();break;
-    case'cuentas':el.innerHTML=renderCuentas();break;
-    case'cuentas-grupo':el.innerHTML=renderCuentasGrupoPage();break;
-    case'form-cuenta':el.innerHTML=renderFormCuenta();break;
-    case'presupuestos':el.innerHTML=renderPresupuestos();break;
-    case'metas':el.innerHTML=renderMetas();break;
-    case'pagos':el.innerHTML=renderPagos();break;
-    case'deudas':el.innerHTML=renderDeudas();break;
-    case'analisis':el.innerHTML=renderAnalisis();break;
-    case'categorias':el.innerHTML=renderCategorias();break;
-    case'configuracion':el.innerHTML=renderConfiguracion();break;
-    case'herramientas':el.innerHTML=renderHerramientas();break;
-    case'calculadora':el.innerHTML=renderCalculadora();break;
-    case'simulador':el.innerHTML=renderSimulador();break;
-    case'simuladores':el.innerHTML=renderSimuladores();break;
-    case'jubilacion':el.innerHTML=renderJubilacion();break;
-    case'emergencia':el.innerHTML=renderEmergencia();break;
-    case'inflacion':el.innerHTML=renderInflacion();break;
-    case'rentabilidad':el.innerHTML=renderRentabilidad();break;
-    case'estrategia':window._estrategiaMetodo='';el.innerHTML=renderEstrategia();break;
-    case'cambio':el.innerHTML=renderCambio();break;
-    case'listas':el.innerHTML=renderListas();break;
-    case'inversiones':el.innerHTML=renderInversiones();break;
-    case'test':el.innerHTML=renderTest();break;
-    case'grp-midinero':el.innerHTML=renderDrawerGroup('midinero');break;
-    case'grp-planificacion':el.innerHTML=renderDrawerGroup('planificacion');break;
-    case'grp-herramientas':el.innerHTML=renderDrawerGroup('herramientas');break;
+  var el=document.getElementById('page-'+page);
+  if(!el){console.error('renderPage: no existe page-'+page);return;}
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');
+  S.currentPage=page;
+  el.innerHTML='';
+  try{
+    switch(page){
+      case'dashboard':el.innerHTML=renderDashboard();initExchangeWidget();break;
+      case'movimientos':el.innerHTML=renderMovimientos();break;
+      case'mis-cuentas':el.innerHTML=renderMisCuentas();break;
+      case'cuenta-detalle':el.innerHTML=renderCuentaDetalle();break;
+      case'amortizacion':el.innerHTML=renderAmortizacion();break;
+      case'suscripciones':el.innerHTML=renderSuscripciones();break;
+      case'cuentas':el.innerHTML=renderCuentas();break;
+      case'cuentas-grupo':el.innerHTML=renderCuentasGrupoPage();break;
+      case'form-cuenta':el.innerHTML=renderFormCuenta();break;
+      case'presupuestos':el.innerHTML=renderPresupuestos();break;
+      case'metas':el.innerHTML=renderMetas();break;
+      case'pagos':el.innerHTML=renderPagos();break;
+      case'deudas':el.innerHTML=renderDeudas();break;
+      case'analisis':el.innerHTML=renderAnalisis();break;
+      case'categorias':el.innerHTML=renderCategorias();break;
+      case'configuracion':el.innerHTML=renderConfiguracion();break;
+      case'herramientas':el.innerHTML=renderHerramientas();break;
+      case'calculadora':el.innerHTML=renderCalculadora();break;
+      case'simulador':el.innerHTML=renderSimulador();break;
+      case'simuladores':el.innerHTML=renderSimuladores();break;
+      case'jubilacion':el.innerHTML=renderJubilacion();break;
+      case'emergencia':el.innerHTML=renderEmergencia();break;
+      case'inflacion':el.innerHTML=renderInflacion();break;
+      case'rentabilidad':el.innerHTML=renderRentabilidad();break;
+      case'estrategia':window._estrategiaMetodo='';el.innerHTML=renderEstrategia();break;
+      case'cambio':el.innerHTML=renderCambio();break;
+      case'listas':el.innerHTML=renderListas();break;
+      case'inversiones':el.innerHTML=renderInversiones();break;
+      case'test':el.innerHTML=renderTest();break;
+      case'grp-midinero':el.innerHTML=renderDrawerGroup('midinero');break;
+      case'grp-planificacion':el.innerHTML=renderDrawerGroup('planificacion');break;
+      case'grp-herramientas':el.innerHTML=renderDrawerGroup('herramientas');break;
+    }
+  }catch(e){
+    console.error('renderPage ERROR ['+page+']:',e);
+    el.innerHTML='<div style="padding:32px 20px;text-align:center"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="font-size:15px;font-weight:700;color:var(--danger);margin-bottom:8px">Error al cargar '+page+'</div><div style="font-size:12px;color:var(--text2);font-family:monospace">'+e.message+'</div></div>';
   }
+  try{document.getElementById('main').scrollTo(0,0);}catch(e){}
 }
 function initExchangeWidget(){
   const el=document.getElementById('exchange-widget');
@@ -258,15 +268,7 @@ function completeAction(callback,renderTarget,message){
   if(typeof renderTarget==='function'){
     renderTarget();
   }else if(renderTarget){
-    var pg=document.getElementById('page-'+renderTarget);
-    if(pg){
-      document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-      pg.classList.add('active');
-      S.currentPage=renderTarget;
-      try{renderPage(renderTarget);}catch(e){console.error('renderPage error:',e);}
-      _updateHeader(renderTarget);
-      try{document.getElementById('main').scrollTo(0,0);}catch(e){}
-    }
+    renderPage(renderTarget);
   }
   if(message)toast(message);
 }
