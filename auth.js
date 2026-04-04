@@ -123,7 +123,10 @@ async function handleRegister(){
   var pass2=(document.getElementById('rg-pass2').value||'').trim();
   if(!email||!pass||!pass2){_setError('rg','Completa todos los campos');return;}
   if(pass!==pass2){_setError('rg','Las contraseñas no coinciden');return;}
-  if(pass.length<6){_setError('rg','Mínimo 6 caracteres');return;}
+  if(pass.length<8){_setError('rg','Mínimo 8 caracteres');return;}
+  if(!/[A-Z]/.test(pass)){_setError('rg','Debe incluir al menos una mayúscula');return;}
+  if(!/[0-9]/.test(pass)){_setError('rg','Debe incluir al menos un número');return;}
+  if(!/[^A-Za-z0-9]/.test(pass)){_setError('rg','Debe incluir al menos un carácter especial (!@#$...)');return;}
   var exists=document.getElementById('auth-rg-exists');
   if(exists)exists.style.display='none';
   _setError('rg',''); _setBusy('rg-btn',true,'Crear cuenta');
@@ -206,7 +209,7 @@ function _authMsg(msg){
   if(msg.includes('already registered'))return{ok:false,msg:'',isExists:true};
   if(msg.includes('User already registered'))return{ok:false,msg:'',isExists:true};
   if(msg.includes('Invalid login'))return{ok:false,msg:'Correo o contraseña incorrectos'};
-  if(msg.includes('Password should'))return{ok:false,msg:'Mínimo 6 caracteres'};
+  if(msg.includes('Password should'))return{ok:false,msg:'Contraseña débil: mínimo 8 caracteres, mayúscula, número y símbolo'};
   if(msg.includes('valid email'))return{ok:false,msg:'Ingresa un correo válido'};
   if(msg.includes('Email not confirmed'))return{ok:false,msg:'Confirma tu correo antes de entrar'};
   if(msg.includes('rate limit'))return{ok:false,msg:'Demasiados intentos. Espera unos minutos'};
