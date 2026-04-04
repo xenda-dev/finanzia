@@ -48,6 +48,7 @@ function toggleTheme(){
 var _navHistory=[];
 var _goingBack=false;
 function navigate(page){
+  try{
   var _wasBack=_goingBack;
   closeModal();
   closeBottomSheet();
@@ -55,15 +56,18 @@ function navigate(page){
   if(_navHistory.length>20)_navHistory.shift();
   _goingBack=false;
   if(page==='cuentas')S._cuentasGrupo='';
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('[data-page]').forEach(function(b){b.classList.toggle('active',b.dataset.page===page);});
   S.currentPage=page;
-  document.getElementById('page-'+page).classList.add('active');
-  document.getElementById('main').scrollTo(0,0);
+  var pageEl=document.getElementById('page-'+page);
+  if(pageEl)pageEl.classList.add('active');
+  var mainEl=document.getElementById('main');
+  if(mainEl)mainEl.scrollTo(0,0);
   renderPage(page);
   closeDrawer();
   refreshCurrencyToggle();
   _updateHeader(page);
+  }catch(e){console.error('navigate error:',e);}
 }
 function goBack(){
   var prev=_navHistory.pop()||'dashboard';
@@ -216,7 +220,7 @@ function renderDrawerGroup(groupKey){
 }
 // ════════════════════════════════════════════════════════════
 // TOAST & CONFIRM
-// ════════════════════════════════════════════════════════════function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+// ════════════════════════════════════════════════════════════function toast(msg){try{var t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}catch(e){}}
 
 let _confirmCb=null;
 function confirmDialog(icon,title,msg,cb,okLabel='Confirmar',okClass='btn-danger'){
@@ -1753,7 +1757,7 @@ function pickFotoAcreedor(){showPhotoSheetAcreedor();}function saveAccountFC(){
   _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
   _goingBack=true;
   toast(existing?'Cuenta actualizada ✓':'Cuenta creada ✓');
-  try{navigate('mis-cuentas');}catch(e){console.error('saveAccountFC nav:',e);renderPage('mis-cuentas');}
+  navigate('mis-cuentas');
 }
 
 function deleteAccountFC(){
@@ -5469,9 +5473,8 @@ function openProfilePage(){
   document.body.appendChild(overlay);
 }
 function closeProfilePage(){
-  var el=document.getElementById('profile-page-overlay');
-  if(el)el.remove();
-  renderPage('configuracion');
+  try{var el=document.getElementById('profile-page-overlay');if(el)el.remove();}catch(e){}
+  try{renderPage('configuracion');}catch(e){}
 }
 function buildProfileFormHTML(){
   var p=S.profile||{};
@@ -5812,10 +5815,10 @@ function saveProfile(){
       S.currency = newCurs[0];
       refreshCurrencyToggle();
     }
-  }catch(e){console.error('saveProfile currencies:',e);}
+  }catch(e){}
   saveState();
-  try{updateDrawerProfile();}catch(e){console.error('saveProfile drawer:',e);}
-  toast('Perfil guardado ✓');
+  try{updateDrawerProfile();}catch(e){}
+  try{toast('Perfil guardado ✓');}catch(e){}
   closeProfilePage();
 }
 

@@ -1,4 +1,11 @@
 // ════════════════════════════════════════════════════════════
+// ERROR HANDLER — diagnóstico (quitar en producción)
+// ════════════════════════════════════════════════════════════
+window.onerror=function(msg,src,line,col,err){
+  console.error('GLOBAL ERROR:',msg,'at',src,line,col,err);
+  return false;
+};
+// ════════════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>{
