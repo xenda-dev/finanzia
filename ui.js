@@ -129,52 +129,42 @@ function _updateHeader(page){
   }
 }
 function renderPage(page){
-  var el=document.getElementById('page-'+page);
-  if(!el){console.error('renderPage: no existe page-'+page);return;}
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  el.classList.add('active');
-  S.currentPage=page;
-  el.innerHTML='';
-  try{
-    switch(page){
-      case'dashboard':el.innerHTML=renderDashboard();initExchangeWidget();break;
-      case'movimientos':el.innerHTML=renderMovimientos();break;
-      case'mis-cuentas':el.innerHTML=renderMisCuentas();break;
-      case'cuenta-detalle':el.innerHTML=renderCuentaDetalle();break;
-      case'amortizacion':el.innerHTML=renderAmortizacion();break;
-      case'suscripciones':el.innerHTML=renderSuscripciones();break;
-      case'cuentas':el.innerHTML=renderCuentas();break;
-      case'cuentas-grupo':el.innerHTML=renderCuentasGrupoPage();break;
-      case'form-cuenta':el.innerHTML=renderFormCuenta();break;
-      case'presupuestos':el.innerHTML=renderPresupuestos();break;
-      case'metas':el.innerHTML=renderMetas();break;
-      case'pagos':el.innerHTML=renderPagos();break;
-      case'deudas':el.innerHTML=renderDeudas();break;
-      case'analisis':el.innerHTML=renderAnalisis();break;
-      case'categorias':el.innerHTML=renderCategorias();break;
-      case'configuracion':el.innerHTML=renderConfiguracion();break;
-      case'herramientas':el.innerHTML=renderHerramientas();break;
-      case'calculadora':el.innerHTML=renderCalculadora();break;
-      case'simulador':el.innerHTML=renderSimulador();break;
-      case'simuladores':el.innerHTML=renderSimuladores();break;
-      case'jubilacion':el.innerHTML=renderJubilacion();break;
-      case'emergencia':el.innerHTML=renderEmergencia();break;
-      case'inflacion':el.innerHTML=renderInflacion();break;
-      case'rentabilidad':el.innerHTML=renderRentabilidad();break;
-      case'estrategia':window._estrategiaMetodo='';el.innerHTML=renderEstrategia();break;
-      case'cambio':el.innerHTML=renderCambio();break;
-      case'listas':el.innerHTML=renderListas();break;
-      case'inversiones':el.innerHTML=renderInversiones();break;
-      case'test':el.innerHTML=renderTest();break;
-      case'grp-midinero':el.innerHTML=renderDrawerGroup('midinero');break;
-      case'grp-planificacion':el.innerHTML=renderDrawerGroup('planificacion');break;
-      case'grp-herramientas':el.innerHTML=renderDrawerGroup('herramientas');break;
-    }
-  }catch(e){
-    console.error('renderPage ERROR ['+page+']:',e);
-    el.innerHTML='<div style="padding:32px 20px;text-align:center"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="font-size:15px;font-weight:700;color:var(--danger);margin-bottom:8px">Error al cargar '+page+'</div><div style="font-size:12px;color:var(--text2);font-family:monospace">'+e.message+'</div></div>';
+  const el=document.getElementById('page-'+page);
+  if(!el)return;
+  switch(page){
+    case'dashboard':el.innerHTML=renderDashboard();initExchangeWidget();break;
+    case'movimientos':el.innerHTML=renderMovimientos();break;
+    case'mis-cuentas':el.innerHTML=renderMisCuentas();break;
+    case'cuenta-detalle':el.innerHTML=renderCuentaDetalle();break;
+    case'amortizacion':el.innerHTML=renderAmortizacion();break;
+    case'suscripciones':el.innerHTML=renderSuscripciones();break;
+    case'cuentas':el.innerHTML=renderCuentas();break;
+    case'cuentas-grupo':el.innerHTML=renderCuentasGrupoPage();break;
+    case'form-cuenta':el.innerHTML=renderFormCuenta();break;
+    case'presupuestos':el.innerHTML=renderPresupuestos();break;
+    case'metas':el.innerHTML=renderMetas();break;
+    case'pagos':el.innerHTML=renderPagos();break;
+    case'deudas':el.innerHTML=renderDeudas();break;
+    case'analisis':el.innerHTML=renderAnalisis();break;
+    case'categorias':el.innerHTML=renderCategorias();break;
+    case'configuracion':el.innerHTML=renderConfiguracion();break;
+    case'herramientas':el.innerHTML=renderHerramientas();break;
+    case'calculadora':el.innerHTML=renderCalculadora();break;
+    case'simulador':el.innerHTML=renderSimulador();break;
+    case'simuladores':el.innerHTML=renderSimuladores();break;
+    case'jubilacion':el.innerHTML=renderJubilacion();break;
+    case'emergencia':el.innerHTML=renderEmergencia();break;
+    case'inflacion':el.innerHTML=renderInflacion();break;
+    case'rentabilidad':el.innerHTML=renderRentabilidad();break;
+    case'estrategia':window._estrategiaMetodo='';el.innerHTML=renderEstrategia();break;
+    case'cambio':el.innerHTML=renderCambio();break;
+    case'listas':el.innerHTML=renderListas();break;
+    case'inversiones':el.innerHTML=renderInversiones();break;
+    case'test':el.innerHTML=renderTest();break;
+    case'grp-midinero':el.innerHTML=renderDrawerGroup('midinero');break;
+    case'grp-planificacion':el.innerHTML=renderDrawerGroup('planificacion');break;
+    case'grp-herramientas':el.innerHTML=renderDrawerGroup('herramientas');break;
   }
-  try{document.getElementById('main').scrollTo(0,0);}catch(e){}
 }
 function initExchangeWidget(){
   const el=document.getElementById('exchange-widget');
@@ -237,7 +227,8 @@ function renderDrawerGroup(groupKey){
 }
 // ════════════════════════════════════════════════════════════
 // TOAST & CONFIRM
-// ════════════════════════════════════════════════════════════function toast(msg){try{var t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}catch(e){}}
+// ════════════════════════════════════════════════════════════
+function toast(msg){try{var t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}catch(e){}}
 
 let _confirmCb=null;
 function confirmDialog(icon,title,msg,cb,okLabel='Confirmar',okClass='btn-danger'){
@@ -256,20 +247,18 @@ function closeConfirm(){document.getElementById('confirm-root').classList.remove
 // message: string para toast | null/undefined para omitir
 function completeAction(callback,renderTarget,message){
   try{
-    if(callback&&typeof callback==='function')callback();
+    console.log('Executing action:',callback&&callback.name?callback.name:'anonymous');
+    if(callback && typeof callback==='function')callback();
     saveState();
   }catch(e){
-    console.error('completeAction error:',e);
+    console.error('Action error:',e);
   }finally{
     closeModal();
     closeConfirm();
     closeBottomSheet();
   }
-  if(typeof renderTarget==='function'){
-    renderTarget();
-  }else if(renderTarget){
-    renderPage(renderTarget);
-  }
+  if(typeof renderTarget==='function')renderTarget();
+  else if(renderTarget)renderPage(renderTarget);
   if(message)toast(message);
 }
 
@@ -6147,7 +6136,7 @@ function saveTx(){
     }
   }
   var _txMsg=existing?'Actualizado ✓':'Registrado ✓';
-  completeAction(function(){if(existing){var idx=S.transactions.findIndex(function(t){return t.id===id;});S.transactions[idx]=tx;}else{S.transactions.push(tx);}},S.currentPage||'movimientos',_txMsg);
+  completeAction(function(){if(existing){var idx=S.transactions.findIndex(function(t){return t.id===id;});S.transactions[idx]=tx;}else{S.transactions.push(tx);}},S.currentPage,_txMsg);
 }
 function editTx(id){
   openModal('transaction',{id:id});
@@ -6372,7 +6361,7 @@ function saveSubAccount(){
   const existing=subId?parent.subAccounts.find(s=>s.id===subId):null;
   const sub={id:existing?existing.id:uid(),name,balance:parseFloat(document.getElementById('subacc-balance')?.value)||0,icon:document.getElementById('subacc-icon-val')?.value||'🐷',color:document.getElementById('subacc-color-val')?.value||COLORS_PALETTE[16]};
   var _subMsg=existing?'Bolsillo actualizado ✓':'Bolsillo creado ✓';
-  completeAction(function(){if(existing){var idx=parent.subAccounts.findIndex(function(s){return s.id===subId;});parent.subAccounts[idx]=sub;}else{parent.subAccounts.push(sub);};},'cuenta-detalle',_subMsg);
+  completeAction(function(){if(existing){var idx=parent.subAccounts.findIndex(function(s){return s.id===subId;});parent.subAccounts[idx]=sub;}else{parent.subAccounts.push(sub);}},'cuentas',_subMsg);
 }
 function deleteSubAccount(parentId,subId){
   confirmDialog('🗑️','¿Eliminar bolsillo?','El saldo de este bolsillo dejará de contarse en la cuenta.',()=>{
@@ -6446,7 +6435,7 @@ function saveAccount(){
   if(type==='pasivo'&&subtype==='tc'){acc.tcLimit=parseFloat(document.getElementById('acc-tc-limit')?.value)||0;acc.tae=parseFloat(document.getElementById('acc-tae')?.value)||0;acc.cutDate=parseInt(document.getElementById('acc-cut')?.value)||0;acc.paymentDate=parseInt(document.getElementById('acc-paydate')?.value)||0;}
   else if(type==='pasivo'){acc.creditTotal=parseFloat(document.getElementById('acc-credit-total')?.value)||0;acc.monthlyPayment=parseFloat(document.getElementById('acc-monthly-payment')?.value)||0;acc.paymentDate=parseInt(document.getElementById('acc-paydate')?.value)||0;acc.tae=parseFloat(document.getElementById('acc-tae')?.value)||0;}
   var _accMsg=existing?'Cuenta actualizada ✓':'Cuenta creada ✓';
-  completeAction(function(){if(existing){var idx=S.accounts.findIndex(function(a){return a.id===id;});S.accounts[idx]=acc;}else{S.accounts.push(acc);};},'mis-cuentas',_accMsg);
+  completeAction(function(){if(existing){var idx=S.accounts.findIndex(function(a){return a.id===id;});S.accounts[idx]=acc;}else{S.accounts.push(acc);}},S.currentPage,_accMsg);
 }
 function deleteAccount(id){const acc=S.accounts.find(a=>a.id===id);if(acc&&(acc.protected||acc.subtype==='efectivo')){toast('Esta cuenta no puede eliminarse');return;}confirmDialog('🗑️','¿Eliminar cuenta?','Los movimientos asociados quedarán sin cuenta.',()=>{completeAction(function(){S.accounts=S.accounts.filter(a=>a.id!==id);},'cuentas','Cuenta eliminada');});}
 
@@ -6469,7 +6458,7 @@ function saveBudget(){
   const id=document.getElementById('bud-id')?.value;const existing=id?S.budgets.find(b=>b.id===id):null;
   const bud={id:existing?existing.id:uid(),categoryId:catId,subcategoryId:document.getElementById('bud-sub')?.value||'',amount,currency:document.getElementById('bud-currency')?.value||S.currency,color:document.getElementById('bud-color-val')?.value||COLORS_PALETTE[0]};
   var _budMsg=existing?'Actualizado ✓':'Creado ✓';
-  completeAction(function(){if(existing){var idx=S.budgets.findIndex(function(b){return b.id===id;});S.budgets[idx]=bud;}else{S.budgets.push(bud);};},'presupuestos',_budMsg);
+  completeAction(function(){if(existing){var idx=S.budgets.findIndex(function(b){return b.id===id;});S.budgets[idx]=bud;}else{S.budgets.push(bud);}},S.currentPage,_budMsg);
 }
 function deleteBudget(id){confirmDialog('🗑️','¿Eliminar presupuesto?','',()=>{completeAction(function(){S.budgets=S.budgets.filter(b=>b.id!==id);},'presupuestos','Eliminado');});}
 
@@ -6524,7 +6513,7 @@ function saveGoal(){
   const id=document.getElementById('goal-id')?.value;const existing=id?S.goals.find(g=>g.id===id):null;
   const goal={id:existing?existing.id:uid(),name,target,current:parseFloat(document.getElementById('goal-current')?.value)||0,currency:document.getElementById('goal-currency')?.value||S.currency,deadline:document.getElementById('goal-deadline')?.value||'',icon:document.getElementById('goal-icon-val')?.value||'🎯',color:document.getElementById('goal-color-val')?.value||COLORS_PALETTE[16],accountId:document.getElementById('goal-account')?.value||'',categoryId:document.getElementById('goal-cat')?.value||'',subcategoryId:document.getElementById('goal-sub')?.value||''};
   var _goalMsg=existing?'Meta actualizada ✓':'Meta creada ✓';
-  completeAction(function(){if(existing){var idx=S.goals.findIndex(function(g){return g.id===id;});S.goals[idx]=goal;}else{S.goals.push(goal);};},'metas',_goalMsg);
+  completeAction(function(){if(existing){var idx=S.goals.findIndex(function(g){return g.id===id;});S.goals[idx]=goal;}else{S.goals.push(goal);}},S.currentPage,_goalMsg);
 }
 function deleteGoal(id){confirmDialog('🗑️','¿Eliminar meta?','',()=>{completeAction(function(){S.goals=S.goals.filter(g=>g.id!==id);},'metas','Meta eliminada');});}
 
@@ -6921,7 +6910,7 @@ function savePayment(){
   const id=document.getElementById('pay-id')?.value;const existing=id?S.scheduledPayments.find(p=>p.id===id):null;
   const pay={id:existing?existing.id:uid(),name,amount,currency:document.getElementById('pay-currency')?.value||S.currency,categoryId:document.getElementById('pay-cat')?.value||'',subcategoryId:document.getElementById('pay-sub')?.value||'',frequency:document.getElementById('pay-freq')?.value||'Mensual',nextDate,accountId:document.getElementById('pay-account')?.value||'',isAuto:document.getElementById('pay-is-auto')?.value==='1',color:document.getElementById('pay-color-val')?.value||COLORS_PALETTE[0]};
   var _payMsg=existing?'Actualizado ✓':'Pago programado ✓';
-  completeAction(function(){if(existing){var idx=S.scheduledPayments.findIndex(function(p){return p.id===id;});S.scheduledPayments[idx]=pay;}else{S.scheduledPayments.push(pay);};},'pagos',_payMsg);
+  completeAction(function(){if(existing){var idx=S.scheduledPayments.findIndex(function(p){return p.id===id;});S.scheduledPayments[idx]=pay;}else{S.scheduledPayments.push(pay);}},S.currentPage,_payMsg);
 }
 function deletePayment(id){confirmDialog('🗑️','¿Eliminar pago?','',()=>{completeAction(function(){S.scheduledPayments=S.scheduledPayments.filter(p=>p.id!==id);},'pagos','Eliminado');});}
 
