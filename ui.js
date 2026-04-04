@@ -227,8 +227,7 @@ function renderDrawerGroup(groupKey){
 }
 // ════════════════════════════════════════════════════════════
 // TOAST & CONFIRM
-// ════════════════════════════════════════════════════════════
-function toast(msg){try{var t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}catch(e){}}
+// ════════════════════════════════════════════════════════════function toast(msg){try{var t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}catch(e){}}
 
 let _confirmCb=null;
 function confirmDialog(icon,title,msg,cb,okLabel='Confirmar',okClass='btn-danger'){
@@ -1014,8 +1013,8 @@ function renderFormCuenta(){
     btns+=(step>1?'<button onclick="fcBack()" style="flex:1;padding:13px 8px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Atrás</button>':'');
     btns+='<button onclick="fcNext()" style="flex:1;padding:13px 8px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Siguiente</button>';
   }
-  html+='<div style="height:calc(var(--nav-h) + 68px)"></div></div>'
-    +'<div style="position:fixed;bottom:var(--nav-h);left:0;right:0;background:var(--bg);padding:10px 16px;display:flex;gap:8px;z-index:10;box-shadow:0 -1px 0 var(--border)">'
+  html+='<div style="height:calc(var(--nav-h) + 80px)"></div></div>'
+    +'<div style="position:fixed;bottom:calc(var(--nav-h) + 6px);left:0;right:0;background:var(--bg);padding:10px 16px;display:flex;gap:8px;z-index:60;box-shadow:0 -1px 0 var(--border)">'
     +btns
     +'</div>';
   return html;
