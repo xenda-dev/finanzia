@@ -54,7 +54,6 @@ function navigate(page){
   if(_navHistory.length>20)_navHistory.shift();
   _goingBack=false;
   if(page==='cuentas')S._cuentasGrupo='';
-  // Cambio de página — NUNCA debe fallar
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('[data-page]').forEach(function(b){b.classList.toggle('active',b.dataset.page===page);});
   S.currentPage=page;
@@ -1753,9 +1752,16 @@ function pickFotoAcreedor(){showPhotoSheetAcreedor();}function saveAccountFC(){
   S._fcData={};
   S._cuentasGrupo=grpId;
   _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
-  _goingBack=true;
   toast(existing?'Cuenta actualizada ✓':'Cuenta creada ✓');
-  setTimeout(function(){navigate('mis-cuentas');},50);
+  // Cambio directo de página (NO usar navigate)
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  var tgt=document.getElementById('page-mis-cuentas');
+  if(tgt)tgt.classList.add('active');
+  S.currentPage='mis-cuentas';
+  try{document.getElementById('main').scrollTo(0,0);}catch(e){}
+  try{renderPage('mis-cuentas');}catch(e){}
+  try{refreshCurrencyToggle();}catch(e){}
+  try{_updateHeader('mis-cuentas');}catch(e){}
 }
 
 function deleteAccountFC(){
@@ -1780,9 +1786,15 @@ function deleteAccountFC(){
     S._fcData={};
     S._cuentasGrupo=grpId;
     _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
-    _goingBack=true;
     toast('Cuenta eliminada');
-    setTimeout(function(){navigate('mis-cuentas');},50);
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+    var tgt=document.getElementById('page-mis-cuentas');
+    if(tgt)tgt.classList.add('active');
+    S.currentPage='mis-cuentas';
+    try{document.getElementById('main').scrollTo(0,0);}catch(e){}
+    try{renderPage('mis-cuentas');}catch(e){}
+    try{refreshCurrencyToggle();}catch(e){}
+    try{_updateHeader('mis-cuentas');}catch(e){}
   });
 }
 
@@ -5816,7 +5828,7 @@ function saveProfile(){
   }catch(e){}
   saveState();
   try{updateDrawerProfile();}catch(e){}
-  try{toast('Perfil guardado ✓');}catch(e){}
+  toast('Perfil guardado ✓');
   closeProfilePage();
 }
 
