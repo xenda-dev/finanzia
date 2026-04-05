@@ -259,8 +259,10 @@ async function saveUserData(userId,data){
     console.log('☁️ saving to supabase');
     var res=await _supabase
       .from('user_data')
-      .upsert({user_id:userId,data:toSave},{onConflict:'user_id'});
-    if(res.error) console.warn('saveUserData error:',res.error.message);
+      .upsert({user_id:userId,data:toSave},{onConflict:'user_id'})
+      .select();
+    if(res.error){console.warn('saveUserData error:',res.error.message);}
+    else{console.log('✅ saved in supabase:',res.data);}
   }catch(e){console.warn('saveUserData exception:',e);}
 }
 
@@ -272,7 +274,7 @@ async function loadUserData(userId){
       .from('user_data')
       .select('data, updated_at')
       .eq('user_id',userId)
-      .single();
+      .maybeSingle();
     if(res.error){console.warn('loadUserData error:',res.error.message); return null;}
     if(!res.data) return null;
     // Adjuntar updated_at al objeto data para usarlo en syncFromSupabase
