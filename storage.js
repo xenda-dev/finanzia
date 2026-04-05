@@ -293,9 +293,11 @@ async function syncFromSupabase(userId){
   // Comparación de timestamps — omitir si es sesión nueva (localStorage vacío)
   var remoteTs=remote._remoteUpdatedAt||remote._lastSync||0;
   var localTs=S._lastSync||0;
-  var isFreshSession=!S._lastSync;
+  // Usar flag de sesión dedicado — S._lastSync puede ser seteado por saveState durante initApp
+  // y contaminar la detección de "sesión nueva"
+  var isFreshSession=!window._supabaseSynced;
   if(isFreshSession){
-    console.log('🌱 sesión nueva → forzar sync');
+    console.log('🌱 primera sync de sesión → forzar');
   }else if(localTs&&remoteTs&&localTs>remoteTs){
     console.warn('syncFromSupabase: local más reciente (local:'+localTs+' remote:'+remoteTs+'), sync omitido');
     return;
@@ -322,6 +324,7 @@ async function syncFromSupabase(userId){
     S.movFilter=keepMovFilter;
     S._catTab=keepCatTab;
     S._lastSync=remoteTs||Date.now();
+    window._supabaseSynced=true;
     try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}
     if(typeof renderPage==='function') renderPage(S.currentPage);
     if(typeof updateDrawerProfile==='function') updateDrawerProfile();

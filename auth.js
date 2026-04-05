@@ -28,6 +28,7 @@ async function signIn(email, password){
 async function signOut(){
   localStorage.removeItem('_bioEnabled');
   localStorage.removeItem('_bioCredId');
+  window._supabaseSynced=false;
   await _supabase.auth.signOut();
   _currentUser = null;
   _showScreen('login');
