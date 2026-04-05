@@ -253,8 +253,7 @@ async function saveUserData(userId,data){
   delete toSave.movFilter;
   // _lastSync es solo del cliente — updated_at de Supabase es la fuente de verdad del servidor
   delete toSave._lastSync;
-  // Actualizar _lastSync local ANTES del upsert (marca cuándo se guardó este estado)
-  S._lastSync=Date.now();
+  // Actualizar _lastSync local SOLO si el upsert fue exitoso
   try{
     console.log('☁️ saving to supabase');
     var res=await _supabase
@@ -262,7 +261,7 @@ async function saveUserData(userId,data){
       .upsert({user_id:userId,data:toSave},{onConflict:'user_id'})
       .select();
     if(res.error){console.warn('saveUserData error:',res.error.message);}
-    else{console.log('✅ saved in supabase:',res.data);}
+    else{S._lastSync=Date.now();console.log('✅ saved in supabase:',res.data);}
   }catch(e){console.warn('saveUserData exception:',e);}
 }
 
