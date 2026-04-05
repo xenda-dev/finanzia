@@ -172,7 +172,7 @@ async function _afterLogin(user){
         if(typeof openProfilePage==='function') openProfilePage();
       }
     }catch(e){}
-  }, 800);
+  }, 1200);
 }
 
 async function handleBioUnlock(){
@@ -183,7 +183,6 @@ async function handleBioUnlock(){
     hideAuthScreen();
     if(typeof initApp==='function') initApp();
     _injectLogoutBtn(_currentUser);
-    // Sincronizar datos desde Supabase
     if(_currentUser&&typeof syncFromSupabase==='function'){
       syncFromSupabase(_currentUser.id).catch(function(e){console.warn('sync error:',e);});
     }

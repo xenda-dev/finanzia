@@ -292,10 +292,12 @@ async function syncFromSupabase(userId){
     return;
   }
   // Protección por timestamp: usar updated_at de Supabase (más confiable que cliente)
-  // Si local es más reciente que el servidor → no sobrescribir
+  // EXCEPCIÓN: si _lastSync local fue escrito hace menos de 10s es del arranque actual → no bloquear
   var remoteTs=remote._remoteUpdatedAt||remote._lastSync||0;
-  if(S._lastSync&&remoteTs&&remoteTs<S._lastSync){
-    console.warn('syncFromSupabase: local más reciente (local:'+S._lastSync+' remote:'+remoteTs+'), sync omitido');
+  var localTs=S._lastSync||0;
+  var localIsFromThisSession=(Date.now()-localTs)<10000;
+  if(!localIsFromThisSession&&localTs&&remoteTs&&remoteTs<localTs){
+    console.warn('syncFromSupabase: local más reciente (local:'+localTs+' remote:'+remoteTs+'), sync omitido');
     return;
   }
   try{
