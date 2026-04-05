@@ -294,7 +294,7 @@ async function syncFromSupabase(userId){
   // Comparación de timestamps — omitir si es sesión nueva (localStorage vacío)
   var remoteTs=remote._remoteUpdatedAt||remote._lastSync||0;
   var localTs=S._lastSync||0;
-  var isFreshSession=!localStorage.getItem('finanziaState3');
+  var isFreshSession=!S._lastSync;
   if(isFreshSession){
     console.log('🌱 sesión nueva → forzar sync');
   }else if(localTs&&remoteTs&&localTs>remoteTs){
