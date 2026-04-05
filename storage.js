@@ -228,11 +228,9 @@ function saveState(){
   // localStorage — siempre, síncrono, nunca falla
   try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}
   // Supabase — background, sin bloquear, con debounce 2s
-  // NO guardar hasta que el primer sync haya completado — evita sobreescribir datos del servidor
   try{
     if(typeof _supabase==='undefined'||!_supabase) return;
     if(typeof _currentUser==='undefined'||!_currentUser) return;
-    if(!window._supabaseSynced) return;
     var now=Date.now();
     if(window._lastSupabaseSave&&(now-window._lastSupabaseSave)<2000) return;
     window._lastSupabaseSave=now;
@@ -290,6 +288,7 @@ async function syncFromSupabase(userId){
   // Validar que haya datos reales antes de hacer merge
   if(!remote||typeof remote!=='object'||Object.keys(remote).length===0){
     console.warn('syncFromSupabase: sin datos remotos, se mantiene localStorage');
+    window._supabaseSynced=true; // usuario nuevo → habilitar saveState para Supabase
     return;
   }
   // Comparación de timestamps — omitir si es sesión nueva (localStorage vacío)
