@@ -291,12 +291,13 @@ async function syncFromSupabase(userId){
     console.warn('syncFromSupabase: sin datos remotos, se mantiene localStorage');
     return;
   }
-  // Protección por timestamp: usar updated_at de Supabase (más confiable que cliente)
-  // EXCEPCIÓN: si _lastSync local fue escrito hace menos de 10s es del arranque actual → no bloquear
+  // Comparación de timestamps — omitir si es sesión nueva (localStorage vacío)
   var remoteTs=remote._remoteUpdatedAt||remote._lastSync||0;
   var localTs=S._lastSync||0;
-  var localIsFromThisSession=(Date.now()-localTs)<10000;
-  if(!localIsFromThisSession&&localTs&&remoteTs&&remoteTs<localTs){
+  var isFreshSession=!localStorage.getItem('finanziaState3');
+  if(isFreshSession){
+    console.log('🌱 sesión nueva → forzar sync');
+  }else if(localTs&&remoteTs&&localTs>remoteTs){
     console.warn('syncFromSupabase: local más reciente (local:'+localTs+' remote:'+remoteTs+'), sync omitido');
     return;
   }
