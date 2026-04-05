@@ -224,6 +224,106 @@ function loadState(){
   }
 }
 
-function saveState(){try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}}
+function saveState(){
+  // localStorage — siempre, síncrono, nunca falla
+  try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}
+  // Supabase — background, sin bloquear, con debounce 2s
+  try{
+    if(typeof _supabase==='undefined'||!_supabase) return;
+    if(typeof _currentUser==='undefined'||!_currentUser) return;
+    var now=Date.now();
+    if(window._lastSupabaseSave&&(now-window._lastSupabaseSave)<2000) return;
+    window._lastSupabaseSave=now;
+    saveUserData(_currentUser.id,S).catch(function(e){
+      console.warn('saveState → Supabase error:',e);
+    });
+  }catch(e){}
+}
+
+// ════════════════════════════════════════════════════════════
+// SUPABASE DATA SYNC
+// ════════════════════════════════════════════════════════════
+
+async function saveUserData(userId,data){
+  if(typeof _supabase==='undefined'||!_supabase) return;
+  var toSave=Object.assign({},data);
+  // Campos de UI/navegación — no persistir en servidor
+  delete toSave.currentPage;
+  delete toSave._catTab;
+  delete toSave.movFilter;
+  // _lastSync es solo del cliente — updated_at de Supabase es la fuente de verdad del servidor
+  delete toSave._lastSync;
+  // Actualizar _lastSync local ANTES del upsert (marca cuándo se guardó este estado)
+  S._lastSync=Date.now();
+  try{
+    console.log('☁️ saving to supabase');
+    var res=await _supabase
+      .from('user_data')
+      .upsert({user_id:userId,data:toSave},{onConflict:'user_id'});
+    if(res.error) console.warn('saveUserData error:',res.error.message);
+  }catch(e){console.warn('saveUserData exception:',e);}
+}
+
+async function loadUserData(userId){
+  if(typeof _supabase==='undefined'||!_supabase) return null;
+  try{
+    console.log('☁️ loading from supabase');
+    var res=await _supabase
+      .from('user_data')
+      .select('data, updated_at')
+      .eq('user_id',userId)
+      .single();
+    if(res.error){console.warn('loadUserData error:',res.error.message); return null;}
+    if(!res.data) return null;
+    // Adjuntar updated_at al objeto data para usarlo en syncFromSupabase
+    var result=res.data.data||{};
+    result._remoteUpdatedAt=res.data.updated_at?new Date(res.data.updated_at).getTime():0;
+    return result;
+  }catch(e){console.warn('loadUserData exception:',e); return null;}
+}
+
+async function syncFromSupabase(userId){
+  var remote=await loadUserData(userId);
+  // Validar que haya datos reales antes de hacer merge
+  if(!remote||typeof remote!=='object'||Object.keys(remote).length===0){
+    console.warn('syncFromSupabase: sin datos remotos, se mantiene localStorage');
+    return;
+  }
+  // Protección por timestamp: usar updated_at de Supabase (más confiable que cliente)
+  // Si local es más reciente que el servidor → no sobrescribir
+  var remoteTs=remote._remoteUpdatedAt||remote._lastSync||0;
+  if(S._lastSync&&remoteTs&&remoteTs<S._lastSync){
+    console.warn('syncFromSupabase: local más reciente (local:'+S._lastSync+' remote:'+remoteTs+'), sync omitido');
+    return;
+  }
+  try{
+    // Preservar campos de UI y navegación
+    var keepPage=S.currentPage||'dashboard';
+    var keepMovFilter=S.movFilter||{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''};
+    var keepCatTab=S._catTab||'gasto';
+    // Merge seguro: solo copiar propiedades con contenido válido
+    Object.keys(remote).forEach(function(key){
+      if(key==='_remoteUpdatedAt') return; // campo interno, no persistir en S
+      var val=remote[key];
+      if(val===null||val===undefined) return;
+      // Array vacío no sobrescribe array con datos
+      if(Array.isArray(val)&&val.length===0&&Array.isArray(S[key])&&S[key].length>0) return;
+      // Objeto vacío no sobrescribe objeto con datos
+      if(val&&typeof val==='object'&&!Array.isArray(val)&&Object.keys(val).length===0
+         &&S[key]&&typeof S[key]==='object'&&Object.keys(S[key]).length>0) return;
+      S[key]=val;
+    });
+    // Restaurar campos de UI
+    S.currentPage=keepPage;
+    S.movFilter=keepMovFilter;
+    S._catTab=keepCatTab;
+    S._lastSync=remoteTs||Date.now();
+    try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}
+    if(typeof renderPage==='function') renderPage(S.currentPage);
+    if(typeof updateDrawerProfile==='function') updateDrawerProfile();
+    if(typeof refreshCurrencyToggle==='function') refreshCurrencyToggle();
+    console.log('☁️ sync applied (remoteTs:'+remoteTs+')');
+  }catch(e){console.warn('syncFromSupabase merge error:',e);}
+}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
 // Number inputs: format with thousand separator on display, parse on use

@@ -161,6 +161,10 @@ async function _afterLogin(user){
   hideAuthScreen();
   if(typeof initApp==='function') initApp();
   _injectLogoutBtn(user);
+  // Sincronizar datos desde Supabase (en background, sin bloquear)
+  if(typeof syncFromSupabase==='function'){
+    syncFromSupabase(user.id).catch(function(e){console.warn('sync error:',e);});
+  }
   // Si el perfil está vacío → abrir Mi Perfil automáticamente
   setTimeout(function(){
     try{
@@ -168,7 +172,7 @@ async function _afterLogin(user){
         if(typeof openProfilePage==='function') openProfilePage();
       }
     }catch(e){}
-  }, 400);
+  }, 800);
 }
 
 async function handleBioUnlock(){
@@ -179,6 +183,10 @@ async function handleBioUnlock(){
     hideAuthScreen();
     if(typeof initApp==='function') initApp();
     _injectLogoutBtn(_currentUser);
+    // Sincronizar datos desde Supabase
+    if(_currentUser&&typeof syncFromSupabase==='function'){
+      syncFromSupabase(_currentUser.id).catch(function(e){console.warn('sync error:',e);});
+    }
   }else{
     _setError('bio','No se reconoció. Intenta de nuevo.');
   }
