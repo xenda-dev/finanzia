@@ -28,7 +28,6 @@ async function signIn(email, password){
 async function signOut(){
   localStorage.removeItem('_bioEnabled');
   localStorage.removeItem('_bioCredId');
-  window._supabaseSynced=false;
   await _supabase.auth.signOut();
   _currentUser = null;
   _showScreen('login');
@@ -162,18 +161,40 @@ async function _afterLogin(user){
   hideAuthScreen();
   if(typeof initApp==='function') initApp();
   _injectLogoutBtn(user);
-  // Sincronizar datos desde Supabase (en background, sin bloquear)
+  // Sincronizar datos desde Supabase — chequear perfil DESPUÉS de que sync complete
   if(typeof syncFromSupabase==='function'){
-    syncFromSupabase(user.id).catch(function(e){console.warn('sync error:',e);});
+    syncFromSupabase(user.id)
+      .then(function(){
+        // Chequear perfil vacío solo después de haber recibido datos del servidor
+        setTimeout(function(){
+          try{
+            if(!S.profile||!S.profile.name||!S.profile.name.trim()){
+              if(typeof openProfilePage==='function') openProfilePage();
+            }
+          }catch(e){}
+        },300);
+      })
+      .catch(function(e){
+        console.warn('sync error:',e);
+        // Si sync falla, igual chequeamos perfil con los datos locales
+        setTimeout(function(){
+          try{
+            if(!S.profile||!S.profile.name||!S.profile.name.trim()){
+              if(typeof openProfilePage==='function') openProfilePage();
+            }
+          }catch(e){}
+        },500);
+      });
+  }else{
+    // Sin Supabase → chequear perfil directo
+    setTimeout(function(){
+      try{
+        if(!S.profile||!S.profile.name||!S.profile.name.trim()){
+          if(typeof openProfilePage==='function') openProfilePage();
+        }
+      }catch(e){}
+    },400);
   }
-  // Si el perfil está vacío → abrir Mi Perfil automáticamente
-  setTimeout(function(){
-    try{
-      if(!S.profile||!S.profile.name||!S.profile.name.trim()){
-        if(typeof openProfilePage==='function') openProfilePage();
-      }
-    }catch(e){}
-  }, 1200);
 }
 
 async function handleBioUnlock(){
