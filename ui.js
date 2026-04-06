@@ -5960,11 +5960,55 @@ function handleImportFile(e){
   reader.readAsText(file);
 }
 function resetApp(){
-  confirmDialog('⚠️','¿Restaurar la app?','Se eliminarán TODOS tus datos. Esta acción es irreversible.',()=>{
-    localStorage.removeItem('finanziaState3');_testAnswers={};
-    S={currency:'',currentPage:'dashboard',theme:S.theme,language:'',weekStart:'',currencies:[],accounts:[],transactions:[],categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),subcategories:JSON.parse(JSON.stringify(DEFAULT_SUBS)),budgets:[],goals:[],scheduledPayments:[],movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},analysisPeriod:'Mensual',analysisYear:new Date().getFullYear(),exchangeRate:{PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''}};
-    saveState();refreshCurrencyToggle();navigate('dashboard');toast('App restaurada ✓');
-  });
+  // Mostrar elección con un bottom sheet simple
+  var q="'";
+  var html='<div style="padding:8px 0 16px">'
+    +'<p style="color:var(--text-secondary);font-size:14px;margin:0 0 20px;line-height:1.5">Elige qué deseas hacer con tus datos:</p>'
+    +'<button onclick="closeBS();setTimeout(function(){confirmDialog('+q+'⚠️'+q+','+q+'¿Borrar solo este dispositivo?'+q+','+q+'El caché local se limpiará. Al reabrir la app tus datos volverán desde la nube.'+q+',function(){_doFullReset(false)},'+q+'Limpiar dispositivo'+q+','+q+'btn-secondary'+q+')},200)" style="width:100%;height:48px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);margin-bottom:10px">📱 Solo este dispositivo<br><span style="font-size:11px;font-weight:400;color:var(--text-secondary)">Los datos en la nube se conservan</span></button>'
+    +'<button onclick="closeBS();setTimeout(function(){confirmDialog('+q+'🗑️'+q+','+q+'¿Borrar TODO?'+q+','+q+'Se eliminarán tus datos de TODOS los dispositivos y del servidor. Irreversible.'+q+',function(){_doFullReset(true)},'+q+'Borrar todo'+q+','+q+'btn-danger'+q+')},200)" style="width:100%;height:48px;border-radius:12px;border:1.5px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:var(--danger);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font)">🗑️ Borrar todo<br><span style="font-size:11px;font-weight:400;color:var(--text-secondary)">Elimina datos locales Y del servidor</span></button>'
+    +'</div>';
+  openBS('Restaurar app', html);
+}
+
+function _doFullReset(includeServer){
+  try{_testAnswers={};}catch(e){}
+  var currentTheme=S.theme||'auto';
+  // 1. Resetear estado en memoria
+  S={
+    currency:'',currentPage:'dashboard',theme:currentTheme,
+    language:'',weekStart:'',currencies:[],
+    accounts:[],transactions:[],
+    categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),
+    subcategories:JSON.parse(JSON.stringify(DEFAULT_SUBS)),
+    budgets:[],goals:[],scheduledPayments:[],
+    subscriptions:[],investments:[],shoppingLists:[],
+    profile:{name:'',email:'',photo:''},
+    movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},
+    analysisPeriod:'Mensual',analysisYear:new Date().getFullYear(),
+    exchangeRate:{PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''}
+  };
+  // 2. Limpiar localStorage
+  try{localStorage.removeItem('finanziaState3');}catch(e){}
+  if(includeServer){
+    // 3a. Sobreescribir Supabase con estado vacío → el servidor queda limpio
+    try{
+      window._lastSupabaseSave=0;  // bypass debounce
+      window._supabaseSynced=true; // permitir escritura
+      if(typeof _currentUser!=='undefined'&&_currentUser&&typeof saveUserData==='function'){
+        saveUserData(_currentUser.id,S)
+          .then(function(){console.log('✅ reset guardado en servidor');})
+          .catch(function(e){console.warn('reset server error:',e);});
+      }
+    }catch(e){}
+    toast('App restaurada ✓ (servidor limpiado)');
+  }else{
+    // 3b. Solo local — al reabrir la app sync traerá los datos de vuelta
+    window._supabaseSynced=false;
+    toast('Dispositivo limpiado ✓ (datos en la nube intactos)');
+  }
+  try{refreshCurrencyToggle();}catch(e){}
+  try{navigate('dashboard');}catch(e){}
+  try{updateDrawerProfile();}catch(e){}
 }
 
 // ════════════════════════════════════════════════════════════
