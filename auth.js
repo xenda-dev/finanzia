@@ -253,9 +253,9 @@ async function handleLogin(){
   var email=(document.getElementById('li-email').value||'').trim();
   var pass=(document.getElementById('li-pass').value||'').trim();
   if(!email||!pass){_setError('li','Completa todos los campos');return;}
-  _setError('li',''); _setBusy('li-btn',true,'Entrar');
+  _setError('li',''); _setBusy('li-btn',true,'Iniciar sesión');
   var res=await signIn(email,pass);
-  _setBusy('li-btn',false,'Entrar');
+  _setBusy('li-btn',false,'Iniciar sesión');
   if(!res.ok){_setError('li',res.msg);return;}
   await _afterLogin(res.user);
 }
@@ -417,6 +417,29 @@ function _authMsg(msg){
   if(msg.includes('Email not confirmed'))return{ok:false,msg:'Confirma tu correo antes de entrar'};
   if(msg.includes('rate limit'))return{ok:false,msg:'Demasiados intentos. Espera unos minutos'};
   return{ok:false,msg:msg};
+}
+
+
+// ════════════════════════════════════════════════════════════
+// VALIDACIÓN VISUAL CONTRASEÑA — tiempo real
+// ════════════════════════════════════════════════════════════
+function _authPwCheck(val){
+  var rules=[
+    {id:'pw-r1', ok: val.length>=8},
+    {id:'pw-r2', ok: /[A-Z]/.test(val)},
+    {id:'pw-r3', ok: /[0-9]/.test(val)},
+    {id:'pw-r4', ok: /[^A-Za-z0-9]/.test(val)}
+  ];
+  rules.forEach(function(r){
+    var el=document.getElementById(r.id);
+    if(el) el.classList.toggle('ok', r.ok);
+  });
+}
+
+// Google auth — placeholder (conectar OAuth cuando esté disponible)
+function handleGoogleAuth(){
+  // TODO: implementar Google OAuth con Supabase
+  try{toast('Google próximamente disponible');}catch(e){}
 }
 
 // ════════════════════════════════════════════════════════════
