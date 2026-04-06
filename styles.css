@@ -305,8 +305,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
 /* ── Botón atrás ── */
 .auth-back{
-  width:36px;height:36px;border-radius:50%;
-  background:#F1F5F9;border:none;
+  width:auto;height:auto;border-radius:0;background:none;padding:4px;
+  border:none;
   color:#64748B;display:flex;align-items:center;justify-content:center;
   cursor:pointer;flex-shrink:0;pointer-events:all;
 }
@@ -457,7 +457,3 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .pw-rule.ok .pw-dot{background:transparent}
 
 .auth-btn-google-soon{opacity:.65;cursor:default}
-
-/* ── Splash ── */
-#splash{position:fixed;inset:0;background:#FFFFFF;display:flex;align-items:center;justify-content:center;z-index:99999;pointer-events:none;animation:splashFade .6s forwards}
-@keyframes splashFade{0%{opacity:1}90%{opacity:1}100%{opacity:0;visibility:hidden}}
