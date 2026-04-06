@@ -263,6 +263,10 @@ async function initAuth(){
       var be=document.getElementById('bio-email'); if(be)be.textContent=user.email;
     }else{
       hideAuthScreen(); if(typeof initApp==='function')initApp(); _injectLogoutBtn(user);
+      // Sincronizar desde Supabase al abrir con sesión activa (sin biometría)
+      if(typeof syncFromSupabase==='function'){
+        syncFromSupabase(user.id).catch(function(e){console.warn('sync error en initAuth:',e);});
+      }
     }
   }else{
     showAuthScreen(); _showScreen('login');

@@ -25,6 +25,16 @@ function initApp(){
     if(touchStartX<30&&dx>60)openDrawer();
     if(dx<-60&&document.getElementById('drawer').classList.contains('open'))closeDrawer();
   },{passive:true});
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){
+      try{
+        if(typeof _currentUser!=='undefined'&&_currentUser&&typeof saveUserData==='function'){
+          window._lastSupabaseSave=0; // reset debounce para forzar guardado inmediato
+          saveUserData(_currentUser.id,S).catch(function(e){console.warn('visibility save:',e);});
+        }
+      }catch(e){}
+    }
+  });
 }
 // ════════════════════════════════════════════════════════════
 // ARRANQUE

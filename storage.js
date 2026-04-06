@@ -258,7 +258,7 @@ async function saveUserData(userId,data){
     console.log('☁️ saving to supabase');
     var res=await _supabase
       .from('user_data')
-      .upsert({user_id:userId,data:toSave},{onConflict:'user_id'})
+      .upsert({user_id:userId,data:toSave,updated_at:new Date().toISOString()},{onConflict:'user_id'})
       .select();
     if(res.error){console.warn('saveUserData error:',res.error.message);}
     else{S._lastSync=Date.now();console.log('✅ saved in supabase:',res.data);}
