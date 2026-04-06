@@ -227,8 +227,11 @@ function loadState(){
 function saveState(){
   // localStorage — siempre, síncrono, nunca falla
   try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}
-  // Supabase — background, sin bloquear, con debounce 2s
+  // Supabase — SOLO después de que syncFromSupabase haya completado al menos una vez
+  // Esto evita la race condition donde initApp() guarda datos vacíos antes de recibir
+  // los datos remotos, pisando S._lastSync y bloqueando el sync para siempre.
   try{
+    if(!window._supabaseSynced) return; // ← gate: esperar primer sync
     if(typeof _supabase==='undefined'||!_supabase) return;
     if(typeof _currentUser==='undefined'||!_currentUser) return;
     var now=Date.now();
@@ -258,7 +261,7 @@ async function saveUserData(userId,data){
     console.log('☁️ saving to supabase');
     var res=await _supabase
       .from('user_data')
-      .upsert({user_id:userId,data:toSave,updated_at:new Date().toISOString()},{onConflict:'user_id'})
+      .upsert({user_id:userId,data:toSave},{onConflict:'user_id'})
       .select();
     if(res.error){console.warn('saveUserData error:',res.error.message);}
     else{S._lastSync=Date.now();console.log('✅ saved in supabase:',res.data);}
@@ -284,51 +287,52 @@ async function loadUserData(userId){
 }
 
 async function syncFromSupabase(userId){
+  window._supabaseSynced=false; // bloquear saves durante el proceso de sync
   var remote=await loadUserData(userId);
-  // Validar que haya datos reales antes de hacer merge
+  // Sin datos remotos → usuario nuevo, habilitar saves y salir
   if(!remote||typeof remote!=='object'||Object.keys(remote).length===0){
-    console.warn('syncFromSupabase: sin datos remotos, se mantiene localStorage');
-    window._supabaseSynced=true; // usuario nuevo → habilitar saveState para Supabase
+    console.warn('syncFromSupabase: sin datos remotos, usuario nuevo');
+    window._supabaseSynced=true;
     return;
   }
-  // Comparación de timestamps — omitir si es sesión nueva (localStorage vacío)
   var remoteTs=remote._remoteUpdatedAt||remote._lastSync||0;
   var localTs=S._lastSync||0;
-  var isFreshSession=!S._lastSync;
-  if(isFreshSession){
-    console.log('🌱 sesión nueva → forzar sync');
-  }else if(localTs&&remoteTs&&localTs>remoteTs){
+  // SOLO omitir sync si localStorage tiene datos más recientes Y no es sesión fresca.
+  // Una sesión es "fresca" si S._lastSync está vacío (localStorage limpio o primer login).
+  // NO usar S._lastSync para detectar freshness porque saveUserData() lo puede haber
+  // sobreescrito en la race condition — usar en su lugar un flag capturado ANTES de initApp.
+  var isFreshSession=(localTs===0);
+  if(!isFreshSession&&localTs>remoteTs){
     console.warn('syncFromSupabase: local más reciente (local:'+localTs+' remote:'+remoteTs+'), sync omitido');
+    window._supabaseSynced=true; // habilitar saves aunque no hayamos synced
     return;
   }
+  if(isFreshSession){console.log('🌱 sesión fresca → forzar sync desde servidor');}
   try{
-    // Preservar campos de UI y navegación
     var keepPage=S.currentPage||'dashboard';
     var keepMovFilter=S.movFilter||{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''};
     var keepCatTab=S._catTab||'gasto';
-    // Merge seguro: solo copiar propiedades con contenido válido
     Object.keys(remote).forEach(function(key){
-      if(key==='_remoteUpdatedAt') return; // campo interno, no persistir en S
+      if(key==='_remoteUpdatedAt') return;
       var val=remote[key];
       if(val===null||val===undefined) return;
-      // Array vacío no sobrescribe array con datos
       if(Array.isArray(val)&&val.length===0&&Array.isArray(S[key])&&S[key].length>0) return;
-      // Objeto vacío no sobrescribe objeto con datos
       if(val&&typeof val==='object'&&!Array.isArray(val)&&Object.keys(val).length===0
          &&S[key]&&typeof S[key]==='object'&&Object.keys(S[key]).length>0) return;
       S[key]=val;
     });
-    // Restaurar campos de UI
     S.currentPage=keepPage;
     S.movFilter=keepMovFilter;
     S._catTab=keepCatTab;
     S._lastSync=remoteTs||Date.now();
     try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}
+    console.log('✅ sync aplicado (remoteTs:'+remoteTs+')');
     if(typeof renderPage==='function') renderPage(S.currentPage);
     if(typeof updateDrawerProfile==='function') updateDrawerProfile();
     if(typeof refreshCurrencyToggle==='function') refreshCurrencyToggle();
-    console.log('☁️ sync applied (remoteTs:'+remoteTs+')');
   }catch(e){console.warn('syncFromSupabase merge error:',e);}
+  // Habilitar saves a Supabase SIEMPRE al final, éxito o no
+  window._supabaseSynced=true;
 }
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
 // Number inputs: format with thousand separator on display, parse on use
