@@ -5969,6 +5969,7 @@ function resetApp(){
 function _doFullReset(includeServer){
   try{_testAnswers={};}catch(e){}
   var currentTheme=S.theme||'auto';
+  var resetTs=Date.now();
   S={
     currency:'',currentPage:'dashboard',theme:currentTheme,
     language:'',weekStart:'',currencies:[],
@@ -5980,23 +5981,24 @@ function _doFullReset(includeServer){
     profile:{name:'',email:'',photo:''},
     movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},
     analysisPeriod:'Mensual',analysisYear:new Date().getFullYear(),
-    exchangeRate:{PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''}
+    exchangeRate:{PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''},
+    _resetAt:resetTs  // ← señal para otros dispositivos: "esto fue un reset intencional"
   };
   try{localStorage.removeItem('finanziaState3');}catch(e){}
   if(includeServer){
     try{
-      window._lastSupabaseSave=0;
-      window._supabaseSynced=true;
+      window._lastSupabaseSave=0;  // bypass debounce
+      window._supabaseSynced=true; // permitir escritura inmediata
       if(typeof _currentUser!=='undefined'&&_currentUser&&typeof saveUserData==='function'){
         saveUserData(_currentUser.id,S)
-          .then(function(){console.log('✅ reset guardado en servidor');})
+          .then(function(){console.log('✅ reset guardado en servidor (resetAt:'+resetTs+')');})
           .catch(function(e){console.warn('reset server error:',e);});
       }
     }catch(e){}
-    toast('App restaurada ✓ (servidor limpiado)');
+    toast('App restaurada ✓');
   }else{
     window._supabaseSynced=false;
-    toast('Dispositivo limpiado ✓ (datos en la nube intactos)');
+    toast('Dispositivo limpiado ✓');
   }
   try{refreshCurrencyToggle();}catch(e){}
   try{navigate('dashboard');}catch(e){}

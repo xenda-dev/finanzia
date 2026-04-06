@@ -355,6 +355,11 @@ async function syncFromSupabase(userId){
     return;
   }
   if(isFreshSession){console.log('🌱 sesión fresca → forzar sync desde servidor');}
+  // Detectar reset intencional: _resetAt remoto más reciente que el local
+  var remoteResetAt=remote._resetAt||0;
+  var localResetAt=S._resetAt||0;
+  var isReset=(remoteResetAt>localResetAt);
+  if(isReset){console.log('🗑️ reset remoto detectado → forzar limpieza total');}
   try{
     var keepPage=S.currentPage||'dashboard';
     var keepMovFilter=S.movFilter||{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''};
@@ -367,19 +372,29 @@ async function syncFromSupabase(userId){
 
       // ── Arrays con IDs → merge inteligente ──────────────────
       if(MERGE_BY_ID_KEYS.indexOf(key)!==-1&&Array.isArray(val)){
-        // Array remoto vacío: no destruir datos locales existentes
-        if(val.length===0&&Array.isArray(S[key])&&S[key].length>0) return;
+        // Array vacío remoto: ignorar SALVO que sea un reset intencional
+        if(val.length===0&&Array.isArray(S[key])&&S[key].length>0){
+          if(!isReset) return; // protección normal anti-pérdida
+          S[key]=[]; // reset intencional → forzar vacío
+          return;
+        }
         console.log('🔀 merging:',key,'(local:'+((S[key]||[]).length)+' remote:'+val.length+')');
         S[key]=mergeById(S[key]||[],val);
         return;
       }
 
       // ── Arrays genéricos (sin id) → regla original ──────────
-      if(Array.isArray(val)&&val.length===0&&Array.isArray(S[key])&&S[key].length>0) return;
+      if(Array.isArray(val)&&val.length===0&&Array.isArray(S[key])&&S[key].length>0){
+        if(!isReset) return;
+        S[key]=[];
+        return;
+      }
 
-      // ── Objetos vacíos → no sobrescribir ────────────────────
+      // ── Objetos vacíos → no sobrescribir (salvo reset) ───────
       if(val&&typeof val==='object'&&!Array.isArray(val)&&Object.keys(val).length===0
-         &&S[key]&&typeof S[key]==='object'&&Object.keys(S[key]).length>0) return;
+         &&S[key]&&typeof S[key]==='object'&&Object.keys(S[key]).length>0){
+        if(!isReset) return;
+      }
 
       S[key]=val;
     });
