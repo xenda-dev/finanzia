@@ -254,8 +254,14 @@ async function saveUserData(userId,data){
   delete toSave.currentPage;
   delete toSave._catTab;
   delete toSave.movFilter;
-  // _lastSync es solo del cliente — updated_at de Supabase es la fuente de verdad del servidor
+  // _lastSync es solo del cliente
   delete toSave._lastSync;
+  // Campos de estado UI — no tienen sentido en otro dispositivo
+  delete toSave._fcData;       // formulario de cuenta a medio llenar
+  delete toSave._viewAccId;    // cuenta siendo visualizada
+  delete toSave._cuentasGrupo; // grupo activo en pantalla cuentas
+  delete toSave._navHistory;   // historial de navegación
+  delete toSave._testAnswers;  // respuestas test salud financiera
   // Actualizar _lastSync local SOLO si el upsert fue exitoso
   try{
     console.log('☁️ saving to supabase');
