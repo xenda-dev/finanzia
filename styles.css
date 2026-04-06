@@ -322,6 +322,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
   padding:24px 16px 8px;
   width:100%;max-width:420px;margin:0 auto;
+  text-align:center;
 }
 
 /* Centrado para verify */
@@ -342,7 +343,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 }
 
 /* ── Campos ── */
-.auth-field{margin-bottom:16px}
+.auth-field{margin-bottom:16px;text-align:left}
 
 .auth-label{
   display:block;font-size:11px;font-weight:700;
