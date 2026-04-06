@@ -286,6 +286,57 @@ async function loadUserData(userId){
   }catch(e){console.warn('loadUserData exception:',e); return null;}
 }
 
+// ════════════════════════════════════════════════════════════
+// MERGE POR ID — para arrays con elementos identificables
+// ════════════════════════════════════════════════════════════
+function mergeById(localArr, remoteArr){
+  // Garantías de tipo
+  if(!Array.isArray(localArr)) localArr=[];
+  if(!Array.isArray(remoteArr)) remoteArr=[];
+
+  // Índice: id → elemento, para acceso O(1)
+  var localMap={};
+  localArr.forEach(function(item){
+    if(item&&item.id!=null) localMap[item.id]=item;
+  });
+  var remoteMap={};
+  remoteArr.forEach(function(item){
+    if(item&&item.id!=null) remoteMap[item.id]=item;
+  });
+
+  // Unión de todos los IDs encontrados
+  var allIds=Object.keys(Object.assign({},localMap,remoteMap));
+
+  var merged=allIds.map(function(id){
+    var local=localMap[id];
+    var remote=remoteMap[id];
+
+    // Solo existe en uno de los dos → tomar el que existe
+    if(!local) return remote;
+    if(!remote) return local;
+
+    // Existe en ambos → resolver con updated_at si está disponible
+    var localTs=local.updated_at?new Date(local.updated_at).getTime():0;
+    var remoteTs=remote.updated_at?new Date(remote.updated_at).getTime():0;
+
+    if(localTs>0||remoteTs>0){
+      // Al menos uno tiene timestamp → gana el más reciente
+      return localTs>=remoteTs?local:remote;
+    }
+    // Sin timestamps → priorizar remoto (fuente de verdad del servidor)
+    return remote;
+  });
+
+  // Eliminar posibles nulos (defensivo)
+  return merged.filter(Boolean);
+}
+
+// Arrays que deben mergearse por id en lugar de sobrescribirse
+var MERGE_BY_ID_KEYS=[
+  'transactions','accounts','subscriptions',
+  'budgets','goals','categories','subcategories','scheduledPayments','shoppingLists','investments'
+];
+
 async function syncFromSupabase(userId){
   window._supabaseSynced=false; // bloquear saves durante el proceso de sync
   var remote=await loadUserData(userId);
@@ -297,14 +348,10 @@ async function syncFromSupabase(userId){
   }
   var remoteTs=remote._remoteUpdatedAt||remote._lastSync||0;
   var localTs=S._lastSync||0;
-  // SOLO omitir sync si localStorage tiene datos más recientes Y no es sesión fresca.
-  // Una sesión es "fresca" si S._lastSync está vacío (localStorage limpio o primer login).
-  // NO usar S._lastSync para detectar freshness porque saveUserData() lo puede haber
-  // sobreescrito en la race condition — usar en su lugar un flag capturado ANTES de initApp.
   var isFreshSession=(localTs===0);
   if(!isFreshSession&&localTs>remoteTs){
     console.warn('syncFromSupabase: local más reciente (local:'+localTs+' remote:'+remoteTs+'), sync omitido');
-    window._supabaseSynced=true; // habilitar saves aunque no hayamos synced
+    window._supabaseSynced=true;
     return;
   }
   if(isFreshSession){console.log('🌱 sesión fresca → forzar sync desde servidor');}
@@ -312,26 +359,44 @@ async function syncFromSupabase(userId){
     var keepPage=S.currentPage||'dashboard';
     var keepMovFilter=S.movFilter||{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''};
     var keepCatTab=S._catTab||'gasto';
+
     Object.keys(remote).forEach(function(key){
       if(key==='_remoteUpdatedAt') return;
       var val=remote[key];
       if(val===null||val===undefined) return;
+
+      // ── Arrays con IDs → merge inteligente ──────────────────
+      if(MERGE_BY_ID_KEYS.indexOf(key)!==-1&&Array.isArray(val)){
+        // Array remoto vacío: no destruir datos locales existentes
+        if(val.length===0&&Array.isArray(S[key])&&S[key].length>0) return;
+        console.log('🔀 merging:',key,'(local:'+((S[key]||[]).length)+' remote:'+val.length+')');
+        S[key]=mergeById(S[key]||[],val);
+        return;
+      }
+
+      // ── Arrays genéricos (sin id) → regla original ──────────
       if(Array.isArray(val)&&val.length===0&&Array.isArray(S[key])&&S[key].length>0) return;
+
+      // ── Objetos vacíos → no sobrescribir ────────────────────
       if(val&&typeof val==='object'&&!Array.isArray(val)&&Object.keys(val).length===0
          &&S[key]&&typeof S[key]==='object'&&Object.keys(S[key]).length>0) return;
+
       S[key]=val;
     });
+
     S.currentPage=keepPage;
     S.movFilter=keepMovFilter;
     S._catTab=keepCatTab;
     S._lastSync=remoteTs||Date.now();
     try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}
+    // Bloquear save a Supabase 3s — datos vienen DE allí, guardar de vuelta genera loop Realtime
+    window._lastSupabaseSave=Date.now()+3000;
     console.log('✅ sync aplicado (remoteTs:'+remoteTs+')');
     if(typeof renderPage==='function') renderPage(S.currentPage);
     if(typeof updateDrawerProfile==='function') updateDrawerProfile();
     if(typeof refreshCurrencyToggle==='function') refreshCurrencyToggle();
   }catch(e){console.warn('syncFromSupabase merge error:',e);}
-  // Habilitar saves a Supabase SIEMPRE al final, éxito o no
+  // Habilitar saves SIEMPRE al final, éxito o no
   window._supabaseSynced=true;
 }
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
