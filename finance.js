@@ -305,7 +305,7 @@ function getBalance(accountId){
     acc.subAccounts.forEach(s=>bal+=(parseFloat(s.balance)||0));
   }
   const isPasivo=acc.type==='pasivo';
-  S.transactions.filter(t=>t.currency===(acc.currency||S.currency)).forEach(t=>{
+  filterDeleted(S.transactions).filter(t=>t.currency===(acc.currency||S.currency)).forEach(t=>{
     const amt=parseFloat(t.amount)||0;
     if(t.type==='transferencia'){
       // Transfers: each side handled exactly once
@@ -328,11 +328,12 @@ function getBalance(accountId){
   return bal;
 }
 function getTotalBalance(){
-  return S.accounts.filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency&&!a.excludeFromTotal).reduce((s,a)=>s+getBalance(a.id),0);
+  return filterDeleted(S.accounts).filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency&&!a.excludeFromTotal).reduce((s,a)=>s+getBalance(a.id),0);
 }
 function getNetWorth(){
-  const assets=S.accounts.filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency&&!a.excludeFromTotal).reduce((s,a)=>s+getBalance(a.id),0);
-  const liabilities=S.accounts.filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency&&!a.excludeFromTotal).reduce((s,a)=>s+Math.abs(getBalance(a.id)),0);
+  const _fa=filterDeleted(S.accounts);
+  const assets=_fa.filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency&&!a.excludeFromTotal).reduce((s,a)=>s+getBalance(a.id),0);
+  const liabilities=_fa.filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency&&!a.excludeFromTotal).reduce((s,a)=>s+Math.abs(getBalance(a.id)),0);
   return{assets,liabilities,net:assets-liabilities};
 }
 
@@ -379,7 +380,7 @@ function getPeriodRange(period){
 function getMonthTotals(period){
   period=period||'Mensual';
   const{from,to}=getPeriodRange(period);
-  const txs=S.transactions.filter(t=>{
+  const txs=filterDeleted(S.transactions).filter(t=>{
     const d=new Date(t.date);
     return t.currency===S.currency&&d>=from&&d<=to;
   });
@@ -405,7 +406,7 @@ function getMonthTotals(period){
 
 function getBudgetSpent(b){
   const now=new Date();
-  return S.transactions.filter(t=>t.type==='gasto'&&t.categoryId===b.categoryId&&
+  return filterDeleted(S.transactions).filter(t=>t.type==='gasto'&&t.categoryId===b.categoryId&&
     (!b.subcategoryId||t.subcategoryId===b.subcategoryId)&&
     t.currency===(b.currency||S.currency)&&
     (()=>{const d=new Date(t.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();})()
@@ -421,13 +422,13 @@ function daysUntil(dateStr){
 function todayStr(){return new Date().toISOString().split('T')[0];}
 
 function subOptions(catId,selSubId){
-  const subs=S.subcategories.filter(s=>s.categoryId===catId);
+  const subs=filterDeleted(S.subcategories).filter(s=>s.categoryId===catId);
   return '<option value="">Sin subcategoría</option>'+subs.map(s=>`<option value="${s.id}" ${s.id===selSubId?'selected':''}>${s.icon} ${s.name}</option>`).join('');
 }
 function updateSubs(catId,targetId,selectedSubId){
   const el=document.getElementById(targetId);if(el)el.innerHTML=subOptions(catId,selectedSubId||'');
 }function catOptions(type,selectedId){
-  let cats=S.categories;
+  let cats=filterDeleted(S.categories);
   if(type==='gasto')cats=cats.filter(c=>c.type!=='ingreso');
   if(type==='ingreso')cats=cats.filter(c=>c.type!=='gasto');
   return '<option value="">Categoría</option>'+cats.map(c=>`<option value="${c.id}" ${c.id===selectedId?'selected':''}>${c.icon} ${c.name}</option>`).join('');
@@ -447,7 +448,7 @@ function renderRule502030(){
   </div>`;
 
   // Classify transactions by nature
-  const txs=S.transactions.filter(t=>{
+  const txs=filterDeleted(S.transactions).filter(t=>{
     const d=new Date(t.date);const now=new Date();
     return t.currency===S.currency&&t.type==='gasto'&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
   });

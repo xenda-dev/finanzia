@@ -262,22 +262,29 @@ async function saveUserData(userId,data){
   delete toSave._cuentasGrupo; // grupo activo en pantalla cuentas
   delete toSave._navHistory;   // historial de navegación
   delete toSave._testAnswers;  // respuestas test salud financiera
-  // Actualizar _lastSync local SOLO si el upsert fue exitoso
+  // Blindaje final: garantizar updated_at en todos los items antes de persistir
+  var _STAMP_KEYS2=['transactions','accounts','subscriptions','budgets','goals',
+    'categories','subcategories','scheduledPayments','shoppingLists','investments'];
+  _STAMP_KEYS2.forEach(function(k){
+    if(Array.isArray(toSave[k])){
+      toSave[k]=toSave[k].map(function(item){return ensureStamped(item);});
+    }
+  });
   try{
-    console.log('☁️ saving to supabase');
+    var _now=new Date().toISOString();
     var res=await _supabase
       .from('user_data')
-      .upsert({user_id:userId,data:toSave},{onConflict:'user_id'})
+      .upsert({user_id:userId,data:toSave,updated_at:_now},{onConflict:'user_id'})
       .select();
-    if(res.error){console.warn('saveUserData error:',res.error.message);}
-    else{S._lastSync=Date.now();console.log('✅ saved in supabase:',res.data);}
-  }catch(e){console.warn('saveUserData exception:',e);}
+    if(res.error){console.warn('☁️ save error:',res.error.message);}
+    else{S._lastSync=Date.now();console.log('☁️ saved ✓');}
+  }catch(e){console.warn('☁️ save exception:',e);}
 }
 
 async function loadUserData(userId){
   if(typeof _supabase==='undefined'||!_supabase) return null;
   try{
-    console.log('☁️ loading from supabase');
+    // loading from supabase
     var res=await _supabase
       .from('user_data')
       .select('data, updated_at')
@@ -318,10 +325,14 @@ function mergeById(localArr, remoteArr){
     var remote=remoteMap[id];
 
     // Solo existe en uno de los dos → tomar el que existe
-    if(!local) return remote;
-    if(!remote) return local;
+    if(!local) return ensureStamped(remote);
+    if(!remote) return ensureStamped(local);
 
-    // Existe en ambos → resolver con updated_at si está disponible
+    // Blindaje: garantizar updated_at antes de comparar
+    local=ensureStamped(local);
+    remote=ensureStamped(remote);
+
+    // Existe en ambos → resolver con updated_at
     var localTs=local.updated_at?new Date(local.updated_at).getTime():0;
     var remoteTs=remote.updated_at?new Date(remote.updated_at).getTime():0;
 
@@ -334,6 +345,8 @@ function mergeById(localArr, remoteArr){
   });
 
   // Eliminar posibles nulos (defensivo)
+  // Nota: items con deleted:true se mantienen para propagación de soft-delete entre dispositivos.
+  // La UI los filtrará cuando se implemente la vista correspondiente.
   return merged.filter(Boolean);
 }
 
@@ -356,16 +369,22 @@ async function syncFromSupabase(userId){
   var localTs=S._lastSync||0;
   var isFreshSession=(localTs===0);
   if(!isFreshSession&&localTs>remoteTs){
-    console.warn('syncFromSupabase: local más reciente (local:'+localTs+' remote:'+remoteTs+'), sync omitido');
+    console.log('⏭️ sync omitido: local más reciente');
     window._supabaseSynced=true;
     return;
   }
-  if(isFreshSession){console.log('🌱 sesión fresca → forzar sync desde servidor');}
+  // Sin cambios reales desde el último sync — evitar merge/render innecesario
+  if(!isFreshSession&&remoteTs===localTs){
+    console.log('⏭️ sync omitido: sin cambios');
+    window._supabaseSynced=true;
+    return;
+  }
+  if(isFreshSession){console.log('🌱 sesión fresca → sync forzado');}
   // Detectar reset intencional: _resetAt remoto más reciente que el local
   var remoteResetAt=remote._resetAt||0;
   var localResetAt=S._resetAt||0;
   var isReset=(remoteResetAt>localResetAt);
-  if(isReset){console.log('🗑️ reset remoto detectado → forzar limpieza total');}
+  if(isReset){console.log('🗑️ reset remoto detectado');}
   try{
     var keepPage=S.currentPage||'dashboard';
     var keepMovFilter=S.movFilter||{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''};
@@ -384,8 +403,9 @@ async function syncFromSupabase(userId){
           S[key]=[]; // reset intencional → forzar vacío
           return;
         }
-        console.log('🔀 merging:',key,'(local:'+((S[key]||[]).length)+' remote:'+val.length+')');
+        var _prev=(S[key]||[]).length;
         S[key]=mergeById(S[key]||[],val);
+        if(_prev!==S[key].length) console.log('🔀',key+':',_prev,'→',S[key].length);
         return;
       }
 
@@ -412,7 +432,7 @@ async function syncFromSupabase(userId){
     try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}
     // Bloquear save a Supabase 3s — datos vienen DE allí, guardar de vuelta genera loop Realtime
     window._lastSupabaseSave=Date.now()+3000;
-    console.log('✅ sync aplicado (remoteTs:'+remoteTs+')');
+    console.log('✅ sync aplicado',new Date(remoteTs).toLocaleTimeString());
     if(typeof renderPage==='function') renderPage(S.currentPage);
     if(typeof updateDrawerProfile==='function') updateDrawerProfile();
     if(typeof refreshCurrencyToggle==='function') refreshCurrencyToggle();
@@ -421,4 +441,42 @@ async function syncFromSupabase(userId){
   window._supabaseSynced=true;
 }
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
+
+// ════════════════════════════════════════════════════════════
+// HELPERS SaaS — updated_at y soft delete
+// ════════════════════════════════════════════════════════════
+
+// Sella un item con updated_at actual (usar al crear o modificar)
+function stampItem(item){
+  if(!item) return item;
+  return Object.assign({},item,{updated_at:new Date().toISOString()});
+}
+
+// Garantiza updated_at en cualquier item — blindaje ante olvidos futuros
+function ensureStamped(item){
+  if(!item) return item;
+  if(!item.updated_at){
+    console.warn('⚠️ item sin updated_at → auto-fix',item.id||item);
+    return stampItem(item);
+  }
+  return item;
+}
+
+// Soft delete: marca item como eliminado en lugar de borrarlo físicamente
+// Uso: S.transactions = softDelete(S.transactions, id);  saveState();
+function softDelete(arr, id){
+  if(!Array.isArray(arr)) return arr;
+  return arr.map(function(item){
+    if(item&&item.id===id){
+      return Object.assign({},item,{deleted:true,updated_at:new Date().toISOString()});
+    }
+    return item;
+  });
+}
+
+// Filtra items eliminados para render (usar en UI cuando se implemente)
+function filterDeleted(arr){
+  if(!Array.isArray(arr)) return arr||[];
+  return arr.filter(function(item){return !item||!item.deleted;});
+}
 // Number inputs: format with thousand separator on display, parse on use
