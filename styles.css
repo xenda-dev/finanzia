@@ -279,6 +279,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   flex-shrink:0;
   padding:max(env(safe-area-inset-top),20px) 24px 16px;
   background:#F8FAFC;
+  position:relative;display:flex;align-items:center;justify-content:center;
 }
 
 /* Header con solo logo */
@@ -290,7 +291,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
 /* Header con navegación (back + title) */
 .auth-top-nav{
-  display:flex;align-items:center;justify-content:space-between;
+  position:relative;display:flex;align-items:center;justify-content:center;
   padding-top:max(env(safe-area-inset-top),14px);
   padding-bottom:14px;
   border-bottom:1px solid #F1F5F9;
@@ -314,14 +315,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 /* ── Título de nav ── */
 .auth-nav-title{
   font-size:16px;font-weight:700;color:#0F172A;
-  position:absolute;left:50%;transform:translateX(-50%);
 }
-.auth-top-nav{position:relative}
 
 /* ── Contenido scrollable ── */
 .auth-body{
   flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
-  padding:24px 24px 8px;
+  padding:24px 16px 8px;
   width:100%;max-width:420px;margin:0 auto;
 }
 
