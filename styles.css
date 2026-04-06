@@ -447,8 +447,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   font-weight:500;
 }
 .pw-rule.ok{color:#10B981}
+.pw-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:#CBD5E1;flex-shrink:0;transition:.2s;
+}
+.pw-rule.ok .pw-dot{background:#10B981}
+/* Reemplaza el dot por checkmark cuando ok */
+.pw-rule.ok .pw-dot::after{content:'✓';font-size:11px;font-weight:700;color:#10B981;position:relative;top:-1px;left:-1px}
+.pw-rule.ok .pw-dot{background:transparent}
 
-.auth-btn-google-soon{opacity:.65;cursor:default;pointer-events:none}
-.pw-icon{width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:12px;border-radius:50%;background:#CBD5E1;color:white;flex-shrink:0;transition:.2s}
-.pw-rule.ok .pw-icon{background:#10B981}
-.pw-rule.ok .pw-icon::before{content:'✓';font-weight:700}
+.auth-btn-google-soon{opacity:.65;cursor:default}
+
+/* ── Splash ── */
+#splash{position:fixed;inset:0;background:#FFFFFF;display:flex;align-items:center;justify-content:center;z-index:99999;pointer-events:none;animation:splashFade .6s forwards}
+@keyframes splashFade{0%{opacity:1}90%{opacity:1}100%{opacity:0;visibility:hidden}}
