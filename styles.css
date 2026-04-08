@@ -479,6 +479,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 #auth-register .auth-bottom{margin-top:12px;padding-top:8px;padding-bottom:max(env(safe-area-inset-bottom),16px)}
 #auth-register .auth-register-subtitle{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:0}
 #auth-register .auth-register-logo{margin-bottom:4px}
+#auth-register .auth-field:first-of-type{margin-top:10px}
 
 /* ── Recover spacing ── */
 .auth-recover-body .auth-title{font-size:18px;white-space:nowrap;margin-top:12px}
