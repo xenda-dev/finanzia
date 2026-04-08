@@ -473,10 +473,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
 /* ── Register sin scroll ── */
 #auth-register{overflow:hidden}
-#auth-register .auth-body{overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;height:100%;padding-top:24px;padding-bottom:12px;gap:14px}
+#auth-register .auth-body{display:flex;flex-direction:column;justify-content:flex-start;padding-top:20px;padding-bottom:8px;gap:12px}
 #auth-register .auth-field{margin-bottom:2px}
 #auth-register .pw-rules{padding:12px 14px;gap:6px}
-#auth-register .auth-bottom{margin-top:auto;padding-top:12px}
+#auth-register .auth-bottom{margin-top:20px;padding-top:12px}
 
 /* ── Recover spacing ── */
 .auth-recover-body .auth-title{font-size:18px;white-space:nowrap;margin-top:12px}
