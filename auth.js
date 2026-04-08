@@ -442,19 +442,22 @@ function handleGoogleAuth(){
 function _showWelcomeScreen(user){
   var name = '';
   try{
-    if(typeof S !== 'undefined' && S.profile && S.profile.name && S.profile.name.trim()){
-      name = S.profile.name.trim();
-    } else if(user && user.email){
-      name = user.email.split('@')[0];
-    }
-  }catch(e){}
+    name = (user && user.user_metadata && user.user_metadata.name)
+      || (user && user.email ? user.email.split('@')[0] : '')
+      || 'Usuario';
+  }catch(e){ name = 'Usuario'; }
   var el = document.getElementById('auth-welcome-name');
-  if(el) el.textContent = 'Hola, ' + (name || 'de nuevo') + ' 👋';
+  if(el) el.textContent = 'Hola, ' + name + ' 👋';
   _showScreen('welcome');
 }
 
-function _startBioFromWelcome(){
-  _showBioSheet(_currentUser);
+async function _startBioFromWelcome(){
+  var user = _currentUser;
+  if(!user){
+    try{ user = await getCurrentUser(); _currentUser = user; }catch(e){}
+  }
+  if(!user){ showAuthScreen(); _showScreen('login'); return; }
+  _showBioSheet(user);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -483,6 +486,8 @@ async function initAuth(){
       }
     }
   }else{
+    localStorage.removeItem('_bioEnabled');
+    localStorage.removeItem('_bioCredId');
     showAuthScreen(); _showScreen('login');
   }
 }
