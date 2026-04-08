@@ -1,6 +1,44 @@
 // ════════════════════════════════════════════════════════════
-// EXCHANGE RATE
+// EXCHANGE RATE — CACHE + FETCH
 // ════════════════════════════════════════════════════════════
+function _fxKey(base){ return 'fx_rates_' + base; }
+
+function _getFxCache(base){
+  try{ return JSON.parse(localStorage.getItem(_fxKey(base))) || null; }catch(e){ return null; }
+}
+function _setFxCache(base, data){
+  try{ localStorage.setItem(_fxKey(base), JSON.stringify({base, data, timestamp:Date.now()})); }catch(e){}
+}
+function _isFxCacheValid(cache){
+  if(!cache) return false;
+  var ONE_HOUR = 60 * 60 * 1000;
+  return (Date.now() - cache.timestamp) < ONE_HOUR;
+}
+
+async function getExchangeRates(base){
+  var cache = _getFxCache(base);
+  // 1. cache válido (< 1 hora)
+  if(cache && cache.base === base && _isFxCacheValid(cache)){
+    return {rates: cache.data, fromCache: false};
+  }
+  // 2. intentar API
+  try{
+    var res = await fetch('https://open.er-api.com/v6/latest/' + base);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    var json = await res.json();
+    if(json && json.rates){
+      _setFxCache(base, json.rates);
+      return {rates: json.rates, fromCache: false};
+    }
+  }catch(e){ console.warn('FX fetch failed', e); }
+  // 3. fallback a cache viejo
+  if(cache && cache.base === base){
+    return {rates: cache.data, fromCache: true};
+  }
+  // 4. último recurso
+  return {rates: {}, fromCache: false};
+}
+
 async function fetchExchangeRate(){
   try{
     const curs=S.currencies||[];
@@ -10,14 +48,13 @@ async function fetchExchangeRate(){
       return;
     }
     const base=curs[0];
-    const r=await fetch(`https://open.er-api.com/v6/latest/${base}`);
-    if(!r.ok)throw new Error();
-    const d=await r.json();
-    if(d.rates){
+    const result = await getExchangeRates(base);
+    if(result.rates && Object.keys(result.rates).length){
       if(!S.exchangeRate)S.exchangeRate={};
       S.exchangeRate.base=base;
-      S.exchangeRate.rates=d.rates;
+      S.exchangeRate.rates=result.rates;
       S.exchangeRate.lastUpdated=new Date().toLocaleString('es');
+      S.exchangeRate._fromStaleCache=result.fromCache;
       saveState();
       const el=document.getElementById('exchange-widget');
       if(el)renderExchangeWidget(el);
@@ -66,7 +103,7 @@ function renderExchangeWidget(el){
       <span style="font-size:12px;color:var(--text)">1 <strong>${cur1}</strong> = <strong style="color:var(--primary)">${r1str} ${cur2}</strong></span>
       <span style="font-size:10px;color:var(--text3);margin-left:4px">(1 ${cur2} = ${r2str} ${cur1})</span>
     </div>
-    <div class="exchange-widget-time">${r.lastUpdated?'🕐 '+r.lastUpdated:'⏳ Sin datos'}</div>`;
+    <div class="exchange-widget-time">${r.lastUpdated?'🕐 '+r.lastUpdated:'⏳ Sin datos'}${r._fromStaleCache?' · <span style="color:var(--warning);font-size:10px">Última tasa disponible</span>':''}</div>`;
 }
 
 // ════════════════════════════════════════════════════════════
