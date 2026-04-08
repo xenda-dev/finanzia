@@ -442,12 +442,13 @@ function handleGoogleAuth(){
 function _showWelcomeScreen(user){
   var name = '';
   try{
-    name = (user && user.user_metadata && user.user_metadata.name)
+    name = (typeof S !== 'undefined' && S && S.profile && S.profile.name && S.profile.name.trim())
+      || (user && user.user_metadata && user.user_metadata.name)
       || (user && user.email ? user.email.split('@')[0] : '')
       || 'Usuario';
   }catch(e){ name = 'Usuario'; }
   var el = document.getElementById('auth-welcome-name');
-  if(el) el.textContent = 'Hola, ' + name + ' 👋';
+  if(el) el.textContent = 'Hola, ' + name;
   _showScreen('welcome');
 }
 
