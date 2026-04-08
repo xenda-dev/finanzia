@@ -137,11 +137,14 @@ async function _handleBioSheetUnlock(){
 
   if(ok){
     _closeBioSheet();
-    // Inicializar app SOLO tras autenticación exitosa
+    var user = _currentUser;
+    if(!user){ try{ user = await getCurrentUser(); _currentUser = user; }catch(e){} }
     if(typeof initApp==='function') initApp();
-    _injectLogoutBtn(_currentUser);
-    if(_currentUser && typeof safeSync === 'function'){
-      safeSync(_currentUser.id).catch(function(e){ console.warn('sync error:',e); });
+    if(user){
+      _injectLogoutBtn(user);
+      if(typeof safeSync === 'function'){
+        safeSync(user.id).catch(function(e){ console.warn('sync error:',e); });
+      }
     }
   }else{
     if(btn){ btn.disabled = false; btn.textContent = '🔓 Usar huella / Face ID'; }
@@ -457,7 +460,12 @@ async function _startBioFromWelcome(){
   if(!user){
     try{ user = await getCurrentUser(); _currentUser = user; }catch(e){}
   }
-  if(!user){ showAuthScreen(); _showScreen('login'); return; }
+  if(!user || !user.id){ showAuthScreen(); _showScreen('login'); return; }
+  if(!_isBioEnabled()){
+    hideAuthScreen();
+    if(typeof initApp==='function') initApp();
+    return;
+  }
   _showBioSheet(user);
 }
 
@@ -475,7 +483,6 @@ async function initAuth(){
   if(user){
     _currentUser=user;
     if(_isBioEnabled()){
-      // Mostrar pantalla de bienvenida — bio sheet se abre al presionar botón
       showAuthScreen();
       _showWelcomeScreen(user);
     }else{
