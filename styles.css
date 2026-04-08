@@ -475,6 +475,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 #auth-register .auth-body{overflow:hidden;padding-top:16px;padding-bottom:8px}
 #auth-register .pw-rules{padding:10px 12px;gap:4px}
 #auth-register .auth-field{margin-bottom:12px}
+#auth-register{overflow:hidden}
+#auth-register .auth-body{overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;height:100%}
+#auth-register .auth-field{margin-bottom:10px}
+#auth-register .pw-rules{margin-top:6px;padding:8px 10px}
+
+/* ── Recover title una línea ── */
+.auth-recover-body .auth-title{font-size:18px;white-space:nowrap}
 .auth-register-logo{margin-bottom:6px}
 .auth-register-subtitle{margin-top:4px}
 .auth-recover-logo{margin-bottom:6px}
