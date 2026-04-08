@@ -481,9 +481,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 #auth-register .auth-field:first-of-type{margin-top:10px}
 
 /* ── Recover spacing ── */
-.auth-recover-body .auth-title{font-size:18px;white-space:nowrap;margin-top:12px}
+.auth-recover-body .auth-title{font-size:18px;white-space:nowrap;margin-top:8px}
 .auth-recover-body .auth-subtitle{margin-top:6px}
 .auth-recover-logo{margin-bottom:24px}
+.auth-recover-icon{font-size:28px;margin-bottom:10px;opacity:.9}
 
 /* ── Register marca y subtítulo ── */
 .auth-register-logo{margin-bottom:6px}
