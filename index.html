@@ -47,7 +47,7 @@
         <label class="auth-label">Contraseña</label>
         <div class="auth-input-wrap">
           <input id="li-pass" type="password" autocomplete="current-password" placeholder="Tu contraseña"
-            onkeydown="authKey(event,'handleLogin')" class="auth-input" style="padding-right:48px">
+            onkeydown="authKey(event,'handleLogin')" class="auth-input auth-input-with-icon">
           <button id="li-eye" onclick="togglePass('li-pass','li-eye')" class="auth-eye">👁️</button>
         </div>
       </div>
@@ -73,16 +73,15 @@
       <button onclick="goToLogin()" class="auth-back">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <span class="auth-nav-title">Crear cuenta</span>
       <div style="width:36px"></div>
     </div>
 
     <div class="auth-body">
-      <div class="auth-logo-row" style="margin-bottom:6px">
+      <div class="auth-logo-row auth-register-logo">
         <img src="icon-192.png" class="auth-logo-icon" alt="FinanzIA">
         <span class="auth-logo-text">Finanz<span>IA</span></span>
       </div>
-      <p class="auth-subtitle" style="margin-top:4px">Estás a un paso de tomar el control de tus finanzas 🎯</p>
+      <p class="auth-subtitle auth-register-subtitle">Estás a un paso de tomar el control de tus finanzas 🎯</p>
 
       <div class="auth-field">
         <label class="auth-label">Correo</label>
@@ -93,7 +92,7 @@
         <label class="auth-label">Contraseña</label>
         <div class="auth-input-wrap">
           <input id="rg-pass" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres"
-            oninput="_authPwCheck(this.value)" class="auth-input" style="padding-right:48px">
+            oninput="_authPwCheck(this.value)" class="auth-input auth-input-with-icon">
           <button id="rg-eye" onclick="togglePass('rg-pass','rg-eye')" class="auth-eye">👁️</button>
         </div>
         <div class="pw-rules" id="pw-rules">
@@ -140,11 +139,11 @@
     </div>
 
     <div class="auth-body auth-recover-body">
-      <div class="auth-logo-row" style="margin-bottom:6px">
+      <div class="auth-logo-row auth-recover-logo">
         <img src="icon-192.png" class="auth-logo-icon" alt="FinanzIA">
         <span class="auth-logo-text">Finanz<span>IA</span></span>
       </div>
-      <div style="font-size:52px;margin:8px 0 16px">🔑</div>
+      <h2 class="auth-title">No te preocupes, a todos nos pasa</h2>
       <p class="auth-subtitle">Ingresa tu correo y te enviaremos un enlace para recuperar tu acceso.</p>
 
       <div class="auth-field">
