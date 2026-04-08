@@ -146,8 +146,8 @@ async function _handleBioSheetUnlock(){
     // Inicializar app SOLO tras autenticación exitosa
     if(typeof initApp==='function') initApp();
     _injectLogoutBtn(_currentUser);
-    if(_currentUser && typeof syncFromSupabase === 'function'){
-      syncFromSupabase(_currentUser.id).catch(function(e){ console.warn('sync error:',e); });
+    if(_currentUser && typeof safeSync === 'function'){
+      safeSync(_currentUser.id).catch(function(e){ console.warn('sync error:',e); });
     }
   }else{
     if(btn){ btn.disabled = false; btn.textContent = '🔓 Usar huella / Face ID'; }
@@ -246,7 +246,7 @@ function _setError(id,msg){
   if(el){el.textContent=msg||'';el.style.display=msg?'block':'none';}
 }
 function _setBusy(id,busy,label){
-  var b=document.getElementById(id); if(!b)return; b.disabled=busy; if(label)b.textContent=busy?'...':label;
+  var b=document.getElementById(id); if(!b)return; b.disabled=busy; if(label)b.textContent=busy?'Cargando...':label;
 }
 
 async function handleLogin(){
@@ -301,8 +301,8 @@ async function _afterLogin(user){
   _injectLogoutBtn(user);
 
   // Sync + chequeo de perfil
-  if(typeof syncFromSupabase==='function'){
-    syncFromSupabase(user.id)
+  if(typeof safeSync==='function'){
+    safeSync(user.id)
       .then(function(){
         setTimeout(function(){
           try{
@@ -349,8 +349,8 @@ async function handleBioUnlock(){
     hideAuthScreen();
     if(typeof initApp==='function') initApp();
     _injectLogoutBtn(_currentUser);
-    if(_currentUser&&typeof syncFromSupabase==='function'){
-      syncFromSupabase(_currentUser.id).catch(function(e){console.warn('sync error:',e);});
+    if(_currentUser&&typeof safeSync==='function'){
+      safeSync(_currentUser.id).catch(function(e){console.warn('sync error:',e);});
     }
   }else{
     _setError('bio','No se reconoció. Intenta de nuevo.');
@@ -381,7 +381,7 @@ async function handleRecoverPassword(){
   if(!email){_setError('rc','Ingresa tu correo');return;}
   _setError('rc','');
   var btn=document.getElementById('rc-btn');
-  if(btn){btn.disabled=true;btn.textContent='...';}
+  if(btn){btn.disabled=true;btn.textContent='Cargando...';}
   try{
     // Supabase password reset — envía email con link
     if(_supabase){
@@ -463,8 +463,8 @@ async function initAuth(){
       hideAuthScreen();
       if(typeof initApp==='function') initApp();
       _injectLogoutBtn(user);
-      if(typeof syncFromSupabase==='function'){
-        syncFromSupabase(user.id).catch(function(e){ console.warn('sync error:',e); });
+      if(typeof safeSync==='function'){
+        safeSync(user.id).catch(function(e){ console.warn('sync error:',e); });
       }
     }
   }else{

@@ -264,14 +264,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
    ════════════════════════════════════════════════════════════ */
 
 /* Pantalla base: siempre fondo claro */
-#auth-screen{background:#F8FAFC}
+#auth-screen{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;background:#F8FAFC;padding:0;min-height:100vh;min-height:100dvh;position:relative;overflow:hidden;overflow-y:auto}
 
 /* Panel: cada subpantalla ocupa 100% del auth-screen */
 .auth-panel{
   display:none;flex-direction:column;
   width:100%;height:100%;
   position:absolute;inset:0;
-  overflow:hidden;
 }
 
 /* ── Sección superior (header) ── */
@@ -280,6 +279,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   padding:max(env(safe-area-inset-top),20px) 24px 16px;
   background:#F8FAFC;
   position:relative;display:flex;align-items:center;justify-content:center;
+  width:100%;max-width:420px;margin:0 auto;
 }
 
 /* Header con solo logo */
@@ -295,6 +295,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   padding-top:max(env(safe-area-inset-top),14px);
   padding-bottom:14px;
   border-bottom:1px solid #F1F5F9;
+  width:100%;max-width:420px;margin:0 auto;
 }
 
 /* ── Marca ── */
@@ -322,7 +323,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
   padding:24px 16px 8px;
   width:100%;max-width:420px;margin:0 auto;
-  text-align:center;
+  text-align:left;
 }
 
 /* Centrado para verify */
@@ -335,11 +336,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 /* ── Títulos y textos ── */
 .auth-title{
   font-size:24px;font-weight:800;color:#0F172A;
-  letter-spacing:-.5px;margin-bottom:10px;line-height:1.25;
+  letter-spacing:-.5px;margin-bottom:10px;line-height:1.25;text-align:center;
 }
 .auth-subtitle{
   font-size:14px;color:#64748B;line-height:1.6;
-  margin-bottom:28px;
+  margin-bottom:28px;text-align:center;
 }
 
 /* ── Campos ── */

@@ -31,9 +31,9 @@ function initApp(){
   document.addEventListener('visibilitychange',function(){
     if(!document.hidden){
       try{
-        if(typeof _currentUser!=='undefined'&&_currentUser&&typeof syncFromSupabase==='function'){
+        if(typeof _currentUser!=='undefined'&&_currentUser&&typeof safeSync==='function'){
           console.log('👁️ app al frente -> sync');
-          syncFromSupabase(_currentUser.id).catch(function(e){console.warn('visibility sync:',e);});
+          safeSync(_currentUser.id).catch(function(e){console.warn('visibility sync:',e);});
         }
       }catch(e){}
     }else{
@@ -50,6 +50,18 @@ function initApp(){
   _startRealtimeSync();
 }
 
+async function safeSync(userId, retries){
+  retries = retries || 3;
+  for(var i=0;i<retries;i++){
+    try{
+      await syncFromSupabase(userId);
+      return true;
+    }catch(e){
+      if(i===retries-1){ console.warn('Sync failed after retries',e); return false; }
+      await new Promise(function(r){ setTimeout(r,1000); });
+    }
+  }
+}
 function _startRealtimeSync(){
   try{
     if(typeof _supabase==='undefined'||!_supabase) return;
@@ -68,8 +80,8 @@ function _startRealtimeSync(){
         var localTs=S._lastSync||0;
         if(remoteTs>localTs){
           console.log('🔔 Realtime: cambio remoto -> sync');
-          if(typeof syncFromSupabase==='function'&&_currentUser){
-            syncFromSupabase(_currentUser.id).catch(function(e){console.warn('realtime sync:',e);});
+          if(typeof safeSync==='function'&&_currentUser){
+            safeSync(_currentUser.id).catch(function(e){console.warn('realtime sync:',e);});
           }
         }else{
           console.log('🔔 Realtime: cambio propio, ignorado');
