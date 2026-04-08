@@ -472,19 +472,27 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .auth-login-recover{text-align:right;margin-bottom:4px}
 
 /* ── Register sin scroll ── */
-#auth-register .auth-body{overflow:hidden;padding-top:16px;padding-bottom:8px}
-#auth-register .pw-rules{padding:10px 12px;gap:4px}
-#auth-register .auth-field{margin-bottom:12px}
 #auth-register{overflow:hidden}
-#auth-register .auth-body{overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;height:100%}
-#auth-register .auth-field{margin-bottom:10px}
-#auth-register .pw-rules{margin-top:6px;padding:8px 10px}
+#auth-register .auth-body{overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;height:100%;padding-top:24px;padding-bottom:12px;gap:14px}
+#auth-register .auth-field{margin-bottom:2px}
+#auth-register .pw-rules{padding:12px 14px;gap:6px}
+#auth-register .auth-bottom{margin-top:auto;padding-top:12px}
 
-/* ── Recover title una línea ── */
-.auth-recover-body .auth-title{font-size:18px;white-space:nowrap}
+/* ── Recover spacing ── */
+.auth-recover-body .auth-title{font-size:18px;white-space:nowrap;margin-top:12px}
+.auth-recover-body .auth-subtitle{margin-top:6px}
+.auth-recover-logo{margin-bottom:24px}
+
+/* ── Register marca y subtítulo ── */
 .auth-register-logo{margin-bottom:6px}
 .auth-register-subtitle{margin-top:4px}
-.auth-recover-logo{margin-bottom:6px}
+
+/* ── Google button y separador ── */
+.auth-btn-google{margin-top:8px}
+.auth-sep{margin:10px 0}
+
+/* ── Aire lateral global auth ── */
+.auth-body{padding-left:22px;padding-right:22px}
 
 /* ── Input con icono ojo ── */
 .auth-input-with-icon{padding-right:48px}
