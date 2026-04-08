@@ -340,7 +340,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 }
 .auth-subtitle{
   font-size:14px;color:#64748B;line-height:1.6;
-  margin-bottom:28px;text-align:center;
+  margin-bottom:34px;text-align:center;
 }
 
 /* ── Campos ── */
@@ -472,10 +472,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .auth-login-recover{text-align:right;margin-bottom:4px}
 
 /* ── Register sin scroll ── */
-#auth-register{overflow:hidden}
-#auth-register .auth-body{display:flex;flex-direction:column;justify-content:flex-start;padding-top:16px;padding-bottom:4px;gap:8px}
+#auth-register .auth-body{display:flex;flex-direction:column;justify-content:flex-start;padding-top:20px;padding-bottom:8px;gap:14px}
 #auth-register .auth-field{margin-bottom:0}
-#auth-register .pw-rules{padding:8px 12px;gap:4px}
+#auth-register .pw-rules{padding:12px 14px;gap:6px}
 #auth-register .auth-bottom{margin-top:12px;padding-top:8px;padding-bottom:max(env(safe-area-inset-bottom),16px)}
 #auth-register .auth-register-subtitle{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:0}
 #auth-register .auth-register-logo{margin-bottom:4px}
