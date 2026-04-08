@@ -85,31 +85,26 @@ async function bioAuthenticate(){
 // BOTTOM SHEET — DESBLOQUEO BIOMÉTRICO (al abrir app)
 // ════════════════════════════════════════════════════════════
 function _showBioSheet(user){
-  // Eliminar sheet anterior si existe
   var old = document.getElementById('bio-sheet-overlay');
   if(old) old.remove();
 
-  var email = user ? user.email : '';
   var overlay = document.createElement('div');
   overlay.id = 'bio-sheet-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease';
 
   overlay.innerHTML =
     '<div id="bio-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
-    // Handle
     +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:40px;height:4px;border-radius:2px;background:var(--border,#E2E8F0)"></div></div>'
-    // Body
     +'<div style="padding:20px 28px 28px;text-align:center">'
-      // Brand
-      +'<div style="font-size:22px;font-weight:900;letter-spacing:-0.5px;margin-bottom:4px">'
-        +'<span style="color:var(--text,#0F172A)">Finanz</span><span style="color:#00D4AA">IA</span>'
+      // Logo row
+      +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px">'
+        +'<img src="icon-192.png" style="width:28px;height:28px;border-radius:6px" alt="FinanzIA">'
+        +'<span style="font-weight:800;font-size:18px;color:var(--text,#0F172A);letter-spacing:-.3px">Finanz<span style="color:#00D4AA">IA</span></span>'
       +'</div>'
       // Icon
-      +'<div style="font-size:52px;margin:16px 0 12px;line-height:1">🔒</div>'
-      // Title
-      +'<div style="font-size:19px;font-weight:700;color:var(--text,#0F172A);margin-bottom:6px">Bienvenido de nuevo</div>'
-      // Email
-      +'<div style="font-size:13px;color:var(--text2,#64748B);margin-bottom:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px;margin-left:auto;margin-right:auto">'+email+'</div>'
+      +'<div style="font-size:52px;margin:8px 0 16px;line-height:1">🔒</div>'
+      // Text
+      +'<div style="font-size:17px;font-weight:700;color:var(--text,#0F172A);margin-bottom:24px">Usa tu huella o Face ID para continuar</div>'
       // Error
       +'<div id="bio-sheet-err" style="display:none;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:10px 14px;font-size:13px;color:#DC2626;margin-bottom:16px;text-align:left"></div>'
       // Primary btn
@@ -136,8 +131,7 @@ function _closeBioSheet(){
 async function _handleBioSheetUnlock(){
   var btn = document.getElementById('bio-sheet-btn');
   var errEl = document.getElementById('bio-sheet-err');
-  if(btn){ btn.disabled = true; btn.textContent = '...'; }
-  if(errEl){ errEl.style.display = 'none'; }
+  if(btn){ btn.disabled = true; btn.textContent = 'Verificando...'; }
 
   var ok = await bioAuthenticate();
 
@@ -216,7 +210,7 @@ function _closeBioOfferSheet(){
 
 async function _activateBioFromSheet(userId, email){
   var btn = document.getElementById('bio-offer-btn');
-  if(btn){ btn.disabled = true; btn.textContent = '...'; }
+  if(btn){ btn.disabled = true; btn.textContent = 'Verificando...'; }
   var ok = await bioRegister(userId, email);
   _closeBioOfferSheet();
   if(ok){
@@ -236,7 +230,7 @@ function hideAuthScreen(){
   var app=document.getElementById('app'); if(app)app.style.display='flex';
 }
 function _showScreen(name){
-  ['login','register','bio','verify','recover'].forEach(function(id){
+  ['login','register','bio','verify','recover','welcome'].forEach(function(id){
     var el=document.getElementById('auth-'+id); if(el)el.style.display='none';
   });
   var t=document.getElementById('auth-'+name); if(t)t.style.display='block';
@@ -443,6 +437,27 @@ function handleGoogleAuth(){
 }
 
 // ════════════════════════════════════════════════════════════
+// PANTALLA BIENVENIDA — sesión activa + biometría
+// ════════════════════════════════════════════════════════════
+function _showWelcomeScreen(user){
+  var name = '';
+  try{
+    if(typeof S !== 'undefined' && S.profile && S.profile.name && S.profile.name.trim()){
+      name = S.profile.name.trim();
+    } else if(user && user.email){
+      name = user.email.split('@')[0];
+    }
+  }catch(e){}
+  var el = document.getElementById('auth-welcome-name');
+  if(el) el.textContent = 'Hola, ' + (name || 'de nuevo') + ' 👋';
+  _showScreen('welcome');
+}
+
+function _startBioFromWelcome(){
+  _showBioSheet(_currentUser);
+}
+
+// ════════════════════════════════════════════════════════════
 // ARRANQUE
 // ════════════════════════════════════════════════════════════
 async function initAuth(){
@@ -456,9 +471,9 @@ async function initAuth(){
   if(user){
     _currentUser=user;
     if(_isBioEnabled()){
-      // Mostrar bio sheet — initApp() y sync se ejecutan SOLO tras autenticación exitosa
-      hideAuthScreen();
-      _showBioSheet(user);
+      // Mostrar pantalla de bienvenida — bio sheet se abre al presionar botón
+      showAuthScreen();
+      _showWelcomeScreen(user);
     }else{
       hideAuthScreen();
       if(typeof initApp==='function') initApp();

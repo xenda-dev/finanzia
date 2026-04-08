@@ -21,18 +21,20 @@
      PANTALLA AUTH — 5 subpantallas
      login | register | bio | verify | recover
      ══════════════════════════════════════════ -->
-<div id="auth-screen" style="display:none;position:fixed;inset:0;z-index:9999;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+<div id="auth-screen" style="display:none">
 
-  <!-- ─── LOGIN ─────────────────────────────── -->
   <div id="auth-login" class="auth-panel" style="display:flex">
 
     <div class="auth-top auth-top-logo">
-      <div class="auth-brand">Finanz<span>IA</span></div>
+      <div class="auth-logo-row">
+        <img src="icon-192.png" class="auth-logo-icon" alt="FinanzIA">
+        <span class="auth-logo-text">Finanz<span>IA</span></span>
+      </div>
       <div class="auth-tagline">Tu copiloto financiero</div>
     </div>
 
     <div class="auth-body">
-      <h1 class="auth-title" style="text-align:center">Vamos a empezar 🚀</h1>
+      <h1 class="auth-title">Vamos a empezar 🚀</h1>
       <p class="auth-subtitle">Crea tu cuenta o inicia sesión. Estamos aquí para ayudarte a transformar tus finanzas paso a paso.</p>
 
       <div class="auth-field">
@@ -50,7 +52,7 @@
         </div>
       </div>
 
-      <div style="text-align:right;margin-bottom:4px">
+      <div class="auth-login-recover">
         <button onclick="goToRecover()" class="auth-link">¿Olvidaste tu contraseña?</button>
       </div>
 
@@ -60,12 +62,7 @@
     <div class="auth-bottom">
       <button id="li-btn" onclick="handleLogin()" class="auth-btn-primary">Iniciar sesión</button>
       <button onclick="goToRegister()" class="auth-btn-secondary">Crear cuenta</button>
-      <div class="auth-sep"><span>o</span></div>
-      <button onclick="handleGoogleAuth()" class="auth-btn-google auth-btn-google-soon">
-        <svg width="18" height="18" viewBox="0 0 24 24" style="flex-shrink:0"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        Continuar con Google
-        <span style="font-size:10px;font-weight:500;color:#94A3B8;margin-left:2px">(próximamente)</span>
-      </button>
+      <div class="auth-footer">© 2026 Xenda.co. Todos los derechos reservados.</div>
     </div>
   </div>
 
@@ -81,7 +78,10 @@
     </div>
 
     <div class="auth-body">
-      <div class="auth-brand" style="margin-bottom:8px">Finanz<span>IA</span></div>
+      <div class="auth-logo-row" style="margin-bottom:6px">
+        <img src="icon-192.png" class="auth-logo-icon" alt="FinanzIA">
+        <span class="auth-logo-text">Finanz<span>IA</span></span>
+      </div>
       <p class="auth-subtitle" style="margin-top:4px">Estás a un paso de tomar el control de tus finanzas 🎯</p>
 
       <div class="auth-field">
@@ -96,7 +96,6 @@
             oninput="_authPwCheck(this.value)" class="auth-input" style="padding-right:48px">
           <button id="rg-eye" onclick="togglePass('rg-pass','rg-eye')" class="auth-eye">👁️</button>
         </div>
-        <!-- Validación en tiempo real -->
         <div class="pw-rules" id="pw-rules">
           <div class="pw-rule" id="pw-r1"><span class="pw-icon"></span>Mínimo 8 caracteres</div>
           <div class="pw-rule" id="pw-r2"><span class="pw-icon"></span>Una mayúscula</div>
@@ -120,6 +119,13 @@
 
     <div class="auth-bottom">
       <button id="rg-btn" onclick="handleRegister()" class="auth-btn-primary">Crear cuenta</button>
+      <div class="auth-sep"><span>o</span></div>
+      <button onclick="handleGoogleAuth()" class="auth-btn-google auth-btn-google-soon">
+        <svg width="18" height="18" viewBox="0 0 24 24" style="flex-shrink:0"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continuar con Google
+        <span style="font-size:10px;font-weight:500;color:#94A3B8;margin-left:2px">(próximamente)</span>
+      </button>
+      <div class="auth-footer">© 2026 Xenda.co. Todos los derechos reservados.</div>
     </div>
   </div>
 
@@ -130,14 +136,15 @@
       <button onclick="goToLoginFromRecover()" class="auth-back">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <span class="auth-nav-title">Recuperar acceso</span>
       <div style="width:36px"></div>
     </div>
 
-    <div class="auth-body">
-      <div class="auth-brand" style="margin-bottom:8px">Finanz<span>IA</span></div>
+    <div class="auth-body auth-recover-body">
+      <div class="auth-logo-row" style="margin-bottom:6px">
+        <img src="icon-192.png" class="auth-logo-icon" alt="FinanzIA">
+        <span class="auth-logo-text">Finanz<span>IA</span></span>
+      </div>
       <div style="font-size:52px;margin:8px 0 16px">🔑</div>
-      <h1 class="auth-title" style="font-size:21px">No te preocupes, a todos nos pasa</h1>
       <p class="auth-subtitle">Ingresa tu correo y te enviaremos un enlace para recuperar tu acceso.</p>
 
       <div class="auth-field">
@@ -156,6 +163,7 @@
 
     <div class="auth-bottom">
       <button id="rc-btn" onclick="handleRecoverPassword()" class="auth-btn-primary">Recuperar contraseña</button>
+      <div class="auth-footer">© 2026 Xenda.co. Todos los derechos reservados.</div>
     </div>
   </div>
 
@@ -179,6 +187,28 @@
       <div id="auth-err-bio" style="display:none;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:10px 12px;font-size:13px;color:#DC2626;margin-bottom:14px"></div>
       <button id="bio-btn" onclick="handleBioUnlock()" style="width:100%;height:52px;background:linear-gradient(135deg,#00D4AA,#7461EF);border:none;border-radius:50px;color:white;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:12px;font-family:inherit">🔓 Usar huella / Face ID</button>
       <button onclick="handleBioFallback()" style="background:none;border:none;color:#94A3B8;font-size:13px;cursor:pointer;font-family:inherit">Usar contraseña</button>
+    </div>
+  </div>
+
+  <!-- ─── BIENVENIDA (con sesión + biometría) ── -->
+  <div id="auth-welcome" class="auth-panel" style="display:none">
+
+    <div class="auth-top auth-top-logo">
+      <div class="auth-logo-row">
+        <img src="icon-192.png" class="auth-logo-icon" alt="FinanzIA">
+        <span class="auth-logo-text">Finanz<span>IA</span></span>
+      </div>
+    </div>
+
+    <div class="auth-body auth-panel-center">
+      <div style="font-size:60px;margin-bottom:20px">👋</div>
+      <h2 id="auth-welcome-name" class="auth-title"></h2>
+      <p class="auth-subtitle">Listo para continuar con tus finanzas</p>
+    </div>
+
+    <div class="auth-bottom">
+      <button onclick="_startBioFromWelcome()" class="auth-btn-primary">Iniciar sesión</button>
+      <div class="auth-footer">© 2026 Xenda.co. Todos los derechos reservados.</div>
     </div>
   </div>
 
