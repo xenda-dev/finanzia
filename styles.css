@@ -483,6 +483,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .welcome-divider{height:1px;background:var(--border,#E2E8F0);margin:24px 0}
 .welcome-pin-btn{width:100%;padding:14px;border-radius:12px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface,#fff);font-weight:600;font-size:14px;color:var(--text,#0F172A);cursor:pointer;font-family:var(--font,inherit);transition:.15s}
 .welcome-pin-btn:active{background:var(--surface2,#F1F5F9)}
+.welcome-pin-icon{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:8px}
+.welcome-pin-icon:active{opacity:.7;transform:scale(.96)}
+.welcome-pin-icon svg{display:block;transition:transform .15s,opacity .15s}
+.welcome-pin-label{font-size:14px;font-weight:600;color:#7461EF}
 
 /* ── Recover body centrado ── */
 .auth-recover-body{text-align:center}

@@ -204,20 +204,53 @@
     </div>
 
     <div class="auth-body auth-panel-center">
-      <h2 id="auth-welcome-name" class="auth-title" style="margin-bottom:4px"></h2>
-      <div id="auth-welcome-name-sub" style="font-size:22px;font-weight:800;color:var(--primary,#00D4AA);letter-spacing:-.3px;margin-bottom:8px"></div>
-      <p class="auth-subtitle">Listo para continuar con tus finanzas</p>
+      <p class="auth-subtitle" style="margin-bottom:2px">Hola,</p>
+      <h2 id="auth-welcome-name" class="auth-title" style="margin-bottom:4px;text-align:center"></h2>
+      <div id="auth-welcome-name-sub" style="font-size:20px;font-weight:800;color:var(--primary,#00D4AA);letter-spacing:-.3px;margin-bottom:20px;text-align:center"></div>
 
       <div class="welcome-bio" onclick="_startBioFromWelcome()">
         <div class="welcome-fingerprint">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11c1.657 0 3 1.567 3 3.5 0 2.5-2 4.5-3 5.5"/><path d="M8.5 11c0-2 1.79-3.5 3.5-3.5S15.5 9 15.5 11"/><path d="M5 12c0-3.5 3-6 7-6s7 2.5 7 6"/><path d="M3 12c0-5 4-9 9-9s9 4 9 9"/></svg>
+          <!-- Huella realista — arcos concéntricos tipo thumbprint -->
+          <svg width="72" height="72" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Núcleo central -->
+            <path d="M50 58 C48 54 48 48 50 44 C52 48 52 54 50 58Z" stroke="#00D4AA" stroke-width="2.2" stroke-linecap="round"/>
+            <!-- Loop 1 -->
+            <path d="M44 62 C38 56 38 44 44 38 C47 34 53 34 56 38 C62 44 62 56 56 62" stroke="#00D4AA" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+            <!-- Loop 2 -->
+            <path d="M37 67 C28 60 26 44 33 35 C38 28 62 28 67 35 C74 44 72 60 63 67" stroke="#00D4AA" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+            <!-- Loop 3 -->
+            <path d="M30 72 C18 63 15 44 23 32 C30 22 70 22 77 32 C85 44 82 63 70 72" stroke="#00D4AA" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+            <!-- Loop 4 exterior -->
+            <path d="M22 76 C8 65 5 43 14 28 C23 14 77 14 86 28 C95 43 92 65 78 76" stroke="#00D4AA" stroke-width="2" stroke-linecap="round" fill="none" opacity=".6"/>
+            <!-- Arco base izq -->
+            <path d="M22 76 C18 80 16 85 17 90" stroke="#00D4AA" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+            <!-- Arco base der -->
+            <path d="M78 76 C82 80 84 85 83 90" stroke="#00D4AA" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+          </svg>
         </div>
         <div class="welcome-bio-text">Toca para ingresar con huella</div>
       </div>
 
       <div class="welcome-divider"></div>
 
-      <button class="welcome-pin-btn" onclick="openPinLogin()">🔒 Ingresar con PIN</button>
+      <!-- Ícono PIN tipo cerradura+teclado -->
+      <div class="welcome-pin-icon" onclick="openPinLogin()">
+        <svg width="52" height="60" viewBox="0 0 52 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Candado cuerpo -->
+          <rect x="8" y="24" width="36" height="26" rx="5" stroke="#7461EF" stroke-width="2.2" fill="none"/>
+          <!-- Candado arco -->
+          <path d="M16 24V18C16 12.477 20.477 8 26 8C31.523 8 36 12.477 36 18V24" stroke="#7461EF" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+          <!-- Puntos PIN (fila) -->
+          <circle cx="18" cy="36" r="2.5" fill="#7461EF"/>
+          <circle cx="26" cy="36" r="2.5" fill="#7461EF"/>
+          <circle cx="34" cy="36" r="2.5" fill="#7461EF"/>
+          <!-- Puntos teclado inferior -->
+          <circle cx="18" cy="45" r="2" fill="#7461EF" opacity=".5"/>
+          <circle cx="26" cy="45" r="2" fill="#7461EF" opacity=".5"/>
+          <circle cx="34" cy="45" r="2" fill="#7461EF" opacity=".5"/>
+        </svg>
+        <div class="welcome-pin-label">Ingresar con PIN</div>
+      </div>
     </div>
 
     <div class="auth-bottom" style="border-top:none;background:transparent">
