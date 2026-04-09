@@ -209,24 +209,13 @@
 
       <div class="welcome-bio" onclick="_startBioFromWelcome()">
         <div class="welcome-fingerprint">
-          <!-- Huella realista tipo arcos — igual a foto 2 -->
-          <svg width="72" height="76" viewBox="0 0 72 76" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Loop central -->
-            <path d="M36 44 C33 40 33 34 36 30 C39 34 39 40 36 44Z" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round"/>
-            <!-- Arco 1 -->
-            <path d="M28 52 C22 46 22 32 28 25 C31 20 41 20 44 25 C50 32 50 46 44 52" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round" fill="none"/>
-            <!-- Arco 2 -->
-            <path d="M20 58 C11 51 10 30 18 19 C24 11 48 11 54 19 C62 30 61 51 52 58" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round" fill="none"/>
-            <!-- Arco 3 -->
-            <path d="M12 63 C1 55 0 27 9 14 C17 3 55 3 63 14 C72 27 71 55 60 63" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round" fill="none"/>
-            <!-- Arco exterior -->
-            <path d="M5 67 C-6 57 -7 23 4 8 C13 -3 59 -3 68 8 C79 23 78 57 67 67" stroke="#00D4AA" stroke-width="2.3" stroke-linecap="round" fill="none" opacity=".5"/>
-            <!-- Pies izquierda -->
-            <path d="M12 63 C10 67 10 72 12 76" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round"/>
-            <path d="M20 58 C17 64 17 70 19 76" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round"/>
-            <!-- Pies derecha -->
-            <path d="M60 63 C62 67 62 72 60 76" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round"/>
-            <path d="M52 58 C55 64 55 70 53 76" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round"/>
+          <svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M18.9 7a8 8 0 0 1 1.1 5v1a6 6 0 0 0 .8 3"/>
+            <path d="M8 11a4 4 0 0 1 8 0v1a10 10 0 0 0 2 6"/>
+            <path d="M12 11v2a14 14 0 0 0 2.5 8"/>
+            <path d="M8 15a18 18 0 0 0 1.8 6"/>
+            <path d="M4.9 19a22 22 0 0 1 -.9 -7v-1a8 8 0 0 1 12 -6.95"/>
           </svg>
         </div>
         <div class="welcome-bio-text">Toca para ingresar con huella</div>
@@ -237,20 +226,16 @@
       <!-- Ícono PIN tipo cerradura+teclado -->
       <div class="welcome-pin-icon" onclick="openPinLogin()">
         <svg width="52" height="60" viewBox="0 0 52 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Candado cuerpo -->
-          <rect x="8" y="24" width="36" height="26" rx="5" stroke="#7461EF" stroke-width="2.2" fill="none"/>
-          <!-- Candado arco -->
-          <path d="M16 24V18C16 12.477 20.477 8 26 8C31.523 8 36 12.477 36 18V24" stroke="#7461EF" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-          <!-- Puntos PIN (fila) -->
-          <circle cx="18" cy="36" r="2.5" fill="#7461EF"/>
-          <circle cx="26" cy="36" r="2.5" fill="#7461EF"/>
-          <circle cx="34" cy="36" r="2.5" fill="#7461EF"/>
-          <!-- Puntos teclado inferior -->
-          <circle cx="18" cy="45" r="2" fill="#7461EF" opacity=".5"/>
-          <circle cx="26" cy="45" r="2" fill="#7461EF" opacity=".5"/>
-          <circle cx="34" cy="45" r="2" fill="#7461EF" opacity=".5"/>
+          <rect x="8" y="24" width="36" height="26" rx="5" stroke="#0F172A" stroke-width="2.2" fill="none"/>
+          <path d="M16 24V18C16 12.477 20.477 8 26 8C31.523 8 36 12.477 36 18V24" stroke="#0F172A" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+          <circle cx="18" cy="36" r="2.5" fill="#0F172A"/>
+          <circle cx="26" cy="36" r="2.5" fill="#0F172A"/>
+          <circle cx="34" cy="36" r="2.5" fill="#0F172A"/>
+          <circle cx="18" cy="45" r="2" fill="#0F172A" opacity=".4"/>
+          <circle cx="26" cy="45" r="2" fill="#0F172A" opacity=".4"/>
+          <circle cx="34" cy="45" r="2" fill="#0F172A" opacity=".4"/>
         </svg>
-        <div class="welcome-pin-label">Ingresar con PIN</div>
+        <div class="welcome-pin-label" style="color:#0F172A">Ingresar con PIN</div>
       </div>
     </div>
 
