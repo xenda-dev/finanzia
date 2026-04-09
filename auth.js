@@ -55,8 +55,8 @@ async function bioRegister(userId, email){
   try{
     var cred = await navigator.credentials.create({publicKey:{
       challenge: _randomChallenge(),
-      rp: {name:'FinanzIA'},
-      user: {id: new TextEncoder().encode(userId), name: email, displayName: email},
+      rp: {name:'FinanzIA', id: window.location.hostname},
+      user: {id: new TextEncoder().encode(userId), name: 'FinanzIA', displayName: 'FinanzIA User'},
       pubKeyCredParams: [{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
       authenticatorSelection: {authenticatorAttachment:'platform', userVerification:'required'},
       timeout: 60000
@@ -78,7 +78,11 @@ async function bioAuthenticate(){
       timeout: 60000
     }});
     return !!assertion;
-  }catch(e){ console.log('Bio auth cancelled:',e.message); return false; }
+  }catch(e){
+    console.log('Bio auth error:', e.message);
+    if(e.name === 'NotAllowedError') return 'cancelled';
+    return false;
+  }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -483,10 +487,6 @@ function _showWelcomeScreen(user){
   var el = document.getElementById('auth-welcome-name');
   if(el) el.textContent = 'Hola, ' + name;
   _showScreen('welcome');
-  // FIX 4 — auto-trigger bio como apps bancarias
-  if(_isBioEnabled()){
-    setTimeout(function(){ _startBioFromWelcome(); }, 600);
-  }
 }
 
 async function _startBioFromWelcome(){
@@ -505,9 +505,9 @@ async function _startBioFromWelcome(){
     return;
   }
   console.log('Bio attempt from welcome');
-  var ok = await bioAuthenticate();
-  console.log('Bio result:', ok);
-  if(ok){
+  var result = await bioAuthenticate();
+  console.log('Bio result:', result);
+  if(result === true){
     hideAuthScreen();
     if(typeof initApp === 'function') initApp();
     if(user){
@@ -516,6 +516,9 @@ async function _startBioFromWelcome(){
         safeSync(user.id).catch(function(e){ console.warn('sync error:',e); });
       }
     }
+  }else if(result === 'cancelled'){
+    console.log('User cancelled biometrics');
+    try{ toast('Puedes usar huella o contraseña'); }catch(e){}
   }else{
     localStorage.removeItem('_bioEnabled');
     localStorage.removeItem('_bioCredId');
