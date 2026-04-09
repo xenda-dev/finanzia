@@ -135,6 +135,18 @@ async function _handleBioSheetUnlock(){
   if(errEl){ errEl.style.display = 'none'; }
 
   console.log('Bio start');
+  if(!_currentUser || !_currentUser.id){
+    try{
+      var u = await getCurrentUser();
+      if(!u){
+        _closeBioSheet();
+        showAuthScreen();
+        _showScreen('login');
+        return;
+      }
+      _currentUser = u;
+    }catch(e){}
+  }
   var ok = await bioAuthenticate();
   console.log('Bio result:', ok);
 
@@ -150,11 +162,12 @@ async function _handleBioSheetUnlock(){
       }
     }
   }else{
-    if(btn){ btn.disabled = false; btn.textContent = '🔓 Usar huella / Face ID'; }
-    if(errEl){
-      errEl.textContent = 'No se reconoció. Intenta de nuevo o usa tu contraseña.';
-      errEl.style.display = 'block';
-    }
+    localStorage.removeItem('_bioEnabled');
+    localStorage.removeItem('_bioCredId');
+    _closeBioSheet();
+    showAuthScreen();
+    _showScreen('login');
+    try{ toast('Usa tu contraseña para continuar'); }catch(e){}
   }
 }
 
@@ -513,6 +526,7 @@ async function initAuth(){
   }else{
     localStorage.removeItem('_bioEnabled');
     localStorage.removeItem('_bioCredId');
+    localStorage.removeItem('finanziaState3');
     showAuthScreen(); _showScreen('login');
   }
 }
