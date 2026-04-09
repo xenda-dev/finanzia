@@ -314,37 +314,34 @@ function goToLoginWithEmail(){
 }
 
 async function _afterLogin(user){
-  // Entrar a la app inmediatamente — sin confirm(), sin bloqueos
   hideAuthScreen();
   if(typeof initApp==='function') initApp();
   _injectLogoutBtn(user);
 
-  // Sync + chequeo de perfil y onboarding
-  var _doOnboarding = function(){
+  var runOnboarding = function(){
     try{
+      // 1. Si el perfil no está completo, abrirlo (sin bloquear el flujo)
       if(!S.profile||!S.profile.name||!S.profile.name.trim()){
         if(typeof openProfilePage==='function') openProfilePage();
-        return;
       }
-      // PIN primero — bio se ofrece DENTRO de showSetPinModal al confirmar
+      // 2. Solicitar PIN si no existe
       if(!_isPinEnabled()){
         setTimeout(function(){ showSetPinModal(user); }, 400);
         return;
       }
-      // Si ya tiene PIN, ofrecer bio si no está activada
+      // 3. Ofrecer biometría si está disponible y no activada
       if(_isBioAvailable()&&!_isBioEnabled()){
-        setTimeout(function(){ _showBioOfferSheet(user); }, 400);
+        setTimeout(function(){ _showBioOfferSheet(user); }, 500);
       }
-    }catch(e){}
+    }catch(e){ console.warn('Onboarding error:',e); }
   };
 
   if(typeof safeSync==='function'){
-    safeSync(user.id).then(_doOnboarding).catch(function(e){
-      console.warn('sync error:',e);
-      setTimeout(_doOnboarding, 100);
+    safeSync(user.id).then(runOnboarding).catch(function(){
+      setTimeout(runOnboarding, 200);
     });
   }else{
-    setTimeout(_doOnboarding, 400);
+    setTimeout(runOnboarding, 400);
   }
 }
 
@@ -590,17 +587,16 @@ function showSetPinModal(user){
   var old = document.getElementById('set-pin-overlay');
   if(old) old.remove();
 
-  var step = 1; // 1 = ingresar, 2 = confirmar
-  var firstPin = [];
-  var currentPin = [];
+  // Estado único — única fuente de verdad, sin duplicación de variables
+  var st = {step:1, first:[], current:[], user:user};
 
   var overlay = document.createElement('div');
   overlay.id = 'set-pin-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease;pointer-events:auto';
 
   function draw(){
-    var title = step === 1 ? 'Crea tu PIN de 4 dígitos' : 'Confirma tu PIN';
-    var subtitle = step === 1 ? 'Lo usarás para ingresar rápidamente' : 'Ingresa el mismo PIN de nuevo';
+    var title    = st.step === 1 ? 'Crea tu PIN de 4 dígitos' : 'Confirma tu PIN';
+    var subtitle = st.step === 1 ? 'Lo usarás para ingresar rápidamente' : 'Ingresa el mismo PIN de nuevo';
     overlay.innerHTML =
       '<div id="set-pin-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
       +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:40px;height:4px;border-radius:2px;background:var(--border,#E2E8F0)"></div></div>'
@@ -617,40 +613,35 @@ function showSetPinModal(user){
         +'<button onclick="closeSetPinModal()" style="margin-top:14px;background:none;border:none;color:var(--text2,#94A3B8);font-size:14px;cursor:pointer;font-family:var(--font,inherit)">Ahora no</button>'
       +'</div>'
       +'</div>';
-    _renderPinDots(currentPin, 'set-pin-dots');
-    window._setPinState = {step:step, first:firstPin, current:currentPin, user:user, draw:draw};
+    _renderPinDots(st.current, 'set-pin-dots');
   }
 
   draw();
   document.body.appendChild(overlay);
 
   window._setPinKey = async function(k){
-    var st = window._setPinState;
-    var p = st.current;
     if(k === '⌫'){
-      p.pop();
-    }else if(p.length < 4){
-      p.push(k);
+      st.current.pop();
+    }else if(st.current.length < 4){
+      st.current.push(k);
       try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){}
     }
-    st.current = p;
-    _renderPinDots(p, 'set-pin-dots');
+    _renderPinDots(st.current, 'set-pin-dots');
 
-    if(p.length === 4){
+    if(st.current.length === 4){
       if(st.step === 1){
-        // Paso 1 → guardar primer PIN y pedir confirmación
-        st.first = p.slice();
-        st.step = 2;
+        // Paso 1 completo → avanzar a confirmación
+        st.first   = st.current.slice();
+        st.step    = 2;
         st.current = [];
-        setTimeout(function(){ st.draw(); }, 150);
+        setTimeout(draw, 150);
       }else{
-        // Paso 2 → confirmar
-        if(p.join('') === st.first.join('')){
-          await saveUserPin(p.join(''));
+        // Paso 2 → comparar
+        if(st.current.join('') === st.first.join('')){
+          await saveUserPin(st.current.join(''));
           var u = st.user;
           closeSetPinModal();
           try{ toast('PIN guardado correctamente ✓'); }catch(e){}
-          // Ofrecer bio después del PIN, con delay
           setTimeout(function(){
             if(_isBioAvailable() && !_isBioEnabled() && u){
               _showBioOfferSheet(u);
@@ -659,11 +650,10 @@ function showSetPinModal(user){
         }else{
           var errEl = document.getElementById('set-pin-err');
           if(errEl) errEl.textContent = 'Los PIN no coinciden. Inténtalo de nuevo.';
-          // Resetear completamente al paso 1
-          st.step = 1;
-          st.first = [];
+          st.step    = 1;
+          st.first   = [];
           st.current = [];
-          setTimeout(function(){ st.draw(); }, 300);
+          setTimeout(draw, 300);
         }
       }
     }
@@ -841,8 +831,10 @@ function _showWelcomeScreen(user){
   }
   var el = document.getElementById('auth-welcome-name');
   var elSub = document.getElementById('auth-welcome-name-sub');
+  // Solo primer nombre
+  var firstName = name.trim().split(' ')[0];
   if(el) el.textContent = 'Hola,';
-  if(elSub) elSub.textContent = name;
+  if(elSub) elSub.textContent = firstName;
   _showScreen('welcome');
 }
 
