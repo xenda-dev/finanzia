@@ -487,7 +487,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .welcome-icon svg{display:block;stroke:currentColor}
 
 /* ── Saludo bienvenida ── */
-.welcome-greeting{font-size:16px;color:var(--text2,#64748B);text-align:center;margin-top:6px;margin-bottom:32px;font-weight:500}
+.welcome-greeting{font-size:24px;color:#0F172A;text-align:center;margin-top:16px;margin-bottom:32px;font-weight:700}
 
 /* ── Welcome estilo banco ── */
 .welcome-bio{display:flex;flex-direction:column;align-items:center;justify-content:center;margin-top:32px;cursor:pointer;-webkit-tap-highlight-color:transparent}

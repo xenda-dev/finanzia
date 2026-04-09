@@ -850,40 +850,45 @@ function _showWelcomeScreen(user){
 
 async function _startBioFromWelcome(){
   var user = _currentUser;
+  // Fallback: recuperar sesión si no hay usuario en memoria
   if(!user){
-    try{ user = await getCurrentUser(); _currentUser = user; }catch(e){}
+    try{
+      var res = await _supabase.auth.getUser();
+      if(res && res.data && res.data.user){
+        user = res.data.user;
+        _currentUser = user;
+      }
+    }catch(e){}
   }
+  // Sin sesión válida → informar y redirigir
   if(!user || !user.id){
-    showAuthScreen();
+    try{ toast('Sesión no válida. Ingresa con tu contraseña.'); }catch(e){}
     _showScreen('login');
     return;
   }
+  // Bio no habilitada → solo informar, NO redirigir
   if(!_isBioEnabled()){
-    showAuthScreen();
-    _showScreen('login');
+    try{ toast('La autenticación con huella no está activada en este dispositivo.'); }catch(e){}
     return;
   }
-  console.log('Bio attempt from welcome');
-  var result = await bioAuthenticate();
-  console.log('Bio result:', result);
-  if(result === true){
-    hideAuthScreen();
-    if(typeof initApp === 'function') initApp();
-    if(user){
-      _injectLogoutBtn(user);
+  // Solicitar biometría
+  try{
+    var result = await bioAuthenticate();
+    if(result === true){
+      hideAuthScreen();
+      if(typeof initApp === 'function') initApp();
+      if(typeof _injectLogoutBtn === 'function') _injectLogoutBtn(user);
       if(typeof safeSync === 'function'){
         safeSync(user.id).catch(function(e){ console.warn('sync error:',e); });
       }
+    }else if(result === 'cancelled'){
+      try{ toast('Autenticación cancelada'); }catch(e){}
+    }else{
+      try{ toast('No se pudo verificar la huella. Inténtalo nuevamente.'); }catch(e){}
     }
-  }else if(result === 'cancelled'){
-    console.log('User cancelled biometrics');
-    try{ toast('Puedes usar huella o contraseña'); }catch(e){}
-  }else{
-    localStorage.removeItem('_bioEnabled');
-    localStorage.removeItem('_bioCredId');
-    showAuthScreen();
-    _showScreen('login');
-    try{ toast('No se pudo verificar. Usa tu contraseña'); }catch(e){}
+  }catch(err){
+    console.error('Biometric auth error:', err);
+    try{ toast('Error al intentar la autenticación biométrica.'); }catch(e){}
   }
 }
 
