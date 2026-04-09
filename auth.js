@@ -282,9 +282,7 @@ async function handleLogin(){
 async function handleRegister(){
   var email=(document.getElementById('rg-email').value||'').trim();
   var pass=(document.getElementById('rg-pass').value||'').trim();
-  var pass2=(document.getElementById('rg-pass2').value||'').trim();
-  if(!email||!pass||!pass2){_setError('rg','Completa todos los campos');return;}
-  if(pass!==pass2){_setError('rg','Las contraseñas no coinciden');return;}
+  if(!email||!pass){_setError('rg','Completa todos los campos');return;}
   if(pass.length<8){_setError('rg','Mínimo 8 caracteres');return;}
   if(!/[A-Z]/.test(pass)){_setError('rg','Debe incluir al menos una mayúscula');return;}
   if(!/[0-9]/.test(pass)){_setError('rg','Debe incluir al menos un número');return;}
@@ -849,30 +847,23 @@ function _showWelcomeScreen(user){
 }
 
 async function _startBioFromWelcome(){
-  var user = _currentUser;
-  // Fallback: recuperar sesión si no hay usuario en memoria
-  if(!user){
-    try{
-      var res = await _supabase.auth.getUser();
-      if(res && res.data && res.data.user){
-        user = res.data.user;
-        _currentUser = user;
-      }
-    }catch(e){}
-  }
-  // Sin sesión válida → informar y redirigir
-  if(!user || !user.id){
-    try{ toast('Sesión no válida. Ingresa con tu contraseña.'); }catch(e){}
-    _showScreen('login');
-    return;
-  }
-  // Bio no habilitada → solo informar, NO redirigir
-  if(!_isBioEnabled()){
-    try{ toast('La autenticación con huella no está activada en este dispositivo.'); }catch(e){}
-    return;
-  }
-  // Solicitar biometría
   try{
+    // Validar sesión real con Supabase
+    var _sv = await _supabase.auth.getUser();
+    if(_sv.error || !_sv.data || !_sv.data.user){
+      try{ toast('Sesión no válida. Ingresa con tu contraseña.'); }catch(e){}
+      showAuthScreen();
+      _showScreen('login');
+      return;
+    }
+    var user = _sv.data.user;
+    _currentUser = user;
+    // Biometría no habilitada → solo informar, sin redirigir
+    if(!_isBioEnabled()){
+      try{ toast('La autenticación con huella no está activada en este dispositivo.'); }catch(e){}
+      return;
+    }
+    // Solicitar autenticación biométrica
     var result = await bioAuthenticate();
     if(result === true){
       hideAuthScreen();
@@ -882,7 +873,7 @@ async function _startBioFromWelcome(){
         safeSync(user.id).catch(function(e){ console.warn('sync error:',e); });
       }
     }else if(result === 'cancelled'){
-      try{ toast('Autenticación cancelada'); }catch(e){}
+      try{ toast('Autenticación cancelada.'); }catch(e){}
     }else{
       try{ toast('No se pudo verificar la huella. Inténtalo nuevamente.'); }catch(e){}
     }
