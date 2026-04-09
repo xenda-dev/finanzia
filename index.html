@@ -203,45 +203,47 @@
       </div>
     </div>
 
-    <div class="auth-body auth-panel-center">
-      <h2 id="auth-welcome-name" class="auth-title" style="margin-bottom:4px;text-align:center"></h2>
-      <div id="auth-welcome-name-sub" style="font-size:26px;font-weight:800;color:var(--primary,#00D4AA);letter-spacing:-.5px;margin-bottom:20px;text-align:center"></div>
+    <div class="auth-body" style="display:flex;flex-direction:column;flex:1;padding:16px 20px 100px;width:100%;max-width:420px;margin:0 auto">
+      <!-- Nombre arriba -->
+      <div style="text-align:center;margin-bottom:0">
+        <h2 id="auth-welcome-name" class="auth-title" style="margin-bottom:4px;text-align:center"></h2>
+        <div id="auth-welcome-name-sub" style="font-size:26px;font-weight:800;color:var(--primary,#00D4AA);letter-spacing:-.5px;text-align:center"></div>
+      </div>
 
-      <div class="welcome-bio" onclick="_startBioFromWelcome()">
-        <div class="welcome-fingerprint">
-          <svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-            <path d="M18.9 7a8 8 0 0 1 1.1 5v1a6 6 0 0 0 .8 3"/>
-            <path d="M8 11a4 4 0 0 1 8 0v1a10 10 0 0 0 2 6"/>
-            <path d="M12 11v2a14 14 0 0 0 2.5 8"/>
-            <path d="M8 15a18 18 0 0 0 1.8 6"/>
-            <path d="M4.9 19a22 22 0 0 1 -.9 -7v-1a8 8 0 0 1 12 -6.95"/>
-          </svg>
+      <!-- Huella y PIN distribuidos equitativamente -->
+      <div style="display:flex;flex-direction:column;flex:1;justify-content:space-evenly;align-items:center">
+
+        <div class="welcome-bio" onclick="_startBioFromWelcome()" style="margin:0">
+          <div class="welcome-fingerprint">
+            <svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M18.9 7a8 8 0 0 1 1.1 5v1a6 6 0 0 0 .8 3"/>
+              <path d="M8 11a4 4 0 0 1 8 0v1a10 10 0 0 0 2 6"/>
+              <path d="M12 11v2a14 14 0 0 0 2.5 8"/>
+              <path d="M8 15a18 18 0 0 0 1.8 6"/>
+              <path d="M4.9 19a22 22 0 0 1 -.9 -7v-1a8 8 0 0 1 12 -6.95"/>
+            </svg>
+          </div>
         </div>
-        <div class="welcome-bio-text" style="display:none"></div>
-      </div>
 
-      <div style="margin-top:40px"></div>
+        <div class="welcome-pin-icon" onclick="openPinLogin()" style="margin:0">
+          <svg width="52" height="60" viewBox="0 0 52 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="8" y="24" width="36" height="26" rx="5" stroke="#0F172A" stroke-width="2.2" fill="none"/>
+            <path d="M16 24V18C16 12.477 20.477 8 26 8C31.523 8 36 12.477 36 18V24" stroke="#0F172A" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+            <circle cx="18" cy="36" r="2.5" fill="#0F172A"/>
+            <circle cx="26" cy="36" r="2.5" fill="#0F172A"/>
+            <circle cx="34" cy="36" r="2.5" fill="#0F172A"/>
+            <circle cx="18" cy="45" r="2" fill="#0F172A" opacity=".4"/>
+            <circle cx="26" cy="45" r="2" fill="#0F172A" opacity=".4"/>
+            <circle cx="34" cy="45" r="2" fill="#0F172A" opacity=".4"/>
+          </svg>
+          <div class="welcome-pin-label" style="color:#0F172A">Ingresar con PIN</div>
+        </div>
 
-      <!-- Ícono PIN tipo cerradura+teclado -->
-      <div class="welcome-pin-icon" onclick="openPinLogin()">
-        <svg width="52" height="60" viewBox="0 0 52 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="8" y="24" width="36" height="26" rx="5" stroke="#0F172A" stroke-width="2.2" fill="none"/>
-          <path d="M16 24V18C16 12.477 20.477 8 26 8C31.523 8 36 12.477 36 18V24" stroke="#0F172A" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-          <circle cx="18" cy="36" r="2.5" fill="#0F172A"/>
-          <circle cx="26" cy="36" r="2.5" fill="#0F172A"/>
-          <circle cx="34" cy="36" r="2.5" fill="#0F172A"/>
-          <circle cx="18" cy="45" r="2" fill="#0F172A" opacity=".4"/>
-          <circle cx="26" cy="45" r="2" fill="#0F172A" opacity=".4"/>
-          <circle cx="34" cy="45" r="2" fill="#0F172A" opacity=".4"/>
-        </svg>
-        <div class="welcome-pin-label" style="color:#0F172A">Ingresar con PIN</div>
       </div>
     </div>
 
-    <div class="auth-bottom" style="border-top:none;background:transparent">
-      <div class="auth-footer">© 2026 Xenda.co. Todos los derechos reservados.</div>
-    </div>
+    <div class="auth-footer">© 2026 Xenda.co. Todos los derechos reservados.</div>
   </div>
 
 </div>
