@@ -510,8 +510,9 @@ function _renderPinDots(pin, elId){
 }
 
 // ── SVG huella profesional (string reutilizable) ──
-var _fpSvgLg = '<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18.9 7a8 8 0 0 1 1.1 5v1a6 6 0 0 0 .8 3"/><path d="M8 11a4 4 0 0 1 8 0v1a10 10 0 0 0 2 6"/><path d="M12 11v2a14 14 0 0 0 2.5 8"/><path d="M8 15a18 18 0 0 0 1.8 6"/><path d="M4.9 19a22 22 0 0 1 -.9 -7v-1a8 8 0 0 1 12 -6.95"/></svg>';
-var _fpSvgSm = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18.9 7a8 8 0 0 1 1.1 5v1a6 6 0 0 0 .8 3"/><path d="M8 11a4 4 0 0 1 8 0v1a10 10 0 0 0 2 6"/><path d="M12 11v2a14 14 0 0 0 2.5 8"/><path d="M8 15a18 18 0 0 0 1.8 6"/><path d="M4.9 19a22 22 0 0 1 -.9 -7v-1a8 8 0 0 1 12 -6.95"/></svg>';
+// ── SVG huella profesional (string reutilizable) ──
+var _fpSvgLg = '<svg width="72" height="72" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C7.58 2 4 5.58 4 10c0 3.54 2.29 6.53 5.47 7.59" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"/><path d="M12 2c4.42 0 8 3.58 8 8 0 3.54-2.29 6.53-5.47 7.59" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"/><path d="M8.5 10c0-2.21 1.79-4 4-4s4 1.79 4 4c0 2.5-2 4.5-4 6" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"/><path d="M6 10c0-3.31 2.69-6 6-6s6 2.69 6 6" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/></svg>';
+var _fpSvgSm = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none"><path d="M12 3C8.13 3 5 6.13 5 10c0 2.8 1.8 5.2 4.3 6.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 3c3.87 0 7 3.13 7 7 0 2.8-1.8 5.2-4.3 6.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 10c0-1.66 1.34-3 3-3s3 1.34 3 3c0 2-1.5 3.5-3 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
 // ── Modal PIN helper: keypad con huella ──
 function _buildKeypad(handler){
@@ -778,8 +779,9 @@ function showPinModal(){
           closePinModal();
           try{ toast('Demasiados intentos. Espera 30 segundos.'); }catch(e){}
         }else{
+          var attemptsLeft = 5 - attempts;
           var errEl = document.getElementById('pin-err');
-          if(errEl) errEl.textContent = 'PIN incorrecto';
+          if(errEl) errEl.textContent = 'PIN incorrecto. Te quedan ' + attemptsLeft + ' intento' + (attemptsLeft === 1 ? '' : 's') + '.';
           st.pin = [];
           _renderPinDots([], 'pin-dots');
           // Shake animation en dots
@@ -804,6 +806,12 @@ function closePinModal(){
   if(sheet) sheet.style.animation = 'bsSlideDown .22s ease forwards';
   el.style.opacity = '0'; el.style.transition = 'opacity .22s';
   setTimeout(function(){ if(el.parentNode) el.remove(); window._pinState = null; }, 240);
+}
+
+function _getDisplayName(fullName){
+  if(!fullName) return 'Usuario';
+  var parts = fullName.trim().split(/\s+/);
+  return parts.slice(0, 2).join(' ');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -831,11 +839,13 @@ function _showWelcomeScreen(user){
   }
   var el = document.getElementById('auth-welcome-name');
   var elSub = document.getElementById('auth-welcome-name-sub');
-  // Solo primer nombre
-  var firstName = name.trim().split(' ')[0];
+  var displayName = _getDisplayName(name);
   if(el) el.textContent = 'Hola,';
-  if(elSub) elSub.textContent = firstName;
+  if(elSub) elSub.textContent = displayName;
   _showScreen('welcome');
+  // Inyectar SVG de huella desde variable reutilizable
+  var fpIcon = document.getElementById('welcome-fp-icon');
+  if(fpIcon && typeof _fpSvgSm !== 'undefined') fpIcon.innerHTML = _fpSvgSm;
 }
 
 async function _startBioFromWelcome(){
