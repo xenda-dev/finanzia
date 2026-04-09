@@ -204,28 +204,29 @@
     </div>
 
     <div class="auth-body auth-panel-center">
-      <p class="auth-subtitle" style="margin-bottom:2px">Hola,</p>
       <h2 id="auth-welcome-name" class="auth-title" style="margin-bottom:4px;text-align:center"></h2>
       <div id="auth-welcome-name-sub" style="font-size:20px;font-weight:800;color:var(--primary,#00D4AA);letter-spacing:-.3px;margin-bottom:20px;text-align:center"></div>
 
       <div class="welcome-bio" onclick="_startBioFromWelcome()">
         <div class="welcome-fingerprint">
-          <!-- Huella realista — arcos concéntricos tipo thumbprint -->
-          <svg width="72" height="72" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Núcleo central -->
-            <path d="M50 58 C48 54 48 48 50 44 C52 48 52 54 50 58Z" stroke="#00D4AA" stroke-width="2.2" stroke-linecap="round"/>
-            <!-- Loop 1 -->
-            <path d="M44 62 C38 56 38 44 44 38 C47 34 53 34 56 38 C62 44 62 56 56 62" stroke="#00D4AA" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-            <!-- Loop 2 -->
-            <path d="M37 67 C28 60 26 44 33 35 C38 28 62 28 67 35 C74 44 72 60 63 67" stroke="#00D4AA" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-            <!-- Loop 3 -->
-            <path d="M30 72 C18 63 15 44 23 32 C30 22 70 22 77 32 C85 44 82 63 70 72" stroke="#00D4AA" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-            <!-- Loop 4 exterior -->
-            <path d="M22 76 C8 65 5 43 14 28 C23 14 77 14 86 28 C95 43 92 65 78 76" stroke="#00D4AA" stroke-width="2" stroke-linecap="round" fill="none" opacity=".6"/>
-            <!-- Arco base izq -->
-            <path d="M22 76 C18 80 16 85 17 90" stroke="#00D4AA" stroke-width="2" stroke-linecap="round" opacity=".5"/>
-            <!-- Arco base der -->
-            <path d="M78 76 C82 80 84 85 83 90" stroke="#00D4AA" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+          <!-- Huella realista tipo arcos — igual a foto 2 -->
+          <svg width="72" height="76" viewBox="0 0 72 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Loop central -->
+            <path d="M36 44 C33 40 33 34 36 30 C39 34 39 40 36 44Z" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round"/>
+            <!-- Arco 1 -->
+            <path d="M28 52 C22 46 22 32 28 25 C31 20 41 20 44 25 C50 32 50 46 44 52" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+            <!-- Arco 2 -->
+            <path d="M20 58 C11 51 10 30 18 19 C24 11 48 11 54 19 C62 30 61 51 52 58" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+            <!-- Arco 3 -->
+            <path d="M12 63 C1 55 0 27 9 14 C17 3 55 3 63 14 C72 27 71 55 60 63" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+            <!-- Arco exterior -->
+            <path d="M5 67 C-6 57 -7 23 4 8 C13 -3 59 -3 68 8 C79 23 78 57 67 67" stroke="#00D4AA" stroke-width="2.3" stroke-linecap="round" fill="none" opacity=".5"/>
+            <!-- Pies izquierda -->
+            <path d="M12 63 C10 67 10 72 12 76" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round"/>
+            <path d="M20 58 C17 64 17 70 19 76" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round"/>
+            <!-- Pies derecha -->
+            <path d="M60 63 C62 67 62 72 60 76" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round"/>
+            <path d="M52 58 C55 64 55 70 53 76" stroke="#00D4AA" stroke-width="2.8" stroke-linecap="round"/>
           </svg>
         </div>
         <div class="welcome-bio-text">Toca para ingresar con huella</div>
