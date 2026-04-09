@@ -534,8 +534,8 @@ function _renderPinDots(pin, elId){
 }
 
 // ── SVG huella profesional (string reutilizable) ──
-var _fpSvgLg = '<svg width="64" height="64" viewBox="0 0 24 24" fill="none"><path d="M12 3C7 3 3 7 3 12c0 3.5 2 6.5 5 8" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"/><path d="M12 3c5 0 9 4 9 9 0 3.5-2 6.5-5 8" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"/><path d="M8 12c0-2 1.5-3.5 4-3.5S16 10 16 12c0 2.5-2 4-4 5" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"/><path d="M6 12c0-3.5 2.5-6 6-6s6 2.5 6 6" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round" opacity=".5"/></svg>';
-var _fpSvgSm = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="pointer-events:none"><path d="M12 4c-4 0-7 3-7 7 0 2.5 1.5 4.5 4 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 4c4 0 7 3 7 7 0 2.5-1.5 4.5-4 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 12c0-1.5 1.2-2.5 3-2.5S15 10.5 15 12c0 2-1.5 3.2-3 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+var _fpSvgLg = '<svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="36" cy="36" r="35" stroke="#00D4AA" stroke-width="1.5" opacity=".18"/><circle cx="36" cy="36" r="27" stroke="#00D4AA" stroke-width="1.5" opacity=".3"/><path d="M36 22c-7.7 0-14 6.3-14 14 0 5.2 2.8 9.7 7 12.2" stroke="#00D4AA" stroke-width="2.2" stroke-linecap="round"/><path d="M36 22c7.7 0 14 6.3 14 14 0 5.2-2.8 9.7-7 12.2" stroke="#00D4AA" stroke-width="2.2" stroke-linecap="round"/><path d="M36 29c-3.9 0-7 3.1-7 7 0 3.2 2.1 5.9 5 6.8" stroke="#00D4AA" stroke-width="2.2" stroke-linecap="round"/><path d="M36 29c3.9 0 7 3.1 7 7 0 3.2-2.1 5.9-5 6.8" stroke="#00D4AA" stroke-width="2.2" stroke-linecap="round"/><circle cx="36" cy="36" r="2.5" fill="#00D4AA"/></svg>';
+var _fpSvgSm = '<svg width="28" height="28" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" style="pointer-events:none"><path d="M36 22c-7.7 0-14 6.3-14 14 0 5.2 2.8 9.7 7 12.2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M36 22c7.7 0 14 6.3 14 14 0 5.2-2.8 9.7-7 12.2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M36 29c-3.9 0-7 3.1-7 7 0 3.2 2.1 5.9 5 6.8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M36 29c3.9 0 7 3.1 7 7 0 3.2-2.1 5.9-5 6.8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="36" cy="36" r="2.5" fill="currentColor"/></svg>';
 
 // ── Modal PIN helper: keypad con huella ──
 function _buildKeypad(handler){
@@ -849,8 +849,9 @@ function _showWelcomeScreen(user){
     }catch(e){ name = 'Usuario'; }
   }
   var el = document.getElementById('auth-welcome-name');
-  if(name) name = name.trim().split(' ')[0];
-  if(el) el.textContent = 'Hola, ' + name;
+  var elSub = document.getElementById('auth-welcome-name-sub');
+  if(el) el.textContent = 'Hola,';
+  if(elSub) elSub.textContent = name;
   _showScreen('welcome');
 }
 
