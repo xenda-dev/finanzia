@@ -5804,7 +5804,8 @@ function saveProfile(){
   // Required field validation
   const reqName=g('cfg-name').trim();
   if(!reqName){toast('⚠️ El nombre es obligatorio');document.getElementById('cfg-name')?.focus();return;}
-  S.profile.name=g('cfg-name');S.profile.email=g('cfg-email');
+  S.profile.name=reqName;S.profile.email=g('cfg-email').trim();
+  console.log('Perfil guardado:', S.profile.name);
   S.profile.birthdate=g('cfg-birthdate');
   S.profile.phone=g('cfg-phone');S.profile.phoneCode=g('cfg-phone-code');
   S.profile.country=g('cfg-country');

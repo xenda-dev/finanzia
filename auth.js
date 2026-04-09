@@ -90,7 +90,7 @@ function _showBioSheet(user){
 
   var overlay = document.createElement('div');
   overlay.id = 'bio-sheet-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease;pointer-events:auto';
 
   overlay.innerHTML =
     '<div id="bio-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
@@ -98,7 +98,7 @@ function _showBioSheet(user){
     +'<div style="padding:20px 28px 28px;text-align:center">'
       // Logo row
       +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px">'
-        +'<img src="icon-192.png" style="width:28px;height:28px;border-radius:6px" alt="FinanzIA">'
+        +'<img src="/icon-192.png" style="width:28px;height:28px;border-radius:6px" alt="FinanzIA">'
         +'<span style="font-weight:800;font-size:18px;color:var(--text,#0F172A);letter-spacing:-.3px">Finanz<span style="color:#00D4AA">IA</span></span>'
       +'</div>'
       // Icon
@@ -132,8 +132,11 @@ async function _handleBioSheetUnlock(){
   var btn = document.getElementById('bio-sheet-btn');
   var errEl = document.getElementById('bio-sheet-err');
   if(btn){ btn.disabled = true; btn.textContent = 'Verificando...'; }
+  if(errEl){ errEl.style.display = 'none'; }
 
+  console.log('Bio start');
   var ok = await bioAuthenticate();
+  console.log('Bio result:', ok);
 
   if(ok){
     _closeBioSheet();
@@ -174,7 +177,7 @@ function _showBioOfferSheet(user){
 
   var overlay = document.createElement('div');
   overlay.id = 'bio-offer-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease;pointer-events:auto';
 
   overlay.innerHTML =
     '<div id="bio-offer-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
@@ -305,8 +308,8 @@ async function _afterLogin(user){
           try{
             if(!S.profile||!S.profile.name||!S.profile.name.trim()){
               if(typeof openProfilePage==='function') openProfilePage();
-            } else if(_isBioAvailable()&&!_isBioEnabled()){
-              // Ofrecer biometría solo si el perfil ya está completo
+            }
+            if(_isBioAvailable()&&!_isBioEnabled()){
               _showBioOfferSheet(user);
             }
           }catch(e){}
@@ -318,7 +321,8 @@ async function _afterLogin(user){
           try{
             if(!S.profile||!S.profile.name||!S.profile.name.trim()){
               if(typeof openProfilePage==='function') openProfilePage();
-            } else if(_isBioAvailable()&&!_isBioEnabled()){
+            }
+            if(_isBioAvailable()&&!_isBioEnabled()){
               _showBioOfferSheet(user);
             }
           }catch(e){}
@@ -329,7 +333,8 @@ async function _afterLogin(user){
       try{
         if(!S.profile||!S.profile.name||!S.profile.name.trim()){
           if(typeof openProfilePage==='function') openProfilePage();
-        } else if(_isBioAvailable()&&!_isBioEnabled()){
+        }
+        if(_isBioAvailable()&&!_isBioEnabled()){
           _showBioOfferSheet(user);
         }
       }catch(e){}
@@ -445,10 +450,23 @@ function handleGoogleAuth(){
 function _showWelcomeScreen(user){
   var name = '';
   try{
-    name = (typeof S !== 'undefined' && S && S.profile && S.profile.name && S.profile.name.trim())
-      || (user && user.user_metadata && user.user_metadata.name)
-      || (user && user.email ? user.email.split('@')[0] : '')
-      || 'Usuario';
+    // 1. Estado en memoria
+    if(typeof S !== 'undefined' && S && S.profile && S.profile.name && S.profile.name.trim()){
+      name = S.profile.name.trim();
+    }
+    // 2. Leer directo de localStorage si S no tiene el dato aún
+    if(!name){
+      try{
+        var raw = localStorage.getItem('finanziaState3');
+        if(raw){ var st = JSON.parse(raw); if(st.profile && st.profile.name) name = st.profile.name.trim(); }
+      }catch(ex){}
+    }
+    // 3. user_metadata de Supabase
+    if(!name) name = (user && user.user_metadata && user.user_metadata.name) || '';
+    // 4. email prefix
+    if(!name) name = (user && user.email) ? user.email.split('@')[0] : '';
+    // 5. fallback
+    if(!name) name = 'Usuario';
   }catch(e){ name = 'Usuario'; }
   var el = document.getElementById('auth-welcome-name');
   if(el) el.textContent = 'Hola, ' + name;
@@ -462,8 +480,7 @@ async function _startBioFromWelcome(){
   }
   if(!user || !user.id){ showAuthScreen(); _showScreen('login'); return; }
   if(!_isBioEnabled()){
-    hideAuthScreen();
-    if(typeof initApp==='function') initApp();
+    _showBioOfferSheet(user);
     return;
   }
   _showBioSheet(user);
