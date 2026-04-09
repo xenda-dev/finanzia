@@ -319,54 +319,32 @@ async function _afterLogin(user){
   if(typeof initApp==='function') initApp();
   _injectLogoutBtn(user);
 
-  // Sync + chequeo de perfil
+  // Sync + chequeo de perfil y onboarding
+  var _doOnboarding = function(){
+    try{
+      if(!S.profile||!S.profile.name||!S.profile.name.trim()){
+        if(typeof openProfilePage==='function') openProfilePage();
+        return;
+      }
+      // PIN primero — bio se ofrece DENTRO de showSetPinModal al confirmar
+      if(!_isPinEnabled()){
+        setTimeout(function(){ showSetPinModal(user); }, 400);
+        return;
+      }
+      // Si ya tiene PIN, ofrecer bio si no está activada
+      if(_isBioAvailable()&&!_isBioEnabled()){
+        setTimeout(function(){ _showBioOfferSheet(user); }, 400);
+      }
+    }catch(e){}
+  };
+
   if(typeof safeSync==='function'){
-    safeSync(user.id)
-      .then(function(){
-        setTimeout(function(){
-          try{
-            if(!S.profile||!S.profile.name||!S.profile.name.trim()){
-              if(typeof openProfilePage==='function') openProfilePage();
-            }
-            if(_isBioAvailable()&&!_isBioEnabled()){
-              _showBioOfferSheet(user);
-            }
-            if(!_isPinEnabled()){
-              setTimeout(function(){ showSetPinModal(user); }, 600);
-            }
-          }catch(e){}
-        },400);
-      })
-      .catch(function(e){
-        console.warn('sync error:',e);
-        setTimeout(function(){
-          try{
-            if(!S.profile||!S.profile.name||!S.profile.name.trim()){
-              if(typeof openProfilePage==='function') openProfilePage();
-            }
-            if(_isBioAvailable()&&!_isBioEnabled()){
-              _showBioOfferSheet(user);
-            }
-            if(!_isPinEnabled()){
-              setTimeout(function(){ showSetPinModal(user); }, 600);
-            }
-          }catch(e){}
-        },500);
-      });
+    safeSync(user.id).then(_doOnboarding).catch(function(e){
+      console.warn('sync error:',e);
+      setTimeout(_doOnboarding, 100);
+    });
   }else{
-    setTimeout(function(){
-      try{
-        if(!S.profile||!S.profile.name||!S.profile.name.trim()){
-          if(typeof openProfilePage==='function') openProfilePage();
-        }
-        if(_isBioAvailable()&&!_isBioEnabled()){
-          _showBioOfferSheet(user);
-        }
-        if(!_isPinEnabled()){
-          setTimeout(function(){ showSetPinModal(user); }, 600);
-        }
-      }catch(e){}
-    },400);
+    setTimeout(_doOnboarding, 400);
   }
 }
 
@@ -649,27 +627,39 @@ function showSetPinModal(user){
   window._setPinKey = async function(k){
     var st = window._setPinState;
     var p = st.current;
-    if(k === '⌫'){ p.pop(); }
-    else if(p.length < 4){ p.push(k); try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){} }
+    if(k === '⌫'){
+      p.pop();
+    }else if(p.length < 4){
+      p.push(k);
+      try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){}
+    }
     st.current = p;
     _renderPinDots(p, 'set-pin-dots');
 
     if(p.length === 4){
       if(st.step === 1){
-        // Guardar primer PIN y pedir confirmación
+        // Paso 1 → guardar primer PIN y pedir confirmación
         st.first = p.slice();
         st.step = 2;
         st.current = [];
         setTimeout(function(){ st.draw(); }, 150);
       }else{
-        // Confirmar
+        // Paso 2 → confirmar
         if(p.join('') === st.first.join('')){
           await saveUserPin(p.join(''));
+          var u = st.user;
           closeSetPinModal();
-          try{ toast('PIN activado ✓'); }catch(e){}
+          try{ toast('PIN guardado correctamente ✓'); }catch(e){}
+          // Ofrecer bio después del PIN, con delay
+          setTimeout(function(){
+            if(_isBioAvailable() && !_isBioEnabled() && u){
+              _showBioOfferSheet(u);
+            }
+          }, 500);
         }else{
           var errEl = document.getElementById('set-pin-err');
-          if(errEl) errEl.textContent = 'Los PINs no coinciden. Inténtalo de nuevo.';
+          if(errEl) errEl.textContent = 'Los PIN no coinciden. Inténtalo de nuevo.';
+          // Resetear completamente al paso 1
           st.step = 1;
           st.first = [];
           st.current = [];
