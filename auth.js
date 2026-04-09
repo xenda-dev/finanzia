@@ -257,7 +257,8 @@ function _showScreen(name){
   ['login','register','bio','verify','recover','welcome'].forEach(function(id){
     var el=document.getElementById('auth-'+id); if(el)el.style.display='none';
   });
-  var t=document.getElementById('auth-'+name); if(t)t.style.display='block';
+  var t=document.getElementById('auth-'+name);
+  if(t) t.style.display = (name==='welcome') ? 'flex' : 'block';
 }
 function _setError(id,msg){
   var el=document.getElementById('auth-err-'+id);
