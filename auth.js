@@ -28,6 +28,7 @@ async function signIn(email, password){
 async function signOut(){
   localStorage.removeItem('_bioEnabled');
   localStorage.removeItem('_bioCredId');
+  // PIN se mantiene por dispositivo — no se elimina al cerrar sesión
   try{await _supabase.auth.signOut();}catch(e){console.warn('signOut warning:',e.message);}
   _currentUser = null;
   _showScreen('login');
@@ -329,6 +330,9 @@ async function _afterLogin(user){
             if(_isBioAvailable()&&!_isBioEnabled()){
               _showBioOfferSheet(user);
             }
+            if(!_isPinEnabled()){
+              setTimeout(function(){ showSetPinModal(user); }, 600);
+            }
           }catch(e){}
         },400);
       })
@@ -342,6 +346,9 @@ async function _afterLogin(user){
             if(_isBioAvailable()&&!_isBioEnabled()){
               _showBioOfferSheet(user);
             }
+            if(!_isPinEnabled()){
+              setTimeout(function(){ showSetPinModal(user); }, 600);
+            }
           }catch(e){}
         },500);
       });
@@ -353,6 +360,9 @@ async function _afterLogin(user){
         }
         if(_isBioAvailable()&&!_isBioEnabled()){
           _showBioOfferSheet(user);
+        }
+        if(!_isPinEnabled()){
+          setTimeout(function(){ showSetPinModal(user); }, 600);
         }
       }catch(e){}
     },400);
@@ -462,73 +472,346 @@ function handleGoogleAuth(){
 }
 
 // ════════════════════════════════════════════════════════════
-// PIN — UI modal (sin auth real aún)
+// PIN — Sistema completo (hash + guardar + validar + UI)
+// ════════════════════════════════════════════════════════════
+
+// PARTE 1 — Hash seguro con Web Crypto API
+async function _hashPin(pin){
+  var enc = new TextEncoder().encode(pin);
+  var buf = await crypto.subtle.digest('SHA-256', enc);
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(buf)));
+}
+
+// PARTE 2 — Guardar PIN (por usuario)
+async function saveUserPin(pin){
+  if(!_currentUser || !_currentUser.id){ console.warn('PIN sin usuario válido'); return false; }
+  var uid = _currentUser.id;
+  var hash = await _hashPin(pin);
+  localStorage.setItem('_userPin_' + uid, hash);
+  localStorage.setItem('_pinEnabled_' + uid, '1');
+}
+
+// PARTE 3 — Validar PIN (por usuario)
+async function validateUserPin(pin){
+  if(!_currentUser || !_currentUser.id){ console.warn('PIN sin usuario válido'); return false; }
+  var uid = _currentUser.id;
+  var stored = localStorage.getItem('_userPin_' + uid);
+  if(!stored) return false;
+  var hash = await _hashPin(pin);
+  return hash === stored;
+}
+
+// Helpers de estado
+function _isPinEnabled(){
+  if(!_currentUser || !_currentUser.id) return false;
+  var uid = _currentUser.id;
+  return localStorage.getItem('_pinEnabled_' + uid) === '1' && !!localStorage.getItem('_userPin_' + uid);
+}
+function _getPinAttempts(){ return parseInt(localStorage.getItem('_pinAttempts') || '0'); }
+function _isPinLocked(){
+  var until = parseInt(localStorage.getItem('_pinLockUntil') || '0');
+  return Date.now() < until;
+}
+function _getPinLockSecondsLeft(){
+  var until = parseInt(localStorage.getItem('_pinLockUntil') || '0');
+  return Math.ceil((until - Date.now()) / 1000);
+}
+function _resetPinAttempts(){
+  localStorage.removeItem('_pinAttempts');
+  localStorage.removeItem('_pinLockUntil');
+}
+
+// ── Modal PIN helper: redibuja puntos ──
+function _renderPinDots(pin, elId){
+  var el = document.getElementById(elId || 'pin-dots');
+  if(!el) return;
+  var html = '';
+  for(var i=0;i<4;i++){
+    var filled = pin.length > i;
+    html += '<div style="width:16px;height:16px;border-radius:50%;border:2px solid #00D4AA;background:'+(filled?'#00D4AA':'transparent')+';transition:background .1s"></div>';
+  }
+  el.innerHTML = html;
+}
+
+// ── SVG huella profesional (string reutilizable) ──
+var _fpSvgLg = '<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11c1.657 0 3 1.567 3 3.5 0 2.5-2 4.5-3 5.5"/><path d="M8.5 11c0-2 1.79-3.5 3.5-3.5S15.5 9 15.5 11"/><path d="M5 12c0-3.5 3-6 7-6s7 2.5 7 6"/><path d="M3 12c0-5 4-9 9-9s9 4 9 9"/></svg>';
+var _fpSvgSm = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M12 11c1.657 0 3 1.567 3 3.5 0 2.5-2 4.5-3 5.5"/><path d="M8.5 11c0-2 1.79-3.5 3.5-3.5S15.5 9 15.5 11"/><path d="M5 12c0-3.5 3-6 7-6s7 2.5 7 6"/><path d="M3 12c0-5 4-9 9-9s9 4 9 9"/></svg>';
+
+// ── Modal PIN helper: keypad con huella ──
+function _buildKeypad(handler){
+  var keys = [1,2,3,4,5,6,7,8,9,'fp',0,'⌫'];
+  var html = '';
+  keys.forEach(function(k){
+    if(k === 'fp'){
+      // Botón huella — solo si bio está habilitada, si no vacío
+      if(_currentUser && _currentUser.id && _isBioEnabled()){
+        html += '<button onclick="_pinUseBiometric()" '
+          +'style="height:64px;border:none;background:var(--surface2,#F1F5F9);border-radius:14px;'
+          +'cursor:pointer;color:#00D4AA;display:flex;align-items:center;justify-content:center;'
+          +'-webkit-tap-highlight-color:transparent;transition:transform .08s,background .08s;width:100%" '
+          +'ontouchstart="this.style.background=\'var(--surface3,#E2E8F0)\';this.style.transform=\'scale(.94)\'" '
+          +'ontouchend="this.style.background=\'var(--surface2,#F1F5F9)\';this.style.transform=\'scale(1)\'">'
+          +_fpSvgSm+'</button>';
+      }else{
+        html += '<div></div>';
+      }
+    }else{
+      var isBackspace = k === '⌫';
+      html += '<button onclick="'+handler+'(\''+k+'\')" '
+        +'style="height:64px;border:none;background:var(--surface2,#F1F5F9);border-radius:14px;'
+        +'font-size:'+(isBackspace?'22px':'24px')+';font-weight:'+(isBackspace?'400':'700')+';'
+        +'cursor:pointer;color:var(--text,#0F172A);font-family:var(--font,inherit);'
+        +'-webkit-tap-highlight-color:transparent;transition:transform .08s,background .08s" '
+        +'ontouchstart="this.style.background=\'var(--surface3,#E2E8F0)\';this.style.transform=\'scale(.94)\'" '
+        +'ontouchend="this.style.background=\'var(--surface2,#F1F5F9)\';this.style.transform=\'scale(1)\'">'
+        +k+'</button>';
+    }
+  });
+  return html;
+}
+
+// ── Biometría desde teclado PIN ──
+async function _pinUseBiometric(){
+  if(!_isBioEnabled()){
+    try{ toast('Activa la huella primero'); }catch(e){}
+    return;
+  }
+  closePinModal();
+  var result = await bioAuthenticate();
+  if(result === true){
+    try{
+      var res = await _supabase.auth.getUser();
+      if(res.error || !res.data || !res.data.user) throw new Error('Invalid session');
+      _currentUser = res.data.user;
+    }catch(e){
+      showAuthScreen(); _showScreen('login');
+      try{ toast('Sesión expirada'); }catch(ex){}
+      return;
+    }
+    hideAuthScreen();
+    if(typeof initApp === 'function') initApp();
+    if(_currentUser){
+      _injectLogoutBtn(_currentUser);
+      if(typeof safeSync === 'function'){
+        safeSync(_currentUser.id).catch(function(e){ console.warn('sync error:',e); });
+      }
+    }
+  }else if(result === 'cancelled'){
+    showPinModal();
+  }else{
+    try{ toast('No se pudo verificar'); }catch(e){}
+    showPinModal();
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// PARTE 4 — Modal creación de PIN (post login)
+// ════════════════════════════════════════════════════════════
+function showSetPinModal(user){
+  var old = document.getElementById('set-pin-overlay');
+  if(old) old.remove();
+
+  var step = 1; // 1 = ingresar, 2 = confirmar
+  var firstPin = [];
+  var currentPin = [];
+
+  var overlay = document.createElement('div');
+  overlay.id = 'set-pin-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease;pointer-events:auto';
+
+  function draw(){
+    var title = step === 1 ? 'Crea tu PIN de 4 dígitos' : 'Confirma tu PIN';
+    var subtitle = step === 1 ? 'Lo usarás para ingresar rápidamente' : 'Ingresa el mismo PIN de nuevo';
+    overlay.innerHTML =
+      '<div id="set-pin-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
+      +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:40px;height:4px;border-radius:2px;background:var(--border,#E2E8F0)"></div></div>'
+      +'<div style="padding:20px 28px 24px;text-align:center">'
+        +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px">'
+          +'<img src="/icon-192.png" style="width:24px;height:24px;border-radius:5px" alt="">'
+          +'<span style="font-weight:800;font-size:16px;color:var(--text,#0F172A)">Finanz<span style="color:#00D4AA">IA</span></span>'
+        +'</div>'
+        +'<div style="font-size:16px;font-weight:700;color:var(--text,#0F172A);margin-bottom:4px">'+title+'</div>'
+        +'<div style="font-size:13px;color:var(--text2,#64748B);margin-bottom:20px">'+subtitle+'</div>'
+        +'<div id="set-pin-dots" style="display:flex;justify-content:center;gap:16px;margin-bottom:8px"></div>'
+        +'<div id="set-pin-err" style="min-height:20px;font-size:13px;color:#DC2626;margin-bottom:16px;text-align:center"></div>'
+        +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">'+_buildKeypad('_setPinKey')+'</div>'
+        +'<button onclick="closeSetPinModal()" style="margin-top:14px;background:none;border:none;color:var(--text2,#94A3B8);font-size:14px;cursor:pointer;font-family:var(--font,inherit)">Ahora no</button>'
+      +'</div>'
+      +'</div>';
+    _renderPinDots(currentPin, 'set-pin-dots');
+    window._setPinState = {step:step, first:firstPin, current:currentPin, user:user, draw:draw};
+  }
+
+  draw();
+  document.body.appendChild(overlay);
+
+  window._setPinKey = async function(k){
+    var st = window._setPinState;
+    var p = st.current;
+    if(k === '⌫'){ p.pop(); }
+    else if(p.length < 4){ p.push(k); try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){} }
+    st.current = p;
+    _renderPinDots(p, 'set-pin-dots');
+
+    if(p.length === 4){
+      if(st.step === 1){
+        // Guardar primer PIN y pedir confirmación
+        st.first = p.slice();
+        st.step = 2;
+        st.current = [];
+        setTimeout(function(){ st.draw(); }, 150);
+      }else{
+        // Confirmar
+        if(p.join('') === st.first.join('')){
+          await saveUserPin(p.join(''));
+          closeSetPinModal();
+          try{ toast('PIN activado ✓'); }catch(e){}
+        }else{
+          var errEl = document.getElementById('set-pin-err');
+          if(errEl) errEl.textContent = 'Los PINs no coinciden. Inténtalo de nuevo.';
+          st.step = 1;
+          st.first = [];
+          st.current = [];
+          setTimeout(function(){ st.draw(); }, 300);
+        }
+      }
+    }
+  };
+}
+
+function closeSetPinModal(){
+  var el = document.getElementById('set-pin-overlay');
+  if(!el) return;
+  var sheet = document.getElementById('set-pin-sheet');
+  if(sheet) sheet.style.animation = 'bsSlideDown .22s ease forwards';
+  el.style.opacity = '0'; el.style.transition = 'opacity .22s';
+  setTimeout(function(){ if(el.parentNode) el.remove(); window._setPinState = null; }, 240);
+}
+
+// ════════════════════════════════════════════════════════════
+// PARTE 5 — Modal login con PIN (reemplaza placeholder)
 // ════════════════════════════════════════════════════════════
 function openPinLogin(){ showPinModal(); }
 
+// FIX 1 — Validación real de sesión al entrar con PIN
+async function _enterWithPinSuccess(){
+  _resetPinAttempts();
+  var realUser = null;
+  try{
+    var res = await _supabase.auth.getUser();
+    if(res.error || !res.data || !res.data.user) throw new Error('Invalid session');
+    realUser = res.data.user;
+    _currentUser = realUser;
+  }catch(e){
+    if(_currentUser && _currentUser.id){
+      localStorage.removeItem('_pinEnabled_' + _currentUser.id);
+      localStorage.removeItem('_userPin_' + _currentUser.id);
+    }
+    closePinModal();
+    showAuthScreen();
+    _showScreen('login');
+    try{ toast('Sesión expirada. Ingresa nuevamente'); }catch(ex){}
+    return;
+  }
+  closePinModal();
+  hideAuthScreen();
+  if(typeof initApp === 'function') initApp();
+  if(realUser){
+    _injectLogoutBtn(realUser);
+    if(typeof safeSync === 'function'){
+      safeSync(realUser.id).catch(function(e){ console.warn('sync error:',e); });
+    }
+  }
+}
+
 function showPinModal(){
+  if(_isPinLocked()){
+    var secs = _getPinLockSecondsLeft();
+    try{ toast('PIN bloqueado. Espera '+secs+'s'); }catch(e){}
+    return;
+  }
+
   var old = document.getElementById('pin-modal-overlay');
   if(old) old.remove();
 
   var pin = [];
-
   var overlay = document.createElement('div');
   overlay.id = 'pin-modal-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease;pointer-events:auto';
 
-  function render(){
-    var dots = '';
-    for(var i=0;i<4;i++){
-      dots += '<div style="width:14px;height:14px;border-radius:50%;border:2px solid #00D4AA;background:'+(pin.length>i?'#00D4AA':'transparent')+'"></div>';
-    }
-    var keys = [1,2,3,4,5,6,7,8,9,'',0,'⌫'];
-    var keypad = '';
-    keys.forEach(function(k){
-      if(k===''){
-        keypad += '<div></div>';
-      }else{
-        keypad += '<button onclick="_pinKey(\''+k+'\')" style="height:64px;border:none;background:var(--surface2,#F1F5F9);border-radius:12px;font-size:'+(k==='⌫'?'20px':'22px')+';font-weight:700;cursor:pointer;color:var(--text,#0F172A);font-family:var(--font,inherit);transition:.1s;active:opacity:.7">'+k+'</button>';
-      }
-    });
+  function draw(){
+    var attempts = _getPinAttempts();
+    var attemptsLeft = 5 - attempts;
+    var attemptsHtml = attempts > 0
+      ? '<div style="font-size:12px;color:#F59E0B;margin-top:6px">'+attemptsLeft+' intento'+(attemptsLeft===1?'':'s')+' restante'+(attemptsLeft===1?'':'s')+'</div>'
+      : '';
     overlay.innerHTML =
       '<div id="pin-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
       +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:40px;height:4px;border-radius:2px;background:var(--border,#E2E8F0)"></div></div>'
       +'<div style="padding:20px 28px 24px;text-align:center">'
-        +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px">'
+        +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px">'
           +'<img src="/icon-192.png" style="width:24px;height:24px;border-radius:5px" alt="">'
           +'<span style="font-weight:800;font-size:16px;color:var(--text,#0F172A)">Finanz<span style="color:#00D4AA">IA</span></span>'
         +'</div>'
-        +'<div style="font-size:15px;font-weight:600;color:var(--text,#0F172A);margin-bottom:20px">Ingresa tu PIN</div>'
-        +'<div id="pin-dots" style="display:flex;justify-content:center;gap:16px;margin-bottom:28px">'+dots+'</div>'
-        +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">'+keypad+'</div>'
-        +'<button onclick="closePinModal()" style="margin-top:16px;background:none;border:none;color:var(--text2,#94A3B8);font-size:14px;cursor:pointer;font-family:var(--font,inherit)">Cancelar</button>'
+        +'<div style="font-size:16px;font-weight:700;color:var(--text,#0F172A);margin-bottom:4px">Ingresa tu PIN</div>'
+        +attemptsHtml
+        +'<div id="pin-dots" style="display:flex;justify-content:center;gap:16px;margin:16px 0 8px"></div>'
+        +'<div id="pin-err" style="min-height:18px;font-size:13px;color:#DC2626;margin-bottom:14px;text-align:center"></div>'
+        +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">'+_buildKeypad('_pinKey')+'</div>'
+        +'<button onclick="closePinModal()" style="margin-top:14px;background:none;border:none;color:var(--text2,#94A3B8);font-size:14px;cursor:pointer;font-family:var(--font,inherit)">Cancelar</button>'
       +'</div>'
       +'</div>';
-    window._pinState = pin;
+    _renderPinDots(pin, 'pin-dots');
+    window._pinState = {pin:pin, draw:draw};
   }
 
-  render();
+  draw();
   document.body.appendChild(overlay);
 
-  window._pinKey = function(k){
-    var p = window._pinState || [];
-    if(k === '⌫'){ p.pop(); }
-    else if(p.length < 4){ p.push(k); }
-    window._pinState = p;
-    // redraw dots only
-    var dotsEl = document.getElementById('pin-dots');
-    if(dotsEl){
-      var dots = '';
-      for(var i=0;i<4;i++){
-        dots += '<div style="width:14px;height:14px;border-radius:50%;border:2px solid #00D4AA;background:'+(p.length>i?'#00D4AA':'transparent')+'"></div>';
-      }
-      dotsEl.innerHTML = dots;
+  window._pinKey = async function(k){
+    if(_isPinLocked()){
+      var secs = _getPinLockSecondsLeft();
+      try{ toast('PIN bloqueado. Espera '+secs+'s'); }catch(e){}
+      return;
     }
+    var st = window._pinState;
+    var p = st.pin;
+    if(k === '⌫'){ p.pop(); }
+    else if(p.length < 4){ p.push(k); try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){} }
+    st.pin = p;
+    _renderPinDots(p, 'pin-dots');
+
     if(p.length === 4){
-      setTimeout(function(){
-        try{ toast('PIN: próximamente disponible'); }catch(e){}
-        closePinModal();
-      }, 200);
+      // Validar
+      var ok = await validateUserPin(p.join(''));
+      if(ok){
+        await _enterWithPinSuccess();
+      }else{
+        // PIN incorrecto
+        try{ if(navigator.vibrate) navigator.vibrate([60,40,60]); }catch(e){}
+        var attempts = _getPinAttempts() + 1;
+        localStorage.setItem('_pinAttempts', attempts);
+        if(attempts >= 5){
+          localStorage.setItem('_pinLockUntil', Date.now() + 30000);
+          localStorage.removeItem('_pinAttempts');
+          closePinModal();
+          try{ toast('Demasiados intentos. Espera 30 segundos.'); }catch(e){}
+        }else{
+          var errEl = document.getElementById('pin-err');
+          if(errEl) errEl.textContent = 'PIN incorrecto';
+          st.pin = [];
+          _renderPinDots([], 'pin-dots');
+          // Shake animation en dots
+          var dotsEl = document.getElementById('pin-dots');
+          if(dotsEl){
+            dotsEl.style.animation = 'none';
+            dotsEl.style.transition = 'transform .1s';
+            dotsEl.style.transform = 'translateX(8px)';
+            setTimeout(function(){dotsEl.style.transform='translateX(-8px)';},100);
+            setTimeout(function(){dotsEl.style.transform='translateX(0)';},200);
+          }
+        }
+      }
     }
   };
 }
@@ -538,9 +821,8 @@ function closePinModal(){
   if(!el) return;
   var sheet = document.getElementById('pin-sheet');
   if(sheet) sheet.style.animation = 'bsSlideDown .22s ease forwards';
-  el.style.opacity = '0';
-  el.style.transition = 'opacity .22s';
-  setTimeout(function(){ if(el.parentNode) el.remove(); window._pinState = []; }, 240);
+  el.style.opacity = '0'; el.style.transition = 'opacity .22s';
+  setTimeout(function(){ if(el.parentNode) el.remove(); window._pinState = null; }, 240);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -548,7 +830,7 @@ function closePinModal(){
 // ════════════════════════════════════════════════════════════
 function _showWelcomeScreen(user){
   var name = '';
-  if(!user || !user.id){
+  if(!_currentUser || !_currentUser.id || !user || !user.id){
     name = 'Usuario';
   }else{
     try{
@@ -635,7 +917,7 @@ async function initAuth(){
   }
   if(user){
     _currentUser=user;
-    if(_isBioEnabled()){
+    if(_isBioEnabled() || _isPinEnabled()){
       showAuthScreen();
       _showWelcomeScreen(user);
     }else{
