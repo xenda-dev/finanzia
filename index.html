@@ -206,19 +206,18 @@
     <div class="auth-body auth-panel-center">
       <h2 id="auth-welcome-name" class="auth-title"></h2>
       <p class="auth-subtitle">Listo para continuar con tus finanzas</p>
+
+      <div class="welcome-bio" onclick="_startBioFromWelcome()">
+        <div class="welcome-fingerprint">🫆</div>
+        <div class="welcome-bio-text">Toca para ingresar con huella</div>
+      </div>
+
+      <div class="welcome-divider"></div>
+
+      <button class="welcome-pin-btn" onclick="openPinLogin()">🔒 Ingresar con PIN</button>
     </div>
 
-    <div class="auth-bottom">
-      <div class="welcome-actions">
-        <button onclick="_startBioFromWelcome()" class="welcome-action">
-          <span class="welcome-icon">🔓</span>
-          <span>Usar huella</span>
-        </button>
-        <button onclick="showAuthScreen();_showScreen('login')" class="welcome-action">
-          <span class="welcome-icon">🔑</span>
-          <span>Contraseña</span>
-        </button>
-      </div>
+    <div class="auth-bottom" style="border-top:none;background:transparent">
       <div class="auth-footer">© 2026 Xenda.co. Todos los derechos reservados.</div>
     </div>
   </div>

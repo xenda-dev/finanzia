@@ -462,6 +462,88 @@ function handleGoogleAuth(){
 }
 
 // ════════════════════════════════════════════════════════════
+// PIN — UI modal (sin auth real aún)
+// ════════════════════════════════════════════════════════════
+function openPinLogin(){ showPinModal(); }
+
+function showPinModal(){
+  var old = document.getElementById('pin-modal-overlay');
+  if(old) old.remove();
+
+  var pin = [];
+
+  var overlay = document.createElement('div');
+  overlay.id = 'pin-modal-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease;pointer-events:auto';
+
+  function render(){
+    var dots = '';
+    for(var i=0;i<4;i++){
+      dots += '<div style="width:14px;height:14px;border-radius:50%;border:2px solid #00D4AA;background:'+(pin.length>i?'#00D4AA':'transparent')+'"></div>';
+    }
+    var keys = [1,2,3,4,5,6,7,8,9,'',0,'⌫'];
+    var keypad = '';
+    keys.forEach(function(k){
+      if(k===''){
+        keypad += '<div></div>';
+      }else{
+        keypad += '<button onclick="_pinKey(\''+k+'\')" style="height:64px;border:none;background:var(--surface2,#F1F5F9);border-radius:12px;font-size:'+(k==='⌫'?'20px':'22px')+';font-weight:700;cursor:pointer;color:var(--text,#0F172A);font-family:var(--font,inherit);transition:.1s;active:opacity:.7">'+k+'</button>';
+      }
+    });
+    overlay.innerHTML =
+      '<div id="pin-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
+      +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:40px;height:4px;border-radius:2px;background:var(--border,#E2E8F0)"></div></div>'
+      +'<div style="padding:20px 28px 24px;text-align:center">'
+        +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px">'
+          +'<img src="/icon-192.png" style="width:24px;height:24px;border-radius:5px" alt="">'
+          +'<span style="font-weight:800;font-size:16px;color:var(--text,#0F172A)">Finanz<span style="color:#00D4AA">IA</span></span>'
+        +'</div>'
+        +'<div style="font-size:15px;font-weight:600;color:var(--text,#0F172A);margin-bottom:20px">Ingresa tu PIN</div>'
+        +'<div id="pin-dots" style="display:flex;justify-content:center;gap:16px;margin-bottom:28px">'+dots+'</div>'
+        +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">'+keypad+'</div>'
+        +'<button onclick="closePinModal()" style="margin-top:16px;background:none;border:none;color:var(--text2,#94A3B8);font-size:14px;cursor:pointer;font-family:var(--font,inherit)">Cancelar</button>'
+      +'</div>'
+      +'</div>';
+    window._pinState = pin;
+  }
+
+  render();
+  document.body.appendChild(overlay);
+
+  window._pinKey = function(k){
+    var p = window._pinState || [];
+    if(k === '⌫'){ p.pop(); }
+    else if(p.length < 4){ p.push(k); }
+    window._pinState = p;
+    // redraw dots only
+    var dotsEl = document.getElementById('pin-dots');
+    if(dotsEl){
+      var dots = '';
+      for(var i=0;i<4;i++){
+        dots += '<div style="width:14px;height:14px;border-radius:50%;border:2px solid #00D4AA;background:'+(p.length>i?'#00D4AA':'transparent')+'"></div>';
+      }
+      dotsEl.innerHTML = dots;
+    }
+    if(p.length === 4){
+      setTimeout(function(){
+        try{ toast('PIN: próximamente disponible'); }catch(e){}
+        closePinModal();
+      }, 200);
+    }
+  };
+}
+
+function closePinModal(){
+  var el = document.getElementById('pin-modal-overlay');
+  if(!el) return;
+  var sheet = document.getElementById('pin-sheet');
+  if(sheet) sheet.style.animation = 'bsSlideDown .22s ease forwards';
+  el.style.opacity = '0';
+  el.style.transition = 'opacity .22s';
+  setTimeout(function(){ if(el.parentNode) el.remove(); window._pinState = []; }, 240);
+}
+
+// ════════════════════════════════════════════════════════════
 // PANTALLA BIENVENIDA — sesión activa + biometría
 // ════════════════════════════════════════════════════════════
 function _showWelcomeScreen(user){
