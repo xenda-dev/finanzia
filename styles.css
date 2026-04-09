@@ -478,6 +478,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .welcome-bio{display:flex;flex-direction:column;align-items:center;justify-content:center;margin-top:32px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .welcome-bio:active .welcome-fingerprint{transform:scale(.92);opacity:.7}
 .welcome-fingerprint{font-size:64px;margin-bottom:12px;transition:transform .15s,opacity .15s}
+.welcome-fingerprint svg{display:block;margin:0 auto}
 .welcome-bio-text{font-size:14px;color:var(--text2,#64748B)}
 .welcome-divider{height:1px;background:var(--border,#E2E8F0);margin:24px 0}
 .welcome-pin-btn{width:100%;padding:14px;border-radius:12px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface,#fff);font-weight:600;font-size:14px;color:var(--text,#0F172A);cursor:pointer;font-family:var(--font,inherit);transition:.15s}
