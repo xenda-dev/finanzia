@@ -209,8 +209,16 @@
     </div>
 
     <div class="auth-bottom">
-      <button onclick="_startBioFromWelcome()" class="auth-btn-primary">🔓 Iniciar con huella</button>
-      <button onclick="showAuthScreen();_showScreen('login')" class="auth-btn-secondary" style="margin-top:8px">Usar contraseña</button>
+      <div class="welcome-actions">
+        <button onclick="_startBioFromWelcome()" class="welcome-action">
+          <span class="welcome-icon">🔓</span>
+          <span>Usar huella</span>
+        </button>
+        <button onclick="showAuthScreen();_showScreen('login')" class="welcome-action">
+          <span class="welcome-icon">🔑</span>
+          <span>Contraseña</span>
+        </button>
+      </div>
       <div class="auth-footer">© 2026 Xenda.co. Todos los derechos reservados.</div>
     </div>
   </div>
