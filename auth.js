@@ -462,28 +462,31 @@ function handleGoogleAuth(){
 // ════════════════════════════════════════════════════════════
 function _showWelcomeScreen(user){
   var name = '';
-  try{
-    // 1. Estado en memoria
-    if(typeof S !== 'undefined' && S && S.profile && S.profile.name && S.profile.name.trim()){
-      name = S.profile.name.trim();
-    }
-    // 2. Leer directo de localStorage si S no tiene el dato aún
-    if(!name){
-      try{
-        var raw = localStorage.getItem('finanziaState3');
-        if(raw){ var st = JSON.parse(raw); if(st.profile && st.profile.name) name = st.profile.name.trim(); }
-      }catch(ex){}
-    }
-    // 3. user_metadata de Supabase
-    if(!name) name = (user && user.user_metadata && user.user_metadata.name) || '';
-    // 4. email prefix
-    if(!name) name = (user && user.email) ? user.email.split('@')[0] : '';
-    // 5. fallback
-    if(!name) name = 'Usuario';
-  }catch(e){ name = 'Usuario'; }
+  if(!user || !user.id){
+    name = 'Usuario';
+  }else{
+    try{
+      if(typeof S !== 'undefined' && S && S.profile && S.profile.name && S.profile.name.trim()){
+        name = S.profile.name.trim();
+      }
+      if(!name){
+        try{
+          var raw = localStorage.getItem('finanziaState3');
+          if(raw){ var st = JSON.parse(raw); if(st.profile && st.profile.name) name = st.profile.name.trim(); }
+        }catch(ex){}
+      }
+      if(!name) name = (user.user_metadata && user.user_metadata.name) || '';
+      if(!name) name = user.email ? user.email.split('@')[0] : '';
+      if(!name) name = 'Usuario';
+    }catch(e){ name = 'Usuario'; }
+  }
   var el = document.getElementById('auth-welcome-name');
   if(el) el.textContent = 'Hola, ' + name;
   _showScreen('welcome');
+  // FIX 4 — auto-trigger bio como apps bancarias
+  if(_isBioEnabled()){
+    setTimeout(function(){ _startBioFromWelcome(); }, 600);
+  }
 }
 
 async function _startBioFromWelcome(){
@@ -491,12 +494,35 @@ async function _startBioFromWelcome(){
   if(!user){
     try{ user = await getCurrentUser(); _currentUser = user; }catch(e){}
   }
-  if(!user || !user.id){ showAuthScreen(); _showScreen('login'); return; }
-  if(!_isBioEnabled()){
-    _showBioOfferSheet(user);
+  if(!user || !user.id){
+    showAuthScreen();
+    _showScreen('login');
     return;
   }
-  _showBioSheet(user);
+  if(!_isBioEnabled()){
+    showAuthScreen();
+    _showScreen('login');
+    return;
+  }
+  console.log('Bio attempt from welcome');
+  var ok = await bioAuthenticate();
+  console.log('Bio result:', ok);
+  if(ok){
+    hideAuthScreen();
+    if(typeof initApp === 'function') initApp();
+    if(user){
+      _injectLogoutBtn(user);
+      if(typeof safeSync === 'function'){
+        safeSync(user.id).catch(function(e){ console.warn('sync error:',e); });
+      }
+    }
+  }else{
+    localStorage.removeItem('_bioEnabled');
+    localStorage.removeItem('_bioCredId');
+    showAuthScreen();
+    _showScreen('login');
+    try{ toast('No se pudo verificar. Usa tu contraseña'); }catch(e){}
+  }
 }
 
 // ════════════════════════════════════════════════════════════
@@ -510,6 +536,18 @@ async function initAuth(){
     if(event==='SIGNED_OUT'){showAuthScreen();_showScreen('login');}
   });
   var user=await getCurrentUser();
+  if(user){
+    try{
+      var _uv = await _supabase.auth.getUser();
+      if(_uv.error || !_uv.data || !_uv.data.user){
+        user = null;
+        _currentUser = null;
+      }
+    }catch(e){
+      user = null;
+      _currentUser = null;
+    }
+  }
   if(user){
     _currentUser=user;
     if(_isBioEnabled()){
