@@ -15,8 +15,8 @@ function initSupabase(){
 }
 
 async function signUp(email, password, fullName){
-  var opts = {email, password};
-  if(fullName && fullName.trim()) opts.options = {data: {full_name: fullName.trim()}};
+  var opts={email:email,password:password};
+  if(fullName&&fullName.trim()) opts.options={data:{full_name:fullName.trim()}};
   var {data, error} = await _supabase.auth.signUp(opts);
   if(error) return _authMsg(error.message);
   return {ok:true};
@@ -256,11 +256,11 @@ function hideAuthScreen(){
   var app=document.getElementById('app'); if(app)app.style.display='flex';
 }
 function _showScreen(name){
-  ['login','register','bio','verify','recover','welcome','password-only'].forEach(function(id){
+  ['login','register','bio','verify','recover','welcome','password-only','reset-password'].forEach(function(id){
     var el=document.getElementById('auth-'+id); if(el)el.style.display='none';
   });
   var t=document.getElementById('auth-'+name);
-  if(t) t.style.display = (name==='welcome') ? 'flex' : 'block';
+  if(t) t.style.display=(name==='welcome')?'flex':'block';
 }
 function _setError(id,msg){
   var el=document.getElementById('auth-err-'+id);
@@ -814,60 +814,143 @@ function closePinModal(){
 
 function _getDisplayName(fullName){
   if(!fullName) return 'Usuario';
-  var parts = fullName.trim().split(/\s+/);
-  return parts.slice(0, 2).join(' ');
+  var parts=fullName.trim().split(/\s+/);
+  return parts.slice(0,2).join(' ');
 }
 
-// Extrae solo el primer nombre para el saludo
 function getFirstName(user){
   try{
-    if(user && user.user_metadata && user.user_metadata.full_name){
+    if(user&&user.user_metadata&&user.user_metadata.full_name)
       return user.user_metadata.full_name.trim().split(/\s+/)[0];
-    }
-    if(user && user.email) return user.email.split('@')[0];
+    if(user&&user.email) return user.email.split('@')[0];
   }catch(e){}
   return 'Usuario';
+}
+
+// ════════════════════════════════════════════════════════════
+// INGRESO SOLO CON CONTRASEÑA (desde welcome)
+// ════════════════════════════════════════════════════════════
+function goToPasswordLogin(){
+  var po=document.getElementById('po-pass'); if(po)po.value='';
+  _setError('po','');
+  _showScreen('password-only');
+}
+
+async function handlePasswordOnlyLogin(){
+  var pass=(document.getElementById('po-pass').value||'').trim();
+  if(!pass){_setError('po','Ingresa tu contraseña');return;}
+  _setError('po',''); _setBusy('po-btn',true,'Ingresar');
+  var user=_currentUser;
+  if(!user){try{user=await getCurrentUser();}catch(e){}}
+  if(!user||!user.email){
+    _setError('po','Sesión no encontrada. Inicia sesión con tu correo.');
+    _setBusy('po-btn',false,'Ingresar');
+    _showScreen('login'); return;
+  }
+  var res=await signIn(user.email,pass);
+  _setBusy('po-btn',false,'Ingresar');
+  if(!res.ok){_setError('po',res.msg);return;}
+  await _afterLogin(res.user);
+}
+
+// ════════════════════════════════════════════════════════════
+// VERIFICACIÓN DE CORREO
+// ════════════════════════════════════════════════════════════
+var _verifyPollInterval=null;
+
+function enableContinueIfVerified(){
+  if(_verifyPollInterval) clearInterval(_verifyPollInterval);
+  _verifyPollInterval=setInterval(async function(){
+    try{
+      var {data}=await _supabase.auth.getUser();
+      if(data&&data.user&&data.user.email_confirmed_at){
+        clearInterval(_verifyPollInterval); _verifyPollInterval=null;
+        var btn=document.getElementById('verify-continue-btn');
+        if(btn){btn.disabled=false; try{toast('\u00a1Correo confirmado! Ya puedes continuar.');}catch(e){}}
+      }
+    }catch(e){}
+  },3000);
+}
+
+async function handleEmailConfirmation(){
+  var hash=window.location.hash||'';
+  if(!hash.includes('access_token')&&!hash.includes('type=signup')&&!hash.includes('type=email_change')) return false;
+  try{window.history.replaceState({},document.title,window.location.pathname+window.location.search);}catch(e){}
+  try{
+    await new Promise(function(r){setTimeout(r,500);});
+    var {data}=await _supabase.auth.getUser();
+    if(data&&data.user){
+      _currentUser=data.user;
+      showAuthScreen(); _showScreen('verify');
+      var btn=document.getElementById('verify-continue-btn');
+      if(btn) btn.disabled=!data.user.email_confirmed_at;
+      if(!data.user.email_confirmed_at) enableContinueIfVerified();
+      return true;
+    }
+  }catch(e){console.warn('handleEmailConfirmation error:',e);}
+  return false;
+}
+
+// ════════════════════════════════════════════════════════════
+// RESTABLECER CONTRASEÑA
+// ════════════════════════════════════════════════════════════
+async function handleResetPassword(){
+  var pass=(document.getElementById('rp-pass').value||'').trim();
+  var confirm=(document.getElementById('rp-pass-confirm').value||'').trim();
+  if(!pass||!confirm){_setError('rp','Completa ambos campos');return;}
+  if(pass!==confirm){_setError('rp','Las contraseñas no coinciden');return;}
+  if(pass.length<8){_setError('rp','Mínimo 8 caracteres');return;}
+  if(!/[A-Z]/.test(pass)){_setError('rp','Debe incluir al menos una mayúscula');return;}
+  if(!/[0-9]/.test(pass)){_setError('rp','Debe incluir al menos un número');return;}
+  if(!/[^A-Za-z0-9]/.test(pass)){_setError('rp','Debe incluir al menos un carácter especial (!@#$...)');return;}
+  _setError('rp',''); _setBusy('rp-btn',true,'Guardar nueva contraseña');
+  try{
+    var {error}=await _supabase.auth.updateUser({password:pass});
+    _setBusy('rp-btn',false,'Guardar nueva contraseña');
+    if(error){_setError('rp',error.message||'No se pudo actualizar la contraseña');return;}
+    try{toast('Contrase\u00f1a actualizada \u2713');}catch(e){}
+    setTimeout(function(){_showScreen('login');},1200);
+  }catch(e){
+    _setBusy('rp-btn',false,'Guardar nueva contraseña');
+    _setError('rp','Algo sali\u00f3 mal. Intenta de nuevo.');
+  }
 }
 
 // ════════════════════════════════════════════════════════════
 // PANTALLA BIENVENIDA — sesión activa + biometría
 // ════════════════════════════════════════════════════════════
 function _showWelcomeScreen(user){
-  var firstName = '';
-  if(!_currentUser || !_currentUser.id || !user || !user.id){
-    firstName = 'Usuario';
+  var firstName='';
+  if(!_currentUser||!_currentUser.id||!user||!user.id){
+    firstName='Usuario';
   }else{
     try{
-      // Prioridad 1: full_name en metadata de Supabase
-      firstName = getFirstName(user);
-      // Prioridad 2: nombre en perfil local
-      if(!firstName || firstName === 'Usuario'){
-        var profileName = '';
-        if(typeof S !== 'undefined' && S && S.profile && S.profile.name && S.profile.name.trim()){
-          profileName = S.profile.name.trim();
-        }
+      firstName=getFirstName(user);
+      if(!firstName||firstName==='Usuario'){
+        var profileName='';
+        if(typeof S!=='undefined'&&S&&S.profile&&S.profile.name&&S.profile.name.trim())
+          profileName=S.profile.name.trim();
         if(!profileName){
           try{
-            var raw = localStorage.getItem('finanziaState3');
-            if(raw){ var st = JSON.parse(raw); if(st.profile && st.profile.name) profileName = st.profile.name.trim(); }
+            var raw=localStorage.getItem('finanziaState3');
+            if(raw){var st=JSON.parse(raw);if(st.profile&&st.profile.name)profileName=st.profile.name.trim();}
           }catch(ex){}
         }
-        if(profileName) firstName = profileName.split(/\s+/)[0];
+        if(profileName) firstName=profileName.split(/\s+/)[0];
       }
-      if(!firstName) firstName = 'Usuario';
-    }catch(e){ firstName = 'Usuario'; }
+      if(!firstName) firstName='Usuario';
+    }catch(e){firstName='Usuario';}
   }
-  // Saludo en una sola línea
-  var greetEl = document.getElementById('welcome-greeting');
-  if(greetEl) greetEl.textContent = '\u00a1Hola, ' + firstName + '!';
-  // Compatibilidad con elementos legacy (pueden estar ocultos por CSS si se desea)
-  var el = document.getElementById('auth-welcome-name');
-  var elSub = document.getElementById('auth-welcome-name-sub');
-  if(el) el.textContent = '';
-  if(elSub) elSub.textContent = '';
+  var greetEl=document.getElementById('welcome-greeting');
+  if(greetEl) greetEl.textContent='\u00a1Hola, '+firstName+'!';
+  // Limpiar elementos legacy (compatibilidad)
+  var el=document.getElementById('auth-welcome-name');
+  var elSub=document.getElementById('auth-welcome-name-sub');
+  if(el) el.textContent='';
+  if(elSub) elSub.textContent='';
   _showScreen('welcome');
-  var fpIcon = document.getElementById('welcome-fp-icon');
-  if(fpIcon && typeof _fpSvgSm !== 'undefined') fpIcon.innerHTML = _fpSvgSm;
+  var fpIcon=document.getElementById('welcome-fp-icon');
+  if(fpIcon&&typeof _fpSvgSm!=='undefined') fpIcon.innerHTML=_fpSvgSm;
 }
 
 async function _startBioFromWelcome(){
@@ -908,90 +991,22 @@ async function _startBioFromWelcome(){
 }
 
 // ════════════════════════════════════════════════════════════
-// INGRESO CON CONTRASEÑA DESDE WELCOME (sin pedir email)
-// ════════════════════════════════════════════════════════════
-function goToPasswordLogin(){
-  var po = document.getElementById('po-pass');
-  if(po) po.value = '';
-  _setError('po','');
-  _showScreen('password-only');
-}
-
-async function handlePasswordOnlyLogin(){
-  var pass = (document.getElementById('po-pass').value||'').trim();
-  if(!pass){ _setError('po','Ingresa tu contraseña'); return; }
-  _setError('po','');
-  _setBusy('po-btn',true,'Ingresar');
-  // Usar email de sesión activa
-  var user = _currentUser;
-  if(!user){
-    try{ user = await getCurrentUser(); }catch(e){}
-  }
-  if(!user || !user.email){
-    _setError('po','Sesión no encontrada. Inicia sesión con tu correo.');
-    _setBusy('po-btn',false,'Ingresar');
-    _showScreen('login');
-    return;
-  }
-  var res = await signIn(user.email, pass);
-  _setBusy('po-btn',false,'Ingresar');
-  if(!res.ok){ _setError('po',res.msg); return; }
-  await _afterLogin(res.user);
-}
-
-// ════════════════════════════════════════════════════════════
-// VERIFICACIÓN DE CORREO — polling + retorno desde link
-// ════════════════════════════════════════════════════════════
-var _verifyPollInterval = null;
-
-function enableContinueIfVerified(){
-  if(_verifyPollInterval) clearInterval(_verifyPollInterval);
-  _verifyPollInterval = setInterval(async function(){
-    try{
-      var {data} = await _supabase.auth.getUser();
-      if(data && data.user && data.user.email_confirmed_at){
-        clearInterval(_verifyPollInterval);
-        _verifyPollInterval = null;
-        var btn = document.getElementById('verify-continue-btn');
-        if(btn){
-          btn.disabled = false;
-          try{ toast('\u00a1Correo confirmado! Ya puedes continuar.'); }catch(e){}
-        }
-      }
-    }catch(e){}
-  }, 3000);
-}
-
-async function handleEmailConfirmation(){
-  var hash = window.location.hash || '';
-  if(!hash.includes('access_token') && !hash.includes('type=signup') && !hash.includes('type=email_change')) return false;
-  try{ window.history.replaceState({}, document.title, window.location.pathname + window.location.search); }catch(e){}
-  try{
-    await new Promise(function(r){ setTimeout(r, 500); });
-    var {data} = await _supabase.auth.getUser();
-    if(data && data.user){
-      _currentUser = data.user;
-      showAuthScreen();
-      _showScreen('verify');
-      var btn = document.getElementById('verify-continue-btn');
-      if(btn) btn.disabled = !data.user.email_confirmed_at;
-      if(!data.user.email_confirmed_at) enableContinueIfVerified();
-      return true;
-    }
-  }catch(e){ console.warn('handleEmailConfirmation error:', e); }
-  return false;
-}
-
+// ARRANQUE
 // ════════════════════════════════════════════════════════════
 async function initAuth(){
   if(!initSupabase()){
     hideAuthScreen(); if(typeof initApp==='function')initApp(); return;
   }
-  // Detectar retorno desde enlace de confirmación de correo
-  var isConfirmRedirect = await handleEmailConfirmation();
+  var isConfirmRedirect=await handleEmailConfirmation();
   if(isConfirmRedirect) return;
   _supabase.auth.onAuthStateChange(function(event,session){
     if(event==='SIGNED_OUT'){showAuthScreen();_showScreen('login');}
+    if(event==='PASSWORD_RECOVERY'){
+      if(session&&session.user) _currentUser=session.user;
+      showAuthScreen();
+      _showScreen('reset-password');
+      try{window.history.replaceState({},document.title,window.location.pathname);}catch(e){}
+    }
   });
   var user=await getCurrentUser();
   if(user){
