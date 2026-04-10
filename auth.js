@@ -893,9 +893,8 @@ function enableContinueIfVerified(){
   }).catch(function(){});
 }
 
-// handleEmailConfirmation — usa hash (#access_token), NO exchangeCodeForSession.
-// Supabase JS v2 procesa el token automáticamente al cargar la página.
-// Solo necesitamos esperar 1s y luego verificar con getUser().
+// Reintentos progresivos: hasta 10 intentos cada 1s antes de pasar al polling.
+// No usa exchangeCodeForSession — Supabase JS v2 procesa el #hash automáticamente.
 async function handleEmailConfirmation(){
   var hash=window.location.hash||'';
   if(!hash.includes('type=signup')&&!hash.includes('access_token')) return;
@@ -906,22 +905,32 @@ async function handleEmailConfirmation(){
   showAuthScreen();
   _showScreen('verify');
 
-  // Esperar a que Supabase procese automáticamente el token del hash
-  setTimeout(async function(){
+  var btn=document.getElementById('verify-continue-btn');
+  var attempts=0;
+  var maxAttempts=10;
+
+  var checkUserConfirmation=async function(){
     try{
       var rv=await _supabase.auth.getUser();
-      var btn=document.getElementById('verify-continue-btn');
-      if(btn&&rv.data&&rv.data.user&&rv.data.user.email_confirmed_at){
-        btn.disabled=false;
+      var user=rv.data&&rv.data.user;
+      if(user&&user.email_confirmed_at){
+        if(btn) btn.disabled=false;
         try{toast('\u00a1Correo confirmado! Ya puedes continuar.');}catch(e){}
+        return;
+      }
+      if(attempts<maxAttempts){
+        attempts++;
+        setTimeout(checkUserConfirmation,1000);
       }else{
         enableContinueIfVerified(); // Fallback con polling
       }
-    }catch(error){
-      console.error('Error verificando confirmación de correo:',error);
+    }catch(err){
+      console.error('Error verificando confirmación:',err);
       enableContinueIfVerified();
     }
-  },1000);
+  };
+
+  checkUserConfirmation();
 
   try{window.history.replaceState({},document.title,window.location.pathname);}catch(e){}
 }
@@ -952,7 +961,7 @@ async function handleResetPassword(){
 }
 
 // ════════════════════════════════════════════════════════════
-// PANTALLA BIENVENIDA — una sola línea, sin elementos legacy
+// PANTALLA BIENVENIDA
 // ════════════════════════════════════════════════════════════
 function _showWelcomeScreen(user){
   var firstName='Usuario';
