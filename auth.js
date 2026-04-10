@@ -14,8 +14,10 @@ function initSupabase(){
   return true;
 }
 
-async function signUp(email, password){
-  var {data, error} = await _supabase.auth.signUp({email, password});
+async function signUp(email, password, fullName){
+  var opts = {email, password};
+  if(fullName && fullName.trim()) opts.options = {data: {full_name: fullName.trim()}};
+  var {data, error} = await _supabase.auth.signUp(opts);
   if(error) return _authMsg(error.message);
   return {ok:true};
 }
@@ -254,7 +256,7 @@ function hideAuthScreen(){
   var app=document.getElementById('app'); if(app)app.style.display='flex';
 }
 function _showScreen(name){
-  ['login','register','bio','verify','recover','welcome'].forEach(function(id){
+  ['login','register','bio','verify','recover','welcome','password-only'].forEach(function(id){
     var el=document.getElementById('auth-'+id); if(el)el.style.display='none';
   });
   var t=document.getElementById('auth-'+name);
@@ -280,6 +282,8 @@ async function handleLogin(){
 }
 
 async function handleRegister(){
+  var nameEl=document.getElementById('rg-name');
+  var name=nameEl?(nameEl.value||'').trim():'';
   var email=(document.getElementById('rg-email').value||'').trim();
   var pass=(document.getElementById('rg-pass').value||'').trim();
   if(!email||!pass){_setError('rg','Completa todos los campos');return;}
@@ -290,7 +294,8 @@ async function handleRegister(){
   var exists=document.getElementById('auth-rg-exists');
   if(exists)exists.style.display='none';
   _setError('rg',''); _setBusy('rg-btn',true,'Crear cuenta');
-  var res=await signUp(email,pass);
+  var fullName=name||email.split('@')[0];
+  var res=await signUp(email,pass,fullName);
   _setBusy('rg-btn',false,'Crear cuenta');
   if(!res.ok){
     if(res.isExists){
@@ -301,6 +306,7 @@ async function handleRegister(){
     return;
   }
   _showScreen('verify');
+  enableContinueIfVerified();
 }
 function goToLoginWithEmail(){
   var email=(document.getElementById('rg-email').value||'').trim();
@@ -812,36 +818,54 @@ function _getDisplayName(fullName){
   return parts.slice(0, 2).join(' ');
 }
 
+// Extrae solo el primer nombre para el saludo
+function getFirstName(user){
+  try{
+    if(user && user.user_metadata && user.user_metadata.full_name){
+      return user.user_metadata.full_name.trim().split(/\s+/)[0];
+    }
+    if(user && user.email) return user.email.split('@')[0];
+  }catch(e){}
+  return 'Usuario';
+}
+
 // ════════════════════════════════════════════════════════════
 // PANTALLA BIENVENIDA — sesión activa + biometría
 // ════════════════════════════════════════════════════════════
 function _showWelcomeScreen(user){
-  var name = '';
+  var firstName = '';
   if(!_currentUser || !_currentUser.id || !user || !user.id){
-    name = 'Usuario';
+    firstName = 'Usuario';
   }else{
     try{
-      if(typeof S !== 'undefined' && S && S.profile && S.profile.name && S.profile.name.trim()){
-        name = S.profile.name.trim();
+      // Prioridad 1: full_name en metadata de Supabase
+      firstName = getFirstName(user);
+      // Prioridad 2: nombre en perfil local
+      if(!firstName || firstName === 'Usuario'){
+        var profileName = '';
+        if(typeof S !== 'undefined' && S && S.profile && S.profile.name && S.profile.name.trim()){
+          profileName = S.profile.name.trim();
+        }
+        if(!profileName){
+          try{
+            var raw = localStorage.getItem('finanziaState3');
+            if(raw){ var st = JSON.parse(raw); if(st.profile && st.profile.name) profileName = st.profile.name.trim(); }
+          }catch(ex){}
+        }
+        if(profileName) firstName = profileName.split(/\s+/)[0];
       }
-      if(!name){
-        try{
-          var raw = localStorage.getItem('finanziaState3');
-          if(raw){ var st = JSON.parse(raw); if(st.profile && st.profile.name) name = st.profile.name.trim(); }
-        }catch(ex){}
-      }
-      if(!name) name = (user.user_metadata && user.user_metadata.name) || '';
-      if(!name) name = user.email ? user.email.split('@')[0] : '';
-      if(!name) name = 'Usuario';
-    }catch(e){ name = 'Usuario'; }
+      if(!firstName) firstName = 'Usuario';
+    }catch(e){ firstName = 'Usuario'; }
   }
+  // Saludo en una sola línea
+  var greetEl = document.getElementById('welcome-greeting');
+  if(greetEl) greetEl.textContent = '\u00a1Hola, ' + firstName + '!';
+  // Compatibilidad con elementos legacy (pueden estar ocultos por CSS si se desea)
   var el = document.getElementById('auth-welcome-name');
   var elSub = document.getElementById('auth-welcome-name-sub');
-  var displayName = _getDisplayName(name);
-  if(el) el.textContent = 'Hola,';
-  if(elSub) elSub.textContent = displayName;
+  if(el) el.textContent = '';
+  if(elSub) elSub.textContent = '';
   _showScreen('welcome');
-  // Inyectar SVG de huella desde variable reutilizable
   var fpIcon = document.getElementById('welcome-fp-icon');
   if(fpIcon && typeof _fpSvgSm !== 'undefined') fpIcon.innerHTML = _fpSvgSm;
 }
@@ -884,12 +908,88 @@ async function _startBioFromWelcome(){
 }
 
 // ════════════════════════════════════════════════════════════
-// ARRANQUE
+// INGRESO CON CONTRASEÑA DESDE WELCOME (sin pedir email)
+// ════════════════════════════════════════════════════════════
+function goToPasswordLogin(){
+  var po = document.getElementById('po-pass');
+  if(po) po.value = '';
+  _setError('po','');
+  _showScreen('password-only');
+}
+
+async function handlePasswordOnlyLogin(){
+  var pass = (document.getElementById('po-pass').value||'').trim();
+  if(!pass){ _setError('po','Ingresa tu contraseña'); return; }
+  _setError('po','');
+  _setBusy('po-btn',true,'Ingresar');
+  // Usar email de sesión activa
+  var user = _currentUser;
+  if(!user){
+    try{ user = await getCurrentUser(); }catch(e){}
+  }
+  if(!user || !user.email){
+    _setError('po','Sesión no encontrada. Inicia sesión con tu correo.');
+    _setBusy('po-btn',false,'Ingresar');
+    _showScreen('login');
+    return;
+  }
+  var res = await signIn(user.email, pass);
+  _setBusy('po-btn',false,'Ingresar');
+  if(!res.ok){ _setError('po',res.msg); return; }
+  await _afterLogin(res.user);
+}
+
+// ════════════════════════════════════════════════════════════
+// VERIFICACIÓN DE CORREO — polling + retorno desde link
+// ════════════════════════════════════════════════════════════
+var _verifyPollInterval = null;
+
+function enableContinueIfVerified(){
+  if(_verifyPollInterval) clearInterval(_verifyPollInterval);
+  _verifyPollInterval = setInterval(async function(){
+    try{
+      var {data} = await _supabase.auth.getUser();
+      if(data && data.user && data.user.email_confirmed_at){
+        clearInterval(_verifyPollInterval);
+        _verifyPollInterval = null;
+        var btn = document.getElementById('verify-continue-btn');
+        if(btn){
+          btn.disabled = false;
+          try{ toast('\u00a1Correo confirmado! Ya puedes continuar.'); }catch(e){}
+        }
+      }
+    }catch(e){}
+  }, 3000);
+}
+
+async function handleEmailConfirmation(){
+  var hash = window.location.hash || '';
+  if(!hash.includes('access_token') && !hash.includes('type=signup') && !hash.includes('type=email_change')) return false;
+  try{ window.history.replaceState({}, document.title, window.location.pathname + window.location.search); }catch(e){}
+  try{
+    await new Promise(function(r){ setTimeout(r, 500); });
+    var {data} = await _supabase.auth.getUser();
+    if(data && data.user){
+      _currentUser = data.user;
+      showAuthScreen();
+      _showScreen('verify');
+      var btn = document.getElementById('verify-continue-btn');
+      if(btn) btn.disabled = !data.user.email_confirmed_at;
+      if(!data.user.email_confirmed_at) enableContinueIfVerified();
+      return true;
+    }
+  }catch(e){ console.warn('handleEmailConfirmation error:', e); }
+  return false;
+}
+
 // ════════════════════════════════════════════════════════════
 async function initAuth(){
   if(!initSupabase()){
     hideAuthScreen(); if(typeof initApp==='function')initApp(); return;
   }
+  // Detectar retorno desde enlace de confirmación de correo
+  var isConfirmRedirect = await handleEmailConfirmation();
+  if(isConfirmRedirect) return;
   _supabase.auth.onAuthStateChange(function(event,session){
     if(event==='SIGNED_OUT'){showAuthScreen();_showScreen('login');}
   });
