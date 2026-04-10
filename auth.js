@@ -12,6 +12,39 @@ var _emailConfirmPending = sessionStorage.getItem('emailConfirmPending') === 'tr
 function initSupabase(){
   if(typeof supabase === 'undefined'){ console.error('Supabase CDN no cargó'); return false; }
   _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // CRÍTICO: registrar el listener INMEDIATAMENTE después de crear el cliente.
+  // Supabase JS v2 procesa el #access_token al crear el cliente y dispara
+  // SIGNED_IN en el mismo tick — si el listener llega tarde, el evento se pierde.
+  _supabase.auth.onAuthStateChange(function(event, session){
+    if(event === 'SIGNED_OUT'){
+      showAuthScreen(); _showScreen('login');
+      return;
+    }
+
+    // Cuando el usuario regresa del enlace de confirmación,
+    // SIGNED_IN se dispara con la sesión ya establecida.
+    // Usamos session.user directamente (sin llamar getUser de nuevo).
+    if(event === 'SIGNED_IN' && _emailConfirmPending){
+      var u = session && session.user;
+      var btn = document.getElementById('verify-continue-btn');
+      if(u && u.email_confirmed_at && btn){
+        btn.disabled = false;
+        try{ toast('\u00a1Correo confirmado! Ya puedes continuar.'); }catch(e){}
+      }else if(btn){
+        // Fallback: el evento llegó pero email_confirmed_at aún no está
+        enableContinueIfVerified();
+      }
+      return; // No ir al dashboard
+    }
+
+    if(event === 'PASSWORD_RECOVERY'){
+      if(session && session.user) _currentUser = session.user;
+      showAuthScreen(); _showScreen('reset-password');
+      try{ window.history.replaceState({}, document.title, window.location.pathname); }catch(e){}
+    }
+  });
+
   return true;
 }
 
@@ -19,18 +52,22 @@ function generateNameFromEmail(email){
   if(!email) return 'Usuario';
   return email.split('@')[0]
     .replace(/[0-9]/g,'').replace(/[._-]/g,' ')
-    .replace(/\b\w/g,function(l){return l.toUpperCase();})
-    .trim()||'Usuario';
+    .replace(/\b\w/g,function(l){ return l.toUpperCase(); })
+    .trim() || 'Usuario';
 }
 
 async function signUp(email, password){
-  var autoName=generateNameFromEmail(email);
-  var {data,error}=await _supabase.auth.signUp({
-    email:email, password:password,
-    options:{emailRedirectTo:'https://finanzia.xenda.co', data:{full_name:autoName}}
+  var autoName = generateNameFromEmail(email);
+  var {data, error} = await _supabase.auth.signUp({
+    email: email,
+    password: password,
+    options: {
+      emailRedirectTo: 'https://finanzia.xenda.co',
+      data: { full_name: autoName }
+    }
   });
   if(error) return _authMsg(error.message);
-  return {ok:true,data:data};
+  return {ok:true, data:data};
 }
 async function signIn(email, password){
   var {data, error} = await _supabase.auth.signInWithPassword({email, password});
@@ -421,7 +458,7 @@ async function handleRecoverPassword(){
   if(btn){btn.disabled=false;btn.textContent='Recuperar contraseña';}
 }
 function goToLogin(){
-  _emailConfirmPending=false;
+  _emailConfirmPending = false;
   sessionStorage.removeItem('emailConfirmPending');
   _showScreen('login');
 }
@@ -829,6 +866,7 @@ function _getDisplayName(fullName){
   return fullName.trim().split(/\s+/).slice(0,2).join(' ');
 }
 
+// Prioridades: S.profile.name → localStorage → user_metadata.full_name → email
 function getFirstName(user){
   try{
     if(typeof S!=='undefined'&&S&&S.profile&&S.profile.name&&S.profile.name.trim())
@@ -843,7 +881,7 @@ function getFirstName(user){
     var fn=user&&user.user_metadata&&user.user_metadata.full_name;
     if(fn&&fn.trim()) return fn.trim().split(/\s+/)[0];
   }catch(e){}
-  try{if(user&&user.email) return user.email.split('@')[0];}catch(e){}
+  try{ if(user&&user.email) return user.email.split('@')[0]; }catch(e){}
   return 'Usuario';
 }
 
@@ -874,38 +912,37 @@ async function handlePasswordOnlyLogin(){
 // ════════════════════════════════════════════════════════════
 // VERIFICACIÓN DE CORREO
 // ════════════════════════════════════════════════════════════
+
+// Polling de respaldo — se activa si onAuthStateChange no dispara
 function enableContinueIfVerified(){
   var btn=document.getElementById('verify-continue-btn');
-  if(!btn) return;
-  _supabase.auth.getUser().then(function(rv){
-    if(rv.data&&rv.data.user&&rv.data.user.email_confirmed_at){
-      btn.disabled=false; return;
-    }
-    var interval=setInterval(function(){
-      _supabase.auth.getUser().then(function(rv2){
-        if(rv2.data&&rv2.data.user&&rv2.data.user.email_confirmed_at){
-          clearInterval(interval); btn.disabled=false;
-          try{toast('\u00a1Correo confirmado! Ya puedes continuar.');}catch(e){}
-        }
-      }).catch(function(){clearInterval(interval);});
-    },3000);
-  }).catch(function(){});
+  if(!btn||!btn.disabled) return; // ya habilitado o no existe
+  var interval=setInterval(function(){
+    _supabase.auth.getUser().then(function(rv){
+      if(rv.data&&rv.data.user&&rv.data.user.email_confirmed_at){
+        clearInterval(interval);
+        btn.disabled=false;
+        try{ toast('\u00a1Correo confirmado! Ya puedes continuar.'); }catch(e){}
+      }
+    }).catch(function(){ clearInterval(interval); });
+  },2000);
 }
 
-// Detecta el hash de Supabase y muestra auth-verify.
-// El botón se habilita desde onAuthStateChange(SIGNED_IN) — momento exacto
-// en que el SDK procesa el token y email_confirmed_at está disponible.
+// Detecta el hash del enlace de confirmación de Supabase.
+// El SDK procesa el token automáticamente al crear el cliente;
+// nosotros solo detectamos, activamos el flag y mostramos la pantalla.
+// El botón se habilita vía onAuthStateChange(SIGNED_IN) en initSupabase().
 function handleEmailConfirmation(){
   var hash=window.location.hash||'';
-  if(!hash.includes('type=signup')&&!hash.includes('access_token')) return;
+  if(!hash.includes('access_token')&&!hash.includes('type=signup')) return;
   _emailConfirmPending=true;
   sessionStorage.setItem('emailConfirmPending','true');
   showAuthScreen();
   _showScreen('verify');
-  // Limpiar el hash DESPUÉS de que Supabase lo haya procesado
+  // Limpiar hash después de 500ms — tiempo suficiente para que el SDK lo procese
   setTimeout(function(){
-    try{window.history.replaceState({},document.title,window.location.pathname);}catch(e){}
-  },2000);
+    try{ window.history.replaceState({},document.title,window.location.pathname); }catch(e){}
+  },500);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -925,8 +962,8 @@ async function handleResetPassword(){
     var rv=await _supabase.auth.updateUser({password:pass});
     _setBusy('rp-btn',false,'Guardar nueva contrase\u00f1a');
     if(rv.error){_setError('rp',rv.error.message||'No se pudo actualizar la contrase\u00f1a');return;}
-    try{toast('Contrase\u00f1a actualizada \u2713');}catch(e){}
-    setTimeout(function(){_showScreen('login');},1200);
+    try{ toast('Contrase\u00f1a actualizada \u2713'); }catch(e){}
+    setTimeout(function(){ _showScreen('login'); },1200);
   }catch(e){
     _setBusy('rp-btn',false,'Guardar nueva contrase\u00f1a');
     _setError('rp','Algo sali\u00f3 mal. Intenta de nuevo.');
@@ -934,11 +971,11 @@ async function handleResetPassword(){
 }
 
 // ════════════════════════════════════════════════════════════
-// PANTALLA BIENVENIDA
+// PANTALLA BIENVENIDA — una sola línea
 // ════════════════════════════════════════════════════════════
 function _showWelcomeScreen(user){
   var firstName='Usuario';
-  try{firstName=getFirstName(user||_currentUser);}catch(e){}
+  try{ firstName=getFirstName(user||_currentUser); }catch(e){}
   var greetEl=document.getElementById('welcome-greeting');
   if(greetEl) greetEl.textContent='\u00a1Hola, '+firstName+'!';
   _showScreen('welcome');
@@ -990,28 +1027,15 @@ async function initAuth(){
   if(!initSupabase()){
     hideAuthScreen(); if(typeof initApp==='function')initApp(); return;
   }
+  // Detectar retorno desde enlace de confirmación ANTES de cualquier otra lógica.
+  // El listener onAuthStateChange ya está registrado dentro de initSupabase().
   handleEmailConfirmation();
-  if(_emailConfirmPending) return;
-  _supabase.auth.onAuthStateChange(function(event,session){
-    if(event==='SIGNED_OUT'){showAuthScreen();_showScreen('login');}
-
-    // FIX: cuando el usuario regresa del link de confirmación,
-    // Supabase dispara SIGNED_IN con el token ya procesado.
-    // Ese es el momento exacto en que email_confirmed_at está disponible.
-    // En lugar de ignorar el evento, lo usamos para habilitar el botón.
-    if(event==='SIGNED_IN'&&_emailConfirmPending){
-      var btn=document.getElementById('verify-continue-btn');
-      if(btn) btn.disabled=false;
-      try{toast('\u00a1Correo confirmado! Ya puedes continuar.');}catch(e){}
-      return; // No ir al dashboard
-    }
-
-    if(event==='PASSWORD_RECOVERY'){
-      if(session&&session.user) _currentUser=session.user;
-      showAuthScreen(); _showScreen('reset-password');
-      try{window.history.replaceState({},document.title,window.location.pathname);}catch(e){}
-    }
-  });
+  if(_emailConfirmPending){
+    // Activar polling de respaldo por si onAuthStateChange ya disparó
+    // antes de que handleEmailConfirmation mostrara el botón
+    enableContinueIfVerified();
+    return;
+  }
   var user=await getCurrentUser();
   if(user){
     try{
