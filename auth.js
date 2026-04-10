@@ -17,10 +17,8 @@ function initSupabase(){
 
 function generateNameFromEmail(email){
   if(!email) return 'Usuario';
-  return email
-    .split('@')[0]
-    .replace(/[0-9]/g,'')
-    .replace(/[._-]/g,' ')
+  return email.split('@')[0]
+    .replace(/[0-9]/g,'').replace(/[._-]/g,' ')
     .replace(/\b\w/g,function(l){return l.toUpperCase();})
     .trim()||'Usuario';
 }
@@ -28,12 +26,8 @@ function generateNameFromEmail(email){
 async function signUp(email, password){
   var autoName=generateNameFromEmail(email);
   var {data,error}=await _supabase.auth.signUp({
-    email:email,
-    password:password,
-    options:{
-      emailRedirectTo:'https://finanzia.xenda.co',
-      data:{full_name:autoName}
-    }
+    email:email, password:password,
+    options:{emailRedirectTo:'https://finanzia.xenda.co', data:{full_name:autoName}}
   });
   if(error) return _authMsg(error.message);
   return {ok:true,data:data};
@@ -429,7 +423,6 @@ async function handleRecoverPassword(){
 function goToLogin(){
   _emailConfirmPending=false;
   sessionStorage.removeItem('emailConfirmPending');
-  _setError('rg','');
   _showScreen('login');
 }
 function authKey(e,fn){if(e.key==='Enter'&&typeof window[fn]==='function')window[fn]();}
@@ -833,8 +826,7 @@ function closePinModal(){
 
 function _getDisplayName(fullName){
   if(!fullName) return 'Usuario';
-  var parts=fullName.trim().split(/\s+/);
-  return parts.slice(0,2).join(' ');
+  return fullName.trim().split(/\s+/).slice(0,2).join(' ');
 }
 
 // Prioridades: S.profile.name → localStorage → user_metadata.full_name → email
@@ -886,17 +878,14 @@ async function handlePasswordOnlyLogin(){
 function enableContinueIfVerified(){
   var btn=document.getElementById('verify-continue-btn');
   if(!btn) return;
-  // Intento inmediato — puede que ya esté confirmado al regresar del link
   _supabase.auth.getUser().then(function(rv){
     if(rv.data&&rv.data.user&&rv.data.user.email_confirmed_at){
       btn.disabled=false; return;
     }
-    // Polling cada 3s
     var interval=setInterval(function(){
       _supabase.auth.getUser().then(function(rv2){
         if(rv2.data&&rv2.data.user&&rv2.data.user.email_confirmed_at){
-          clearInterval(interval);
-          btn.disabled=false;
+          clearInterval(interval); btn.disabled=false;
           try{toast('\u00a1Correo confirmado! Ya puedes continuar.');}catch(e){}
         }
       }).catch(function(){clearInterval(interval);});
@@ -904,14 +893,36 @@ function enableContinueIfVerified(){
   }).catch(function(){});
 }
 
-function handleEmailConfirmation(){
+// handleEmailConfirmation — usa hash (#access_token), NO exchangeCodeForSession.
+// Supabase JS v2 procesa el token automáticamente al cargar la página.
+// Solo necesitamos esperar 1s y luego verificar con getUser().
+async function handleEmailConfirmation(){
   var hash=window.location.hash||'';
   if(!hash.includes('type=signup')&&!hash.includes('access_token')) return;
+
   _emailConfirmPending=true;
   sessionStorage.setItem('emailConfirmPending','true');
+
   showAuthScreen();
   _showScreen('verify');
-  enableContinueIfVerified();
+
+  // Esperar a que Supabase procese automáticamente el token del hash
+  setTimeout(async function(){
+    try{
+      var rv=await _supabase.auth.getUser();
+      var btn=document.getElementById('verify-continue-btn');
+      if(btn&&rv.data&&rv.data.user&&rv.data.user.email_confirmed_at){
+        btn.disabled=false;
+        try{toast('\u00a1Correo confirmado! Ya puedes continuar.');}catch(e){}
+      }else{
+        enableContinueIfVerified(); // Fallback con polling
+      }
+    }catch(error){
+      console.error('Error verificando confirmación de correo:',error);
+      enableContinueIfVerified();
+    }
+  },1000);
+
   try{window.history.replaceState({},document.title,window.location.pathname);}catch(e){}
 }
 
@@ -941,17 +952,13 @@ async function handleResetPassword(){
 }
 
 // ════════════════════════════════════════════════════════════
-// PANTALLA BIENVENIDA — sesión activa + biometría
+// PANTALLA BIENVENIDA — una sola línea, sin elementos legacy
 // ════════════════════════════════════════════════════════════
 function _showWelcomeScreen(user){
   var firstName='Usuario';
   try{firstName=getFirstName(user||_currentUser);}catch(e){}
   var greetEl=document.getElementById('welcome-greeting');
   if(greetEl) greetEl.textContent='\u00a1Hola, '+firstName+'!';
-  var el=document.getElementById('auth-welcome-name');
-  var elSub=document.getElementById('auth-welcome-name-sub');
-  if(el) el.textContent='Hola,';
-  if(elSub) elSub.textContent=firstName;
   _showScreen('welcome');
   var fpIcon=document.getElementById('welcome-fp-icon');
   if(fpIcon&&typeof _fpSvgSm!=='undefined') fpIcon.innerHTML=_fpSvgSm;
@@ -1001,7 +1008,7 @@ async function initAuth(){
   if(!initSupabase()){
     hideAuthScreen(); if(typeof initApp==='function')initApp(); return;
   }
-  handleEmailConfirmation();
+  await handleEmailConfirmation();
   if(_emailConfirmPending) return;
   _supabase.auth.onAuthStateChange(function(event,session){
     if(event==='SIGNED_OUT'){showAuthScreen();_showScreen('login');}
