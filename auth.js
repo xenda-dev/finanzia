@@ -829,7 +829,6 @@ function _getDisplayName(fullName){
   return fullName.trim().split(/\s+/).slice(0,2).join(' ');
 }
 
-// Prioridades: S.profile.name → localStorage → user_metadata.full_name → email
 function getFirstName(user){
   try{
     if(typeof S!=='undefined'&&S&&S.profile&&S.profile.name&&S.profile.name.trim())
@@ -893,46 +892,20 @@ function enableContinueIfVerified(){
   }).catch(function(){});
 }
 
-// Reintentos progresivos: hasta 10 intentos cada 1s antes de pasar al polling.
-// No usa exchangeCodeForSession — Supabase JS v2 procesa el #hash automáticamente.
-async function handleEmailConfirmation(){
+// Detecta el hash de Supabase y muestra auth-verify.
+// El botón se habilita desde onAuthStateChange(SIGNED_IN) — momento exacto
+// en que el SDK procesa el token y email_confirmed_at está disponible.
+function handleEmailConfirmation(){
   var hash=window.location.hash||'';
   if(!hash.includes('type=signup')&&!hash.includes('access_token')) return;
-
   _emailConfirmPending=true;
   sessionStorage.setItem('emailConfirmPending','true');
-
   showAuthScreen();
   _showScreen('verify');
-
-  var btn=document.getElementById('verify-continue-btn');
-  var attempts=0;
-  var maxAttempts=10;
-
-  var checkUserConfirmation=async function(){
-    try{
-      var rv=await _supabase.auth.getUser();
-      var user=rv.data&&rv.data.user;
-      if(user&&user.email_confirmed_at){
-        if(btn) btn.disabled=false;
-        try{toast('\u00a1Correo confirmado! Ya puedes continuar.');}catch(e){}
-        return;
-      }
-      if(attempts<maxAttempts){
-        attempts++;
-        setTimeout(checkUserConfirmation,1000);
-      }else{
-        enableContinueIfVerified(); // Fallback con polling
-      }
-    }catch(err){
-      console.error('Error verificando confirmación:',err);
-      enableContinueIfVerified();
-    }
-  };
-
-  checkUserConfirmation();
-
-  try{window.history.replaceState({},document.title,window.location.pathname);}catch(e){}
+  // Limpiar el hash DESPUÉS de que Supabase lo haya procesado
+  setTimeout(function(){
+    try{window.history.replaceState({},document.title,window.location.pathname);}catch(e){}
+  },2000);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1017,11 +990,22 @@ async function initAuth(){
   if(!initSupabase()){
     hideAuthScreen(); if(typeof initApp==='function')initApp(); return;
   }
-  await handleEmailConfirmation();
+  handleEmailConfirmation();
   if(_emailConfirmPending) return;
   _supabase.auth.onAuthStateChange(function(event,session){
     if(event==='SIGNED_OUT'){showAuthScreen();_showScreen('login');}
-    if(event==='SIGNED_IN'&&_emailConfirmPending) return;
+
+    // FIX: cuando el usuario regresa del link de confirmación,
+    // Supabase dispara SIGNED_IN con el token ya procesado.
+    // Ese es el momento exacto en que email_confirmed_at está disponible.
+    // En lugar de ignorar el evento, lo usamos para habilitar el botón.
+    if(event==='SIGNED_IN'&&_emailConfirmPending){
+      var btn=document.getElementById('verify-continue-btn');
+      if(btn) btn.disabled=false;
+      try{toast('\u00a1Correo confirmado! Ya puedes continuar.');}catch(e){}
+      return; // No ir al dashboard
+    }
+
     if(event==='PASSWORD_RECOVERY'){
       if(session&&session.user) _currentUser=session.user;
       showAuthScreen(); _showScreen('reset-password');
