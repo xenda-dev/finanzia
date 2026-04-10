@@ -14,12 +14,28 @@ function initSupabase(){
   return true;
 }
 
-async function signUp(email, password, fullName){
-  var opts={email:email,password:password};
-  if(fullName&&fullName.trim()) opts.options={data:{full_name:fullName.trim()}};
-  var {data, error} = await _supabase.auth.signUp(opts);
+function generateNameFromEmail(email){
+  if(!email) return 'Usuario';
+  return email
+    .split('@')[0]
+    .replace(/[0-9]/g,'')
+    .replace(/[._-]/g,' ')
+    .replace(/\b\w/g,function(l){return l.toUpperCase();})
+    .trim()||'Usuario';
+}
+
+async function signUp(email, password){
+  var autoName=generateNameFromEmail(email);
+  var {data, error}=await _supabase.auth.signUp({
+    email:email,
+    password:password,
+    options:{
+      emailRedirectTo:'https://finanzia.xenda.co',
+      data:{full_name:autoName}
+    }
+  });
   if(error) return _authMsg(error.message);
-  return {ok:true};
+  return {ok:true, data:data};
 }
 async function signIn(email, password){
   var {data, error} = await _supabase.auth.signInWithPassword({email, password});
@@ -282,8 +298,6 @@ async function handleLogin(){
 }
 
 async function handleRegister(){
-  var nameEl=document.getElementById('rg-name');
-  var name=nameEl?(nameEl.value||'').trim():'';
   var email=(document.getElementById('rg-email').value||'').trim();
   var pass=(document.getElementById('rg-pass').value||'').trim();
   if(!email||!pass){_setError('rg','Completa todos los campos');return;}
@@ -294,8 +308,7 @@ async function handleRegister(){
   var exists=document.getElementById('auth-rg-exists');
   if(exists)exists.style.display='none';
   _setError('rg',''); _setBusy('rg-btn',true,'Crear cuenta');
-  var fullName=name||email.split('@')[0];
-  var res=await signUp(email,pass,fullName);
+  var res=await signUp(email,pass);
   _setBusy('rg-btn',false,'Crear cuenta');
   if(!res.ok){
     if(res.isExists){
@@ -819,12 +832,11 @@ function _getDisplayName(fullName){
 }
 
 function getFirstName(user){
-  try{
-    if(user&&user.user_metadata&&user.user_metadata.full_name)
-      return user.user_metadata.full_name.trim().split(/\s+/)[0];
-    if(user&&user.email) return user.email.split('@')[0];
-  }catch(e){}
-  return 'Usuario';
+  if(!user) return 'Usuario';
+  var fullName=user.user_metadata&&user.user_metadata.full_name;
+  if(fullName&&fullName.trim()) return fullName.trim().split(' ')[0];
+  var email=user.email||'';
+  return email.split('@')[0]||'Usuario';
 }
 
 // ════════════════════════════════════════════════════════════
@@ -854,7 +866,7 @@ async function handlePasswordOnlyLogin(){
 }
 
 // ════════════════════════════════════════════════════════════
-// VERIFICACIÓN DE CORREO
+// VERIFICACIÓN DE CORREO — polling + retorno desde link
 // ════════════════════════════════════════════════════════════
 var _verifyPollInterval=null;
 
@@ -862,8 +874,8 @@ function enableContinueIfVerified(){
   if(_verifyPollInterval) clearInterval(_verifyPollInterval);
   _verifyPollInterval=setInterval(async function(){
     try{
-      var {data}=await _supabase.auth.getUser();
-      if(data&&data.user&&data.user.email_confirmed_at){
+      var rv=await _supabase.auth.getUser();
+      if(rv.data&&rv.data.user&&rv.data.user.email_confirmed_at){
         clearInterval(_verifyPollInterval); _verifyPollInterval=null;
         var btn=document.getElementById('verify-continue-btn');
         if(btn){btn.disabled=false; try{toast('\u00a1Correo confirmado! Ya puedes continuar.');}catch(e){}}
@@ -872,27 +884,17 @@ function enableContinueIfVerified(){
   },3000);
 }
 
-async function handleEmailConfirmation(){
+function handleEmailConfirmation(){
   var hash=window.location.hash||'';
-  if(!hash.includes('access_token')&&!hash.includes('type=signup')&&!hash.includes('type=email_change')) return false;
-  try{window.history.replaceState({},document.title,window.location.pathname+window.location.search);}catch(e){}
-  try{
-    await new Promise(function(r){setTimeout(r,500);});
-    var {data}=await _supabase.auth.getUser();
-    if(data&&data.user){
-      _currentUser=data.user;
-      showAuthScreen(); _showScreen('verify');
-      var btn=document.getElementById('verify-continue-btn');
-      if(btn) btn.disabled=!data.user.email_confirmed_at;
-      if(!data.user.email_confirmed_at) enableContinueIfVerified();
-      return true;
-    }
-  }catch(e){console.warn('handleEmailConfirmation error:',e);}
-  return false;
+  if(!hash.includes('type=signup')&&!hash.includes('access_token')) return;
+  showAuthScreen();
+  _showScreen('verify');
+  enableContinueIfVerified();
+  try{window.history.replaceState({},document.title,window.location.pathname);}catch(e){}
 }
 
 // ════════════════════════════════════════════════════════════
-// RESTABLECER CONTRASEÑA
+// RESTABLECER CONTRASEÑA — flujo PASSWORD_RECOVERY de Supabase
 // ════════════════════════════════════════════════════════════
 async function handleResetPassword(){
   var pass=(document.getElementById('rp-pass').value||'').trim();
@@ -905,9 +907,9 @@ async function handleResetPassword(){
   if(!/[^A-Za-z0-9]/.test(pass)){_setError('rp','Debe incluir al menos un carácter especial (!@#$...)');return;}
   _setError('rp',''); _setBusy('rp-btn',true,'Guardar nueva contraseña');
   try{
-    var {error}=await _supabase.auth.updateUser({password:pass});
+    var rv=await _supabase.auth.updateUser({password:pass});
     _setBusy('rp-btn',false,'Guardar nueva contraseña');
-    if(error){_setError('rp',error.message||'No se pudo actualizar la contraseña');return;}
+    if(rv.error){_setError('rp',rv.error.message||'No se pudo actualizar la contraseña');return;}
     try{toast('Contrase\u00f1a actualizada \u2713');}catch(e){}
     setTimeout(function(){_showScreen('login');},1200);
   }catch(e){
@@ -920,34 +922,13 @@ async function handleResetPassword(){
 // PANTALLA BIENVENIDA — sesión activa + biometría
 // ════════════════════════════════════════════════════════════
 function _showWelcomeScreen(user){
-  var firstName='';
-  if(!_currentUser||!_currentUser.id||!user||!user.id){
-    firstName='Usuario';
-  }else{
-    try{
-      firstName=getFirstName(user);
-      if(!firstName||firstName==='Usuario'){
-        var profileName='';
-        if(typeof S!=='undefined'&&S&&S.profile&&S.profile.name&&S.profile.name.trim())
-          profileName=S.profile.name.trim();
-        if(!profileName){
-          try{
-            var raw=localStorage.getItem('finanziaState3');
-            if(raw){var st=JSON.parse(raw);if(st.profile&&st.profile.name)profileName=st.profile.name.trim();}
-          }catch(ex){}
-        }
-        if(profileName) firstName=profileName.split(/\s+/)[0];
-      }
-      if(!firstName) firstName='Usuario';
-    }catch(e){firstName='Usuario';}
-  }
-  var greetEl=document.getElementById('welcome-greeting');
-  if(greetEl) greetEl.textContent='\u00a1Hola, '+firstName+'!';
-  // Limpiar elementos legacy (compatibilidad)
-  var el=document.getElementById('auth-welcome-name');
-  var elSub=document.getElementById('auth-welcome-name-sub');
-  if(el) el.textContent='';
-  if(elSub) elSub.textContent='';
+  var firstName=getFirstName(user||_currentUser);
+  var el=document.getElementById('welcome-greeting');
+  if(el) el.textContent='\u00a1Hola, '+firstName+'!';
+  // limpiar elementos legacy
+  var n=document.getElementById('auth-welcome-name');
+  var s=document.getElementById('auth-welcome-name-sub');
+  if(n) n.textContent=''; if(s) s.textContent='';
   _showScreen('welcome');
   var fpIcon=document.getElementById('welcome-fp-icon');
   if(fpIcon&&typeof _fpSvgSm!=='undefined') fpIcon.innerHTML=_fpSvgSm;
@@ -997,14 +978,12 @@ async function initAuth(){
   if(!initSupabase()){
     hideAuthScreen(); if(typeof initApp==='function')initApp(); return;
   }
-  var isConfirmRedirect=await handleEmailConfirmation();
-  if(isConfirmRedirect) return;
+  handleEmailConfirmation();
   _supabase.auth.onAuthStateChange(function(event,session){
     if(event==='SIGNED_OUT'){showAuthScreen();_showScreen('login');}
     if(event==='PASSWORD_RECOVERY'){
       if(session&&session.user) _currentUser=session.user;
-      showAuthScreen();
-      _showScreen('reset-password');
+      showAuthScreen(); _showScreen('reset-password');
       try{window.history.replaceState({},document.title,window.location.pathname);}catch(e){}
     }
   });

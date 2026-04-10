@@ -84,11 +84,6 @@
       <p class="auth-subtitle auth-register-subtitle">Estás a un paso de tomar el control de tus finanzas 🎯</p>
 
       <div class="auth-field">
-        <label class="auth-label">Nombre</label>
-        <input id="rg-name" type="text" autocomplete="name" placeholder="Tu nombre completo" class="auth-input">
-      </div>
-
-      <div class="auth-field">
         <label class="auth-label">Correo</label>
         <input id="rg-email" type="email" autocomplete="email" placeholder="tu@correo.com" class="auth-input">
       </div>
@@ -262,7 +257,6 @@
       </div>
       <h2 class="auth-title">Ingresa tu contraseña</h2>
       <p class="auth-subtitle">Confirma tu identidad para continuar.</p>
-
       <div class="auth-field">
         <label class="auth-label">Contraseña</label>
         <div class="auth-input-wrap">
@@ -271,7 +265,6 @@
           <button id="po-eye" onclick="togglePass('po-pass','po-eye')" class="auth-eye">👁️</button>
         </div>
       </div>
-
       <div id="auth-err-po" class="auth-err" style="display:none"></div>
     </div>
 
@@ -298,7 +291,6 @@
       </div>
       <h2 class="auth-title">Restablecer contraseña</h2>
       <p class="auth-subtitle">Elige una contraseña nueva y segura para tu cuenta.</p>
-
       <div class="auth-field">
         <label class="auth-label">Nueva contraseña</label>
         <div class="auth-input-wrap">
@@ -306,14 +298,13 @@
             oninput="_authPwCheck(this.value)" onkeydown="authKey(event,'handleResetPassword')" class="auth-input auth-input-with-icon">
           <button id="rp-eye" onclick="togglePass('rp-pass','rp-eye')" class="auth-eye">👁️</button>
         </div>
-        <div class="pw-rules" id="pw-rules-rp">
+        <div class="pw-rules">
           <div class="pw-rule" id="pw-r1"><span class="pw-icon"></span>Mínimo 8 caracteres</div>
           <div class="pw-rule" id="pw-r2"><span class="pw-icon"></span>Una mayúscula</div>
           <div class="pw-rule" id="pw-r3"><span class="pw-icon"></span>Un número</div>
           <div class="pw-rule" id="pw-r4"><span class="pw-icon"></span>Un carácter especial (!@#$...)</div>
         </div>
       </div>
-
       <div class="auth-field">
         <label class="auth-label">Confirmar contraseña</label>
         <div class="auth-input-wrap">
@@ -322,7 +313,6 @@
           <button id="rp-eye2" onclick="togglePass('rp-pass-confirm','rp-eye2')" class="auth-eye">👁️</button>
         </div>
       </div>
-
       <div id="auth-err-rp" class="auth-err" style="display:none"></div>
     </div>
 
