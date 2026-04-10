@@ -14,28 +14,10 @@ function initSupabase(){
   return true;
 }
 
-function generateNameFromEmail(email){
-  if(!email) return 'Usuario';
-  return email
-    .split('@')[0]
-    .replace(/[0-9]/g,'')
-    .replace(/[._-]/g,' ')
-    .replace(/\b\w/g,function(l){return l.toUpperCase();})
-    .trim()||'Usuario';
-}
-
 async function signUp(email, password){
-  var autoName=generateNameFromEmail(email);
-  var {data, error}=await _supabase.auth.signUp({
-    email:email,
-    password:password,
-    options:{
-      emailRedirectTo:'https://finanzia.xenda.co',
-      data:{full_name:autoName}
-    }
-  });
+  var {data, error} = await _supabase.auth.signUp({email, password});
   if(error) return _authMsg(error.message);
-  return {ok:true, data:data};
+  return {ok:true};
 }
 async function signIn(email, password){
   var {data, error} = await _supabase.auth.signInWithPassword({email, password});
@@ -272,11 +254,11 @@ function hideAuthScreen(){
   var app=document.getElementById('app'); if(app)app.style.display='flex';
 }
 function _showScreen(name){
-  ['login','register','bio','verify','recover','welcome','password-only','reset-password'].forEach(function(id){
+  ['login','register','bio','verify','recover','welcome'].forEach(function(id){
     var el=document.getElementById('auth-'+id); if(el)el.style.display='none';
   });
   var t=document.getElementById('auth-'+name);
-  if(t) t.style.display=(name==='welcome')?'flex':'block';
+  if(t) t.style.display = (name==='welcome') ? 'flex' : 'block';
 }
 function _setError(id,msg){
   var el=document.getElementById('auth-err-'+id);
@@ -319,7 +301,6 @@ async function handleRegister(){
     return;
   }
   _showScreen('verify');
-  enableContinueIfVerified();
 }
 function goToLoginWithEmail(){
   var email=(document.getElementById('rg-email').value||'').trim();
@@ -827,111 +808,65 @@ function closePinModal(){
 
 function _getDisplayName(fullName){
   if(!fullName) return 'Usuario';
-  var parts=fullName.trim().split(/\s+/);
-  return parts.slice(0,2).join(' ');
+  var parts = fullName.trim().split(/\s+/);
+  return parts.slice(0, 2).join(' ');
 }
 
+// getFirstName — prioridades:
+// 1. S.profile.name (nombre guardado en perfil de la app)
+// 2. localStorage finanziaState3 → profile.name (mismo dato, acceso directo)
+// 3. user.user_metadata.full_name (guardado en Supabase al registrarse)
+// 4. Derivado del email
 function getFirstName(user){
-  if(!user) return 'Usuario';
-  var fullName=user.user_metadata&&user.user_metadata.full_name;
-  if(fullName&&fullName.trim()) return fullName.trim().split(' ')[0];
-  var email=user.email||'';
-  return email.split('@')[0]||'Usuario';
-}
-
-// ════════════════════════════════════════════════════════════
-// INGRESO SOLO CON CONTRASEÑA (desde welcome)
-// ════════════════════════════════════════════════════════════
-function goToPasswordLogin(){
-  var po=document.getElementById('po-pass'); if(po)po.value='';
-  _setError('po','');
-  _showScreen('password-only');
-}
-
-async function handlePasswordOnlyLogin(){
-  var pass=(document.getElementById('po-pass').value||'').trim();
-  if(!pass){_setError('po','Ingresa tu contraseña');return;}
-  _setError('po',''); _setBusy('po-btn',true,'Ingresar');
-  var user=_currentUser;
-  if(!user){try{user=await getCurrentUser();}catch(e){}}
-  if(!user||!user.email){
-    _setError('po','Sesión no encontrada. Inicia sesión con tu correo.');
-    _setBusy('po-btn',false,'Ingresar');
-    _showScreen('login'); return;
-  }
-  var res=await signIn(user.email,pass);
-  _setBusy('po-btn',false,'Ingresar');
-  if(!res.ok){_setError('po',res.msg);return;}
-  await _afterLogin(res.user);
-}
-
-// ════════════════════════════════════════════════════════════
-// VERIFICACIÓN DE CORREO — polling + retorno desde link
-// ════════════════════════════════════════════════════════════
-var _verifyPollInterval=null;
-
-function enableContinueIfVerified(){
-  if(_verifyPollInterval) clearInterval(_verifyPollInterval);
-  _verifyPollInterval=setInterval(async function(){
-    try{
-      var rv=await _supabase.auth.getUser();
-      if(rv.data&&rv.data.user&&rv.data.user.email_confirmed_at){
-        clearInterval(_verifyPollInterval); _verifyPollInterval=null;
-        var btn=document.getElementById('verify-continue-btn');
-        if(btn){btn.disabled=false; try{toast('\u00a1Correo confirmado! Ya puedes continuar.');}catch(e){}}
-      }
-    }catch(e){}
-  },3000);
-}
-
-function handleEmailConfirmation(){
-  var hash=window.location.hash||'';
-  if(!hash.includes('type=signup')&&!hash.includes('access_token')) return;
-  showAuthScreen();
-  _showScreen('verify');
-  enableContinueIfVerified();
-  try{window.history.replaceState({},document.title,window.location.pathname);}catch(e){}
-}
-
-// ════════════════════════════════════════════════════════════
-// RESTABLECER CONTRASEÑA — flujo PASSWORD_RECOVERY de Supabase
-// ════════════════════════════════════════════════════════════
-async function handleResetPassword(){
-  var pass=(document.getElementById('rp-pass').value||'').trim();
-  var confirm=(document.getElementById('rp-pass-confirm').value||'').trim();
-  if(!pass||!confirm){_setError('rp','Completa ambos campos');return;}
-  if(pass!==confirm){_setError('rp','Las contraseñas no coinciden');return;}
-  if(pass.length<8){_setError('rp','Mínimo 8 caracteres');return;}
-  if(!/[A-Z]/.test(pass)){_setError('rp','Debe incluir al menos una mayúscula');return;}
-  if(!/[0-9]/.test(pass)){_setError('rp','Debe incluir al menos un número');return;}
-  if(!/[^A-Za-z0-9]/.test(pass)){_setError('rp','Debe incluir al menos un carácter especial (!@#$...)');return;}
-  _setError('rp',''); _setBusy('rp-btn',true,'Guardar nueva contraseña');
+  // 1. Perfil en memoria
   try{
-    var rv=await _supabase.auth.updateUser({password:pass});
-    _setBusy('rp-btn',false,'Guardar nueva contraseña');
-    if(rv.error){_setError('rp',rv.error.message||'No se pudo actualizar la contraseña');return;}
-    try{toast('Contrase\u00f1a actualizada \u2713');}catch(e){}
-    setTimeout(function(){_showScreen('login');},1200);
-  }catch(e){
-    _setBusy('rp-btn',false,'Guardar nueva contraseña');
-    _setError('rp','Algo sali\u00f3 mal. Intenta de nuevo.');
-  }
+    if(typeof S !== 'undefined' && S && S.profile && S.profile.name && S.profile.name.trim()){
+      return S.profile.name.trim().split(/\s+/)[0];
+    }
+  }catch(e){}
+  // 2. Perfil en localStorage
+  try{
+    var raw = localStorage.getItem('finanziaState3');
+    if(raw){
+      var st = JSON.parse(raw);
+      if(st && st.profile && st.profile.name && st.profile.name.trim()){
+        return st.profile.name.trim().split(/\s+/)[0];
+      }
+    }
+  }catch(e){}
+  // 3. Metadata de Supabase
+  try{
+    var fullName = user && user.user_metadata && user.user_metadata.full_name;
+    if(fullName && fullName.trim()) return fullName.trim().split(/\s+/)[0];
+  }catch(e){}
+  // 4. Email como fallback
+  try{
+    if(user && user.email) return user.email.split('@')[0];
+  }catch(e){}
+  return 'Usuario';
 }
 
 // ════════════════════════════════════════════════════════════
 // PANTALLA BIENVENIDA — sesión activa + biometría
 // ════════════════════════════════════════════════════════════
 function _showWelcomeScreen(user){
-  var firstName=getFirstName(user||_currentUser);
-  var el=document.getElementById('welcome-greeting');
-  if(el) el.textContent='\u00a1Hola, '+firstName+'!';
-  // limpiar elementos legacy
-  var n=document.getElementById('auth-welcome-name');
-  var s=document.getElementById('auth-welcome-name-sub');
-  if(n) n.textContent=''; if(s) s.textContent='';
+  var resolvedUser = user || _currentUser;
+  var firstName = 'Usuario';
+  try{ firstName = getFirstName(resolvedUser); }catch(e){}
+
+  // #welcome-greeting — elemento principal (una sola línea)
+  var greetEl = document.getElementById('welcome-greeting');
+  if(greetEl) greetEl.textContent = '\u00a1Hola, ' + firstName + '!';
+
+  // Compatibilidad con elementos legacy (dos líneas)
+  var el = document.getElementById('auth-welcome-name');
+  var elSub = document.getElementById('auth-welcome-name-sub');
+  if(el) el.textContent = 'Hola,';
+  if(elSub) elSub.textContent = firstName;
+
   _showScreen('welcome');
-  var fpIcon=document.getElementById('welcome-fp-icon');
-  if(fpIcon&&typeof _fpSvgSm!=='undefined') fpIcon.innerHTML=_fpSvgSm;
+  var fpIcon = document.getElementById('welcome-fp-icon');
+  if(fpIcon && typeof _fpSvgSm !== 'undefined') fpIcon.innerHTML = _fpSvgSm;
 }
 
 async function _startBioFromWelcome(){
@@ -978,14 +913,8 @@ async function initAuth(){
   if(!initSupabase()){
     hideAuthScreen(); if(typeof initApp==='function')initApp(); return;
   }
-  handleEmailConfirmation();
   _supabase.auth.onAuthStateChange(function(event,session){
     if(event==='SIGNED_OUT'){showAuthScreen();_showScreen('login');}
-    if(event==='PASSWORD_RECOVERY'){
-      if(session&&session.user) _currentUser=session.user;
-      showAuthScreen(); _showScreen('reset-password');
-      try{window.history.replaceState({},document.title,window.location.pathname);}catch(e){}
-    }
   });
   var user=await getCurrentUser();
   if(user){
