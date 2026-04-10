@@ -170,7 +170,7 @@
       </div>
       <div style="font-size:56px;margin-bottom:16px">📬</div>
       <h2 style="font-size:20px;font-weight:800;color:#0F172A;margin-bottom:10px">Revisa tu correo</h2>
-      <p style="font-size:14px;color:#64748B;line-height:1.6;max-width:280px;margin-bottom:32px">Te enviamos un enlace de confirmación. Haz clic en él y luego inicia sesión.</p>
+      <p style="font-size:14px;color:#64748B;line-height:1.6;max-width:300px;margin-bottom:32px">Te enviamos un enlace de confirmación. Revisa tu bandeja de entrada y también la carpeta de <strong>spam o correo no deseado</strong>.</p>
       <button id="verify-continue-btn" onclick="goToLogin()" class="auth-btn-primary" style="max-width:280px" disabled>Continuar</button>
     </div>
   </div>
@@ -242,14 +242,12 @@
 
   <!-- ─── SOLO CONTRASEÑA (desde welcome) ─────────── -->
   <div id="auth-password-only" class="auth-panel" style="display:none">
-
     <div class="auth-top auth-top-nav">
       <button onclick="_showScreen('welcome')" class="auth-back">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
       <div style="width:36px"></div>
     </div>
-
     <div class="auth-body">
       <div class="auth-logo-row" style="margin-bottom:8px">
         <img src="/icon-192.png" class="auth-logo-icon" alt="FinanzIA">
@@ -267,7 +265,6 @@
       </div>
       <div id="auth-err-po" class="auth-err" style="display:none"></div>
     </div>
-
     <div class="auth-bottom">
       <button id="po-btn" onclick="handlePasswordOnlyLogin()" class="auth-btn-primary">Ingresar</button>
       <div class="auth-footer">© 2026 Xenda.co. Todos los derechos reservados.</div>
@@ -276,14 +273,12 @@
 
   <!-- ─── RESTABLECER CONTRASEÑA ────────────────── -->
   <div id="auth-reset-password" class="auth-panel" style="display:none">
-
     <div class="auth-top auth-top-nav">
       <button onclick="_showScreen('login')" class="auth-back">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
       <div style="width:36px"></div>
     </div>
-
     <div class="auth-body">
       <div class="auth-logo-row" style="margin-bottom:8px">
         <img src="/icon-192.png" class="auth-logo-icon" alt="FinanzIA">
@@ -315,7 +310,6 @@
       </div>
       <div id="auth-err-rp" class="auth-err" style="display:none"></div>
     </div>
-
     <div class="auth-bottom">
       <button id="rp-btn" onclick="handleResetPassword()" class="auth-btn-primary">Guardar nueva contraseña</button>
       <div class="auth-footer">© 2026 Xenda.co. Todos los derechos reservados.</div>
