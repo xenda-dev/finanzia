@@ -1192,9 +1192,27 @@ async function initAuth(){
       }
     }
   }else{
-    // Mantener configuración biométrica para permitir acceso rápido
+    // No existe sesión válida en Supabase → tratar como usuario nuevo
     _currentUser = null;
+
+    // Limpiar datos locales que puedan contener información del usuario eliminado
+    try{
+      localStorage.removeItem('finanziaState3');
+      // Eliminar PIN asociado a posibles usuarios previos
+      Object.keys(localStorage).forEach(function(key){
+        if(key.startsWith('_userPin_') || key.startsWith('_pinEnabled_')){
+          localStorage.removeItem(key);
+        }
+      });
+      // Eliminar configuración biométrica del dispositivo
+      localStorage.removeItem('_bioEnabled');
+      localStorage.removeItem('_bioCredId');
+    }catch(e){
+      console.warn('Error limpiando datos locales:', e);
+    }
+
+    // Mostrar pantalla de login para permitir registro o inicio de sesión
     showAuthScreen();
-    _showWelcomeScreen(null);
+    _showScreen('login');
   }
 }
