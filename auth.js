@@ -369,16 +369,15 @@ async function _afterLogin(user){
   _currentUser = user;
   _injectLogoutBtn(user);
 
-  // Sin PIN → flujo de onboarding antes de entrar al app
-  // (auth-screen se mantiene visible, el usuario no ha entrado aún)
-  if(!_isPinEnabled()){
+  // Onboarding solo si nunca se completó para este usuario
+  if(!_isOnboardingCompleted(user.id)){
     showAuthScreen();
     _initSetPinScreen();
     _showScreen('set-pin');
     return;
   }
 
-  // Con PIN configurado → entrar al app directamente
+  // Onboarding ya completado → entrar al app directamente
   hideAuthScreen();
   if(typeof initApp==='function') initApp();
   if(typeof safeSync==='function'){
@@ -533,6 +532,12 @@ function _isPinEnabled(){
   if(!_currentUser || !_currentUser.id) return false;
   var uid = _currentUser.id;
   return localStorage.getItem('_pinEnabled_' + uid) === '1' && !!localStorage.getItem('_userPin_' + uid);
+}
+function _isOnboardingCompleted(uid){
+  return localStorage.getItem('_onboardingCompleted_' + uid) === '1';
+}
+function _setOnboardingCompleted(uid){
+  localStorage.setItem('_onboardingCompleted_' + uid, '1');
 }
 function _getPinAttempts(){ return parseInt(localStorage.getItem('_pinAttempts') || '0'); }
 function _isPinLocked(){
@@ -1001,6 +1006,8 @@ function _initBioSetupScreen(){
 
 // Completa el onboarding: entra a la app y navega a Configuración
 function _completeOnboarding(){
+  // Marcar onboarding completado para este usuario (no vuelve a ejecutarse)
+  if(_currentUser && _currentUser.id) _setOnboardingCompleted(_currentUser.id);
   hideAuthScreen();
   if(typeof initApp === 'function') initApp();
   if(_currentUser && typeof _injectLogoutBtn === 'function') _injectLogoutBtn(_currentUser);
@@ -1014,6 +1021,12 @@ function _completeOnboarding(){
   }else{
     done();
   }
+}
+
+// Omitir creación de PIN → pasar igualmente por pantalla de bio-setup
+function skipPinSetup(){
+  _initBioSetupScreen();
+  _showScreen('bio-setup');
 }
 
 // Activar biometría desde la pantalla bio-setup y completar onboarding
@@ -1166,16 +1179,19 @@ async function initAuth(){
     return;
   }
   var user=await getCurrentUser();
+  var _serverRejected=false; // true solo si el servidor rechazó el token (usuario eliminado/inválido)
   if(user){
     try{
       var _uv = await _supabase.auth.getUser();
       if(_uv.error || !_uv.data || !_uv.data.user){
         user = null;
         _currentUser = null;
+        _serverRejected = true; // el servidor rechazó explícitamente el token
       }
     }catch(e){
       user = null;
       _currentUser = null;
+      _serverRejected = true;
     }
   }
   if(user){
@@ -1191,28 +1207,25 @@ async function initAuth(){
         safeSync(user.id).catch(function(e){ console.warn('sync error:',e); });
       }
     }
-  }else{
-    // No existe sesión válida en Supabase → tratar como usuario nuevo
+  }else if(_serverRejected){
+    // El servidor rechazó el token → usuario eliminado o token expirado → limpiar todo
     _currentUser = null;
-
-    // Limpiar datos locales que puedan contener información del usuario eliminado
     try{
       localStorage.removeItem('finanziaState3');
-      // Eliminar PIN asociado a posibles usuarios previos
       Object.keys(localStorage).forEach(function(key){
-        if(key.startsWith('_userPin_') || key.startsWith('_pinEnabled_')){
+        if(key.startsWith('_userPin_')||key.startsWith('_pinEnabled_')||key.startsWith('_onboardingCompleted_')){
           localStorage.removeItem(key);
         }
       });
-      // Eliminar configuración biométrica del dispositivo
       localStorage.removeItem('_bioEnabled');
       localStorage.removeItem('_bioCredId');
-    }catch(e){
-      console.warn('Error limpiando datos locales:', e);
-    }
-
-    // Mostrar pantalla de login para permitir registro o inicio de sesión
+    }catch(e){ console.warn('Error limpiando datos locales:', e); }
     showAuthScreen();
     _showScreen('login');
+  }else{
+    // Sin sesión activa (cierre de sesión normal) → mantener PIN/bio, mostrar welcome
+    _currentUser = null;
+    showAuthScreen();
+    _showWelcomeScreen(null);
   }
 }
