@@ -20,7 +20,7 @@ function initSupabase(){
     if(event === 'SIGNED_OUT'){
       _currentUser = null;
       showAuthScreen();
-      _showWelcomeScreen(null);
+      _showScreen('login');
       return;
     }
 
@@ -80,8 +80,10 @@ async function signIn(email, password){
   return {ok:true, user:data.user};
 }
 async function signOut(){
-  // PIN y biometría se mantienen — permiten acceso rápido cuando haya sesión válida
-  try{await _supabase.auth.signOut();}catch(e){console.warn('signOut warning:',e.message);}
+  try{
+    if(_currentUser && _currentUser.id){ _persistLastUserId(_currentUser.id); }
+    await _supabase.auth.signOut();
+  }catch(e){ console.warn('signOut warning:',e.message); }
   _currentUser = null;
   showAuthScreen();
   _showWelcomeScreen(null);
@@ -1169,9 +1171,17 @@ async function handleResetPassword(){
 // ════════════════════════════════════════════════════════════
 function _showWelcomeScreen(user){
   var firstName = 'Usuario';
-  // Solo mostrar el nombre si existe una sesión válida
   if(user && user.id){
     try{ firstName = getFirstName(user); }catch(e){}
+  }else{
+    // Sin sesión activa: intentar recuperar nombre desde caché local (solo visual)
+    try{
+      var raw = localStorage.getItem('finanziaState3');
+      if(raw){
+        var st = JSON.parse(raw);
+        if(st && st.profile && st.profile.name) firstName = st.profile.name.split(' ')[0];
+      }
+    }catch(e){}
   }
   var greetEl = document.getElementById('welcome-greeting');
   if(greetEl) greetEl.textContent = '\u00a1Hola, ' + firstName + '!';
@@ -1281,14 +1291,8 @@ async function initAuth(){
       _showScreen('login');
       return;
     }
-    // Sin UID previo → dispositivo/usuario completamente nuevo → login directo
-    var lastUid = localStorage.getItem('_lastAuthUserId');
+    // Sin sesión activa → requerir autenticación completa
     showAuthScreen();
-    if(!lastUid){
-      _showScreen('login');
-      return;
-    }
-    // Cierre de sesión normal → mantener PIN/bio, mostrar welcome
-    _showWelcomeScreen(null);
+    _showScreen('login');
   }
 }
