@@ -310,7 +310,9 @@ function _showScreen(name){
     var el=document.getElementById('auth-'+id); if(el)el.style.display='none';
   });
   var t=document.getElementById('auth-'+name);
-  if(t) t.style.display=(name==='welcome')?'flex':'block';
+  // display:flex activa flex-direction:column de .auth-panel → auth-body flex:1 empuja auth-bottom al fondo
+  // auth-bio tiene estructura propia (no usa auth-panel), se muestra como block
+  if(t) t.style.display = (name==='bio') ? 'block' : 'flex';
 }
 function _setError(id,msg){
   var el=document.getElementById('auth-err-'+id);
@@ -571,7 +573,7 @@ function _buildKeypad(handler){
   keys.forEach(function(k){
     if(k === 'fp'){
       // Botón huella — solo si bio está habilitada, si no vacío
-      if(_currentUser && _currentUser.id && _isBioEnabled()){
+      if(_isBioEnabled()){
         html += '<button onclick="_pinUseBiometric()" '
           +'style="height:64px;border:none;background:var(--surface2,#F1F5F9);border-radius:14px;'
           +'cursor:pointer;color:#00D4AA;display:flex;align-items:center;justify-content:center;'
