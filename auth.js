@@ -76,6 +76,7 @@ async function signIn(email, password){
   var {data, error} = await _supabase.auth.signInWithPassword({email, password});
   if(error) return _authMsg(error.message);
   _currentUser = data.user;
+  _persistLastUserId(data.user.id);
   return {ok:true, user:data.user};
 }
 async function signOut(){
@@ -538,6 +539,42 @@ function _isOnboardingCompleted(uid){
 }
 function _setOnboardingCompleted(uid){
   localStorage.setItem('_onboardingCompleted_' + uid, '1');
+}
+
+// Persiste el UID del último usuario autenticado para detectar eliminaciones posteriores
+function _persistLastUserId(uid){
+  if(uid) localStorage.setItem('_lastAuthUserId', uid);
+}
+
+// Detecta si el usuario fue eliminado de Supabase después de un cierre de sesión normal.
+// Heurística: hay un UID previo pero no existe ninguna credencial local asociada (PIN/bio).
+async function _wasUserDeleted(){
+  var lastUid = localStorage.getItem('_lastAuthUserId');
+  if(!lastUid) return false; // Sin UID previo → usuario nuevo
+  try{
+    var rv = await _supabase.auth.getUser();
+    if(!rv.data || !rv.data.user){
+      var hasPin = localStorage.getItem('_pinEnabled_' + lastUid);
+      var hasBio = localStorage.getItem('_bioEnabled');
+      return !hasPin && !hasBio;
+    }
+  }catch(e){ console.warn('Error verificando eliminaci\u00f3n del usuario:', e); }
+  return false;
+}
+
+// Limpieza centralizada de todos los datos locales del usuario
+function _clearAllLocalUserData(){
+  try{
+    localStorage.removeItem('finanziaState3');
+    localStorage.removeItem('_bioEnabled');
+    localStorage.removeItem('_bioCredId');
+    localStorage.removeItem('_lastAuthUserId');
+    Object.keys(localStorage).forEach(function(key){
+      if(key.startsWith('_userPin_')||key.startsWith('_pinEnabled_')||key.startsWith('_onboardingCompleted_')){
+        localStorage.removeItem(key);
+      }
+    });
+  }catch(e){ console.warn('Error limpiando datos locales:', e); }
 }
 function _getPinAttempts(){ return parseInt(localStorage.getItem('_pinAttempts') || '0'); }
 function _isPinLocked(){
@@ -1116,13 +1153,16 @@ async function handleResetPassword(){
 // PANTALLA BIENVENIDA — una sola línea
 // ════════════════════════════════════════════════════════════
 function _showWelcomeScreen(user){
-  var firstName='Usuario';
-  try{ firstName=getFirstName(user||_currentUser); }catch(e){}
-  var greetEl=document.getElementById('welcome-greeting');
-  if(greetEl) greetEl.textContent='\u00a1Hola, '+firstName+'!';
+  var firstName = 'Usuario';
+  // Solo mostrar el nombre si existe una sesión válida
+  if(user && user.id){
+    try{ firstName = getFirstName(user); }catch(e){}
+  }
+  var greetEl = document.getElementById('welcome-greeting');
+  if(greetEl) greetEl.textContent = '\u00a1Hola, ' + firstName + '!';
   _showScreen('welcome');
-  var fpIcon=document.getElementById('welcome-fp-icon');
-  if(fpIcon&&typeof _fpSvgSm!=='undefined') fpIcon.innerHTML=_fpSvgSm;
+  var fpIcon = document.getElementById('welcome-fp-icon');
+  if(fpIcon && typeof _fpSvgSm !== 'undefined') fpIcon.innerHTML = _fpSvgSm;
 }
 
 async function _startBioFromWelcome(){
@@ -1196,6 +1236,7 @@ async function initAuth(){
   }
   if(user){
     _currentUser=user;
+    _persistLastUserId(user.id);
     if(_isBioEnabled() || _isPinEnabled()){
       showAuthScreen();
       _showWelcomeScreen(user);
@@ -1210,21 +1251,20 @@ async function initAuth(){
   }else if(_serverRejected){
     // El servidor rechazó el token → usuario eliminado o token expirado → limpiar todo
     _currentUser = null;
-    try{
-      localStorage.removeItem('finanziaState3');
-      Object.keys(localStorage).forEach(function(key){
-        if(key.startsWith('_userPin_')||key.startsWith('_pinEnabled_')||key.startsWith('_onboardingCompleted_')){
-          localStorage.removeItem(key);
-        }
-      });
-      localStorage.removeItem('_bioEnabled');
-      localStorage.removeItem('_bioCredId');
-    }catch(e){ console.warn('Error limpiando datos locales:', e); }
+    _clearAllLocalUserData();
     showAuthScreen();
     _showScreen('login');
   }else{
-    // Sin sesión activa (cierre de sesión normal) → mantener PIN/bio, mostrar welcome
+    // Sin sesión activa: puede ser cierre de sesión normal o usuario eliminado sin sesión previa
     _currentUser = null;
+    var wasDeleted = await _wasUserDeleted();
+    if(wasDeleted){
+      _clearAllLocalUserData();
+      showAuthScreen();
+      _showScreen('login');
+      return;
+    }
+    // Cierre de sesión normal → mantener PIN/bio, mostrar welcome
     showAuthScreen();
     _showWelcomeScreen(null);
   }
