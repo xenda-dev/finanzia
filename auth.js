@@ -97,8 +97,23 @@ async function getCurrentUser(){
 function _isBioAvailable(){
   return !!(window.PublicKeyCredential && navigator.credentials && navigator.credentials.create);
 }
+// Migración única: mueve claves bio globales a claves por usuario (compatibilidad con versiones anteriores)
+function _migrateBioToUserKeys(){
+  var lastUid = localStorage.getItem('_lastAuthUserId');
+  if(!lastUid) return;
+  var globalEnabled = localStorage.getItem('_bioEnabled');
+  var globalCredId  = localStorage.getItem('_bioCredId');
+  if(globalEnabled && !localStorage.getItem('_bioEnabled_' + lastUid)){
+    localStorage.setItem('_bioEnabled_' + lastUid, globalEnabled);
+    if(globalCredId) localStorage.setItem('_bioCredId_' + lastUid, globalCredId);
+  }
+  localStorage.removeItem('_bioEnabled');
+  localStorage.removeItem('_bioCredId');
+}
 function _isBioEnabled(){
-  return localStorage.getItem('_bioEnabled') === '1' && !!localStorage.getItem('_bioCredId');
+  if(!_currentUser || !_currentUser.id) return false;
+  var uid = _currentUser.id;
+  return localStorage.getItem('_bioEnabled_' + uid) === '1' && !!localStorage.getItem('_bioCredId_' + uid);
 }
 function _b64ToBuffer(b64){ var bin=atob(b64),buf=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++)buf[i]=bin.charCodeAt(i); return buf.buffer; }
 function _randomChallenge(){ var arr=new Uint8Array(32); crypto.getRandomValues(arr); return arr; }
@@ -115,8 +130,8 @@ async function bioRegister(userId, email){
       timeout: 60000
     }});
     var arr = new Uint8Array(cred.rawId);
-    localStorage.setItem('_bioCredId', btoa(String.fromCharCode(...arr)));
-    localStorage.setItem('_bioEnabled','1');
+    localStorage.setItem('_bioCredId_' + userId, btoa(String.fromCharCode(...arr)));
+    localStorage.setItem('_bioEnabled_' + userId, '1');
     return true;
   }catch(e){ console.log('Bio register cancelled:',e.message); return false; }
 }
@@ -126,7 +141,7 @@ async function bioAuthenticate(){
   try{
     var assertion = await navigator.credentials.get({publicKey:{
       challenge: _randomChallenge(),
-      allowCredentials: [{type:'public-key', id:_b64ToBuffer(localStorage.getItem('_bioCredId'))}],
+      allowCredentials: [{type:'public-key', id:_b64ToBuffer(localStorage.getItem('_bioCredId_' + (_currentUser && _currentUser.id ? _currentUser.id : '')))}],
       userVerification: 'required',
       timeout: 60000
     }});
@@ -219,8 +234,8 @@ async function _handleBioSheetUnlock(){
       }
     }
   }else{
-    localStorage.removeItem('_bioEnabled');
-    localStorage.removeItem('_bioCredId');
+    var _buid=(_currentUser&&_currentUser.id)?_currentUser.id:localStorage.getItem('_lastAuthUserId');
+    if(_buid){ localStorage.removeItem('_bioEnabled_'+_buid); localStorage.removeItem('_bioCredId_'+_buid); }
     _closeBioSheet();
     showAuthScreen();
     _showScreen('login');
@@ -555,7 +570,7 @@ async function _wasUserDeleted(){
     var rv = await _supabase.auth.getUser();
     if(!rv.data || !rv.data.user){
       var hasPin = localStorage.getItem('_pinEnabled_' + lastUid);
-      var hasBio = localStorage.getItem('_bioEnabled');
+      var hasBio = localStorage.getItem('_bioEnabled_' + lastUid);
       return !hasPin && !hasBio;
     }
   }catch(e){ console.warn('Error verificando eliminaci\u00f3n del usuario:', e); }
@@ -570,7 +585,7 @@ function _clearAllLocalUserData(){
     localStorage.removeItem('_bioCredId');
     localStorage.removeItem('_lastAuthUserId');
     Object.keys(localStorage).forEach(function(key){
-      if(key.startsWith('_userPin_')||key.startsWith('_pinEnabled_')||key.startsWith('_onboardingCompleted_')){
+      if(key.startsWith('_userPin_')||key.startsWith('_pinEnabled_')||key.startsWith('_onboardingCompleted_')||key.startsWith('_bioEnabled_')||key.startsWith('_bioCredId_')){
         localStorage.removeItem(key);
       }
     });
@@ -1209,6 +1224,8 @@ async function initAuth(){
   if(!initSupabase()){
     hideAuthScreen(); if(typeof initApp==='function')initApp(); return;
   }
+  // Migrar claves bio globales a claves por usuario (una sola vez)
+  _migrateBioToUserKeys();
   // Detectar retorno desde enlace de confirmación ANTES de cualquier otra lógica.
   // El listener onAuthStateChange ya está registrado dentro de initSupabase().
   handleEmailConfirmation();
@@ -1264,8 +1281,14 @@ async function initAuth(){
       _showScreen('login');
       return;
     }
-    // Cierre de sesión normal → mantener PIN/bio, mostrar welcome
+    // Sin UID previo → dispositivo/usuario completamente nuevo → login directo
+    var lastUid = localStorage.getItem('_lastAuthUserId');
     showAuthScreen();
+    if(!lastUid){
+      _showScreen('login');
+      return;
+    }
+    // Cierre de sesión normal → mantener PIN/bio, mostrar welcome
     _showWelcomeScreen(null);
   }
 }
