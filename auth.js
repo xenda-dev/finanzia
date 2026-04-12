@@ -27,6 +27,7 @@ function initSupabase(){
     // Usamos session.user directamente (sin llamar getUser de nuevo).
     if(event === 'SIGNED_IN' && _emailConfirmPending){
       var u = session && session.user;
+      if(u) _currentUser = u;
       var btn = document.getElementById('verify-continue-btn');
       if(u && u.email_confirmed_at && btn){
         btn.disabled = false;
@@ -81,8 +82,9 @@ async function signOut(){
   // PIN se mantiene por dispositivo — no se elimina al cerrar sesión
   try{await _supabase.auth.signOut();}catch(e){console.warn('signOut warning:',e.message);}
   _currentUser = null;
-  _showScreen('login');
   showAuthScreen();
+  // Mostrar welcome con nombre cacheado (sin solicitar bio automáticamente)
+  _showWelcomeScreen(null);
 }
 async function getCurrentUser(){
   var {data} = await _supabase.auth.getSession();
@@ -304,7 +306,7 @@ function hideAuthScreen(){
   var app=document.getElementById('app'); if(app)app.style.display='flex';
 }
 function _showScreen(name){
-  ['login','register','bio','verify','recover','welcome','password-only','reset-password'].forEach(function(id){
+  ['login','register','bio','verify','recover','welcome','password-only','reset-password','set-pin','bio-setup'].forEach(function(id){
     var el=document.getElementById('auth-'+id); if(el)el.style.display='none';
   });
   var t=document.getElementById('auth-'+name);
@@ -363,34 +365,29 @@ function goToLoginWithEmail(){
 }
 
 async function _afterLogin(user){
-  hideAuthScreen();
-  if(typeof initApp==='function') initApp();
+  _currentUser = user;
   _injectLogoutBtn(user);
 
-  var runOnboarding = function(){
-    try{
-      // 1. Si el perfil no está completo, abrirlo (sin bloquear el flujo)
-      if(!S.profile||!S.profile.name||!S.profile.name.trim()){
-        if(typeof openProfilePage==='function') openProfilePage();
-      }
-      // 2. Solicitar PIN si no existe
-      if(!_isPinEnabled()){
-        setTimeout(function(){ showSetPinModal(user); }, 400);
-        return;
-      }
-      // 3. Ofrecer biometría si está disponible y no activada
-      if(_isBioAvailable()&&!_isBioEnabled()){
-        setTimeout(function(){ _showBioOfferSheet(user); }, 500);
-      }
-    }catch(e){ console.warn('Onboarding error:',e); }
-  };
+  // Sin PIN → flujo de onboarding antes de entrar al app
+  // (auth-screen se mantiene visible, el usuario no ha entrado aún)
+  if(!_isPinEnabled()){
+    showAuthScreen();
+    _initSetPinScreen();
+    _showScreen('set-pin');
+    return;
+  }
 
+  // Con PIN configurado → entrar al app directamente
+  hideAuthScreen();
+  if(typeof initApp==='function') initApp();
   if(typeof safeSync==='function'){
-    safeSync(user.id).then(runOnboarding).catch(function(){
-      setTimeout(runOnboarding, 200);
-    });
-  }else{
-    setTimeout(runOnboarding, 400);
+    safeSync(user.id).then(function(){
+      try{
+        if(!S.profile||!S.profile.name||!S.profile.name.trim()){
+          if(typeof openProfilePage==='function') openProfilePage();
+        }
+      }catch(e){ console.warn('Profile check error:',e); }
+    }).catch(function(e){ console.warn('sync error:',e); });
   }
 }
 
@@ -889,6 +886,8 @@ function getFirstName(user){
 // INGRESO SOLO CON CONTRASEÑA (desde welcome)
 // ════════════════════════════════════════════════════════════
 function goToPasswordLogin(){
+  // Si no hay usuario activo (ej: post-signOut) ir al login completo con email
+  if(!_currentUser){ _setError('li',''); _showScreen('login'); return; }
   var po=document.getElementById('po-pass'); if(po)po.value='';
   _setError('po',''); _showScreen('password-only');
 }
@@ -907,6 +906,137 @@ async function handlePasswordOnlyLogin(){
   _setBusy('po-btn',false,'Ingresar');
   if(!res.ok){_setError('po',res.msg);return;}
   await _afterLogin(res.user);
+}
+
+// ════════════════════════════════════════════════════════════
+// ONBOARDING — Flujo post-registro (auth-set-pin + auth-bio-setup)
+// ════════════════════════════════════════════════════════════
+
+// Navegar a crear PIN tras confirmar correo
+async function goToSetPin(){
+  _emailConfirmPending = false;
+  sessionStorage.removeItem('emailConfirmPending');
+  // Asegurar _currentUser disponible para saveUserPin
+  if(!_currentUser){
+    try{
+      var rv = await _supabase.auth.getUser();
+      if(rv.data && rv.data.user) _currentUser = rv.data.user;
+    }catch(e){ console.warn('goToSetPin getUser error:', e); }
+  }
+  _initSetPinScreen();
+  _showScreen('set-pin');
+}
+
+// Inicializa la lógica interactiva de la pantalla auth-set-pin
+function _initSetPinScreen(){
+  var st = {step:1, first:[], current:[]};
+
+  function refreshPinScreen(){
+    var title = st.step === 1 ? 'Crea tu PIN de 4 d\u00edgitos' : 'Confirma tu PIN';
+    var sub   = st.step === 1 ? 'Lo usar\u00e1s para ingresar r\u00e1pidamente' : 'Ingresa el mismo PIN de nuevo';
+    var titleEl  = document.getElementById('set-pin-screen-title');
+    var subEl    = document.getElementById('set-pin-screen-subtitle');
+    var errEl    = document.getElementById('set-pin-screen-err');
+    var keypadEl = document.getElementById('set-pin-screen-keypad');
+    if(titleEl)  titleEl.textContent = title;
+    if(subEl)    subEl.textContent   = sub;
+    if(errEl)    errEl.textContent   = '';
+    if(keypadEl) keypadEl.innerHTML  = _buildKeypad('_setPinScreenKey');
+    _renderPinDots(st.current, 'set-pin-screen-dots');
+  }
+
+  refreshPinScreen();
+  window._setPinScreenState   = st;
+  window._setPinScreenRefresh = refreshPinScreen;
+
+  window._setPinScreenKey = async function(k){
+    var s = window._setPinScreenState;
+    if(k === '\u232b'){
+      s.current.pop();
+    }else if(s.current.length < 4){
+      s.current.push(k);
+      try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){}
+    }
+    _renderPinDots(s.current, 'set-pin-screen-dots');
+
+    if(s.current.length === 4){
+      if(s.step === 1){
+        s.first   = s.current.slice();
+        s.step    = 2;
+        s.current = [];
+        setTimeout(window._setPinScreenRefresh, 150);
+      }else{
+        if(s.current.join('') === s.first.join('')){
+          await saveUserPin(s.current.join(''));
+          try{ toast('PIN guardado correctamente \u2713'); }catch(e){}
+          _initBioSetupScreen();
+          _showScreen('bio-setup');
+        }else{
+          var errEl = document.getElementById('set-pin-screen-err');
+          if(errEl) errEl.textContent = 'Los PIN no coinciden. Int\u00e9ntalo de nuevo.';
+          s.step    = 1;
+          s.first   = [];
+          s.current = [];
+          setTimeout(window._setPinScreenRefresh, 300);
+        }
+      }
+    }
+  };
+}
+
+// Inicializa el estado de la pantalla auth-bio-setup
+function _initBioSetupScreen(){
+  var infoEl = document.getElementById('bio-setup-info');
+  var btnEl  = document.getElementById('bio-setup-activate-btn');
+  if(!_isBioAvailable()){
+    if(infoEl) infoEl.textContent = 'La biometr\u00eda no est\u00e1 disponible en este dispositivo.';
+    if(btnEl)  btnEl.style.display = 'none';
+  }else if(_isBioEnabled()){
+    if(infoEl) infoEl.textContent = 'La huella ya est\u00e1 activada en este dispositivo.';
+    if(btnEl)  btnEl.style.display = 'none';
+  }else{
+    if(infoEl) infoEl.textContent = 'Activa tu huella o Face ID para ingresar m\u00e1s r\u00e1pido, sin recordar contrase\u00f1as.';
+    if(btnEl){ btnEl.style.display = ''; btnEl.disabled = false; btnEl.textContent = 'Activar ahora'; }
+  }
+}
+
+// Completa el onboarding: entra a la app y navega a Configuración
+function _completeOnboarding(){
+  hideAuthScreen();
+  if(typeof initApp === 'function') initApp();
+  if(_currentUser && typeof _injectLogoutBtn === 'function') _injectLogoutBtn(_currentUser);
+  var done = function(){
+    S.currentPage = 'configuracion';
+    if(typeof saveState === 'function') saveState();
+    if(typeof renderPage === 'function') renderPage('configuracion');
+  };
+  if(typeof safeSync === 'function' && _currentUser){
+    safeSync(_currentUser.id).then(done).catch(done);
+  }else{
+    done();
+  }
+}
+
+// Activar biometría desde la pantalla bio-setup y completar onboarding
+async function _bioSetupActivate(){
+  var btn = document.getElementById('bio-setup-activate-btn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Activando...'; }
+  if(!_currentUser){
+    try{
+      var rv = await _supabase.auth.getUser();
+      if(rv.data && rv.data.user) _currentUser = rv.data.user;
+    }catch(e){}
+  }
+  if(_currentUser){
+    var ok = await bioRegister(_currentUser.id, _currentUser.email);
+    if(ok){ try{ toast('Huella activada \u2713'); }catch(e){} }
+  }
+  _completeOnboarding();
+}
+
+// Omitir biometría y completar onboarding
+function _bioSetupSkip(){
+  _completeOnboarding();
 }
 
 // ════════════════════════════════════════════════════════════
