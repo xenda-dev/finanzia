@@ -18,7 +18,9 @@ function initSupabase(){
   // SIGNED_IN en el mismo tick — si el listener llega tarde, el evento se pierde.
   _supabase.auth.onAuthStateChange(function(event, session){
     if(event === 'SIGNED_OUT'){
-      showAuthScreen(); _showScreen('login');
+      _currentUser = null;
+      showAuthScreen();
+      _showWelcomeScreen(null);
       return;
     }
 
@@ -77,13 +79,10 @@ async function signIn(email, password){
   return {ok:true, user:data.user};
 }
 async function signOut(){
-  localStorage.removeItem('_bioEnabled');
-  localStorage.removeItem('_bioCredId');
-  // PIN se mantiene por dispositivo — no se elimina al cerrar sesión
+  // PIN y biometría se mantienen — permiten acceso rápido cuando haya sesión válida
   try{await _supabase.auth.signOut();}catch(e){console.warn('signOut warning:',e.message);}
   _currentUser = null;
   showAuthScreen();
-  // Mostrar welcome con nombre cacheado (sin solicitar bio automáticamente)
   _showWelcomeScreen(null);
 }
 async function getCurrentUser(){
@@ -417,10 +416,10 @@ function _injectLogoutBtn(user){
   var div=document.createElement('div');
   div.id='drawer-logout-btn';
   div.style.cssText='padding:12px 16px;border-top:1px solid var(--border);margin-top:4px';
-  var svgIcon='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
+  var svgIcon='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;pointer-events:none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
   div.innerHTML='<button onclick="signOut()" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:50px;border:none;background:rgba(239,68,68,.08);color:var(--danger);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:.15s">'
-    +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+svgIcon+'</div>'
-    +'<span>Cerrar sesión</span>'
+    +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;pointer-events:none">'+svgIcon+'</div>'
+    +'<span style="pointer-events:none">Cerrar sesión</span>'
     +'</button>';
   drawer.appendChild(div);
 }
@@ -654,9 +653,8 @@ function showSetPinModal(user){
       '<div id="set-pin-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
       +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:40px;height:4px;border-radius:2px;background:var(--border,#E2E8F0)"></div></div>'
       +'<div style="padding:20px 28px 24px;text-align:center">'
-        +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px">'
-          +'<img src="/icon-192.png" style="width:24px;height:24px;border-radius:5px" alt="">'
-          +'<span style="font-weight:800;font-size:16px;color:var(--text,#0F172A)">Finanz<span style="color:#00D4AA">IA</span></span>'
+        +'<div style="display:flex;align-items:center;justify-content:center;margin-bottom:10px">'
+          +'<img src="/icon-192.png" style="width:40px;height:40px;border-radius:8px" alt="FinanzIA">'
         +'</div>'
         +'<div style="font-size:16px;font-weight:700;color:var(--text,#0F172A);margin-bottom:4px">'+title+'</div>'
         +'<div style="font-size:13px;color:var(--text2,#64748B);margin-bottom:20px">'+subtitle+'</div>'
@@ -783,9 +781,8 @@ function showPinModal(){
       '<div id="pin-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
       +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:40px;height:4px;border-radius:2px;background:var(--border,#E2E8F0)"></div></div>'
       +'<div style="padding:20px 28px 24px;text-align:center">'
-        +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px">'
-          +'<img src="/icon-192.png" style="width:24px;height:24px;border-radius:5px" alt="">'
-          +'<span style="font-weight:800;font-size:16px;color:var(--text,#0F172A)">Finanz<span style="color:#00D4AA">IA</span></span>'
+        +'<div style="display:flex;align-items:center;justify-content:center;margin-bottom:10px">'
+          +'<img src="/icon-192.png" style="width:40px;height:40px;border-radius:8px" alt="FinanzIA">'
         +'</div>'
         +'<div style="font-size:16px;font-weight:700;color:var(--text,#0F172A);margin-bottom:4px">Ingresa tu PIN</div>'
         +attemptsHtml
@@ -1195,9 +1192,9 @@ async function initAuth(){
       }
     }
   }else{
-    localStorage.removeItem('_bioEnabled');
-    localStorage.removeItem('_bioCredId');
-    localStorage.removeItem('finanziaState3');
-    showAuthScreen(); _showScreen('login');
+    // Mantener configuración biométrica para permitir acceso rápido
+    _currentUser = null;
+    showAuthScreen();
+    _showWelcomeScreen(null);
   }
 }
