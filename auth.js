@@ -810,27 +810,19 @@ function openPinLogin(){ showPinModal(); }
 // FIX 1 — Validación real de sesión al entrar con PIN
 async function _enterWithPinSuccess(){
   _resetPinAttempts();
-  var realUser = null;
-  try{
-    var res = await _supabase.auth.getUser();
-    if(res.error || !res.data || !res.data.user) throw new Error('Invalid session');
-    realUser = res.data.user;
-    _currentUser = realUser;
-  }catch(e){
-    // PIN correcto pero sesión expirada → pedir contraseña para reactivar (sin borrar PIN)
-    closePinModal();
-    try{ toast('Sesión expirada. Ingresa tu contrase\u00f1a para continuar.'); }catch(ex){}
-    _showScreen('password-only');
+  closePinModal();
+  var lastUser = _getLastAuthUser();
+  if(!lastUser){
+    showAuthScreen(); _showScreen('login');
+    try{ toast('No se encontr\u00f3 un usuario v\u00e1lido.'); }catch(e){}
     return;
   }
-  closePinModal();
+  _currentUser = lastUser;
   hideAuthScreen();
   if(typeof initApp === 'function') initApp();
-  if(realUser){
-    _injectLogoutBtn(realUser);
-    if(typeof safeSync === 'function'){
-      safeSync(realUser.id).catch(function(e){ console.warn('sync error:',e); });
-    }
+  if(typeof _injectLogoutBtn === 'function') _injectLogoutBtn(_currentUser);
+  if(typeof safeSync === 'function'){
+    safeSync(_currentUser.id).catch(function(e){ console.warn('sync error:',e); });
   }
 }
 
