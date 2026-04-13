@@ -447,14 +447,15 @@ function _injectLogoutBtn(){
   var drawer = document.getElementById('drawer'); if(!drawer) return;
   var container = document.createElement('div');
   container.id = 'drawer-logout-btn';
+  container.setAttribute('onclick', 'signOut()');
   container.style.cssText = 'padding:12px 16px;border-top:1px solid var(--border);margin-top:4px;cursor:pointer';
   container.innerHTML =
     '<div style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:50px;background:rgba(239,68,68,.08);color:var(--danger);font-size:14px;font-weight:600;font-family:var(--font)">'
     +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center">'
-    +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">'
+    +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none">'
     +'<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>'
     +'</svg></div>'
-    +'<span>Cerrar sesión</span>'
+    +'<span style="pointer-events:none">Cerrar sesión</span>'
     +'</div>';
   drawer.appendChild(container);
 }
@@ -1342,18 +1343,12 @@ async function initAuth(){
     showAuthScreen();
     _showScreen('login');
   }else{
-    // No hay sesión activa
+    // No hay sesión activa (signOut normal o app cerrada)
     _currentUser = null;
     var lastUid = localStorage.getItem('_lastAuthUserId');
     var lastEmail = localStorage.getItem('_lastAuthUserEmail') || '';
-    var wasDeleted = await _wasUserDeleted();
-    if(wasDeleted){
-      _clearAllLocalUserData();
-      showAuthScreen();
-      _showScreen('login');
-      return;
-    }
-    // Existe usuario previo → welcome (PIN/bio/contraseña disponibles)
+    // Si hay usuario previo → welcome con stub (PIN/bio/contraseña disponibles)
+    // La detección de usuario eliminado ya la maneja _serverRejected arriba
     if(lastUid){
       _currentUser = {id: lastUid, email: lastEmail};
       showAuthScreen();
