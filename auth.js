@@ -382,8 +382,9 @@ async function handleRegister(){
     return;
   }
   _showScreen('verify');
-  sessionStorage.setItem('pendingEmail', email);
-  sessionStorage.setItem('pendingPassword', pass);
+  // localStorage en vez de sessionStorage: el enlace de confirmación puede abrir
+  // en una nueva instancia/tab de la PWA donde sessionStorage no existe
+  localStorage.setItem('pendingEmail', email);
   enableContinueIfVerified();
 }
 function goToLoginWithEmail(){
@@ -488,17 +489,14 @@ function goToLogin(){
   _emailConfirmPending = false;
   sessionStorage.removeItem('emailConfirmPending');
   _showScreen('login');
-  // Precargar credenciales guardadas durante el registro para facilitar el primer login
-  var pe = sessionStorage.getItem('pendingEmail');
-  var pp = sessionStorage.getItem('pendingPassword');
-  if(pe || pp){
+  // Precargar credenciales del registro para facilitar el primer login
+  // Usa localStorage porque el enlace de confirmación puede abrir en otra instancia
+  var pe = localStorage.getItem('pendingEmail');
+  if(pe){
     setTimeout(function(){
       var elEmail = document.getElementById('li-email');
-      var elPass  = document.getElementById('li-pass');
-      if(elEmail && pe) elEmail.value = pe;
-      if(elPass  && pp) elPass.value  = pp;
-      sessionStorage.removeItem('pendingEmail');
-      sessionStorage.removeItem('pendingPassword');
+      if(elEmail) elEmail.value = pe;
+      localStorage.removeItem('pendingEmail');
     }, 80);
   }
 }
@@ -582,6 +580,13 @@ function _isOnboardingCompleted(uid){
 function _setOnboardingCompleted(uid){
   localStorage.setItem('_onboardingCompleted_' + uid, '1');
 }
+// Retorna true si el usuario tiene PIN o biometría configurados en este dispositivo
+function _hasQuickAccess(uid){
+  if(!uid) return false;
+  var hasPin = localStorage.getItem('_pinEnabled_' + uid) === '1' && !!localStorage.getItem('_userPin_' + uid);
+  var hasBio = localStorage.getItem('_bioEnabled_' + uid) === '1' && !!localStorage.getItem('_bioCredId_' + uid);
+  return hasPin || hasBio;
+}
 
 // Persiste el UID y email del último usuario autenticado para detectar eliminaciones posteriores
 function _persistLastUserId(uid, email){
@@ -626,10 +631,12 @@ function _clearAllLocalUserData(){
     localStorage.removeItem('_lastAuthUserEmail');
     localStorage.removeItem('_pinAttempts');
     localStorage.removeItem('_pinLockUntil');
+    localStorage.removeItem('pendingEmail');
     Object.keys(localStorage).forEach(function(key){
       if(key.startsWith('_userPin_')||key.startsWith('_pinEnabled_')||
          key.startsWith('_onboardingCompleted_')||key.startsWith('_bioEnabled_')||
-         key.startsWith('_bioCredId_')){
+         key.startsWith('_bioCredId_')||key.startsWith('_pinAttempts_')||
+         key.startsWith('_pinLockUntil_')){
         localStorage.removeItem(key);
       }
     });
@@ -824,7 +831,13 @@ function closeSetPinModal(){
 // ════════════════════════════════════════════════════════════
 // PARTE 5 — Modal login con PIN (reemplaza placeholder)
 // ════════════════════════════════════════════════════════════
-function openPinLogin(){ showPinModal(); }
+function openPinLogin(){
+  if(!_isPinEnabled()){
+    try{ toast('El PIN no est\u00e1 configurado en este dispositivo.'); }catch(e){}
+    return;
+  }
+  showPinModal();
+}
 
 // FIX 1 — Validación real de sesión al entrar con PIN
 async function _enterWithPinSuccess(){
@@ -1286,11 +1299,17 @@ async function initAuth(){
   }
   if(user){
     _currentUser=user;
+    // Si el usuario que llega es diferente al último → limpiar datos del anterior
+    var _storedUid = localStorage.getItem('_lastAuthUserId');
+    if(_storedUid && _storedUid !== user.id){
+      _clearAllLocalUserData();
+    }
     _persistLastUserId(user.id, user.email);
-    if(_isBioEnabled() || _isPinEnabled()){
+    if(_hasQuickAccess(user.id)){
       showAuthScreen();
       _showWelcomeScreen(user);
     }else{
+      // Sin PIN ni bio → ir directo al app (ya autenticado)
       hideAuthScreen();
       if(typeof initApp==='function') initApp();
       _injectLogoutBtn(user);
