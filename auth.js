@@ -1212,40 +1212,21 @@ function _showWelcomeScreen(user){
 
 async function _startBioFromWelcome(){
   try{
-    // Resolver usuario (puede ser stub post-signOut con solo id)
     var u = _getLastAuthUser();
-    if(!u){
-      showAuthScreen(); _showScreen('login'); return;
-    }
+    if(!u){ showAuthScreen(); _showScreen('login'); return; }
     _currentUser = u;
-    // Biometría no habilitada → solo informar, sin redirigir
     if(!_isBioEnabled()){
       try{ toast('La autenticaci\u00f3n con huella no est\u00e1 activada en este dispositivo.'); }catch(e){}
       return;
     }
-    // Solicitar autenticación biométrica primero (sin requerir sesión activa)
     var result = await bioAuthenticate();
     if(result === true){
-      // Bio ok → verificar sesión en Supabase
-      try{
-        var _sv = await _supabase.auth.getUser();
-        if(_sv.data && _sv.data.user){
-          // Sesión activa → entrar al app
-          _currentUser = _sv.data.user;
-          hideAuthScreen();
-          if(typeof initApp === 'function') initApp();
-          if(typeof _injectLogoutBtn === 'function') _injectLogoutBtn(_currentUser);
-          if(typeof safeSync === 'function'){
-            safeSync(_currentUser.id).catch(function(e){ console.warn('sync error:',e); });
-          }
-        }else{
-          // Bio ok pero sin sesión → reautenticar con contraseña
-          try{ toast('Sesión expirada. Ingresa tu contrase\u00f1a para continuar.'); }catch(e){}
-          _showScreen('password-only');
-        }
-      }catch(e){
-        try{ toast('Sesión expirada. Ingresa tu contrase\u00f1a para continuar.'); }catch(ex){}
-        _showScreen('password-only');
+      // Bio exitosa → acceso directo, sin requerir sesión activa
+      hideAuthScreen();
+      if(typeof initApp === 'function') initApp();
+      if(typeof _injectLogoutBtn === 'function') _injectLogoutBtn(_currentUser);
+      if(typeof safeSync === 'function'){
+        safeSync(_currentUser.id).catch(function(e){ console.warn('sync error:',e); });
       }
     }else if(result === 'cancelled'){
       try{ toast('Autenticaci\u00f3n cancelada.'); }catch(e){}
