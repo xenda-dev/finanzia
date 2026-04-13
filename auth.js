@@ -382,6 +382,8 @@ async function handleRegister(){
     return;
   }
   _showScreen('verify');
+  sessionStorage.setItem('pendingEmail', email);
+  sessionStorage.setItem('pendingPassword', pass);
   enableContinueIfVerified();
 }
 function goToLoginWithEmail(){
@@ -443,10 +445,10 @@ function _injectLogoutBtn(user){
   var div=document.createElement('div');
   div.id='drawer-logout-btn';
   div.style.cssText='padding:12px 16px;border-top:1px solid var(--border);margin-top:4px';
-  var svgIcon='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;pointer-events:none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
+  var svgIcon='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
   div.innerHTML='<button onclick="signOut()" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:50px;border:none;background:rgba(239,68,68,.08);color:var(--danger);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:.15s">'
-    +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;pointer-events:none">'+svgIcon+'</div>'
-    +'<span style="pointer-events:none">Cerrar sesión</span>'
+    +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+svgIcon+'</div>'
+    +'<span>Cerrar sesión</span>'
     +'</button>';
   drawer.appendChild(div);
 }
@@ -486,6 +488,19 @@ function goToLogin(){
   _emailConfirmPending = false;
   sessionStorage.removeItem('emailConfirmPending');
   _showScreen('login');
+  // Precargar credenciales guardadas durante el registro para facilitar el primer login
+  var pe = sessionStorage.getItem('pendingEmail');
+  var pp = sessionStorage.getItem('pendingPassword');
+  if(pe || pp){
+    setTimeout(function(){
+      var elEmail = document.getElementById('li-email');
+      var elPass  = document.getElementById('li-pass');
+      if(elEmail && pe) elEmail.value = pe;
+      if(elPass  && pp) elPass.value  = pp;
+      sessionStorage.removeItem('pendingEmail');
+      sessionStorage.removeItem('pendingPassword');
+    }, 80);
+  }
 }
 function authKey(e,fn){if(e.key==='Enter'&&typeof window[fn]==='function')window[fn]();}
 function togglePass(iId,bId){var i=document.getElementById(iId),b=document.getElementById(bId);if(!i)return;i.type=i.type==='password'?'text':'password';if(b)b.textContent=i.type==='password'?'👁️':'🙈';}
@@ -609,8 +624,12 @@ function _clearAllLocalUserData(){
     localStorage.removeItem('_bioCredId');
     localStorage.removeItem('_lastAuthUserId');
     localStorage.removeItem('_lastAuthUserEmail');
+    localStorage.removeItem('_pinAttempts');
+    localStorage.removeItem('_pinLockUntil');
     Object.keys(localStorage).forEach(function(key){
-      if(key.startsWith('_userPin_')||key.startsWith('_pinEnabled_')||key.startsWith('_onboardingCompleted_')||key.startsWith('_bioEnabled_')||key.startsWith('_bioCredId_')){
+      if(key.startsWith('_userPin_')||key.startsWith('_pinEnabled_')||
+         key.startsWith('_onboardingCompleted_')||key.startsWith('_bioEnabled_')||
+         key.startsWith('_bioCredId_')){
         localStorage.removeItem(key);
       }
     });
