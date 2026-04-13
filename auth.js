@@ -382,9 +382,9 @@ async function handleRegister(){
     return;
   }
   _showScreen('verify');
-  // localStorage en vez de sessionStorage: el enlace de confirmación puede abrir
-  // en una nueva instancia/tab de la PWA donde sessionStorage no existe
+  // localStorage: el enlace de confirmación puede abrir en nueva instancia de la PWA
   localStorage.setItem('pendingEmail', email);
+  localStorage.setItem('pendingPassword', pass);
   enableContinueIfVerified();
 }
 function goToLoginWithEmail(){
@@ -397,6 +397,8 @@ function goToLoginWithEmail(){
 }
 
 async function _afterLogin(user){
+  localStorage.removeItem('pendingEmail');
+  localStorage.removeItem('pendingPassword');
   _currentUser = user;
   _injectLogoutBtn(user);
 
@@ -446,12 +448,14 @@ function _injectLogoutBtn(user){
   var div=document.createElement('div');
   div.id='drawer-logout-btn';
   div.style.cssText='padding:12px 16px;border-top:1px solid var(--border);margin-top:4px';
-  var svgIcon='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
-  div.innerHTML='<button onclick="signOut()" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:50px;border:none;background:rgba(239,68,68,.08);color:var(--danger);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:.15s">'
+  var svgIcon='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
+  div.innerHTML=
+    '<button id="logout-btn" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:50px;border:none;background:rgba(239,68,68,.08);color:var(--danger);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:.15s">'
     +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+svgIcon+'</div>'
     +'<span>Cerrar sesión</span>'
     +'</button>';
   drawer.appendChild(div);
+  document.getElementById('logout-btn').addEventListener('click', function(){ signOut(); });
 }
 
 function goToRegister(){_setError('li','');_showScreen('register');}
@@ -492,11 +496,15 @@ function goToLogin(){
   // Precargar credenciales del registro para facilitar el primer login
   // Usa localStorage porque el enlace de confirmación puede abrir en otra instancia
   var pe = localStorage.getItem('pendingEmail');
-  if(pe){
+  var pp = localStorage.getItem('pendingPassword');
+  if(pe || pp){
     setTimeout(function(){
       var elEmail = document.getElementById('li-email');
-      if(elEmail) elEmail.value = pe;
+      var elPass  = document.getElementById('li-pass');
+      if(elEmail && pe) elEmail.value = pe;
+      if(elPass  && pp) elPass.value  = pp;
       localStorage.removeItem('pendingEmail');
+      localStorage.removeItem('pendingPassword');
     }, 80);
   }
 }
@@ -605,19 +613,17 @@ function _getLastAuthUser(){
   return {id: lastUid, email: email};
 }
 
-// Detecta si el usuario fue eliminado de Supabase después de un cierre de sesión normal.
-// Heurística: hay un UID previo pero no existe ninguna credencial local asociada (PIN/bio).
+// Detecta si el usuario fue eliminado de Supabase (basado en respuesta del servidor).
 async function _wasUserDeleted(){
   var lastUid = localStorage.getItem('_lastAuthUserId');
-  if(!lastUid) return false; // Sin UID previo → usuario nuevo
+  if(!lastUid) return false;
   try{
     var rv = await _supabase.auth.getUser();
-    if(!rv.data || !rv.data.user){
-      var hasPin = localStorage.getItem('_pinEnabled_' + lastUid);
-      var hasBio = localStorage.getItem('_bioEnabled_' + lastUid);
-      return !hasPin && !hasBio;
-    }
-  }catch(e){ console.warn('Error verificando eliminaci\u00f3n del usuario:', e); }
+    if(rv.error || !rv.data || !rv.data.user) return true;
+  }catch(e){
+    console.warn('Error verificando eliminaci\u00f3n del usuario:', e);
+    return true;
+  }
   return false;
 }
 
@@ -632,6 +638,7 @@ function _clearAllLocalUserData(){
     localStorage.removeItem('_pinAttempts');
     localStorage.removeItem('_pinLockUntil');
     localStorage.removeItem('pendingEmail');
+    localStorage.removeItem('pendingPassword');
     Object.keys(localStorage).forEach(function(key){
       if(key.startsWith('_userPin_')||key.startsWith('_pinEnabled_')||
          key.startsWith('_onboardingCompleted_')||key.startsWith('_bioEnabled_')||
@@ -1303,6 +1310,8 @@ async function initAuth(){
     var _storedUid = localStorage.getItem('_lastAuthUserId');
     if(_storedUid && _storedUid !== user.id){
       _clearAllLocalUserData();
+      // Reinicializar estado en memoria para que no queden datos del usuario anterior
+      try{ if(typeof S !== 'undefined') S = {}; }catch(e){}
     }
     _persistLastUserId(user.id, user.email);
     if(_hasQuickAccess(user.id)){
