@@ -8,6 +8,7 @@ var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 var _supabase = null;
 var _currentUser = null;
 var _emailConfirmPending = sessionStorage.getItem('emailConfirmPending') === 'true';
+var _intentionalSignOut = false; // previene que onAuthStateChange SIGNED_OUT interfiera con nuestro flujo
 
 function initSupabase(){
   if(typeof supabase === 'undefined'){ console.error('Supabase CDN no cargó'); return false; }
@@ -18,6 +19,8 @@ function initSupabase(){
   // SIGNED_IN en el mismo tick — si el listener llega tarde, el evento se pierde.
   _supabase.auth.onAuthStateChange(function(event, session){
     if(event === 'SIGNED_OUT'){
+      // Si el cierre fue iniciado por nuestro signOut(), él maneja la pantalla
+      if(_intentionalSignOut){ _intentionalSignOut = false; return; }
       _currentUser = null;
       showAuthScreen();
       _showScreen('login');
@@ -76,17 +79,24 @@ async function signIn(email, password){
   var {data, error} = await _supabase.auth.signInWithPassword({email, password});
   if(error) return _authMsg(error.message);
   _currentUser = data.user;
-  _persistLastUserId(data.user.id);
+  _persistLastUserId(data.user.id, data.user.email);
   return {ok:true, user:data.user};
 }
 async function signOut(){
   try{
-    if(_currentUser && _currentUser.id){ _persistLastUserId(_currentUser.id); }
+    if(_currentUser && _currentUser.id){ _persistLastUserId(_currentUser.id, _currentUser.email); }
+    _intentionalSignOut = true;
     await _supabase.auth.signOut();
-  }catch(e){ console.warn('signOut warning:',e.message); }
-  _currentUser = null;
+  }catch(e){ console.warn('signOut warning:',e.message); _intentionalSignOut = false; }
   showAuthScreen();
-  _showWelcomeScreen(null);
+  var lastUser = _getLastAuthUser();
+  if(lastUser){
+    _currentUser = lastUser; // stub para que _isBioEnabled/_isPinEnabled resuelvan uid
+    _showWelcomeScreen(null); // null = solo nombre desde caché local, sin sesión activa
+  }else{
+    _currentUser = null;
+    _showScreen('login');
+  }
 }
 async function getCurrentUser(){
   var {data} = await _supabase.auth.getSession();
@@ -558,9 +568,21 @@ function _setOnboardingCompleted(uid){
   localStorage.setItem('_onboardingCompleted_' + uid, '1');
 }
 
-// Persiste el UID del último usuario autenticado para detectar eliminaciones posteriores
-function _persistLastUserId(uid){
-  if(uid) localStorage.setItem('_lastAuthUserId', uid);
+// Persiste el UID y email del último usuario autenticado para detectar eliminaciones posteriores
+function _persistLastUserId(uid, email){
+  if(uid){
+    localStorage.setItem('_lastAuthUserId', uid);
+    if(email) localStorage.setItem('_lastAuthUserEmail', email);
+  }
+}
+
+// Devuelve un objeto {id, email} del último usuario (real o stub post-signOut)
+function _getLastAuthUser(){
+  if(_currentUser && _currentUser.id) return _currentUser;
+  var lastUid = localStorage.getItem('_lastAuthUserId');
+  if(!lastUid) return null;
+  var email = localStorage.getItem('_lastAuthUserEmail') || '';
+  return {id: lastUid, email: email};
 }
 
 // Detecta si el usuario fue eliminado de Supabase después de un cierre de sesión normal.
@@ -586,6 +608,7 @@ function _clearAllLocalUserData(){
     localStorage.removeItem('_bioEnabled');
     localStorage.removeItem('_bioCredId');
     localStorage.removeItem('_lastAuthUserId');
+    localStorage.removeItem('_lastAuthUserEmail');
     Object.keys(localStorage).forEach(function(key){
       if(key.startsWith('_userPin_')||key.startsWith('_pinEnabled_')||key.startsWith('_onboardingCompleted_')||key.startsWith('_bioEnabled_')||key.startsWith('_bioCredId_')){
         localStorage.removeItem(key);
@@ -794,14 +817,10 @@ async function _enterWithPinSuccess(){
     realUser = res.data.user;
     _currentUser = realUser;
   }catch(e){
-    if(_currentUser && _currentUser.id){
-      localStorage.removeItem('_pinEnabled_' + _currentUser.id);
-      localStorage.removeItem('_userPin_' + _currentUser.id);
-    }
+    // PIN correcto pero sesión expirada → pedir contraseña para reactivar (sin borrar PIN)
     closePinModal();
-    showAuthScreen();
-    _showScreen('login');
-    try{ toast('Sesión expirada. Ingresa nuevamente'); }catch(ex){}
+    try{ toast('Sesión expirada. Ingresa tu contrase\u00f1a para continuar.'); }catch(ex){}
+    _showScreen('password-only');
     return;
   }
   closePinModal();
@@ -944,8 +963,9 @@ function getFirstName(user){
 // INGRESO SOLO CON CONTRASEÑA (desde welcome)
 // ════════════════════════════════════════════════════════════
 function goToPasswordLogin(){
-  // Si no hay usuario activo (ej: post-signOut) ir al login completo con email
-  if(!_currentUser){ _setError('li',''); _showScreen('login'); return; }
+  var u = _getLastAuthUser();
+  if(!u){ _setError('li',''); _showScreen('login'); return; }
+  _currentUser = u; // asegurar que handlePasswordOnlyLogin tenga el email
   var po=document.getElementById('po-pass'); if(po)po.value='';
   _setError('po',''); _showScreen('password-only');
 }
@@ -1192,38 +1212,49 @@ function _showWelcomeScreen(user){
 
 async function _startBioFromWelcome(){
   try{
-    // Validar sesión real con Supabase
-    var _sv = await _supabase.auth.getUser();
-    if(_sv.error || !_sv.data || !_sv.data.user){
-      try{ toast('Sesión no válida. Ingresa con tu contraseña.'); }catch(e){}
-      showAuthScreen();
-      _showScreen('login');
-      return;
+    // Resolver usuario (puede ser stub post-signOut con solo id)
+    var u = _getLastAuthUser();
+    if(!u){
+      showAuthScreen(); _showScreen('login'); return;
     }
-    var user = _sv.data.user;
-    _currentUser = user;
+    _currentUser = u;
     // Biometría no habilitada → solo informar, sin redirigir
     if(!_isBioEnabled()){
-      try{ toast('La autenticación con huella no está activada en este dispositivo.'); }catch(e){}
+      try{ toast('La autenticaci\u00f3n con huella no est\u00e1 activada en este dispositivo.'); }catch(e){}
       return;
     }
-    // Solicitar autenticación biométrica
+    // Solicitar autenticación biométrica primero (sin requerir sesión activa)
     var result = await bioAuthenticate();
     if(result === true){
-      hideAuthScreen();
-      if(typeof initApp === 'function') initApp();
-      if(typeof _injectLogoutBtn === 'function') _injectLogoutBtn(user);
-      if(typeof safeSync === 'function'){
-        safeSync(user.id).catch(function(e){ console.warn('sync error:',e); });
+      // Bio ok → verificar sesión en Supabase
+      try{
+        var _sv = await _supabase.auth.getUser();
+        if(_sv.data && _sv.data.user){
+          // Sesión activa → entrar al app
+          _currentUser = _sv.data.user;
+          hideAuthScreen();
+          if(typeof initApp === 'function') initApp();
+          if(typeof _injectLogoutBtn === 'function') _injectLogoutBtn(_currentUser);
+          if(typeof safeSync === 'function'){
+            safeSync(_currentUser.id).catch(function(e){ console.warn('sync error:',e); });
+          }
+        }else{
+          // Bio ok pero sin sesión → reautenticar con contraseña
+          try{ toast('Sesión expirada. Ingresa tu contrase\u00f1a para continuar.'); }catch(e){}
+          _showScreen('password-only');
+        }
+      }catch(e){
+        try{ toast('Sesión expirada. Ingresa tu contrase\u00f1a para continuar.'); }catch(ex){}
+        _showScreen('password-only');
       }
     }else if(result === 'cancelled'){
-      try{ toast('Autenticación cancelada.'); }catch(e){}
+      try{ toast('Autenticaci\u00f3n cancelada.'); }catch(e){}
     }else{
-      try{ toast('No se pudo verificar la huella. Inténtalo nuevamente.'); }catch(e){}
+      try{ toast('No se pudo verificar la huella. Int\u00e9ntalo nuevamente.'); }catch(e){}
     }
   }catch(err){
     console.error('Biometric auth error:', err);
-    try{ toast('Error al intentar la autenticación biométrica.'); }catch(e){}
+    try{ toast('Error al intentar la autenticaci\u00f3n biom\u00e9trica.'); }catch(e){}
   }
 }
 
@@ -1263,7 +1294,7 @@ async function initAuth(){
   }
   if(user){
     _currentUser=user;
-    _persistLastUserId(user.id);
+    _persistLastUserId(user.id, user.email);
     if(_isBioEnabled() || _isPinEnabled()){
       showAuthScreen();
       _showWelcomeScreen(user);
