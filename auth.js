@@ -86,13 +86,14 @@ async function signOut(){
   try{
     if(_currentUser && _currentUser.id){ _persistLastUserId(_currentUser.id, _currentUser.email); }
     _intentionalSignOut = true;
+    localStorage.setItem('_signedOutNormally', '1'); // marca que fue un cierre voluntario
     await _supabase.auth.signOut();
   }catch(e){ console.warn('signOut warning:',e.message); _intentionalSignOut = false; }
   showAuthScreen();
   var lastUser = _getLastAuthUser();
   if(lastUser){
-    _currentUser = lastUser; // stub para que _isBioEnabled/_isPinEnabled resuelvan uid
-    _showWelcomeScreen(null); // null = solo nombre desde caché local, sin sesión activa
+    _currentUser = lastUser;
+    _showWelcomeScreen(null);
   }else{
     _currentUser = null;
     _showScreen('login');
@@ -649,6 +650,7 @@ function _clearAllLocalUserData(){
     localStorage.removeItem('_pinLockUntil');
     localStorage.removeItem('pendingEmail');
     localStorage.removeItem('pendingPassword');
+    localStorage.removeItem('_signedOutNormally');
     Object.keys(localStorage).forEach(function(key){
       if(key.startsWith('_userPin_')||key.startsWith('_pinEnabled_')||
          key.startsWith('_onboardingCompleted_')||key.startsWith('_bioEnabled_')||
@@ -1343,19 +1345,22 @@ async function initAuth(){
     showAuthScreen();
     _showScreen('login');
   }else{
-    // No hay sesión activa (signOut normal o app cerrada)
+    // No hay sesión activa
     _currentUser = null;
-    var lastUid = localStorage.getItem('_lastAuthUserId');
+    var lastUid   = localStorage.getItem('_lastAuthUserId');
     var lastEmail = localStorage.getItem('_lastAuthUserEmail') || '';
-    // Si hay usuario previo → welcome con stub (PIN/bio/contraseña disponibles)
-    // La detección de usuario eliminado ya la maneja _serverRejected arriba
-    if(lastUid){
+    var signedOut = localStorage.getItem('_signedOutNormally') === '1';
+    // Solo mostrar welcome si el usuario cerró sesión voluntariamente en este dispositivo.
+    // Si no hay flag (reinstalación, datos huérfanos, cuenta eliminada) → login limpio.
+    if(lastUid && signedOut){
+      localStorage.removeItem('_signedOutNormally'); // consumir el flag
       _currentUser = {id: lastUid, email: lastEmail};
       showAuthScreen();
       _showWelcomeScreen(null);
       return;
     }
-    // Sin usuario previo → login
+    // Sin flag → limpiar datos huérfanos y mostrar login
+    if(lastUid){ _clearAllLocalUserData(); }
     showAuthScreen();
     _showScreen('login');
   }
