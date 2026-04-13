@@ -443,19 +443,19 @@ async function handleBioUnlock(){
 function handleBioFallback(){ _showScreen('login'); }
 
 function _injectLogoutBtn(user){
-  if(document.getElementById('drawer-logout-btn'))return;
-  var drawer=document.getElementById('drawer'); if(!drawer)return;
-  var div=document.createElement('div');
-  div.id='drawer-logout-btn';
-  div.style.cssText='padding:12px 16px;border-top:1px solid var(--border);margin-top:4px';
-  var svgIcon='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
-  div.innerHTML=
-    '<button id="logout-btn" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:50px;border:none;background:rgba(239,68,68,.08);color:var(--danger);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:.15s">'
+  if(document.getElementById('drawer-logout-btn')) return;
+  var drawer = document.getElementById('drawer'); if(!drawer) return;
+  var div = document.createElement('div');
+  div.id = 'drawer-logout-btn';
+  div.style.cssText = 'padding:12px 16px;border-top:1px solid var(--border);margin-top:4px;cursor:pointer';
+  var svgIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
+  div.innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:50px;background:rgba(239,68,68,.08);color:var(--danger);font-size:14px;font-weight:600;font-family:var(--font);transition:.15s">'
     +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+svgIcon+'</div>'
     +'<span>Cerrar sesión</span>'
-    +'</button>';
+    +'</div>';
   drawer.appendChild(div);
-  document.getElementById('logout-btn').addEventListener('click', function(){ signOut(); });
+  div.addEventListener('click', function(){ signOut(); });
 }
 
 function goToRegister(){_setError('li','');_showScreen('register');}
@@ -1333,8 +1333,9 @@ async function initAuth(){
     showAuthScreen();
     _showScreen('login');
   }else{
-    // Sin sesión activa: puede ser cierre de sesión normal o usuario eliminado sin sesión previa
+    // Sin sesión activa
     _currentUser = null;
+    var lastUid = localStorage.getItem('_lastAuthUserId');
     var wasDeleted = await _wasUserDeleted();
     if(wasDeleted){
       _clearAllLocalUserData();
@@ -1342,7 +1343,15 @@ async function initAuth(){
       _showScreen('login');
       return;
     }
-    // Sin sesión activa → requerir autenticación completa
+    // Usuario previo con onboarding completado → welcome (puede usar PIN/bio o contraseña)
+    if(lastUid && localStorage.getItem('_onboardingCompleted_' + lastUid) === '1'){
+      var lastEmail = localStorage.getItem('_lastAuthUserEmail') || '';
+      _currentUser = {id: lastUid, email: lastEmail}; // stub para _isBioEnabled/_isPinEnabled
+      showAuthScreen();
+      _showWelcomeScreen(null);
+      return;
+    }
+    // Sin usuario previo o sin onboarding → login directo
     showAuthScreen();
     _showScreen('login');
   }
