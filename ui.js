@@ -7912,3 +7912,146 @@ function closeListDetail(){
 
 
 
+
+// ════════════════════════════════════════════════════════════
+// DRAWER — Funciones secundarias
+// ════════════════════════════════════════════════════════════
+function invitarAmigos(){
+  var url='https://finanzia.xenda.co';
+  var msg='Te recomiendo FinanzIA, la app para controlar tus finanzas personales de forma inteligente: '+url;
+  if(navigator.share){
+    navigator.share({title:'FinanzIA',text:msg,url:url}).catch(function(){});
+  }else{
+    try{navigator.clipboard.writeText(url);}catch(e){}
+    toast('¡Link copiado al portapapeles!');
+  }
+}
+
+function openSiguenos(){
+  var ov=document.createElement('div');
+  ov.id='siguenos-sheet';
+  ov.style.cssText='position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;justify-content:flex-end';
+  ov.innerHTML='<div onclick="document.getElementById(\'siguenos-sheet\').remove()" style="flex:1;background:rgba(0,0,0,.5)"></div>'
+    +'<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 32px">'
+      +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
+      +'<div style="padding:16px 20px 12px;font-size:17px;font-weight:800">Síguenos</div>'
+      +'<div style="padding:0 16px;display:flex;flex-direction:column;gap:4px">'
+        +_siguienosItem('📸','Instagram','@xenda.co','https://instagram.com/xenda.co')
+        +_siguienosItem('💼','LinkedIn','Xenda.co','https://linkedin.com/company/xenda')
+        +_siguienosItem('🌐','Sitio web','xenda.co','https://xenda.co')
+      +'</div>'
+    +'</div>';
+  document.body.appendChild(ov);
+}
+function _siguienosItem(icon,name,handle,url){
+  return '<a href="'+url+'" target="_blank" rel="noopener" onclick="document.getElementById(\'siguenos-sheet\').remove()" style="display:flex;align-items:center;gap:14px;padding:14px 12px;border-radius:12px;text-decoration:none;color:var(--text)">'
+    +'<div style="width:40px;height:40px;border-radius:12px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+icon+'</div>'
+    +'<div><div style="font-size:14px;font-weight:700">'+name+'</div><div style="font-size:12px;color:var(--text3)">'+handle+'</div></div>'
+    +'</a>';
+}
+
+function openSoporteModal(){
+  var name=(S.profile&&S.profile.name)||'';
+  var email=(S.profile&&S.profile.email)||(window._currentUser&&window._currentUser.email?window._currentUser.email:'')||'';
+  var ov=document.createElement('div');
+  ov.id='soporte-modal';
+  ov.style.cssText='position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;overflow-y:auto';
+  ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:92vh;display:flex;flex-direction:column;overflow:hidden">'
+    +'<div style="display:flex;justify-content:center;padding:12px 0 4px;flex-shrink:0"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 14px;flex-shrink:0">'
+      +'<div><div style="font-size:17px;font-weight:800">Soporte</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Te respondemos a la brevedad</div></div>'
+      +'<button onclick="document.getElementById(\'soporte-modal\').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px">✕</button>'
+    +'</div>'
+    +'<div id="soporte-form-wrap" style="flex:1;overflow-y:auto;padding:0 16px 24px">'
+      +'<div class="form-group"><label class="form-label">Nombre</label>'
+        +'<input class="form-input" type="text" id="sop-nombre" value="'+name+'" placeholder="Tu nombre"></div>'
+      +'<div class="form-group"><label class="form-label">Email</label>'
+        +'<input class="form-input" type="email" id="sop-email" value="'+email+'" placeholder="tu@email.com"></div>'
+      +'<div class="form-group"><label class="form-label">Asunto</label>'
+        +'<select class="form-select" id="sop-asunto">'
+          +'<option value="">Selecciona un asunto...</option>'
+          +'<option>No puedo iniciar sesión</option>'
+          +'<option>Problema con mis datos</option>'
+          +'<option>La app no funciona correctamente</option>'
+          +'<option>Consulta sobre la app</option>'
+          +'<option>Sugerencia o mejora</option>'
+          +'<option>Eliminar mi cuenta</option>'
+          +'<option>Otro</option>'
+        +'</select></div>'
+      +'<div class="form-group"><label class="form-label">Mensaje</label>'
+        +'<textarea class="form-input" id="sop-mensaje" rows="4" placeholder="Describe tu consulta o problema..." style="resize:none;min-height:100px"></textarea></div>'
+      +'<button onclick="_enviarSoporte()" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Enviar mensaje</button>'
+    +'</div>'
+  +'</div>';
+  document.body.appendChild(ov);
+}
+async function _enviarSoporte(){
+  var nombre=(document.getElementById('sop-nombre')||{}).value||'';
+  var email=(document.getElementById('sop-email')||{}).value||'';
+  var asunto=(document.getElementById('sop-asunto')||{}).value||'';
+  var mensaje=(document.getElementById('sop-mensaje')||{}).value||'';
+  if(!nombre.trim()||!email.trim()||!asunto||!mensaje.trim()){toast('Por favor completa todos los campos');return;}
+  var btn=document.querySelector('#soporte-modal button:last-of-type');
+  if(btn){btn.disabled=true;btn.textContent='Enviando...';}
+  try{
+    var res=await fetch('https://api.web3forms.com/submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({
+        access_key:'b0601c0f-6e9c-4221-a38a-bbc7cf552417',
+        from_name:'FinanzIA - Soporte',
+        nombre:nombre,
+        email:email,
+        subject:'[FinanzIA Soporte] '+asunto,
+        message:mensaje
+      })
+    });
+    var data=await res.json();
+    if(data.success){
+      var wrap=document.getElementById('soporte-form-wrap');
+      if(wrap)wrap.innerHTML='<div style="padding:40px 20px;text-align:center">'
+        +'<div style="font-size:48px;margin-bottom:16px">✅</div>'
+        +'<div style="font-size:18px;font-weight:800;margin-bottom:8px">¡Mensaje enviado!</div>'
+        +'<div style="font-size:14px;color:var(--text2);margin-bottom:24px">Te responderemos pronto a <strong>'+email+'</strong></div>'
+        +'<button onclick="document.getElementById(\'soporte-modal\').remove()" style="padding:12px 32px;border-radius:50px;background:var(--primary);border:none;color:white;font-weight:700;cursor:pointer;font-family:var(--font)">Cerrar</button>'
+        +'</div>';
+    }else{
+      toast('Error al enviar. Intenta de nuevo.');
+      if(btn){btn.disabled=false;btn.textContent='Enviar mensaje';}
+    }
+  }catch(e){
+    toast('Error de conexión. Intenta de nuevo.');
+    if(btn){btn.disabled=false;btn.textContent='Enviar mensaje';}
+  }
+}
+
+function openAcercaDeModal(){
+  var ov=document.createElement('div');
+  ov.id='acercade-modal';
+  ov.style.cssText='position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);display:flex;align-items:flex-end';
+  ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 40px">'
+    +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
+    +'<div style="display:flex;justify-content:flex-end;padding:4px 16px 0">'
+      +'<button onclick="document.getElementById(\'acercade-modal\').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px">✕</button>'
+    +'</div>'
+    +'<div style="display:flex;flex-direction:column;align-items:center;padding:12px 24px 24px;text-align:center">'
+      +'<div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,212,170,.25)">'
+        +'<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'
+      +'</div>'
+      +'<div style="font-size:26px;font-weight:900;letter-spacing:-.5px;margin-bottom:4px">'
+        +'<span style="color:var(--text)">Finanz</span><span style="color:var(--primary)">IA</span>'
+      +'</div>'
+      +'<div style="font-size:12px;color:var(--text3);margin-bottom:24px">versión 3.3</div>'
+      +'<div style="font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:24px;max-width:300px">'
+        +'Tu asistente de finanzas personales. Gestiona cuentas, presupuestos, metas y más, en cualquier divisa y desde cualquier lugar.'
+      +'</div>'
+      +'<div style="width:100%;height:1px;background:var(--border);margin-bottom:20px"></div>'
+      +'<div style="font-size:12px;color:var(--text3);margin-bottom:6px">Desarrollado con ❤️ por</div>'
+      +'<div style="font-size:20px;font-weight:800;color:var(--text);margin-bottom:16px">Xenda.co</div>'
+      +'<a href="https://xenda.co" target="_blank" rel="noopener" onclick="document.getElementById(\'acercade-modal\').remove()" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;font-size:14px;font-weight:700;text-decoration:none">'
+        +'Visitar xenda.co'
+      +'</a>'
+    +'</div>'
+  +'</div>';
+  document.body.appendChild(ov);
+}
