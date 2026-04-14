@@ -5496,6 +5496,7 @@ function updatePhoneLen(code){var m={'+57':10,'+48':9,'+1':10,'+34':9,'+52':10,'
 // ── Mi Perfil page ────────────────────────────────────────
 function renderMiPerfil(){
   var p=S.profile||{};
+  var emailVal=p.email||(window._currentUser&&window._currentUser.email?window._currentUser.email:'');
   var initials=p.name?p.name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'?';
   var avatarContent=p.photo
     ?'<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
@@ -5511,12 +5512,13 @@ function renderMiPerfil(){
       +'<div style="font-size:15px;font-weight:600;color:var(--text)">'+value+'</div>'
       +'</div>';
   }
-  return '<div style="padding-bottom:32px">'
+  return '<div>'
     +'<div style="display:flex;flex-direction:column;align-items:center;padding:28px 20px 24px">'
       +'<div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid var(--primary);box-shadow:0 4px 20px rgba(0,212,170,.25)">'
         +avatarContent
       +'</div>'
       +'<div style="font-size:20px;font-weight:800;margin-top:14px;color:var(--text)">'+(p.name||'Sin nombre')+'</div>'
+      +(emailVal?'<div style="font-size:13px;color:var(--text3);margin-top:4px">'+emailVal+'</div>':'')
     +'</div>'
     +'<div style="display:flex;gap:10px;padding:0 16px 20px">'
       +'<button onclick="showPhotoOptions()" class="mp-action-btn">'+camSvg+'<span>Establecer foto</span></button>'
@@ -5619,11 +5621,66 @@ function showPhoneCodePickerScreen(){
   _pickerCtx.render('');
 }
 function _selectPhoneCode(code){
+  var iso=_PHONE_ISO[code]||null;
+  var flag=iso?_iso2flag(iso):'🌍';
   var inp=document.getElementById('cfg-phone-code');
   var lbl=document.getElementById('cfg-phone-code-lbl');
   if(inp)inp.value=code;
-  if(lbl)lbl.textContent=code;
+  if(lbl)lbl.textContent=flag+' '+code;
   updatePhoneLen(code);
+  closePickerScreen();
+}
+function showProfessionPickerScreen(){
+  var PROFESSIONS=[
+    'Abogado/a','Administrador/a de empresas','Agricultor/a','Analista de datos',
+    'Analista financiero/a','Antropólogo/a','Arquitecto/a','Asistente administrativo/a',
+    'Asistente social','Astrólogo/a','Auditor/a','Auxiliar de enfermería',
+    'Biólogo/a','Bombero/a','Carpintero/a','Chef / Cocinero/a',
+    'Científico/a de datos','Cirujano/a','Cocinero/a','Comerciante',
+    'Comunicador/a social','Conductor/a','Consultor/a','Contador/a / CPA',
+    'Decorador/a de interiores','Dentista','Director/a de arte','Diseñador/a gráfico/a',
+    'Diseñador/a industrial','Diseñador/a web','Docente / Profesor/a','Economista',
+    'Editor/a','Electricista','Emprendedor/a','Enfermero/a',
+    'Escritor/a','Especialista en marketing','Estadístico/a','Esteticista',
+    'Farmacéutico/a','Filósofo/a','Físico/a','Fisioterapeuta',
+    'Fotógrafo/a','Funcionario/a público/a','Geógrafo/a','Geólogo/a',
+    'Gerente de proyectos','Historiador/a','Ilustrador/a','Ingeniero/a civil',
+    'Ingeniero/a de software','Ingeniero/a eléctrico/a','Ingeniero/a industrial','Ingeniero/a mecánico/a',
+    'Investigador/a','Jardinero/a','Locutor/a','Logístico/a',
+    'Matemático/a','Mecánico/a automotriz','Médico/a general','Médico/a especialista',
+    'Músico/a','Nutricionista','Odontólogo/a','Operario/a de fábrica',
+    'Optometrista','Pedagogo/a','Periodista','Piloto',
+    'Plomero/a / Fontanero/a','Policía','Productor/a audiovisual','Programador/a',
+    'Psicólogo/a','Publicista','Químico/a','Radiólogo/a',
+    'Recepcionista','Recursos humanos','Repartidor/a','Seguridad / Vigilante',
+    'Sociólogo/a','Técnico/a en sistemas','Técnico/a en telecomunicaciones','Terapeuta',
+    'Trabajador/a de construcción','Traductor/a / Intérprete','Transportista','Veterinario/a',
+    'Videoconferencista','Ama/Amo de casa','Estudiante','Jubilado/a','Desempleado/a','Otro'
+  ];
+  _pickerCtx={
+    render:function(q){
+      var list=document.getElementById('picker-list');
+      if(!list)return;
+      var profs=PROFESSIONS;
+      if(q)profs=profs.filter(function(p){return p.toLowerCase().indexOf(q.toLowerCase())!==-1;});
+      var cur=(document.getElementById('cfg-profession')||{}).value||'';
+      list.innerHTML=profs.map(function(p){
+        var sel=p===cur;
+        return '<div class="picker-item" onclick="_selectProfession(\''+p+'\')" style="'+(sel?'background:rgba(0,212,170,.08)':'')+'">'
+          +'<span>'+p+'</span>'
+          +(sel?'<svg style="margin-left:auto;flex-shrink:0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'')
+          +'</div>';
+      }).join('');
+    }
+  };
+  _openPickerScreen('Profesión u oficio','Buscar profesión...');
+  _pickerCtx.render('');
+}
+function _selectProfession(name){
+  var inp=document.getElementById('cfg-profession');
+  var lbl=document.getElementById('cfg-profession-lbl');
+  if(inp)inp.value=name;
+  if(lbl){lbl.textContent=name;lbl.style.color='var(--text)';}
   closePickerScreen();
 }
 function showLangPickerScreen(){
@@ -5738,6 +5795,8 @@ function openProfilePage(){
     +'</div>';
   overlay.innerHTML=header+body+footer;
   document.body.appendChild(overlay);
+  var initCode=(S.profile&&S.profile.phoneCode)||getDefaultPhoneCode()||'';
+  if(initCode)setTimeout(function(){updatePhoneLen(initCode);},0);
 }
 function closeProfilePage(){
   try{var el=document.getElementById('profile-page-overlay');if(el)el.remove();}catch(e){console.error('closeProfilePage:',e);}
@@ -5761,6 +5820,10 @@ function buildProfileFormHTML(){
     if(!phoneMap[phone])phoneMap[phone]=(flags[name]||'🌍')+' '+phone;
   });
   var defPhone=p.phoneCode||getDefaultPhoneCode()||'';
+  var defPhoneIso=defPhone?(_PHONE_ISO[defPhone]||null):null;
+  var defPhoneFlag=defPhoneIso?_iso2flag(defPhoneIso):'🌍';
+  var defPhoneDisplay=defPhone?(defPhoneFlag+' '+defPhone):'Indicativo';
+  var emailVal=p.email||(window._currentUser&&window._currentUser.email?window._currentUser.email:'');
   var phoneOpts='<option value="">Indicativo</option>';
   Object.keys(phoneMap).sort().forEach(function(code){
     phoneOpts+='<option value="'+code+'" '+(defPhone===code?'selected':'')+'>'+phoneMap[code]+'</option>';
@@ -5789,28 +5852,16 @@ function buildProfileFormHTML(){
   var goalOpts=goalList.map(function(g){return '<div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\''+g+'\' )" data-val="'+g+'" style="'+(p.financialGoal===g?'background:rgba(0,212,170,.1)':'')+'">'+g+'</div>';}).join('');
 
   var html=''
-    +'<!-- Photo section -->'
-    +'<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:16px">'
-      +'<div style="position:relative;display:inline-block">'
-        +'<div id="cfg-avatar" '+( p.photo ? 'onclick="viewProfilePhoto()"'+' style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:32px;border:3px solid var(--primary);overflow:hidden;cursor:zoom-in"' : 'style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:32px;border:3px solid var(--primary);overflow:hidden"' )+'>'+avatarInner+'</div>'
-        +'<div style="position:absolute;bottom:0;right:0">'
-          +'<button onclick="showPhotoOptions()" style="width:28px;height:28px;border-radius:50%;background:var(--primary);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,212,170,.4)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></button>'
-        +'</div>'
-      +'</div>'
-      +'<input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">'+'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">' 
-      
-      +removeBtn
-    +'</div>'
     +'<div class="form-group"><label class="form-label">Nombre completo <span style="color:var(--danger)">*</span></label>'
       +'<input class="form-input" type="text" id="cfg-name" value="'+(p.name||'')+'" placeholder="Tu nombre completo"></div>'
     +'<div class="form-group"><label class="form-label">Fecha de nacimiento</label>'
       +'<input class="form-input" type="date" id="cfg-birthdate" value="'+(p.birthdate||'')+'" max="'+new Date().toISOString().slice(0,10)+'"></div>'
-    +'<div class="form-group"><label class="form-label">Email <span style="color:var(--danger)">*</span></label>'
-      +'<input class="form-input" type="email" id="cfg-email" value="'+(p.email||'')+'" placeholder="tu@email.com"></div>'
+    +'<div class="form-group"><label class="form-label">Email</label>'
+      +'<input class="form-input" type="email" id="cfg-email" value="'+emailVal+'" readonly style="opacity:.65;cursor:not-allowed"></div>'
     +'<div class="form-group"><label class="form-label">Teléfono</label>'
       +'<div style="display:flex;gap:6px">'
         +'<div class="bs-trigger" onclick="showPhoneCodePickerScreen()" style="width:130px;flex-shrink:0;padding:10px 12px">'
-          +'<span id="cfg-phone-code-lbl" style="font-size:14px;color:'+(defPhone?'var(--text)':'var(--text3)')+'">'+(defPhone||'Indicativo')+'</span>'
+          +'<span id="cfg-phone-code-lbl" style="font-size:13px;color:'+(defPhone?'var(--text)':'var(--text3)')+'">'+defPhoneDisplay+'</span>'
           +'<span style="color:var(--text3);font-size:18px">›</span>'
         +'</div>'
         +'<input type="hidden" id="cfg-phone-code" value="'+(defPhone||'')+'">'+'<input class="form-input" type="tel" id="cfg-phone" value="'+(p.phone||'')+'" placeholder="Número" style="flex:1;font-size:15px" maxlength="15">'
@@ -5846,7 +5897,11 @@ function buildProfileFormHTML(){
       +'</div>'
       +'<input type="hidden" id="cfg-goal" value="'+(p.financialGoal||'')+'"></div>'
     +'<div class="form-group"><label class="form-label">Profesión</label>'
-      +'<input class="form-input" type="text" id="cfg-profession" value="'+(p.profession||'')+'" placeholder="Ej: Ingeniero, Médico, Diseñador..."></div>';
+      +'<div class="bs-trigger" onclick="showProfessionPickerScreen()">'
+        +'<span id="cfg-profession-lbl" style="font-size:14px;color:'+(p.profession?'var(--text)':'var(--text3)')+'">'+(p.profession||'Seleccionar profesión u oficio')+'</span>'
+        +'<span style="color:var(--text3);font-size:18px">›</span>'
+      +'</div>'
+      +'<input type="hidden" id="cfg-profession" value="'+(p.profession||'')+'"></div>';
   return html;
 }
 
