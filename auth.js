@@ -451,8 +451,8 @@ function _injectLogoutBtn(){
   container.setAttribute('onclick', 'signOut()');
   container.style.cssText = 'padding:12px 16px;border-top:1px solid var(--border);margin-top:4px;cursor:pointer';
   container.innerHTML =
-    '<div style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:50px;background:rgba(239,68,68,.08);color:var(--danger);font-size:14px;font-weight:600;font-family:var(--font);pointer-events:none">'
-    +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center;pointer-events:none">'
+    '<div style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:50px;background:rgba(239,68,68,.08);color:var(--danger);font-size:14px;font-weight:600;font-family:var(--font)">'
+    +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center">'
     +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none">'
     +'<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>'
     +'</svg></div>'
@@ -460,6 +460,14 @@ function _injectLogoutBtn(){
     +'</div>';
   drawer.appendChild(container);
 }
+
+// Delegación de eventos: cualquier clic dentro de #drawer-logout-btn activa signOut()
+document.addEventListener('click', function(e){
+  if(e.target.closest && e.target.closest('#drawer-logout-btn')){
+    e.preventDefault();
+    signOut();
+  }
+});
 
 function goToRegister(){_setError('li','');_showScreen('register');}
 function goToRecover(){_setError('li','');_showScreen('recover');}
