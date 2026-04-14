@@ -1264,7 +1264,25 @@ async function _startBioFromWelcome(){
     }
     var result = await bioAuthenticate();
     if(result === true){
-      // Bio exitosa → acceso directo, sin requerir sesión activa
+      // Bio exitosa → validar con servidor antes de dar acceso
+      if(_supabase){
+        try{
+          var rv=await _supabase.auth.getUser();
+          if(rv.error||!rv.data||!rv.data.user){
+            // Usuario eliminado o token inválido → limpiar y mostrar login
+            _currentUser=null;
+            _clearAllLocalUserData();
+            showAuthScreen();
+            _showScreen('login');
+            try{toast('Tu sesión ya no es válida. Por favor inicia sesión.');}catch(e){}
+            return;
+          }
+          _currentUser=rv.data.user;
+        }catch(netErr){
+          // Sin conexión → permitir acceso offline con datos locales
+          console.warn('Bio server check fallido (posiblemente offline):',netErr);
+        }
+      }
       hideAuthScreen();
       if(typeof initApp === 'function') initApp();
       if(typeof _injectLogoutBtn === 'function') _injectLogoutBtn(_currentUser);
