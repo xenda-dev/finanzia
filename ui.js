@@ -5452,10 +5452,10 @@ function renderMiPerfil(){
   var camSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>';
   var editSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
   var gearSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>';
-  function infoRow(label,value){
+  function infoRow(label,value,ph){
     return '<div style="padding:13px 0;border-bottom:1px solid var(--border)">'
       +'<div style="font-size:11px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">'+label+'</div>'
-      +'<div style="font-size:15px;'+(value?'font-weight:600;color:var(--text)':'color:var(--text3);font-style:italic')+'\">'+(value||'Sin completar')+'</div>'
+      +'<div style="font-size:15px;'+(value?'font-weight:600;color:var(--text)':'color:var(--text3);font-style:italic')+'\">'+(value||(ph||'Sin completar'))+'</div>'
       +'</div>';
   }
   return '<div>'
@@ -5472,10 +5472,10 @@ function renderMiPerfil(){
       +'<button onclick="navigate(\'configuracion\')" class="mp-action-btn">'+gearSvg+'<span>Ajustes</span></button>'
     +'</div>'
     +'<div style="margin:0 16px;background:var(--surface);border-radius:16px;padding:0 16px">'
-      +infoRow('Nombre completo',p.name||'')
-      +infoRow('País de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'')
-      +infoRow('Teléfono',phone.trim()||'')
-      +infoRow('Profesión',p.profession||'')
+      +infoRow('Nombre y apellido',p.name||'','Tu nombre')
+      +infoRow('País de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'','Tu país')
+      +infoRow('Teléfono',phone.trim()||'','Tu teléfono')
+      +infoRow('Profesión',p.profession||'','Tu profesión')
     +'</div>'
     +'<input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">'
     +'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
@@ -5804,8 +5804,8 @@ function buildProfileFormHTML(){
   var goalOpts=goalList.map(function(g){return '<div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\''+g+'\' )" data-val="'+g+'" style="'+(p.financialGoal===g?'background:rgba(0,212,170,.1)':'')+'">'+g+'</div>';}).join('');
 
   var html=''
-    +'<div class="form-group"><label class="form-label">Nombre completo <span style="color:var(--danger)">*</span></label>'
-      +'<input class="form-input" type="text" id="cfg-name" value="'+(p.name||'')+'" placeholder="Tu nombre completo"></div>'
+    +'<div class="form-group"><label class="form-label">Nombre y apellido <span style="color:var(--danger)">*</span></label>'
+      +'<input class="form-input" type="text" id="cfg-name" value="'+(p.name||'')+'" placeholder="Ej: Jorge Quintero"></div>'
     +'<div class="form-group"><label class="form-label">Fecha de nacimiento</label>'
       +'<input class="form-input" type="date" id="cfg-birthdate" value="'+(p.birthdate||'')+'" max="'+new Date().toISOString().slice(0,10)+'"></div>'
     +'<div class="form-group"><label class="form-label">Email</label>'
@@ -5836,6 +5836,12 @@ function buildProfileFormHTML(){
         +'<span style="color:var(--text3);font-size:18px">›</span>'
       +'</div>'
       +'<input type="hidden" id="cfg-occupation" value="'+(p.occupation||'')+'"></div>'
+    +'<div class="form-group"><label class="form-label">Profesión</label>'
+      +'<div class="bs-trigger" onclick="showProfessionPickerScreen()">'
+        +'<span id="cfg-profession-lbl" style="font-size:14px;color:'+(p.profession?'var(--text)':'var(--text3)')+'">'+(p.profession||'Seleccionar profesión u oficio')+'</span>'
+        +'<span style="color:var(--text3);font-size:18px">›</span>'
+      +'</div>'
+      +'<input type="hidden" id="cfg-profession" value="'+(p.profession||'')+'"></div>';
     +'<div class="form-group"><label class="form-label">Estado civil</label>'
       +'<div class="bs-trigger" onclick="showBS_simple(\'cfg-marital\',\'-lbl\',\'Estado civil\',[\'Soltero/a\',\'Casado/a\',\'Unión libre\',\'Divorciado/a\',\'Viudo/a\'],\'Seleccionar estado civil\',true)">'
         +'<span style="font-size:14px;color:'+(p.marital?'var(--text)':'var(--text3)')+'" id="cfg-marital-lbl">'+(p.marital||'Seleccionar estado civil')+'</span>'
@@ -5848,12 +5854,6 @@ function buildProfileFormHTML(){
         +'<span style="color:var(--text3);font-size:18px">›</span>'
       +'</div>'
       +'<input type="hidden" id="cfg-goal" value="'+(p.financialGoal||'')+'"></div>'
-    +'<div class="form-group"><label class="form-label">Profesión</label>'
-      +'<div class="bs-trigger" onclick="showProfessionPickerScreen()">'
-        +'<span id="cfg-profession-lbl" style="font-size:14px;color:'+(p.profession?'var(--text)':'var(--text3)')+'">'+(p.profession||'Seleccionar profesión u oficio')+'</span>'
-        +'<span style="color:var(--text3);font-size:18px">›</span>'
-      +'</div>'
-      +'<input type="hidden" id="cfg-profession" value="'+(p.profession||'')+'"></div>';
   return html;
 }
 
