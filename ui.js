@@ -28,6 +28,20 @@ function buildNumFormatExample(){
   }catch(e){return n.toFixed(d);}
 }
 function setNumFormat(val){completeAction(function(){S.numFormat=val;},'configuracion');}
+function buildThemeCaps(){
+  var opts=[['light','☀️ Claro'],['dark','🌙 Oscuro'],['auto','⚙️ Auto']];
+  var cur=S.theme||'light';
+  return opts.map(function(o){
+    var isOn=cur===o[0];
+    return '<button onclick="setThemeInline(\''+o[0]+'\')" style="flex:1;padding:8px 4px;border-radius:50px;border:none;background:'+(isOn?'var(--primary)':'transparent')+';color:'+(isOn?'white':'var(--text2)')+';font-size:12px;font-weight:'+(isOn?'700':'500')+';cursor:pointer;font-family:var(--font);transition:.15s">'+o[1]+'</button>';
+  }).join('');
+}
+function setThemeInline(val){
+  S.theme=val;
+  applyThemeMode();
+  saveState();
+  renderPage('configuracion');
+}
 function setTheme(val){
   S.theme=val;
   applyThemeMode();
@@ -96,7 +110,8 @@ var _PAGE_LABELS={
   'grp-herramientas':'Herramientas',
   'mis-cuentas':'Mis Cuentas',
   'cuentas-grupo':'Tipo de cuenta',
-  'suscripciones':'Suscripciones'
+  'suscripciones':'Suscripciones',
+  'mi-perfil':'Mi Perfil'
 };
 function _getPageTitle(page){
   if(page==='cuenta-detalle') return 'Detalle de Cuenta';
@@ -169,6 +184,7 @@ function renderPage(page){
       case'grp-midinero':el.innerHTML=renderDrawerGroup('midinero');break;
       case'grp-planificacion':el.innerHTML=renderDrawerGroup('planificacion');break;
       case'grp-herramientas':el.innerHTML=renderDrawerGroup('herramientas');break;
+      case'mi-perfil':el.innerHTML=renderMiPerfil();break;
     }
   }catch(e){
     console.error('renderPage ERROR ['+page+']:',e);
@@ -4957,7 +4973,7 @@ function renderConfiguracion(){
   </div>`).join('');
   return`
     <!-- PROFILE SECTION -->
-    <div class="config-item" onclick="openProfilePage()" style="margin-bottom:16px">
+    <div class="config-item" onclick="navigate('mi-perfil')" style="margin-bottom:16px">
       <div class="config-item-left" style="gap:12px">
         <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid var(--primary);overflow:hidden;flex-shrink:0">
           ${(S.profile&&S.profile.photo)?`<img src="${S.profile.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.profile&&S.profile.name?`<span style="font-size:18px;font-weight:700;color:white">${S.profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</span>`:'<span>👤</span>')}
@@ -4986,7 +5002,7 @@ function renderConfiguracion(){
     <!-- Language -->
     <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
       <label style="font-size:14px;font-weight:600;margin:0">${t('language')}</label>
-      <div class="bs-trigger" onclick="showBS_lang()">
+      <div class="bs-trigger" onclick="showLangPickerScreen()">
         <span style="font-size:14px">${langCurrent?langCurrent.flag+' '+langCurrent.label:'Seleccionar idioma'}</span>
         <span style="color:var(--text3);font-size:18px">›</span>
       </div>
@@ -5007,7 +5023,7 @@ function renderConfiguracion(){
     <!-- Currencies -->
     <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
       <label style="font-size:14px;font-weight:600;margin:0">${t('activeCurrencies')}</label>
-      <div class="bs-trigger" onclick="showBS_currencies()">
+      <div class="bs-trigger" onclick="showCurrenciesPickerScreen()">
         <span style="font-size:14px" id="cfg-cur-lbl">💱 ${(S.currencies&&S.currencies.length)?(S.currencies.join(' · ')):'Seleccionar'}</span>
         <span style="color:var(--text3);font-size:18px">›</span>
       </div>
@@ -5017,9 +5033,8 @@ function renderConfiguracion(){
     <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 10px">${t('appearance')}</div>
     <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
       <label style="font-size:14px;font-weight:600;margin:0">${t('theme')}</label>
-      <div class="bs-trigger" onclick="showBS_theme()">
-        <span style="font-size:14px">${S.theme==='dark'?'🌙 Oscuro':S.theme==='auto'?'⚙️ Automático':'☀️ Claro'}</span>
-        <span style="color:var(--text3);font-size:18px">›</span>
+      <div style="background:var(--surface2);border-radius:50px;padding:3px;display:flex;gap:2px">
+        ${buildThemeCaps()}
       </div>
     </div>
 
@@ -5478,6 +5493,236 @@ function updatePhoneLen(code){var m={'+57':10,'+48':9,'+1':10,'+34':9,'+52':10,'
 
 
 
+// ── Mi Perfil page ────────────────────────────────────────
+function renderMiPerfil(){
+  var p=S.profile||{};
+  var initials=p.name?p.name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'?';
+  var avatarContent=p.photo
+    ?'<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+    :'<span style="font-size:36px;font-weight:700;color:white">'+initials+'</span>';
+  var phone=(p.phoneCode?p.phoneCode+' ':'')+( p.phone||'');
+  var camSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>';
+  var editSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  var gearSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>';
+  function infoRow(label,value){
+    if(!value)return '';
+    return '<div style="padding:13px 0;border-bottom:1px solid var(--border)">'
+      +'<div style="font-size:11px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">'+label+'</div>'
+      +'<div style="font-size:15px;font-weight:600;color:var(--text)">'+value+'</div>'
+      +'</div>';
+  }
+  return '<div style="padding-bottom:32px">'
+    +'<div style="display:flex;flex-direction:column;align-items:center;padding:28px 20px 24px">'
+      +'<div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid var(--primary);box-shadow:0 4px 20px rgba(0,212,170,.25)">'
+        +avatarContent
+      +'</div>'
+      +'<div style="font-size:20px;font-weight:800;margin-top:14px;color:var(--text)">'+(p.name||'Sin nombre')+'</div>'
+    +'</div>'
+    +'<div style="display:flex;gap:10px;padding:0 16px 20px">'
+      +'<button onclick="showPhotoOptions()" class="mp-action-btn">'+camSvg+'<span>Establecer foto</span></button>'
+      +'<button onclick="openProfilePage()" class="mp-action-btn">'+editSvg+'<span>Editar info.</span></button>'
+      +'<button onclick="navigate(\'configuracion\')" class="mp-action-btn">'+gearSvg+'<span>Ajustes</span></button>'
+    +'</div>'
+    +'<div style="margin:0 16px;background:var(--surface);border-radius:16px;padding:0 16px">'
+      +infoRow('Nombre completo',p.name||'')
+      +infoRow('País de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'')
+      +infoRow('Teléfono',phone.trim()||'')
+      +infoRow('Profesión',p.profession||'')
+    +'</div>'
+    +'<input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">'
+    +'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
+  +'</div>';
+}
+
+// ── Picker screens ────────────────────────────────────────
+var _pickerCtx={};
+function _openPickerScreen(title,searchPlaceholder){
+  closePickerScreen();
+  var backSvg='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
+  var ov=document.createElement('div');
+  ov.id='picker-screen-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
+  ov.innerHTML='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0">'
+    +'<button onclick="closePickerScreen()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">'+backSvg+'</button>'
+    +'<span style="font-size:17px;font-weight:800;flex:1">'+title+'</span>'
+    +'</div>'
+    +'<div style="padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">'
+      +'<input id="picker-search" class="form-input" placeholder="'+searchPlaceholder+'" oninput="_filterPickerList(this.value)" style="font-size:14px;padding:10px 14px">'
+    +'</div>'
+    +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:8px"></div>';
+  document.body.appendChild(ov);
+  setTimeout(function(){var s=document.getElementById('picker-search');if(s)s.focus();},200);
+}
+function closePickerScreen(){
+  var el=document.getElementById('picker-screen-overlay');
+  if(el)el.remove();
+}
+function _filterPickerList(q){
+  if(typeof _pickerCtx.render==='function')_pickerCtx.render(q);
+}
+function showCountryPickerScreen(field,title,labelId){
+  _pickerCtx={
+    render:function(q){
+      var list=document.getElementById('picker-list');
+      if(!list)return;
+      var countries=Object.keys(COUNTRY_DATA).sort();
+      if(q)countries=countries.filter(function(n){return n.toLowerCase().indexOf(q.toLowerCase())!==-1;});
+      list.innerHTML=countries.map(function(name){
+        var flag=countryFlagGlobal(name);
+        return '<div class="picker-item" onclick="_selectCountry(\''+field+'\',\''+labelId+'\',\''+name+'\')">'+flag+' '+name+'</div>';
+      }).join('');
+    }
+  };
+  _openPickerScreen(title,'Buscar país...');
+  _pickerCtx.render('');
+}
+function _selectCountry(field,labelId,name){
+  var flag=countryFlagGlobal(name);
+  var inp=document.getElementById(field);
+  var lbl=document.getElementById(labelId);
+  if(inp)inp.value=name;
+  if(lbl){lbl.textContent=flag+' '+name;lbl.style.color='var(--text)';}
+  closePickerScreen();
+}
+function showPhoneCodePickerScreen(){
+  var defPhone=(S.profile&&S.profile.phoneCode)||getDefaultPhoneCode()||'';
+  _pickerCtx={
+    render:function(q){
+      var list=document.getElementById('picker-list');
+      if(!list)return;
+      var phoneMap={};
+      Object.keys(COUNTRY_DATA).forEach(function(name){
+        var phone=COUNTRY_DATA[name].phone;
+        var iso=_PHONE_ISO[phone]||null;
+        var flag=iso?_iso2flag(iso):'🌍';
+        if(!phoneMap[phone])phoneMap[phone]={phone:phone,flag:flag,country:name};
+      });
+      var codes=Object.keys(phoneMap).sort(function(a,b){
+        var na=parseInt(a.replace('+',''));
+        var nb=parseInt(b.replace('+',''));
+        return na-nb;
+      });
+      if(q)codes=codes.filter(function(c){
+        return c.indexOf(q)!==-1||phoneMap[c].country.toLowerCase().indexOf(q.toLowerCase())!==-1;
+      });
+      list.innerHTML=codes.map(function(code){
+        var item=phoneMap[code];
+        var sel=code===defPhone;
+        return '<div class="picker-item" onclick="_selectPhoneCode(\''+code+'\')" style="'+(sel?'background:rgba(0,212,170,.08)':'')+'">'
+          +'<span>'+item.flag+' '+code+'</span>'
+          +(sel?'<svg style="margin-left:auto;flex-shrink:0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'')
+          +'</div>';
+      }).join('');
+    }
+  };
+  _openPickerScreen('Indicativo telefónico','Buscar código o país...');
+  _pickerCtx.render('');
+}
+function _selectPhoneCode(code){
+  var inp=document.getElementById('cfg-phone-code');
+  var lbl=document.getElementById('cfg-phone-code-lbl');
+  if(inp)inp.value=code;
+  if(lbl)lbl.textContent=code;
+  updatePhoneLen(code);
+  closePickerScreen();
+}
+function showLangPickerScreen(){
+  _pickerCtx={
+    render:function(q){
+      var list=document.getElementById('picker-list');
+      if(!list)return;
+      var langs=ALL_LANGUAGES;
+      if(q)langs=langs.filter(function(l){return l.label.toLowerCase().indexOf(q.toLowerCase())!==-1;});
+      list.innerHTML=langs.map(function(l){
+        var sel=l.id===S.language;
+        return '<div class="picker-item" onclick="_selectLang(\''+l.id+'\')" style="'+(sel?'background:rgba(0,212,170,.08)':'')+'">'
+          +'<span>'+l.flag+' '+l.label+'</span>'
+          +(sel?'<svg style="margin-left:auto;flex-shrink:0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'')
+          +'</div>';
+      }).join('');
+    }
+  };
+  _openPickerScreen('Idioma','Buscar idioma...');
+  _pickerCtx.render('');
+}
+function _selectLang(id){
+  S.language=id;
+  saveState();
+  applyLanguage();
+  closePickerScreen();
+  renderPage('configuracion');
+  toast('✓');
+}
+function showCurrenciesPickerScreen(){
+  var sel=(S.currencies||[]).slice();
+  window._pickerCurSel=sel;
+  _pickerCtx={
+    render:function(q){
+      var list=document.getElementById('picker-list');
+      if(!list)return;
+      var items=ALL_CURRENCIES;
+      if(q)items=items.filter(function(c){return(c.code+' '+c.name).toLowerCase().indexOf(q.toLowerCase())!==-1;});
+      list.innerHTML=items.map(function(c){
+        var checked=window._pickerCurSel.indexOf(c.code)!==-1;
+        var meta=getCurrencyMeta(c.code);
+        var sym=meta?meta.sym:c.code;
+        return '<div class="picker-item" onclick="_togglePickerCur(\''+c.code+'\')" style="'+(checked?'background:rgba(0,212,170,.08)':'')+'">'
+          +'<div style="width:20px;height:20px;border-radius:5px;border:2px solid '+(checked?'var(--primary)':'var(--border)')+';background:'+(checked?'var(--primary)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.1s">'
+            +(checked?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'')
+          +'</div>'
+          +'<div style="flex:1;min-width:0">'
+            +'<div style="font-size:14px;font-weight:700">'+c.code+' <span style="color:var(--primary)">'+sym+'</span></div>'
+            +'<div style="font-size:12px;color:var(--text3)">'+c.name+'</div>'
+          +'</div>'
+          +'</div>';
+      }).join('');
+    }
+  };
+  closePickerScreen();
+  var backSvg='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
+  var ov=document.createElement('div');
+  ov.id='picker-screen-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
+  ov.innerHTML='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0">'
+    +'<button onclick="closePickerScreen()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">'+backSvg+'</button>'
+    +'<span style="font-size:17px;font-weight:800;flex:1">Monedas activas</span>'
+    +'<span id="picker-cur-count" style="font-size:12px;color:var(--primary);font-weight:700;background:rgba(0,212,170,.12);padding:3px 10px;border-radius:50px">'+sel.length+'/2</span>'
+    +'</div>'
+    +'<div style="padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">'
+      +'<input id="picker-search" class="form-input" placeholder="Buscar moneda..." oninput="_filterPickerList(this.value)" style="font-size:14px;padding:10px 14px">'
+    +'</div>'
+    +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:8px"></div>'
+    +'<div style="flex-shrink:0;padding:12px 16px;background:var(--surface);border-top:1px solid var(--border)">'
+      +'<button onclick="_savePickerCurrencies()" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Guardar</button>'
+    +'</div>';
+  document.body.appendChild(ov);
+  _pickerCtx.render('');
+  setTimeout(function(){var s=document.getElementById('picker-search');if(s)s.focus();},200);
+}
+function _togglePickerCur(code){
+  var sel=window._pickerCurSel||(window._pickerCurSel=[]);
+  var idx=sel.indexOf(code);
+  if(idx!==-1){
+    sel.splice(idx,1);
+  }else{
+    if(sel.length>=2){toast('Máximo 2 monedas');return;}
+    sel.push(code);
+  }
+  var cnt=document.getElementById('picker-cur-count');
+  if(cnt)cnt.textContent=sel.length+'/2';
+  var q=document.getElementById('picker-search')?document.getElementById('picker-search').value:'';
+  _pickerCtx.render(q);
+}
+function _savePickerCurrencies(){
+  S.currencies=(window._pickerCurSel||[]).slice();
+  if(S.currencies.length>0)S.currency=S.currencies[0];
+  saveState();
+  refreshCurrencyToggle();
+  closePickerScreen();
+  renderPage('configuracion');
+  toast('Monedas guardadas ✓');
+}
+
 function openProfilePage(){
   var overlay=document.createElement('div');
   overlay.id='profile-page-overlay';
@@ -5488,12 +5733,15 @@ function openProfilePage(){
     +'<div style="width:40px"></div>'
     +'</div>';
   var body='<div style="flex:1;overflow-y:auto;padding:16px">'+buildProfileFormHTML()+'</div>';
-  overlay.innerHTML=header+body;
+  var footer='<div style="flex-shrink:0;padding:12px 16px;background:var(--surface);border-top:1px solid var(--border)">'
+    +'<button onclick="saveProfile()" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px">Guardar</button>'
+    +'</div>';
+  overlay.innerHTML=header+body+footer;
   document.body.appendChild(overlay);
 }
 function closeProfilePage(){
   try{var el=document.getElementById('profile-page-overlay');if(el)el.remove();}catch(e){console.error('closeProfilePage:',e);}
-  renderPage('configuracion');
+  renderPage(S.currentPage||'configuracion');
 }
 function buildProfileFormHTML(){
   var p=S.profile||{};
@@ -5559,19 +5807,22 @@ function buildProfileFormHTML(){
       +'<input class="form-input" type="date" id="cfg-birthdate" value="'+(p.birthdate||'')+'" max="'+new Date().toISOString().slice(0,10)+'"></div>'
     +'<div class="form-group"><label class="form-label">Email <span style="color:var(--danger)">*</span></label>'
       +'<input class="form-input" type="email" id="cfg-email" value="'+(p.email||'')+'" placeholder="tu@email.com"></div>'
-    +'<div class="form-group"><label class="form-label">Teléfono <span style="color:var(--danger)">*</span></label>'
+    +'<div class="form-group"><label class="form-label">Teléfono</label>'
       +'<div style="display:flex;gap:6px">'
-        +'<select class="form-select" id="cfg-phone-code" style="width:110px;flex-shrink:0" onchange="updatePhoneLen(this.value)">'+phoneOpts+'</select>'
-        +'<input class="form-input" type="tel" id="cfg-phone" value="'+(p.phone||'')+'" placeholder="300 000 0000" style="flex:1;font-size:15px" maxlength="15">'
+        +'<div class="bs-trigger" onclick="showPhoneCodePickerScreen()" style="width:130px;flex-shrink:0;padding:10px 12px">'
+          +'<span id="cfg-phone-code-lbl" style="font-size:14px;color:'+(defPhone?'var(--text)':'var(--text3)')+'">'+(defPhone||'Indicativo')+'</span>'
+          +'<span style="color:var(--text3);font-size:18px">›</span>'
+        +'</div>'
+        +'<input type="hidden" id="cfg-phone-code" value="'+(defPhone||'')+'">'+'<input class="form-input" type="tel" id="cfg-phone" value="'+(p.phone||'')+'" placeholder="Número" style="flex:1;font-size:15px" maxlength="15">'
       +'</div></div>'
-    +'<div class="form-group"><label class="form-label">País de origen <span style="color:var(--danger)">*</span></label>'
-      +'<div class="bs-trigger" onclick="showBS_country(\'cfg-country\')" id="cpick-trigger">'
+    +'<div class="form-group"><label class="form-label">País de origen</label>'
+      +'<div class="bs-trigger" onclick="showCountryPickerScreen(\'cfg-country\',\'País de origen\',\'cfg-country-lbl\')" id="cpick-trigger">'
         +'<span style="font-size:14px;color:'+(p.country?'var(--text)':'var(--text3)')+'" id="cfg-country-lbl">'+(p.country?(countryFlagGlobal(p.country)+' '+p.country):'Seleccionar país de origen')+'</span>'
         +'<span style="color:var(--text3);font-size:18px">›</span>'
       +'</div>'
       +'<input type="hidden" id="cfg-country" value="'+(p.country||'')+'"></div>'
-    +'<div class="form-group"><label class="form-label">País de residencia <span style="color:var(--danger)">*</span> <span style="font-size:10px;color:var(--primary);font-weight:400">🏠 moneda principal</span></label>'
-      +'<div class="bs-trigger" onclick="showBS_country(\'cfg-residence\')" id="rpick-trigger">'
+    +'<div class="form-group"><label class="form-label">País de residencia <span style="font-size:10px;color:var(--primary);font-weight:400">🏠 moneda principal</span></label>'
+      +'<div class="bs-trigger" onclick="showCountryPickerScreen(\'cfg-residence\',\'País de residencia\',\'cfg-residence-lbl\')" id="rpick-trigger">'
         +'<span style="font-size:14px;color:'+(p.residence?'var(--text)':'var(--text3)')+'" id="cfg-residence-lbl">'+(p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'Seleccionar país de residencia')+'</span>'
         +'<span style="color:var(--text3);font-size:18px">›</span>'
       +'</div>'
@@ -5594,9 +5845,8 @@ function buildProfileFormHTML(){
         +'<span style="color:var(--text3);font-size:18px">›</span>'
       +'</div>'
       +'<input type="hidden" id="cfg-goal" value="'+(p.financialGoal||'')+'"></div>'
-    +'<div style="margin-top:20px;padding-top:12px;border-top:1px solid var(--border)">'
-      +'<button onclick="saveProfile()" style="width:100%;padding:13px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px">Guardar</button>'
-    +'</div>';
+    +'<div class="form-group"><label class="form-label">Profesión</label>'
+      +'<input class="form-input" type="text" id="cfg-profession" value="'+(p.profession||'')+'" placeholder="Ej: Ingeniero, Médico, Diseñador..."></div>';
   return html;
 }
 
@@ -5812,6 +6062,7 @@ function saveProfile(){
   S.profile.residence=g('cfg-residence');
   S.profile.occupation=g('cfg-occupation');S.profile.marital=g('cfg-marital');
   S.profile.marital=g('cfg-marital');S.profile.financialGoal=g('cfg-goal');
+  S.profile.profession=g('cfg-profession');
   // Auto-set currencies based on countries
   try{
     var countryCurrency = COUNTRY_DATA ? Object.fromEntries(Object.entries(COUNTRY_DATA).map(function(e){return[e[0],e[1].cur];})) : {};
@@ -5889,7 +6140,7 @@ function removeProfilePhoto(){
   reader.onload=ev=>{
     if(!S.profile)S.profile={};
     S.profile.photo=ev.target.result;
-    saveState();updateDrawerProfile();renderPage('configuracion');
+    saveState();updateDrawerProfile();renderPage(S.currentPage||'configuracion');
   };
   reader.readAsDataURL(file);
 }function saveLanguage(v){

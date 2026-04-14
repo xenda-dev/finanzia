@@ -149,7 +149,7 @@ const DEFAULT_SUBS = [
 // ════════════════════════════════════════════════════════════
 let S = {
   currency:'', currentPage:'dashboard', theme:'auto',
-  language:'', weekStart:'', _catTab:'gasto', notifPrefs:{}, numFormat:'auto', currencies:[], profile:{name:'',email:'',photo:''},
+  language:'', weekStart:'', _catTab:'gasto', notifPrefs:{}, numFormat:'auto', currencies:[], profile:{name:'',email:'',photo:'',profession:''},
   shoppingLists:[], investments:[], subscriptions:[], accounts:[], transactions:[], categories:[], subcategories:[],
   budgets:[], goals:[], scheduledPayments:[],
   movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},
@@ -203,7 +203,7 @@ function loadState(){
   if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
   if(!S.analysisPeriodSub)S.analysisPeriodSub='anual';if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
   if(!S.exchangeRate)S.exchangeRate={PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''};
-  if(!S.theme)S.theme='auto';
+  if(!S.theme)S.theme='light';
   // language and weekStart stay empty until user chooses
   // currencies stay empty until user sets up profile
   if(typeof applyThemeMode==='function')applyThemeMode();
