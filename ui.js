@@ -5500,24 +5500,23 @@ function renderMiPerfil(){
   var initials=p.name?p.name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'?';
   var avatarContent=p.photo
     ?'<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
-    :'<span style="font-size:36px;font-weight:700;color:white">'+initials+'</span>';
+    :'<span style="font-size:28px;font-weight:700;color:white">'+initials+'</span>';
   var phone=(p.phoneCode?p.phoneCode+' ':'')+( p.phone||'');
   var camSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>';
   var editSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
   var gearSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>';
   function infoRow(label,value){
-    if(!value)return '';
     return '<div style="padding:13px 0;border-bottom:1px solid var(--border)">'
       +'<div style="font-size:11px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">'+label+'</div>'
-      +'<div style="font-size:15px;font-weight:600;color:var(--text)">'+value+'</div>'
+      +'<div style="font-size:15px;'+(value?'font-weight:600;color:var(--text)':'color:var(--text3);font-style:italic')+'\">'+(value||'Sin completar')+'</div>'
       +'</div>';
   }
   return '<div>'
     +'<div style="display:flex;flex-direction:column;align-items:center;padding:28px 20px 24px">'
-      +'<div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid var(--primary);box-shadow:0 4px 20px rgba(0,212,170,.25)">'
+      +'<div style="width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid var(--primary);box-shadow:0 4px 20px rgba(0,212,170,.25)">'
         +avatarContent
       +'</div>'
-      +'<div style="font-size:20px;font-weight:800;margin-top:14px;color:var(--text)">'+(p.name||'Sin nombre')+'</div>'
+      +(p.name?'<div style="font-size:20px;font-weight:800;margin-top:14px;color:var(--text)">'+p.name+'</div>':'')
       +(emailVal?'<div style="font-size:13px;color:var(--text3);margin-top:4px">'+emailVal+'</div>':'')
     +'</div>'
     +'<div style="display:flex;gap:10px;padding:0 16px 20px">'
