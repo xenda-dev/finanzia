@@ -148,7 +148,7 @@ const DEFAULT_SUBS = [
 // STATE
 // ════════════════════════════════════════════════════════════
 let S = {
-  currency:'', currentPage:'dashboard', theme:'auto',
+  currency:'', currentPage:'dashboard', theme:'light',
   language:'', weekStart:'', _catTab:'gasto', notifPrefs:{}, numFormat:'auto', currencies:[], profile:{name:'',email:'',photo:'',profession:''},
   shoppingLists:[], investments:[], subscriptions:[], accounts:[], transactions:[], categories:[], subcategories:[],
   budgets:[], goals:[], scheduledPayments:[],
@@ -204,6 +204,11 @@ function loadState(){
   if(!S.analysisPeriodSub)S.analysisPeriodSub='anual';if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
   if(!S.exchangeRate)S.exchangeRate={PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''};
   if(!S.theme)S.theme='light';
+  if(!S.language&&!S._langUserSet){
+    var _nl=((navigator.language||'').split('-')[0]||'').toLowerCase();
+    var _sl=['es','en','zh','hi','ar','pt','fr','ru','bn','id','de','ja','tr','ko','vi','it','pl','fa','sw','ur'];
+    S.language=_sl.indexOf(_nl)!==-1?_nl:'en';
+  }
   // language and weekStart stay empty until user chooses
   // currencies stay empty until user sets up profile
   if(typeof applyThemeMode==='function')applyThemeMode();

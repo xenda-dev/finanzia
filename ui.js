@@ -4882,77 +4882,24 @@ const ALL_CURRENCIES=[
   {code:'ZWL',name:'Dólar zimbabuense'}
 ];
 const ALL_LANGUAGES=[
-  {id:'am',label:'አማርኛ (Amhárico)',flag:'🇪🇹'},
   {id:'ar',label:'العربية (Árabe)',flag:'🇸🇦'},
-  {id:'az',label:'Azərbaycan (Azerbaiyano)',flag:'🇦🇿'},
-  {id:'be',label:'Беларуская (Bielorruso)',flag:'🇧🇾'},
-  {id:'bg',label:'Български (Búlgaro)',flag:'🇧🇬'},
-  {id:'bi',label:'Bislama',flag:'🇻🇺'},
   {id:'bn',label:'বাংলা (Bengalí)',flag:'🇧🇩'},
-  {id:'bs',label:'Bosanski (Bosnio)',flag:'🇧🇦'},
-  {id:'ca',label:'Català (Catalán)',flag:'🇦🇩'},
-  {id:'cs',label:'Čeština (Checo)',flag:'🇨🇿'},
-  {id:'da',label:'Dansk (Danés)',flag:'🇩🇰'},
   {id:'de',label:'Deutsch (Alemán)',flag:'🇩🇪'},
-  {id:'dv',label:'Maldiviano',flag:'🇲🇻'},
-  {id:'dz',label:'Dzongkha',flag:'🇧🇹'},
-  {id:'el',label:'Ελληνικά (Griego)',flag:'🇬🇷'},
   {id:'en',label:'English (Inglés)',flag:'🇬🇧'},
   {id:'es',label:'Español',flag:'🇪🇸'},
-  {id:'et',label:'Eesti (Estonio)',flag:'🇪🇪'},
-  {id:'fa',label:'Farsi (Persa)',flag:'🇮🇷'},
-  {id:'fi',label:'Suomi (Finlandés)',flag:'🇫🇮'},
+  {id:'fa',label:'فارسی (Persa)',flag:'🇮🇷'},
   {id:'fr',label:'Français (Francés)',flag:'🇫🇷'},
-  {id:'he',label:'Hebrew (Hebreo)',flag:'🇮🇱'},
-  {id:'hi',label:'Hindi',flag:'🇮🇳'},
-  {id:'hr',label:'Hrvatski (Croata)',flag:'🇭🇷'},
-  {id:'hu',label:'Magyar (Húngaro)',flag:'🇭🇺'},
-  {id:'hy',label:'Armenian (Armenio)',flag:'🇦🇲'},
+  {id:'hi',label:'हिन्दी (Hindi)',flag:'🇮🇳'},
   {id:'id',label:'Bahasa Indonesia',flag:'🇮🇩'},
-  {id:'is',label:'Íslenska (Islandés)',flag:'🇮🇸'},
   {id:'it',label:'Italiano',flag:'🇮🇹'},
   {id:'ja',label:'日本語 (Japonés)',flag:'🇯🇵'},
-  {id:'ka',label:'Georgiano',flag:'🇬🇪'},
-  {id:'kk',label:'Kazajo',flag:'🇰🇿'},
-  {id:'km',label:'Jemer',flag:'🇰🇭'},
   {id:'ko',label:'한국어 (Coreano)',flag:'🇰🇷'},
-  {id:'ky',label:'Kirguís',flag:'🇰🇬'},
-  {id:'lo',label:'Laosiano',flag:'🇱🇦'},
-  {id:'lt',label:'Lietuvių (Lituano)',flag:'🇱🇹'},
-  {id:'lv',label:'Latviešu (Letón)',flag:'🇱🇻'},
-  {id:'mg',label:'Malagasy',flag:'🇲🇬'},
-  {id:'mk',label:'Macedonio',flag:'🇲🇰'},
-  {id:'mn',label:'Mongol',flag:'🇲🇳'},
-  {id:'ms',label:'Bahasa Melayu (Malayo)',flag:'🇲🇾'},
-  {id:'mt',label:'Maltés',flag:'🇲🇹'},
-  {id:'my',label:'Birmano',flag:'🇲🇲'},
-  {id:'ne',label:'Nepalés',flag:'🇳🇵'},
-  {id:'nl',label:'Nederlands (Neerlandés)',flag:'🇳🇱'},
-  {id:'no',label:'Norsk (Noruego)',flag:'🇳🇴'},
   {id:'pl',label:'Polski (Polaco)',flag:'🇵🇱'},
   {id:'pt',label:'Português',flag:'🇧🇷'},
-  {id:'ro',label:'Română (Rumano)',flag:'🇷🇴'},
   {id:'ru',label:'Русский (Ruso)',flag:'🇷🇺'},
-  {id:'rw',label:'Kinyarwanda',flag:'🇷🇼'},
-  {id:'si',label:'Cingalés',flag:'🇱🇰'},
-  {id:'sk',label:'Slovenčina (Eslovaco)',flag:'🇸🇰'},
-  {id:'sl',label:'Esloveno',flag:'🇸🇮'},
-  {id:'sm',label:'Samoan',flag:'🇼🇸'},
-  {id:'so',label:'Somalí',flag:'🇸🇴'},
-  {id:'sq',label:'Shqip (Albanés)',flag:'🇦🇱'},
-  {id:'sr',label:'Srpski (Serbio)',flag:'🇷🇸'},
-  {id:'st',label:'Sesotho',flag:'🇱🇸'},
-  {id:'sv',label:'Svenska (Sueco)',flag:'🇸🇪'},
   {id:'sw',label:'Kiswahili (Suajili)',flag:'🇹🇿'},
-  {id:'tg',label:'Tayiko',flag:'🇹🇯'},
-  {id:'th',label:'Thai (Tailandés)',flag:'🇹🇭'},
-  {id:'ti',label:'Tigriña',flag:'🇪🇷'},
-  {id:'tk',label:'Turcomano',flag:'🇹🇲'},
-  {id:'tl',label:'Filipino',flag:'🇵🇭'},
-  {id:'to',label:'Tongano',flag:'🇹🇴'},
-  {id:'uk',label:'Українська (Ucraniano)',flag:'🇺🇦'},
-  {id:'ur',label:'Urdu',flag:'🇵🇰'},
-  {id:'uz',label:'Uzbeko',flag:'🇺🇿'},
+  {id:'tr',label:'Türkçe (Turco)',flag:'🇹🇷'},
+  {id:'ur',label:'اردو (Urdu)',flag:'🇵🇰'},
   {id:'vi',label:'Tiếng Việt (Vietnamita)',flag:'🇻🇳'},
   {id:'zh',label:'中文 (Chino)',flag:'🇨🇳'}
 ];
@@ -5583,6 +5530,11 @@ function _selectCountry(field,labelId,name){
   var lbl=document.getElementById(labelId);
   if(inp)inp.value=name;
   if(lbl){lbl.textContent=flag+' '+name;lbl.style.color='var(--text)';}
+  if(field==='cfg-country'&&!S._langUserSet){
+    var _cLang=COUNTRY_DATA[name]&&COUNTRY_DATA[name].lang||'';
+    var _sup=['es','en','zh','hi','ar','pt','fr','ru','bn','id','de','ja','tr','ko','vi','it','pl','fa','sw','ur'];
+    if(_cLang&&_sup.indexOf(_cLang)!==-1){S.language=_cLang;saveState();}
+  }
   closePickerScreen();
 }
 function showPhoneCodePickerScreen(){
@@ -5703,6 +5655,7 @@ function showLangPickerScreen(){
 }
 function _selectLang(id){
   S.language=id;
+  S._langUserSet=true;
   saveState();
   applyLanguage();
   closePickerScreen();
@@ -6198,7 +6151,9 @@ function removeProfilePhoto(){
   };
   reader.readAsDataURL(file);
 }function saveLanguage(v){
-  S.language=v;saveState();
+  S.language=v;
+  if(v)S._langUserSet=true;
+  saveState();
   applyLanguage();
   renderPage(S.currentPage);
   renderPage('configuracion');
