@@ -5841,7 +5841,7 @@ function buildProfileFormHTML(){
         +'<span id="cfg-profession-lbl" style="font-size:14px;color:'+(p.profession?'var(--text)':'var(--text3)')+'">'+(p.profession||'Seleccionar profesión u oficio')+'</span>'
         +'<span style="color:var(--text3);font-size:18px">›</span>'
       +'</div>'
-      +'<input type="hidden" id="cfg-profession" value="'+(p.profession||'')+'"></div>';
+      +'<input type="hidden" id="cfg-profession" value="'+(p.profession||'')+'"></div>'
     +'<div class="form-group"><label class="form-label">Estado civil</label>'
       +'<div class="bs-trigger" onclick="showBS_simple(\'cfg-marital\',\'-lbl\',\'Estado civil\',[\'Soltero/a\',\'Casado/a\',\'Unión libre\',\'Divorciado/a\',\'Viudo/a\'],\'Seleccionar estado civil\',true)">'
         +'<span style="font-size:14px;color:'+(p.marital?'var(--text)':'var(--text3)')+'" id="cfg-marital-lbl">'+(p.marital||'Seleccionar estado civil')+'</span>'
@@ -5853,7 +5853,7 @@ function buildProfileFormHTML(){
         +'<span style="font-size:14px;color:'+(p.financialGoal?'var(--text)':'var(--text3)')+'" id="cfg-goal-lbl">'+(p.financialGoal||'Seleccionar objetivo')+'</span>'
         +'<span style="color:var(--text3);font-size:18px">›</span>'
       +'</div>'
-      +'<input type="hidden" id="cfg-goal" value="'+(p.financialGoal||'')+'"></div>'
+      +'<input type="hidden" id="cfg-goal" value="'+(p.financialGoal||'')+'"></div>';
   return html;
 }
 
