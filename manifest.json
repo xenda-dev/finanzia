@@ -4,6 +4,8 @@
   "description": "Tu asistente de finanzas personales con IA",
   "start_url": "/",
   "display": "standalone",
+  "scope": "/",
+  "capture_links": "existing-client-event",
   "background_color": "#F8FAFC",
   "theme_color": "#F8FAFC",
   "orientation": "portrait-primary",
