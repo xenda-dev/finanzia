@@ -1402,46 +1402,67 @@ async function initAuth(){
 function _showOnboarding(){
   var slides=[
     {
-      icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
-      title:'Tu dinero, bajo control',
-      sub:'Gestiona tus finanzas personales con claridad, en cualquier divisa y desde cualquier lugar.'
+      accent:'#00D4AA',
+      accentB:'#00A884',
+      iconBg:'linear-gradient(135deg,#00D4AA,#00A884)',
+      glow:'rgba(0,212,170,.35)',
+      icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+      title:'Toma el control total\nde tu dinero',
+      sub:'Centraliza tus cuentas, ingresos y gastos en un solo lugar. Visualiza tu salud financiera en tiempo real.'
     },
     {
-      icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 8h4M6 11h8M6 14h4"/></svg>',
-      title:'Todo en un solo lugar',
-      sub:'Cuentas, presupuestos, metas, deudas y movimientos — todo organizado y sincronizado en tiempo real.'
+      accent:'#7461EF',
+      accentB:'#5A48D4',
+      iconBg:'linear-gradient(135deg,#7461EF,#5A48D4)',
+      glow:'rgba(116,97,239,.35)',
+      icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><path d="M18 2l4 4-4 4"/><path d="M22 2l-4 4"/></svg>',
+      title:'Decisiones inteligentes\ncon IA',
+      sub:'Recibe consejos personalizados para ahorrar más y gastar mejor. Nuestros algoritmos detectan patrones y optimizan tus presupuestos.'
     },
     {
-      icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
-      title:'Hecha para el mundo',
-      sub:'Soporte para múltiples monedas e idiomas. Perfecta si vives entre dos países o trabajas con divisas distintas.'
+      accent:'#00D4AA',
+      accentB:'#00A884',
+      iconBg:'linear-gradient(135deg,#00D4AA,#00A884)',
+      glow:'rgba(0,212,170,.35)',
+      icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>',
+      title:'Tus datos,\nblindados',
+      sub:'Tu información viaja cifrada y protegida con acceso biométrico. Tus datos financieros son solo tuyos.'
     }
   ];
   var cur=0;
   var ov=document.createElement('div');
   ov.id='onboarding-screen';
-  ov.style.cssText='position:fixed;inset:0;z-index:9998;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
+  ov.style.cssText='position:fixed;inset:0;z-index:9998;display:flex;flex-direction:column;overflow:hidden';
+  // Inject keyframe animation once
+  if(!document.getElementById('ob-anim-style')){
+    var st=document.createElement('style');
+    st.id='ob-anim-style';
+    st.textContent='@keyframes obGradShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}';
+    document.head.appendChild(st);
+  }
   function render(){
     var s=slides[cur];
     var isLast=cur===slides.length-1;
+    var titleLines=s.title.replace('\n','<br>');
     var dots=slides.map(function(_,i){
-      return '<div style="width:'+(i===cur?'20px':'8px')+';height:8px;border-radius:4px;background:'+(i===cur?'var(--primary)':'var(--border)')+';transition:.3s"></div>';
+      return '<div style="width:'+(i===cur?'20px':'8px')+';height:8px;border-radius:4px;background:'+(i===cur?s.accent:'rgba(128,128,128,.3)')+';transition:.3s"></div>';
     }).join('');
+    ov.style.background='linear-gradient(135deg,'+s.accent+'18 0%,'+s.accentB+'08 40%,#0A0F1E 70%)';
     ov.innerHTML=
       '<div style="display:flex;justify-content:flex-end;padding:16px 20px;flex-shrink:0">'
-        +'<button onclick="_finishOnboarding()" style="border:none;background:transparent;color:var(--text3);font-size:14px;cursor:pointer;font-family:var(--font);padding:8px">Omitir</button>'
+        +'<button onclick="_finishOnboarding()" style="border:none;background:transparent;color:rgba(255,255,255,.45);font-size:14px;cursor:pointer;font-family:var(--font);padding:8px">Saltar</button>'
       +'</div>'
       +'<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 32px;text-align:center">'
-        +'<div style="width:120px;height:120px;border-radius:32px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;margin-bottom:36px;box-shadow:0 12px 40px rgba(0,212,170,.3)">'
+        +'<div style="width:128px;height:128px;border-radius:36px;background:'+s.iconBg+';display:flex;align-items:center;justify-content:center;margin-bottom:36px;box-shadow:0 16px 48px '+s.glow+',0 0 0 1px rgba(255,255,255,.08)">'
           +s.icon
         +'</div>'
-        +'<div style="font-size:26px;font-weight:900;color:var(--text);line-height:1.2;margin-bottom:16px">'+s.title+'</div>'
-        +'<div style="font-size:16px;color:var(--text2);line-height:1.6;max-width:320px">'+s.sub+'</div>'
+        +'<div style="font-size:28px;font-weight:900;color:white;line-height:1.2;margin-bottom:16px;letter-spacing:-.3px">'+titleLines+'</div>'
+        +'<div style="font-size:15px;color:rgba(255,255,255,.65);line-height:1.7;max-width:300px">'+s.sub+'</div>'
       +'</div>'
-      +'<div style="padding:24px 24px 40px;display:flex;flex-direction:column;align-items:center;gap:24px;flex-shrink:0">'
+      +'<div style="padding:24px 24px 44px;display:flex;flex-direction:column;align-items:center;gap:20px;flex-shrink:0">'
         +'<div style="display:flex;align-items:center;gap:8px">'+dots+'</div>'
-        +'<button onclick="_onboardingNext()" style="width:100%;padding:16px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px">'
-          +(isLast?'¡Comenzar!':'Siguiente')
+        +'<button onclick="_onboardingNext()" style="width:100%;padding:16px;border-radius:50px;background:linear-gradient(135deg,'+s.accent+','+s.accentB+');border:none;color:white;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px;box-shadow:0 8px 24px '+s.glow+'">'
+          +(isLast?'¡Comenzar ahora!':'Siguiente')
         +'</button>'
       +'</div>';
   }
