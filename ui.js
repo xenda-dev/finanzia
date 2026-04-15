@@ -7962,7 +7962,10 @@ function openSiguenos(){
   ov.innerHTML='<div onclick="document.getElementById(\'siguenos-sheet\').remove()" style="flex:1;background:rgba(0,0,0,.5)"></div>'
     +'<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 32px">'
       +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
-      +'<div style="padding:12px 20px 8px;font-size:17px;font-weight:800">Síguenos</div>'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px">'
+        +'<div style="font-size:17px;font-weight:800">Síguenos</div>'
+        +'<button onclick="document.getElementById(\'siguenos-sheet\').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px">✕</button>'
+      +'</div>'
       +'<div style="padding:0 8px">'+rows+'</div>'
     +'</div>';
   document.body.appendChild(ov);
@@ -7998,9 +8001,9 @@ function openSoporteModal(){
     +'</div>'
     +'<div id="soporte-form-wrap" style="flex:1;overflow-y:auto;padding:0 16px 24px">'
       +'<div class="form-group"><label class="form-label">Nombre</label>'
-        +'<input class="form-input" type="text" id="sop-nombre" value="'+name+'" placeholder="Tu nombre"></div>'
+        +'<input class="form-input" type="text" id="sop-nombre" value="'+name+'" placeholder="Tu nombre" readonly style="opacity:.65;cursor:not-allowed"></div>'
       +'<div class="form-group"><label class="form-label">Email</label>'
-        +'<input class="form-input" type="email" id="sop-email" value="'+email+'" placeholder="tu@email.com"></div>'
+        +'<input class="form-input" type="email" id="sop-email" value="'+email+'" placeholder="tu@email.com" readonly style="opacity:.65;cursor:not-allowed"></div>'
       +'<div class="form-group"><label class="form-label">Asunto</label>'
         +'<div class="bs-trigger" id="sop-asunto-trigger" onclick="_showSoporteAsuntoBS()">'
           +'<span id="sop-asunto-lbl" style="font-size:14px;color:var(--text3)">Selecciona un asunto...</span>'
@@ -8083,4 +8086,80 @@ function openAcercaDeModal(){
     +'</div>'
   +'</div>';
   document.body.appendChild(ov);
+}
+
+// ════════════════════════════════════════════════════════════
+// TÉRMINOS Y PRIVACIDAD
+// ════════════════════════════════════════════════════════════
+function openTerminosModal(){
+  var ov=document.createElement('div');
+  ov.id='terminos-modal';
+  ov.style.cssText='position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);display:flex;align-items:flex-end';
+  var tabs=[
+    {id:'tab-tc',label:'Términos'},
+    {id:'tab-pp',label:'Privacidad'}
+  ];
+  var tcContent=''
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">1. Descripción del servicio</h3>'
+    +'<p style="margin:0 0 14px">FinanzIA es una aplicación de gestión de finanzas personales desarrollada y operada por <strong>Xenda.co</strong>. Permite registrar ingresos, gastos, cuentas, presupuestos, metas y deudas, con sincronización en tiempo real entre dispositivos.</p>'
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">2. Elegibilidad</h3>'
+    +'<p style="margin:0 0 14px">Para usar FinanzIA debes tener al menos 18 años, capacidad legal para aceptar estos términos y proporcionar información veraz durante el registro.</p>'
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">3. Uso aceptable</h3>'
+    +'<p style="margin:0 0 14px">Eres responsable de mantener la seguridad de tu cuenta y contraseña. No debes usar FinanzIA para actividades ilegales, fraudulentas o que vulneren derechos de terceros.</p>'
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">4. Limitación de responsabilidad</h3>'
+    +'<p style="margin:0 0 6px;padding:10px 12px;background:rgba(239,68,68,.07);border-radius:8px;font-size:13px;color:var(--text)"><strong>⚠️ FinanzIA es una herramienta de análisis financiero personal, no un asesor financiero certificado.</strong> Los análisis y sugerencias son de carácter informativo. Xenda.co no se responsabiliza por decisiones financieras tomadas con base en la información de la app.</p>'
+    +'<p style="margin:12px 0 14px">Xenda.co no será responsable por daños indirectos, pérdida de datos o interrupciones del servicio fuera de su control.</p>'
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">5. Cancelación de cuenta</h3>'
+    +'<p style="margin:0 0 14px">Puedes eliminar tu cuenta en cualquier momento desde Configuración. Tus datos permanecerán disponibles 30 días para posible reactivación; después se eliminarán permanentemente.</p>'
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">6. Modificaciones</h3>'
+    +'<p style="margin:0 0 14px">Xenda.co puede actualizar estos términos. Te notificaremos por email ante cambios significativos. El uso continuado implica aceptación.</p>'
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">7. Contacto</h3>'
+    +'<p style="margin:0">Para consultas: <strong>soporte@xenda.co</strong> · <a href="https://xenda.co" target="_blank" style="color:var(--primary)">xenda.co</a></p>';
+
+  var ppContent=''
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">1. Información que recopilamos</h3>'
+    +'<p style="margin:0 0 14px">Recopilamos: nombre, correo electrónico, país y moneda de preferencia. También los datos financieros que ingresas voluntariamente (cuentas, transacciones, metas, deudas). No accedemos a tu información bancaria real.</p>'
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">2. Cómo usamos tu información</h3>'
+    +'<p style="margin:0 0 14px">Usamos tus datos exclusivamente para: proveer y mejorar FinanzIA, generar análisis financieros personalizados, sincronizar tu información entre dispositivos y comunicarnos contigo sobre el servicio.</p>'
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">3. Protección de datos</h3>'
+    +'<p style="margin:0 0 14px">Tu información viaja cifrada (SSL/TLS) y se almacena de forma segura en Supabase. El acceso está restringido únicamente a tu cuenta mediante autenticación segura.</p>'
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">4. NO vendemos tus datos</h3>'
+    +'<p style="margin:0 0 6px;padding:10px 12px;background:rgba(0,212,170,.08);border-radius:8px;font-size:13px;color:var(--text)"><strong>✅ Xenda.co no vende, alquila ni comparte tu información personal con terceros con fines comerciales.</strong></p>'
+    +'<p style="margin:12px 0 14px">Solo compartimos datos con proveedores de infraestructura bajo estrictos acuerdos de confidencialidad, o cuando lo exija la ley.</p>'
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">5. Tus derechos</h3>'
+    +'<p style="margin:0 0 14px">Tienes derecho a acceder, rectificar, exportar y eliminar tus datos. Para ejercer estos derechos contacta: <strong>soporte@xenda.co</strong></p>'
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">6. Menores de edad</h3>'
+    +'<p style="margin:0 0 14px">FinanzIA no está dirigida a menores de 18 años. Si detectamos datos de menores, los eliminamos inmediatamente.</p>'
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">7. Contacto</h3>'
+    +'<p style="margin:0">Dudas sobre privacidad: <strong>soporte@xenda.co</strong> · <a href="https://xenda.co" target="_blank" style="color:var(--primary)">xenda.co</a><br><span style="font-size:12px;color:var(--text3)">Última actualización: abril 2026</span></p>';
+
+  ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:88vh;display:flex;flex-direction:column;overflow:hidden">'
+    +'<div style="display:flex;justify-content:center;padding:12px 0 4px;flex-shrink:0"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px;flex-shrink:0">'
+      +'<div style="font-size:17px;font-weight:800">Términos y privacidad</div>'
+      +'<button onclick="document.getElementById(\'terminos-modal\').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px">✕</button>'
+    +'</div>'
+    +'<div style="display:flex;gap:4px;padding:0 16px 12px;flex-shrink:0">'
+      +'<button id="tab-tc" onclick="_switchTerminosTab(\'tc\')" style="flex:1;padding:8px;border-radius:50px;border:none;background:var(--primary);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Términos</button>'
+      +'<button id="tab-pp" onclick="_switchTerminosTab(\'pp\')" style="flex:1;padding:8px;border-radius:50px;border:none;background:var(--surface2);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">Privacidad</button>'
+    +'</div>'
+    +'<div id="terminos-content" style="flex:1;overflow-y:auto;padding:0 20px 32px;font-size:14px;color:var(--text2);line-height:1.6">'
+      +tcContent
+    +'</div>'
+  +'</div>';
+  ov._tcContent=tcContent;
+  ov._ppContent=ppContent;
+  document.body.appendChild(ov);
+}
+function _switchTerminosTab(tab){
+  var ov=document.getElementById('terminos-modal');
+  var con=document.getElementById('terminos-content');
+  var btnTc=document.getElementById('tab-tc');
+  var btnPp=document.getElementById('tab-pp');
+  if(!ov||!con)return;
+  var isTc=tab==='tc';
+  con.innerHTML=isTc?ov._tcContent:ov._ppContent;
+  con.scrollTop=0;
+  if(btnTc){btnTc.style.background=isTc?'var(--primary)':'var(--surface2)';btnTc.style.color=isTc?'white':'var(--text2)';btnTc.style.fontWeight=isTc?'700':'600';}
+  if(btnPp){btnPp.style.background=isTc?'var(--surface2)':'var(--primary)';btnPp.style.color=isTc?'var(--text2)':'white';btnPp.style.fontWeight=isTc?'600':'700';}
 }
