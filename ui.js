@@ -7942,28 +7942,48 @@ function invitarAmigos(){
 }
 
 function openSiguenos(){
+  var items=[
+    {name:'Instagram',handle:'@xenda.co',url:'https://instagram.com/xenda.co',bg:'radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%)',svg:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="white" stroke="none"/></svg>'},
+    {name:'TikTok',handle:'@xenda.co',url:'https://tiktok.com/@xenda.co',bg:'#010101',svg:'<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.77 1.52V6.76a4.85 4.85 0 01-1-.07z"/></svg>'},
+    {name:'X (Twitter)',handle:'@xendaco',url:'https://x.com/xendaco',bg:'#000000',svg:'<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.738-8.835L1.254 2.25H8.08l4.261 5.632 5.903-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>'},
+    {name:'Facebook',handle:'Xenda.co',url:'https://facebook.com/xendaco',bg:'#1877F2',svg:'<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>'},
+    {name:'LinkedIn',handle:'Xenda.co',url:'https://linkedin.com/company/xenda',bg:'#0A66C2',svg:'<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>'},
+    {name:'YouTube',handle:'Xenda.co',url:'https://youtube.com/@xendaco',bg:'#FF0000',svg:'<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#FF0000"/></svg>'}
+  ];
   var ov=document.createElement('div');
   ov.id='siguenos-sheet';
   ov.style.cssText='position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;justify-content:flex-end';
+  var rows=items.map(function(it){
+    return '<a href="'+it.url+'" target="_blank" rel="noopener" onclick="document.getElementById(\'siguenos-sheet\').remove()" style="display:flex;align-items:center;gap:14px;padding:12px;border-radius:12px;text-decoration:none;color:var(--text)">'
+      +'<div style="width:42px;height:42px;border-radius:12px;background:'+it.bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+it.svg+'</div>'
+      +'<div><div style="font-size:14px;font-weight:700">'+it.name+'</div><div style="font-size:12px;color:var(--text3)">'+it.handle+'</div></div>'
+      +'</a>';
+  }).join('');
   ov.innerHTML='<div onclick="document.getElementById(\'siguenos-sheet\').remove()" style="flex:1;background:rgba(0,0,0,.5)"></div>'
     +'<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 32px">'
       +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
-      +'<div style="padding:16px 20px 12px;font-size:17px;font-weight:800">Síguenos</div>'
-      +'<div style="padding:0 16px;display:flex;flex-direction:column;gap:4px">'
-        +_siguienosItem('📸','Instagram','@xenda.co','https://instagram.com/xenda.co')
-        +_siguienosItem('💼','LinkedIn','Xenda.co','https://linkedin.com/company/xenda')
-        +_siguienosItem('🌐','Sitio web','xenda.co','https://xenda.co')
-      +'</div>'
+      +'<div style="padding:12px 20px 8px;font-size:17px;font-weight:800">Síguenos</div>'
+      +'<div style="padding:0 8px">'+rows+'</div>'
     +'</div>';
   document.body.appendChild(ov);
 }
-function _siguienosItem(icon,name,handle,url){
-  return '<a href="'+url+'" target="_blank" rel="noopener" onclick="document.getElementById(\'siguenos-sheet\').remove()" style="display:flex;align-items:center;gap:14px;padding:14px 12px;border-radius:12px;text-decoration:none;color:var(--text)">'
-    +'<div style="width:40px;height:40px;border-radius:12px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+icon+'</div>'
-    +'<div><div style="font-size:14px;font-weight:700">'+name+'</div><div style="font-size:12px;color:var(--text3)">'+handle+'</div></div>'
-    +'</a>';
-}
 
+var _SOPORTE_ASUNTOS=['No puedo iniciar sesión','Problema con mis datos','La app no funciona correctamente','Consulta sobre la app','Sugerencia o mejora','Eliminar mi cuenta','Otro'];
+function _showSoporteAsuntoBS(){
+  var cur=document.getElementById('sop-asunto')?document.getElementById('sop-asunto').value:'';
+  showBottomSheet({
+    title:'Asunto',
+    items:_SOPORTE_ASUNTOS.map(function(a){return{val:a,label:a};}),
+    selected:cur,
+    searchable:false,
+    onSelect:function(val){
+      var inp=document.getElementById('sop-asunto');
+      var lbl=document.getElementById('sop-asunto-lbl');
+      if(inp)inp.value=val;
+      if(lbl){lbl.textContent=val;lbl.style.color='var(--text)';}
+    }
+  });
+}
 function openSoporteModal(){
   var name=(S.profile&&S.profile.name)||'';
   var email=(S.profile&&S.profile.email)||(window._currentUser&&window._currentUser.email?window._currentUser.email:'')||'';
@@ -7982,18 +8002,13 @@ function openSoporteModal(){
       +'<div class="form-group"><label class="form-label">Email</label>'
         +'<input class="form-input" type="email" id="sop-email" value="'+email+'" placeholder="tu@email.com"></div>'
       +'<div class="form-group"><label class="form-label">Asunto</label>'
-        +'<select class="form-select" id="sop-asunto">'
-          +'<option value="">Selecciona un asunto...</option>'
-          +'<option>No puedo iniciar sesión</option>'
-          +'<option>Problema con mis datos</option>'
-          +'<option>La app no funciona correctamente</option>'
-          +'<option>Consulta sobre la app</option>'
-          +'<option>Sugerencia o mejora</option>'
-          +'<option>Eliminar mi cuenta</option>'
-          +'<option>Otro</option>'
-        +'</select></div>'
+        +'<div class="bs-trigger" id="sop-asunto-trigger" onclick="_showSoporteAsuntoBS()">'
+          +'<span id="sop-asunto-lbl" style="font-size:14px;color:var(--text3)">Selecciona un asunto...</span>'
+          +'<span style="color:var(--text3);font-size:18px">›</span>'
+        +'</div>'
+        +'<input type="hidden" id="sop-asunto" value=""></div>'
       +'<div class="form-group"><label class="form-label">Mensaje</label>'
-        +'<textarea class="form-input" id="sop-mensaje" rows="4" placeholder="Describe tu consulta o problema..." style="resize:none;min-height:100px"></textarea></div>'
+        +'<textarea class="form-input" id="sop-mensaje" rows="7" placeholder="Describe tu consulta o problema..." style="resize:none;min-height:160px"></textarea></div>'
       +'<button onclick="_enviarSoporte()" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Enviar mensaje</button>'
     +'</div>'
   +'</div>';
@@ -8049,8 +8064,8 @@ function openAcercaDeModal(){
       +'<button onclick="document.getElementById(\'acercade-modal\').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px">✕</button>'
     +'</div>'
     +'<div style="display:flex;flex-direction:column;align-items:center;padding:12px 24px 24px;text-align:center">'
-      +'<div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,212,170,.25)">'
-        +'<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'
+      +'<div style="width:80px;height:80px;border-radius:20px;overflow:hidden;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,212,170,.25)">'
+        +'<img src="/icon-192.png" style="width:100%;height:100%;object-fit:cover">'
       +'</div>'
       +'<div style="font-size:26px;font-weight:900;letter-spacing:-.5px;margin-bottom:4px">'
         +'<span style="color:var(--text)">Finanz</span><span style="color:var(--primary)">IA</span>'
