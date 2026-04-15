@@ -463,7 +463,7 @@ function _injectLogoutBtn(){
   var container = document.createElement('div');
   container.id = 'drawer-logout-btn';
   container.setAttribute('onclick', 'signOut()');
-  container.style.cssText = 'padding:12px 16px;border-top:1px solid var(--border);margin-top:4px;cursor:pointer';
+  container.style.cssText = 'padding:8px 16px;border-top:1px solid var(--border);margin-top:2px;cursor:pointer;flex-shrink:0';
   container.innerHTML =
     '<div style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:50px;background:rgba(239,68,68,.08);color:var(--danger);font-size:14px;font-weight:600;font-family:var(--font)">'
     +'<div style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center">'

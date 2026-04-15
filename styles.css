@@ -32,18 +32,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .nav-item.active{color:var(--primary)}
 .nav-icon{width:22px;height:22px}
 .nav-fab{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 20px rgba(0,212,170,.5);font-size:26px;line-height:1;flex-shrink:0;margin-top:-16px}
-#drawer{position:fixed;top:0;left:-290px;width:290px;height:100%;background:var(--surface);z-index:200;transition:.3s ease;overflow-y:auto;padding-bottom:40px}
+#drawer{position:fixed;top:0;left:-290px;width:290px;height:100%;background:var(--surface);z-index:200;transition:.3s ease;overflow:hidden;display:flex;flex-direction:column;}
 #drawer.open{left:0;box-shadow:4px 0 32px rgba(0,0,0,.6)}
 #overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:190;opacity:0;pointer-events:none;transition:.3s}
 #overlay.active{opacity:1;pointer-events:all}
-.drawer-header{padding:52px 16px 16px;background:linear-gradient(160deg,var(--surface2),var(--surface));border-bottom:1px solid var(--border);flex-shrink:0;cursor:pointer}
+.drawer-header{padding:44px 16px 12px;background:linear-gradient(160deg,var(--surface2),var(--surface));border-bottom:1px solid var(--border);flex-shrink:0;cursor:pointer}
 .drawer-profile{display:flex;align-items:center;gap:12px}
 .drawer-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;border:2px solid var(--primary)}
 .drawer-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .drawer-profile-info{flex:1;min-width:0}
 .drawer-profile-name{font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .drawer-profile-email{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
-.drawer-nav{flex:1;overflow-y:auto;padding-bottom:8px}
+.drawer-nav{flex:1;overflow:hidden;padding-bottom:4px}
 .drawer-footer{padding:10px 20px 16px;border-top:1px solid var(--border);text-align:center;flex-shrink:0}
 .drawer-footer-brand{font-size:14px;font-weight:800;color:var(--primary)}
 .drawer-footer-brand span{color:var(--primary)}
@@ -58,11 +58,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .drawer-group-toggle:hover{color:var(--text2)}
 .dgl-arrow{font-size:9px;transition:transform .2s}
 .dgl-arrow.collapsed{transform:rotate(-90deg)}
-.drawer-item{display:flex;align-items:center;gap:12px;padding:12px 20px;color:var(--text2);cursor:pointer;transition:.15s;font-size:14px;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
+.drawer-item{display:flex;align-items:center;gap:12px;padding:9px 20px;color:var(--text2);cursor:pointer;transition:.15s;font-size:14px;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
 .drawer-item:hover,.drawer-item.active{color:var(--text);background:var(--surface2)}
 .drawer-item.active{border-left:3px solid var(--primary);padding-left:17px}
 .drawer-item-icon{width:30px;height:30px;border-radius:8px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.drawer-group-portal{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;color:var(--text2);cursor:pointer;transition:.15s;font-size:14px;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
+.drawer-group-portal{display:flex;align-items:center;justify-content:space-between;padding:9px 20px;color:var(--text2);cursor:pointer;transition:.15s;font-size:14px;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
 .drawer-group-portal:hover{color:var(--text);background:var(--surface2)}
 .ai-chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 56px - var(--nav-h) - 20px);background:var(--surface);overflow:hidden;margin:-16px -16px 0}
 .ai-chat-header{background:linear-gradient(135deg,#075E54,#128C7E);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
