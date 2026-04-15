@@ -1410,10 +1410,10 @@ function _showOnboarding(){
       sub:'Centraliza tus cuentas, ingresos y gastos en un solo lugar. Visualiza tu salud financiera en tiempo real.'
     },
     {
-      accent:'#7461EF',
-      shadow:'rgba(116,97,239,.25)',
-      btnGrad:'linear-gradient(135deg,#7461EF,#5A48D4)',
-      icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>',
+      accent:'#00D4AA',
+      shadow:'rgba(0,212,170,.25)',
+      btnGrad:'linear-gradient(135deg,#00D4AA,#00A884)',
+      icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-3.16A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-3.16A2.5 2.5 0 0 0 14.5 2z"/></svg>',
       title:'Decisiones inteligentes<br>con IA',
       sub:'Recibe consejos personalizados para ahorrar m\u00e1s y gastar mejor. Nuestros algoritmos detectan patrones y optimizan tus presupuestos.'
     },
@@ -1422,7 +1422,7 @@ function _showOnboarding(){
       shadow:'rgba(0,212,170,.25)',
       btnGrad:'linear-gradient(135deg,#00D4AA,#00A884)',
       icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>',
-      title:'Tu privacidad es prioridad',
+      title:'Tu privacidad es primero',
       sub:'Tu informaci\u00f3n viaja cifrada y protegida con acceso biom\u00e9trico. Tus datos financieros son solo tuyos.'
     }
   ];
