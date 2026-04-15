@@ -1267,17 +1267,25 @@ async function _startBioFromWelcome(){
       // Bio exitosa → validar con servidor antes de dar acceso
       if(_supabase){
         try{
-          var rv=await _supabase.auth.getUser();
-          if(rv.error||!rv.data||!rv.data.user){
-            // Usuario eliminado o token inválido → limpiar y mostrar login
-            _currentUser=null;
-            _clearAllLocalUserData();
-            showAuthScreen();
-            _showScreen('login');
-            try{toast('Tu sesión ya no es válida. Por favor inicia sesión.');}catch(e){}
-            return;
+          // Primero intentar refrescar la sesión (maneja JWT expirado)
+          var refreshed=await _supabase.auth.refreshSession();
+          if(refreshed.data&&refreshed.data.user){
+            // Sesión refrescada correctamente
+            _currentUser=refreshed.data.user;
+          }else{
+            // refreshSession falló → verificar si el usuario realmente fue eliminado
+            var rv=await _supabase.auth.getUser();
+            if(rv.error&&rv.error.message&&rv.error.message.toLowerCase().indexOf('user')!==-1&&rv.error.message.toLowerCase().indexOf('not')!==-1){
+              // Usuario eliminado de la BD → limpiar y mostrar login
+              _currentUser=null;
+              _clearAllLocalUserData();
+              showAuthScreen();
+              _showScreen('login');
+              try{toast('Tu cuenta ya no existe. Por favor regístrate de nuevo.');}catch(e){}
+              return;
+            }
+            // Otro error (red, etc.) → acceso offline con datos locales
           }
-          _currentUser=rv.data.user;
         }catch(netErr){
           // Sin conexión → permitir acceso offline con datos locales
           console.warn('Bio server check fallido (posiblemente offline):',netErr);

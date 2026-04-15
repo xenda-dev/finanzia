@@ -6058,9 +6058,23 @@ const COUNTRY_DATA={
 function saveProfile(){
   if(!S.profile)S.profile={};
   const g=(id)=>document.getElementById(id)?.value||'';
-  // Required field validation
+  // Validación de campos obligatorios
   const reqName=g('cfg-name').trim();
-  if(!reqName){toast('⚠️ El nombre es obligatorio');document.getElementById('cfg-name')?.focus();return;}
+  const reqPhone=g('cfg-phone').trim();
+  const reqPhoneCode=g('cfg-phone-code').trim();
+  const reqCountry=g('cfg-country').trim();
+  const reqResidence=g('cfg-residence').trim();
+  const reqGoal=g('cfg-goal').trim();
+  const errors=[];
+  if(!reqName)errors.push('Nombre y apellido');
+  if(!reqPhoneCode||!reqPhone)errors.push('Teléfono');
+  if(!reqCountry)errors.push('País de origen');
+  if(!reqResidence)errors.push('País de residencia');
+  if(!reqGoal)errors.push('Objetivo financiero');
+  if(errors.length>0){
+    toast('⚠️ Completa: '+errors.join(', '));
+    return;
+  }
   S.profile.name=reqName;S.profile.email=g('cfg-email').trim();
   console.log('Perfil guardado:', S.profile.name);
   S.profile.birthdate=g('cfg-birthdate');
