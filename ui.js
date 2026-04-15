@@ -8091,59 +8091,175 @@ function openAcercaDeModal(){
 // ════════════════════════════════════════════════════════════
 // TÉRMINOS Y PRIVACIDAD
 // ════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════
+// TÉRMINOS Y CONDICIONES / POLÍTICA DE PRIVACIDAD
+// ════════════════════════════════════════════════════════════
 function openTerminosModal(){
   var ov=document.createElement('div');
   ov.id='terminos-modal';
   ov.style.cssText='position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);display:flex;align-items:flex-end';
-  var tabs=[
-    {id:'tab-tc',label:'Términos'},
-    {id:'tab-pp',label:'Privacidad'}
-  ];
-  var tcContent=''
-    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">1. Descripción del servicio</h3>'
-    +'<p style="margin:0 0 14px">FinanzIA es una aplicación de gestión de finanzas personales desarrollada y operada por <strong>Xenda.co</strong>. Permite registrar ingresos, gastos, cuentas, presupuestos, metas y deudas, con sincronización en tiempo real entre dispositivos.</p>'
-    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">2. Elegibilidad</h3>'
-    +'<p style="margin:0 0 14px">Para usar FinanzIA debes tener al menos 18 años, capacidad legal para aceptar estos términos y proporcionar información veraz durante el registro.</p>'
-    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">3. Uso aceptable</h3>'
-    +'<p style="margin:0 0 14px">Eres responsable de mantener la seguridad de tu cuenta y contraseña. No debes usar FinanzIA para actividades ilegales, fraudulentas o que vulneren derechos de terceros.</p>'
-    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">4. Limitación de responsabilidad</h3>'
-    +'<p style="margin:0 0 6px;padding:10px 12px;background:rgba(239,68,68,.07);border-radius:8px;font-size:13px;color:var(--text)"><strong>⚠️ FinanzIA es una herramienta de análisis financiero personal, no un asesor financiero certificado.</strong> Los análisis y sugerencias son de carácter informativo. Xenda.co no se responsabiliza por decisiones financieras tomadas con base en la información de la app.</p>'
-    +'<p style="margin:12px 0 14px">Xenda.co no será responsable por daños indirectos, pérdida de datos o interrupciones del servicio fuera de su control.</p>'
-    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">5. Cancelación de cuenta</h3>'
-    +'<p style="margin:0 0 14px">Puedes eliminar tu cuenta en cualquier momento desde Configuración. Tus datos permanecerán disponibles 30 días para posible reactivación; después se eliminarán permanentemente.</p>'
-    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">6. Modificaciones</h3>'
-    +'<p style="margin:0 0 14px">Xenda.co puede actualizar estos términos. Te notificaremos por email ante cambios significativos. El uso continuado implica aceptación.</p>'
-    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">7. Contacto</h3>'
-    +'<p style="margin:0">Para consultas: <strong>soporte@xenda.co</strong> · <a href="https://xenda.co" target="_blank" style="color:var(--primary)">xenda.co</a></p>';
 
-  var ppContent=''
-    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">1. Información que recopilamos</h3>'
-    +'<p style="margin:0 0 14px">Recopilamos: nombre, correo electrónico, país y moneda de preferencia. También los datos financieros que ingresas voluntariamente (cuentas, transacciones, metas, deudas). No accedemos a tu información bancaria real.</p>'
-    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">2. Cómo usamos tu información</h3>'
-    +'<p style="margin:0 0 14px">Usamos tus datos exclusivamente para: proveer y mejorar FinanzIA, generar análisis financieros personalizados, sincronizar tu información entre dispositivos y comunicarnos contigo sobre el servicio.</p>'
-    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">3. Protección de datos</h3>'
-    +'<p style="margin:0 0 14px">Tu información viaja cifrada (SSL/TLS) y se almacena de forma segura en Supabase. El acceso está restringido únicamente a tu cuenta mediante autenticación segura.</p>'
-    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">4. NO vendemos tus datos</h3>'
-    +'<p style="margin:0 0 6px;padding:10px 12px;background:rgba(0,212,170,.08);border-radius:8px;font-size:13px;color:var(--text)"><strong>✅ Xenda.co no vende, alquila ni comparte tu información personal con terceros con fines comerciales.</strong></p>'
-    +'<p style="margin:12px 0 14px">Solo compartimos datos con proveedores de infraestructura bajo estrictos acuerdos de confidencialidad, o cuando lo exija la ley.</p>'
-    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">5. Tus derechos</h3>'
-    +'<p style="margin:0 0 14px">Tienes derecho a acceder, rectificar, exportar y eliminar tus datos. Para ejercer estos derechos contacta: <strong>soporte@xenda.co</strong></p>'
-    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">6. Menores de edad</h3>'
-    +'<p style="margin:0 0 14px">FinanzIA no está dirigida a menores de 18 años. Si detectamos datos de menores, los eliminamos inmediatamente.</p>'
-    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 8px">7. Contacto</h3>'
-    +'<p style="margin:0">Dudas sobre privacidad: <strong>soporte@xenda.co</strong> · <a href="https://xenda.co" target="_blank" style="color:var(--primary)">xenda.co</a><br><span style="font-size:12px;color:var(--text3)">Última actualización: abril 2026</span></p>';
+  var s='font-size:14px;color:var(--text2);line-height:1.7';
+  var h3='font-size:14px;font-weight:800;color:var(--text);margin:18px 0 6px';
+  var p='margin:0 0 10px';
+  var ul='margin:0 0 10px;padding-left:20px';
+  var warn='margin:10px 0;padding:10px 14px;background:rgba(239,68,68,.07);border-radius:8px;font-size:13px';
+  var ok='margin:10px 0;padding:10px 14px;background:rgba(0,212,170,.08);border-radius:8px;font-size:13px';
+  var email='<button onclick="document.getElementById(\'terminos-modal\').remove();openSoporteModal()" style="background:none;border:none;color:var(--primary);cursor:pointer;font-family:var(--font);font-size:14px;font-weight:600;text-decoration:underline;padding:0">soporte@xenda.co</button>';
 
-  ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:88vh;display:flex;flex-direction:column;overflow:hidden">'
+  var tcContent='<div style="'+s+'">'
+    +'<p style="'+p+'">Última actualización: abril 2026 · Operado por <strong>Xenda.co</strong></p>'
+
+    +'<h3 style="'+h3+'">1. Aceptación de los términos</h3>'
+    +'<p style="'+p+'">Al descargar, instalar o usar FinanzIA ("la Aplicación"), aceptas quedar vinculado por estos Términos y Condiciones ("Términos"). Si no estás de acuerdo, no uses la Aplicación. El uso continuado después de modificaciones implica aceptación de los nuevos términos.</p>'
+
+    +'<h3 style="'+h3+'">2. Descripción del servicio</h3>'
+    +'<p style="'+p+'">FinanzIA es una aplicación de gestión de finanzas personales que permite registrar cuentas, ingresos, gastos, presupuestos, metas y deudas, con sincronización en tiempo real entre dispositivos. El servicio se provee como está, sin garantías implícitas de disponibilidad continua.</p>'
+
+    +'<h3 style="'+h3+'">3. Elegibilidad</h3>'
+    +'<ul style="'+ul+'">'
+    +'<li>Tener al menos <strong>18 años</strong> de edad</li>'
+    +'<li>Tener capacidad legal para celebrar contratos en tu jurisdicción</li>'
+    +'<li>Proporcionar información veraz y completa durante el registro</li>'
+    +'<li>Mantener la seguridad de tus credenciales de acceso</li>'
+    +'</ul>'
+
+    +'<h3 style="'+h3+'">4. Uso aceptable</h3>'
+    +'<p style="'+p+'">Queda prohibido usar FinanzIA para:</p>'
+    +'<ul style="'+ul+'">'
+    +'<li>Actividades ilegales, fraudulentas o que vulneren derechos de terceros</li>'
+    +'<li>Intentar acceder a cuentas ajenas o vulnerar la seguridad del sistema</li>'
+    +'<li>Introducir malware, virus o código malicioso</li>'
+    +'<li>Realizar ingeniería inversa o descompilar la Aplicación</li>'
+    +'<li>Revender o sublicenciar el acceso al servicio</li>'
+    +'</ul>'
+
+    +'<h3 style="'+h3+'">5. Descargo financiero — IMPORTANTE</h3>'
+    +'<div style="'+warn+'"><strong>⚠️ FinanzIA es una herramienta de organización y análisis financiero personal. NO constituye asesoramiento financiero, de inversión, fiscal o legal certificado.</strong> Los análisis, sugerencias y proyecciones que muestra la Aplicación son de carácter exclusivamente informativo y educativo. Las decisiones financieras que tomes son de tu exclusiva responsabilidad.</div>'
+
+    +'<h3 style="'+h3+'">6. Propiedad intelectual</h3>'
+    +'<p style="'+p+'">Todos los derechos de propiedad intelectual sobre FinanzIA — incluyendo código, diseño, marca, logotipos y contenido — pertenecen a <strong>Xenda.co</strong>. Se te otorga una licencia limitada, no exclusiva e intransferible para usar la Aplicación según estos Términos.</p>'
+
+    +'<h3 style="'+h3+'">7. Cuentas y seguridad</h3>'
+    +'<p style="'+p+'">Eres responsable de mantener la confidencialidad de tu contraseña y PIN. Notifícanos inmediatamente ante cualquier acceso no autorizado. Xenda.co no será responsable por pérdidas derivadas del uso no autorizado de tu cuenta.</p>'
+
+    +'<h3 style="'+h3+'">8. Suspensión y eliminación</h3>'
+    +'<p style="'+p+'">Xenda.co puede suspender o terminar tu acceso si violas estos Términos. Puedes eliminar tu cuenta en cualquier momento desde Configuración. Tras la eliminación, tus datos se conservan 30 días para posible reactivación y luego se eliminan permanentemente.</p>'
+
+    +'<h3 style="'+h3+'">9. Limitación de responsabilidad</h3>'
+    +'<p style="'+p+'">En la máxima medida permitida por la ley aplicable, Xenda.co no será responsable por daños indirectos, incidentales, especiales o consecuentes, incluyendo pérdida de datos o beneficios, derivados de:</p>'
+    +'<ul style="'+ul+'">'
+    +'<li>Tu uso o incapacidad de usar la Aplicación</li>'
+    +'<li>Acceso no autorizado a tus datos por causas fuera de nuestro control</li>'
+    +'<li>Decisiones financieras basadas en información de la Aplicación</li>'
+    +'<li>Interrupciones del servicio por mantenimiento o causas de fuerza mayor</li>'
+    +'</ul>'
+
+    +'<h3 style="'+h3+'">10. Modificaciones del servicio</h3>'
+    +'<p style="'+p+'">Xenda.co se reserva el derecho de modificar, suspender o discontinuar la Aplicación en cualquier momento. Te notificaremos con antelación razonable ante cambios significativos.</p>'
+
+    +'<h3 style="'+h3+'">11. Jurisdicción y ley aplicable</h3>'
+    +'<p style="'+p+'">Estos Términos se rigen por las leyes de la <strong>República de Colombia</strong>. Cualquier disputa se resolverá ante los tribunales competentes de Colombia, sin perjuicio de las normas de protección al consumidor aplicables en tu país de residencia.</p>'
+
+    +'<h3 style="'+h3+'">12. Contacto</h3>'
+    +'<p style="'+p+'">Para consultas sobre estos Términos: '+email+'<br>Sitio web: <a href="https://xenda.co" target="_blank" style="color:var(--primary)">xenda.co</a></p>'
+    +'</div>';
+
+  var ppContent='<div style="'+s+'">'
+    +'<p style="'+p+'">Última actualización: abril 2026 · <strong>Xenda.co</strong> — Responsable del tratamiento de datos</p>'
+
+    +'<h3 style="'+h3+'">1. Información que recopilamos</h3>'
+    +'<p style="'+p+'"><strong>Datos de cuenta:</strong> Nombre y apellido, correo electrónico, país de origen y residencia, número de teléfono, profesión y foto de perfil (opcional).</p>'
+    +'<p style="'+p+'"><strong>Datos financieros:</strong> Cuentas bancarias (solo nombre y saldo, no credenciales), transacciones, presupuestos, metas, deudas y suscripciones que ingresas voluntariamente. <strong>No accedemos a tu banca en línea ni almacenamos credenciales bancarias.</strong></p>'
+    +'<p style="'+p+'"><strong>Datos técnicos:</strong> Idioma y moneda de preferencia, configuración de la app, timestamps de uso para sincronización.</p>'
+
+    +'<h3 style="'+h3+'">2. Finalidad y base legal del tratamiento</h3>'
+    +'<ul style="'+ul+'">'
+    +'<li><strong>Prestación del servicio:</strong> Sincronizar y mostrar tus datos financieros en todos tus dispositivos</li>'
+    +'<li><strong>Mejora del servicio:</strong> Análisis agregados y anónimos de uso para mejorar funcionalidades</li>'
+    +'<li><strong>Comunicación:</strong> Notificaciones sobre actualizaciones importantes del servicio</li>'
+    +'<li><strong>Cumplimiento legal:</strong> Obligaciones establecidas por la legislación aplicable</li>'
+    +'</ul>'
+    +'<p style="'+p+'">La base legal es la ejecución del contrato de servicio y tu consentimiento explícito al aceptar estos términos.</p>'
+
+    +'<h3 style="'+h3+'">3. Cómo protegemos tus datos</h3>'
+    +'<ul style="'+ul+'">'
+    +'<li>Transmisión cifrada mediante <strong>TLS/SSL</strong></li>'
+    +'<li>Almacenamiento seguro en <strong>Supabase</strong> con Row Level Security (RLS) — solo tú accedes a tus datos</li>'
+    +'<li>Autenticación segura con contraseña, PIN y/o biometría</li>'
+    +'<li>Tokens de acceso con expiración automática</li>'
+    +'<li>Sin acceso de empleados a datos financieros individuales</li>'
+    +'</ul>'
+
+    +'<h3 style="'+h3+'">4. No vendemos tus datos</h3>'
+    +'<div style="'+ok+'"><strong>✅ Xenda.co no vende, alquila, intercambia ni comparte tu información personal con terceros con fines publicitarios o comerciales, bajo ninguna circunstancia.</strong></div>'
+    +'<p style="'+p+'">Únicamente compartimos datos con:</p>'
+    +'<ul style="'+ul+'">'
+    +'<li><strong>Supabase Inc.</strong> (infraestructura de base de datos, EE.UU.) — bajo acuerdo de procesamiento de datos</li>'
+    +'<li><strong>Autoridades competentes</strong> cuando lo exija una orden judicial o ley aplicable</li>'
+    +'</ul>'
+
+    +'<h3 style="'+h3+'">5. Transferencias internacionales de datos</h3>'
+    +'<p style="'+p+'">Tus datos se almacenan en servidores de Supabase ubicados en <strong>Estados Unidos</strong>. Esta transferencia se realiza bajo las garantías contractuales adecuadas conforme al RGPD (cláusulas contractuales tipo) y la Ley 1581 de 2012 de Colombia. Al usar FinanzIA consientes expresamente esta transferencia.</p>'
+
+    +'<h3 style="'+h3+'">6. Tus derechos</h3>'
+    +'<p style="'+p+'">Tienes derecho a:</p>'
+    +'<ul style="'+ul+'">'
+    +'<li><strong>Acceder</strong> a tus datos personales</li>'
+    +'<li><strong>Rectificar</strong> información incorrecta o incompleta</li>'
+    +'<li><strong>Suprimir</strong> tu cuenta y todos los datos asociados</li>'
+    +'<li><strong>Exportar</strong> tus datos en formato legible (JSON)</li>'
+    +'<li><strong>Oponerte</strong> al tratamiento para fines distintos al servicio</li>'
+    +'<li><strong>Revocar</strong> el consentimiento en cualquier momento</li>'
+    +'</ul>'
+    +'<p style="'+p+'">Para ejercer estos derechos contacta: '+email+'</p>'
+    +'<p style="'+p+'">Los usuarios de la Unión Europea también tienen derecho a presentar una reclamación ante la autoridad de protección de datos de su país.</p>'
+
+    +'<h3 style="'+h3+'">7. Retención de datos</h3>'
+    +'<ul style="'+ul+'">'
+    +'<li>Datos activos: conservados mientras mantengas cuenta activa</li>'
+    +'<li>Tras eliminar cuenta: disponibles 30 días para reactivación</li>'
+    +'<li>Después de 30 días: eliminación permanente e irreversible</li>'
+    +'<li>Datos de facturación: conservados 7 años por obligación legal</li>'
+    +'</ul>'
+
+    +'<h3 style="'+h3+'">8. Menores de edad</h3>'
+    +'<p style="'+p+'">FinanzIA no está dirigida a personas menores de 18 años. No recopilamos intencionalmente datos de menores. Si detectamos datos de un menor, los eliminaremos de inmediato y cancelaremos la cuenta.</p>'
+
+    +'<h3 style="'+h3+'">9. Cookies y almacenamiento local</h3>'
+    +'<p style="'+p+'">FinanzIA usa <strong>localStorage</strong> del navegador/dispositivo exclusivamente para almacenar tus datos financieros localmente y mantener tu sesión activa. No usamos cookies de terceros ni rastreadores publicitarios.</p>'
+
+    +'<h3 style="'+h3+'">10. Notificación de brechas de seguridad</h3>'
+    +'<p style="'+p+'">En caso de una brecha de seguridad que afecte tus datos personales, te notificaremos por email en un plazo máximo de 72 horas desde que tengamos conocimiento del incidente, conforme al RGPD y normativa aplicable.</p>'
+
+    +'<h3 style="'+h3+'">11. Marco legal aplicable</h3>'
+    +'<p style="'+p+'">Esta Política de Privacidad cumple con:</p>'
+    +'<ul style="'+ul+'">'
+    +'<li><strong>Ley 1581 de 2012</strong> (Colombia) — Protección de datos personales</li>'
+    +'<li><strong>Decreto 1377 de 2013</strong> (Colombia) — Reglamentación Ley 1581</li>'
+    +'<li><strong>RGPD / GDPR</strong> (Unión Europea) — Para usuarios europeos</li>'
+    +'<li><strong>CCPA</strong> (California, EE.UU.) — Para usuarios californianos</li>'
+    +'</ul>'
+
+    +'<h3 style="'+h3+'">12. Contacto y DPO</h3>'
+    +'<p style="'+p+'">Para consultas sobre privacidad y protección de datos:<br>'
+    +email+'<br>'
+    +'<a href="https://xenda.co" target="_blank" style="color:var(--primary)">xenda.co</a><br>'
+    +'<span style="font-size:12px;color:var(--text3)">Xenda.co · Colombia</span></p>'
+    +'</div>';
+
+  ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:90vh;display:flex;flex-direction:column;overflow:hidden">'
     +'<div style="display:flex;justify-content:center;padding:12px 0 4px;flex-shrink:0"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
     +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px;flex-shrink:0">'
-      +'<div style="font-size:17px;font-weight:800">Términos y privacidad</div>'
+      +'<div style="font-size:17px;font-weight:800">Legal</div>'
       +'<button onclick="document.getElementById(\'terminos-modal\').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px">✕</button>'
     +'</div>'
-    +'<div style="display:flex;gap:4px;padding:0 16px 12px;flex-shrink:0">'
-      +'<button id="tab-tc" onclick="_switchTerminosTab(\'tc\')" style="flex:1;padding:8px;border-radius:50px;border:none;background:var(--primary);color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Términos</button>'
-      +'<button id="tab-pp" onclick="_switchTerminosTab(\'pp\')" style="flex:1;padding:8px;border-radius:50px;border:none;background:var(--surface2);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">Privacidad</button>'
+    +'<div style="display:flex;gap:6px;padding:0 16px 12px;flex-shrink:0">'
+      +'<button id="tab-tc" onclick="_switchTerminosTab(\'tc\')" style="flex:1;padding:9px 6px;border-radius:50px;border:none;background:var(--primary);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">Términos y Condiciones</button>'
+      +'<button id="tab-pp" onclick="_switchTerminosTab(\'pp\')" style="flex:1;padding:9px 6px;border-radius:50px;border:none;background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">Política de Privacidad</button>'
     +'</div>'
-    +'<div id="terminos-content" style="flex:1;overflow-y:auto;padding:0 20px 32px;font-size:14px;color:var(--text2);line-height:1.6">'
+    +'<div id="terminos-content" style="flex:1;overflow-y:auto;padding:0 20px 32px">'
       +tcContent
     +'</div>'
   +'</div>';
