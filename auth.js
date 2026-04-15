@@ -357,7 +357,21 @@ async function handleLogin(){
   _setError('li',''); _setBusy('li-btn',true,'Iniciar sesión');
   var res=await signIn(email,pass);
   _setBusy('li-btn',false,'Iniciar sesión');
-  if(!res.ok){_setError('li',res.msg);return;}
+  if(!res.ok){
+    // Contar intentos fallidos
+    var _liAttempts=(parseInt(sessionStorage.getItem('_liAttempts')||'0'))+1;
+    sessionStorage.setItem('_liAttempts',String(_liAttempts));
+    var errMsg=res.msg;
+    if(_liAttempts>=3){
+      errMsg=res.msg+'<br><button onclick="goToRecover()" style="margin-top:8px;background:none;border:none;color:var(--primary);font-size:13px;cursor:pointer;font-family:var(--font);text-decoration:underline;padding:0">¿Olvidaste tu contraseña?</button>';
+      var errEl=document.getElementById('auth-err-li');
+      if(errEl){errEl.innerHTML=errMsg;errEl.style.display='block';}
+    }else{
+      _setError('li',errMsg);
+    }
+    return;
+  }
+  sessionStorage.removeItem('_liAttempts');
   await _afterLogin(res.user);
 }
 
