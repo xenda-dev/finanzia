@@ -553,15 +553,18 @@ function _authMsg(msg){
 // VALIDACIÓN VISUAL CONTRASEÑA — tiempo real
 // ════════════════════════════════════════════════════════════
 function _authPwCheck(val){
-  var rules=[
-    {id:'pw-r1', ok: val.length>=8},
-    {id:'pw-r2', ok: /[A-Z]/.test(val)},
-    {id:'pw-r3', ok: /[0-9]/.test(val)},
-    {id:'pw-r4', ok: /[^A-Za-z0-9]/.test(val)}
+  var checks=[
+    {ok: val.length>=8},
+    {ok: /[A-Z]/.test(val)},
+    {ok: /[0-9]/.test(val)},
+    {ok: /[^A-Za-z0-9]/.test(val)}
   ];
-  rules.forEach(function(r){
-    var el=document.getElementById(r.id);
-    if(el) el.classList.toggle('ok', r.ok);
+  checks.forEach(function(r,i){
+    var n=i+1;
+    var elA=document.getElementById('pw-r'+n);
+    var elB=document.getElementById('rp-r'+n);
+    if(elA)elA.classList.toggle('ok',r.ok);
+    if(elB)elB.classList.toggle('ok',r.ok);
   });
 }
 

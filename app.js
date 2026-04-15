@@ -32,20 +32,18 @@ function initApp(){
   },{passive:true});
 
   // ── Pantalla de privacidad en multitarea ─────────────────
-  // Muestra overlay cuando la app va a segundo plano
-  var _privacyOverlay=null;
   function _showPrivacyScreen(){
-    if(_privacyOverlay)return;
-    _privacyOverlay=document.createElement('div');
-    _privacyOverlay.id='privacy-overlay';
-    _privacyOverlay.style.cssText='position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px';
-    _privacyOverlay.innerHTML='<img src="/icon-192.png" style="width:80px;height:80px;border-radius:20px;opacity:.9">'
-      +'<div style="font-size:22px;font-weight:900;color:var(--text)">Finanz<span style="color:var(--primary)">IA</span></div>';
-    document.body.appendChild(_privacyOverlay);
+    var el=document.getElementById('privacy-screen');
+    if(el)el.style.display='flex';
   }
   function _hidePrivacyScreen(){
-    if(_privacyOverlay){_privacyOverlay.remove();_privacyOverlay=null;}
+    var el=document.getElementById('privacy-screen');
+    if(el)el.style.display='none';
   }
+
+  // pagehide: dispara ANTES que visibilitychange en Android → screenshot ya cubierto
+  window.addEventListener('pagehide',function(){_showPrivacyScreen();},false);
+  window.addEventListener('pageshow',function(){_hidePrivacyScreen();},false);
 
   // ── Auto-lock tras 3 min en segundo plano ─────────────────
   var _bgTimestamp=0;
