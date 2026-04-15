@@ -483,7 +483,7 @@ async function handleRecoverPassword(){
     // Supabase password reset — envía email con link
     if(_supabase){
       var {error}=await _supabase.auth.resetPasswordForEmail(email,{
-        redirectTo: window.location.origin
+        redirectTo: 'https://finanzia.xenda.co'
       });
       if(error){
         _setError('rc','No pudimos enviar el correo. Verifica la dirección.');
