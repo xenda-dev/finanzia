@@ -1212,20 +1212,40 @@ async function handleResetPassword(){
   var confirm=(document.getElementById('rp-pass-confirm').value||'').trim();
   if(!pass||!confirm){_setError('rp','Completa ambos campos');return;}
   if(pass!==confirm){_setError('rp','Las contraseñas no coinciden');return;}
-  if(pass.length<8){_setError('rp','M\u00ednimo 8 caracteres');return;}
-  if(!/[A-Z]/.test(pass)){_setError('rp','Debe incluir al menos una may\u00fascula');return;}
-  if(!/[0-9]/.test(pass)){_setError('rp','Debe incluir al menos un n\u00famero');return;}
-  if(!/[^A-Za-z0-9]/.test(pass)){_setError('rp','Debe incluir al menos un car\u00e1cter especial (!@#$...)');return;}
-  _setError('rp',''); _setBusy('rp-btn',true,'Guardar nueva contrase\u00f1a');
+  if(pass.length<8){_setError('rp','Mínimo 8 caracteres');return;}
+  if(!/[A-Z]/.test(pass)){_setError('rp','Debe incluir al menos una mayúscula');return;}
+  if(!/[0-9]/.test(pass)){_setError('rp','Debe incluir al menos un número');return;}
+  if(!/[^A-Za-z0-9]/.test(pass)){_setError('rp','Debe incluir al menos un carácter especial (!@#$...)');return;}
+  _setError('rp','');
+  _setBusy('rp-btn',true,'Actualizando...');
   try{
     var rv=await _supabase.auth.updateUser({password:pass});
-    _setBusy('rp-btn',false,'Guardar nueva contrase\u00f1a');
-    if(rv.error){_setError('rp',rv.error.message||'No se pudo actualizar la contrase\u00f1a');return;}
-    try{ toast('Contrase\u00f1a actualizada \u2713'); }catch(e){}
-    setTimeout(function(){ _showScreen('login'); },1200);
+    _setBusy('rp-btn',false,'Guardar nueva contraseña');
+    if(rv.error){_setError('rp',rv.error.message||'No se pudo actualizar la contraseña');return;}
+    // Limpiar hash de la URL para que no quede el token expuesto
+    try{window.history.replaceState({},document.title,window.location.pathname);}catch(e){}
+    // Cerrar sesión activa de recuperación y pedir login limpio
+    try{await _supabase.auth.signOut();}catch(e){}
+    _currentUser=null;
+    // Mostrar pantalla de éxito breve antes de ir al login
+    var panel=document.getElementById('auth-reset-password');
+    if(panel){
+      var body=panel.querySelector('.auth-body');
+      if(body)body.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;gap:16px">'
+        +'<div style="font-size:56px">🔐</div>'
+        +'<div style="font-size:20px;font-weight:800;color:var(--text)">¡Contraseña actualizada!</div>'
+        +'<div style="font-size:14px;color:var(--text2);line-height:1.6">Tu contraseña fue cambiada exitosamente.<br>Inicia sesión con tu nueva contraseña.</div>'
+        +'</div>';
+    }
+    setTimeout(function(){
+      _showScreen('login');
+      // Pre-llenar email si lo tenemos
+      var emailEl=document.getElementById('li-email');
+      if(emailEl&&_currentUser&&_currentUser.email)emailEl.value=_currentUser.email;
+    },2200);
   }catch(e){
-    _setBusy('rp-btn',false,'Guardar nueva contrase\u00f1a');
-    _setError('rp','Algo sali\u00f3 mal. Intenta de nuevo.');
+    _setBusy('rp-btn',false,'Guardar nueva contraseña');
+    _setError('rp','Algo salió mal. Intenta de nuevo.');
   }
 }
 

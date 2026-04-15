@@ -11,6 +11,11 @@ window.onerror=function(msg,src,line){
 // ════════════════════════════════════════════════════════════
 function initApp(){
   loadState();
+
+  // ── Quitar monedas hardcodeadas si son las de prueba ──────
+  // Solo limpia si el usuario no ha configurado su perfil (currencies vacío = ok)
+  // No tocar si ya tiene monedas elegidas por él
+
   document.querySelectorAll('[data-page]').forEach(el=>{if(!el.getAttribute('onclick'))el.addEventListener('click',()=>navigate(el.dataset.page));});
   refreshCurrencyToggle();
   applyLanguage();
@@ -26,10 +31,43 @@ function initApp(){
     if(dx<-60&&document.getElementById('drawer').classList.contains('open'))closeDrawer();
   },{passive:true});
 
-  // ── Sync bidireccional ────────────────────────────────────
-  // 1) visibilitychange: al volver al frente recibe cambios; al ir al fondo guarda
+  // ── Pantalla de privacidad en multitarea ─────────────────
+  // Muestra overlay cuando la app va a segundo plano
+  var _privacyOverlay=null;
+  function _showPrivacyScreen(){
+    if(_privacyOverlay)return;
+    _privacyOverlay=document.createElement('div');
+    _privacyOverlay.id='privacy-overlay';
+    _privacyOverlay.style.cssText='position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px';
+    _privacyOverlay.innerHTML='<img src="/icon-192.png" style="width:80px;height:80px;border-radius:20px;opacity:.9">'
+      +'<div style="font-size:22px;font-weight:900;color:var(--text)">Finanz<span style="color:var(--primary)">IA</span></div>';
+    document.body.appendChild(_privacyOverlay);
+  }
+  function _hidePrivacyScreen(){
+    if(_privacyOverlay){_privacyOverlay.remove();_privacyOverlay=null;}
+  }
+
+  // ── Auto-lock tras 3 min en segundo plano ─────────────────
+  var _bgTimestamp=0;
+  var _AUTO_LOCK_MS=3*60*1000; // 3 minutos
+
+  // ── Sync bidireccional + privacidad + auto-lock ───────────
   document.addEventListener('visibilitychange',function(){
     if(!document.hidden){
+      // App vuelve al frente
+      _hidePrivacyScreen();
+      // Auto-lock: si estuvo más de 3 min en segundo plano
+      if(_bgTimestamp>0&&Date.now()-_bgTimestamp>=_AUTO_LOCK_MS){
+        _bgTimestamp=0;
+        // Verificar que hay sesión activa antes de pedir auth
+        if(typeof _currentUser!=='undefined'&&_currentUser){
+          if(typeof showAuthScreen==='function')showAuthScreen();
+          if(typeof _showWelcomeScreen==='function')_showWelcomeScreen(_currentUser);
+          else if(typeof _showScreen==='function')_showScreen('login');
+        }
+        return;
+      }
+      _bgTimestamp=0;
       try{
         if(typeof _currentUser!=='undefined'&&_currentUser&&typeof safeSync==='function'){
           console.log('👁️ app al frente -> sync');
@@ -37,6 +75,9 @@ function initApp(){
         }
       }catch(e){}
     }else{
+      // App va al fondo
+      _showPrivacyScreen();
+      _bgTimestamp=Date.now();
       try{
         if(typeof _currentUser!=='undefined'&&_currentUser&&typeof saveUserData==='function'){
           window._lastSupabaseSave=0;
@@ -46,7 +87,7 @@ function initApp(){
     }
   });
 
-  // 2) Supabase Realtime: recibe cambios del servidor en tiempo real
+  // ── Supabase Realtime ─────────────────────────────────────
   _startRealtimeSync();
 }
 

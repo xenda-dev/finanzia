@@ -22,7 +22,7 @@ function buildNumFormatExample(){
   var n=1500000;
   var d=S.numFormat==='0'?0:2;
   try{
-    var meta=getCurrencyMeta(S.currency||'COP');
+    var meta=getCurrencyMeta(S.currency||(S.currencies&&S.currencies[0])||'USD');
     var str=n.toLocaleString(meta.locale,{minimumFractionDigits:d,maximumFractionDigits:d});
     return meta.pos==='before'?meta.sym+str:str+' '+meta.sym;
   }catch(e){return n.toFixed(d);}
