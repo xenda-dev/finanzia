@@ -111,17 +111,27 @@ async function deleteUserAccount(){
     async function(){
       try{
         var token = null;
+        // 1. Intentar desde el SDK
         try{
           var {data:sd} = await _supabase.auth.getSession();
           if(sd && sd.session) token = sd.session.access_token;
         }catch(e){}
+        // 2. Si no hay token, usar refresh_token directamente via REST (bypassa el SDK)
         if(!token){
           try{
             var _rt2 = localStorage.getItem('_sbRefresh');
-            var rd = _rt2
-              ? await _supabase.auth.refreshSession({refresh_token:_rt2})
-              : await _supabase.auth.refreshSession();
-            if(rd.data && rd.data.session) token = rd.data.session.access_token;
+            if(_rt2){
+              var _rtRes = await fetch('https://dshwbvqvfbjtlbcqqviz.supabase.co/auth/v1/token?grant_type=refresh_token',{
+                method:'POST',
+                headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzaHdidnF2ZmJqdGxiY3Fxdml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTM1OTYsImV4cCI6MjA5MDg4OTU5Nn0.kjie4SHtxJZYkX1rspJK2JNpOWfbd-Xdx3UZfgqydXU'},
+                body:JSON.stringify({refresh_token:_rt2})
+              });
+              var _rtData = await _rtRes.json();
+              if(_rtData.access_token){
+                token = _rtData.access_token;
+                if(_rtData.refresh_token) localStorage.setItem('_sbRefresh', _rtData.refresh_token);
+              }
+            }
           }catch(e){}
         }
         if(!token){ toast('Sesión expirada. Cierra sesión y vuelve a entrar.'); return; }
@@ -1415,7 +1425,7 @@ async function _startBioFromWelcome(){
     }
   }catch(err){
     console.error('Biometric auth error:', err);
-    try{ toast('Error al intentar la autenticaci\u00f3n biom\u00e9trica.'); }catch(e){}
+    // session/network error — no mostrar toast
   }
 }
 
