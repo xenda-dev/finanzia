@@ -1452,18 +1452,15 @@ async function initAuth(){
     _currentUser = null;
     var lastUid   = localStorage.getItem('_lastAuthUserId');
     var lastEmail = localStorage.getItem('_lastAuthUserEmail') || '';
-    var signedOut = localStorage.getItem('_signedOutNormally') === '1';
-    // Solo mostrar welcome si el usuario cerró sesión voluntariamente en este dispositivo.
-    // Si no hay flag (reinstalación, datos huérfanos, cuenta eliminada) → login limpio.
-    if(lastUid && signedOut){
-      localStorage.removeItem('_signedOutNormally'); // consumir el flag
+    localStorage.removeItem('_signedOutNormally');
+    // Si hay lastUid → welcome (cerró app, cerró sesión, o volvió al dispositivo)
+    // Si no hay lastUid → login limpio (cuenta eliminada, reinstalación, primer uso)
+    if(lastUid){
       _currentUser = {id: lastUid, email: lastEmail};
       showAuthScreen();
       _showWelcomeScreen(null);
       return;
     }
-    // Sin flag → limpiar datos huérfanos y mostrar login
-    if(lastUid){ _clearAllLocalUserData(); }
     showAuthScreen();
     _showScreen('login');
   }
