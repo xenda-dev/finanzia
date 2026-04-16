@@ -107,24 +107,14 @@ async function deleteUserAccount(){
     async function(){
       try{
         var token = null;
-        // 1. Intentar getSession
         try{
           var {data:sd} = await _supabase.auth.getSession();
           if(sd && sd.session) token = sd.session.access_token;
         }catch(e){}
-        // 2. Intentar refreshSession
         if(!token){
           try{
             var {data:rd} = await _supabase.auth.refreshSession();
             if(rd && rd.session) token = rd.session.access_token;
-          }catch(e){}
-        }
-        // 3. Forzar getUser (llama al servidor) y luego getSession de nuevo
-        if(!token){
-          try{
-            await _supabase.auth.getUser();
-            var {data:sd2} = await _supabase.auth.getSession();
-            if(sd2 && sd2.session) token = sd2.session.access_token;
           }catch(e){}
         }
         if(!token){ toast('Sesión expirada. Cierra sesión y vuelve a entrar.'); return; }
@@ -941,6 +931,13 @@ async function _enterWithPinSuccess(){
     return;
   }
   _currentUser = lastUser;
+  // Refrescar sesión para que el token esté disponible en el resto de la sesión
+  if(_supabase){
+    try{
+      var refreshed = await _supabase.auth.refreshSession();
+      if(refreshed.data && refreshed.data.user) _currentUser = refreshed.data.user;
+    }catch(e){ console.warn('PIN refresh session error:',e); }
+  }
   hideAuthScreen();
   if(typeof initApp === 'function') initApp();
   if(typeof _injectLogoutBtn === 'function') _injectLogoutBtn(_currentUser);
