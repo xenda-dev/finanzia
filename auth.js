@@ -106,12 +106,19 @@ async function deleteUserAccount(){
     'Se eliminarán TODOS tus datos y tu cuenta de forma permanente. Esta acción es irreversible.',
     async function(){
       try{
-        var {data:sessionData} = await _supabase.auth.getSession();
-        if(!sessionData || !sessionData.session){
-          var {data:refreshData} = await _supabase.auth.refreshSession();
-          sessionData = refreshData;
+        var token = null;
+        try{
+          var sbRaw = localStorage.getItem('sb-dshwbvqvfbjtlbcqqviz-auth-token');
+          if(sbRaw){ var sbParsed = JSON.parse(sbRaw); token = sbParsed.access_token || null; }
+        }catch(e){}
+        if(!token){
+          var {data:sessionData} = await _supabase.auth.getSession();
+          if(!sessionData || !sessionData.session){
+            var {data:refreshData} = await _supabase.auth.refreshSession();
+            sessionData = refreshData;
+          }
+          token = sessionData && sessionData.session ? sessionData.session.access_token : null;
         }
-        var token = sessionData && sessionData.session ? sessionData.session.access_token : null;
         if(!token){ toast('Sesión expirada. Cierra sesión y vuelve a entrar.'); return; }
         var res = await fetch('https://dshwbvqvfbjtlbcqqviz.supabase.co/functions/v1/delete-account',{
           method:'POST',
@@ -128,9 +135,9 @@ async function deleteUserAccount(){
         _currentUser = null;
         _intentionalSignOut = true;
         try{ await _supabase.auth.signOut(); }catch(e){}
-        showAuthScreen();
-        _showScreen('login');
-        toast('Cuenta eliminada');
+        var el=document.getElementById('onboarding-screen');
+        if(el) el.remove();
+        _showOnboarding();
       }catch(e){
         toast('Error: '+e.message);
       }
@@ -1456,15 +1463,18 @@ async function initAuth(){
     _currentUser = null;
     var lastUid   = localStorage.getItem('_lastAuthUserId');
     var lastEmail = localStorage.getItem('_lastAuthUserEmail') || '';
-    localStorage.removeItem('_signedOutNormally');
-    // Si hay lastUid → welcome (cerró app, cerró sesión, o volvió al dispositivo)
-    // Si no hay lastUid → login limpio (cuenta eliminada, reinstalación, primer uso)
-    if(lastUid){
+    var signedOut = localStorage.getItem('_signedOutNormally') === '1';
+    // Solo mostrar welcome si el usuario cerró sesión voluntariamente en este dispositivo.
+    // Si no hay flag (reinstalación, datos huérfanos, cuenta eliminada) → login limpio.
+    if(lastUid && signedOut){
+      localStorage.removeItem('_signedOutNormally'); // consumir el flag
       _currentUser = {id: lastUid, email: lastEmail};
       showAuthScreen();
       _showWelcomeScreen(null);
       return;
     }
+    // Sin flag → limpiar datos huérfanos y mostrar login
+    if(lastUid){ _clearAllLocalUserData(); }
     showAuthScreen();
     _showScreen('login');
   }
