@@ -108,6 +108,8 @@ async function deleteUserAccount(){
       try{
         var token = null;
         try{
+          var sbKeys = Object.keys(localStorage).filter(function(k){ return k.startsWith('sb-'); });
+          toast('Keys: '+sbKeys.join(', '));
           var sbRaw = localStorage.getItem('sb-dshwbvqvfbjtlbcqqviz-auth-token');
           if(sbRaw){ var sbParsed = JSON.parse(sbRaw); token = sbParsed.access_token || null; }
         }catch(e){}
