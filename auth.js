@@ -107,19 +107,25 @@ async function deleteUserAccount(){
     async function(){
       try{
         var token = null;
+        // 1. Intentar getSession
         try{
-          var sbKeys = Object.keys(localStorage).filter(function(k){ return k.startsWith('sb-'); });
-          toast('Keys: '+sbKeys.join(', '));
-          var sbRaw = localStorage.getItem('sb-dshwbvqvfbjtlbcqqviz-auth-token');
-          if(sbRaw){ var sbParsed = JSON.parse(sbRaw); token = sbParsed.access_token || null; }
+          var {data:sd} = await _supabase.auth.getSession();
+          if(sd && sd.session) token = sd.session.access_token;
         }catch(e){}
+        // 2. Intentar refreshSession
         if(!token){
-          var {data:sessionData} = await _supabase.auth.getSession();
-          if(!sessionData || !sessionData.session){
-            var {data:refreshData} = await _supabase.auth.refreshSession();
-            sessionData = refreshData;
-          }
-          token = sessionData && sessionData.session ? sessionData.session.access_token : null;
+          try{
+            var {data:rd} = await _supabase.auth.refreshSession();
+            if(rd && rd.session) token = rd.session.access_token;
+          }catch(e){}
+        }
+        // 3. Forzar getUser (llama al servidor) y luego getSession de nuevo
+        if(!token){
+          try{
+            await _supabase.auth.getUser();
+            var {data:sd2} = await _supabase.auth.getSession();
+            if(sd2 && sd2.session) token = sd2.session.access_token;
+          }catch(e){}
         }
         if(!token){ toast('Sesión expirada. Cierra sesión y vuelve a entrar.'); return; }
         var res = await fetch('https://dshwbvqvfbjtlbcqqviz.supabase.co/functions/v1/delete-account',{
