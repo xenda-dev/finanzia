@@ -113,8 +113,11 @@ async function deleteUserAccount(){
         }catch(e){}
         if(!token){
           try{
-            var {data:rd} = await _supabase.auth.refreshSession();
-            if(rd && rd.session) token = rd.session.access_token;
+            var _rt2 = localStorage.getItem('_sbRefresh');
+            var rd = _rt2
+              ? await _supabase.auth.refreshSession({refresh_token:_rt2})
+              : await _supabase.auth.refreshSession();
+            if(rd.data && rd.data.session) token = rd.data.session.access_token;
           }catch(e){}
         }
         if(!token){ toast('Sesión expirada. Cierra sesión y vuelve a entrar.'); return; }
@@ -461,14 +464,10 @@ async function _afterLogin(user){
   localStorage.removeItem('pendingPassword');
   _currentUser = user;
   _injectLogoutBtn(user);
-  // Guardar sesión Supabase para restaurarla en login con PIN/bio
   try{
     var {data:_sd} = await _supabase.auth.getSession();
-    if(_sd && _sd.session){
-      localStorage.setItem('_sbSession', JSON.stringify({
-        access_token: _sd.session.access_token,
-        refresh_token: _sd.session.refresh_token
-      }));
+    if(_sd && _sd.session && _sd.session.refresh_token){
+      localStorage.setItem('_sbRefresh', _sd.session.refresh_token);
     }
   }catch(e){}
 
@@ -941,22 +940,17 @@ async function _enterWithPinSuccess(){
     return;
   }
   _currentUser = lastUser;
-  // Restaurar sesión Supabase guardada
   if(_supabase){
     try{
-      var _raw = localStorage.getItem('_sbSession');
-      if(_raw){
-        var _sess = JSON.parse(_raw);
-        var _res = await _supabase.auth.setSession({access_token:_sess.access_token,refresh_token:_sess.refresh_token});
-        if(_res.data && _res.data.user) _currentUser = _res.data.user;
-        if(_res.data && _res.data.session){
-          localStorage.setItem('_sbSession', JSON.stringify({
-            access_token: _res.data.session.access_token,
-            refresh_token: _res.data.session.refresh_token
-          }));
+      var _rt = localStorage.getItem('_sbRefresh');
+      if(_rt){
+        var _rr = await _supabase.auth.refreshSession({refresh_token:_rt});
+        if(_rr.data && _rr.data.user) _currentUser = _rr.data.user;
+        if(_rr.data && _rr.data.session && _rr.data.session.refresh_token){
+          localStorage.setItem('_sbRefresh', _rr.data.session.refresh_token);
         }
       }
-    }catch(e){ console.warn('PIN setSession error:',e); }
+    }catch(e){ console.warn('PIN refresh error:',e); }
   }
   hideAuthScreen();
   if(typeof initApp === 'function') initApp();
@@ -1376,20 +1370,14 @@ async function _startBioFromWelcome(){
       // Bio exitosa → validar con servidor antes de dar acceso
       if(_supabase){
         try{
-          // Restaurar sesión guardada y refrescar
-          var _braw = localStorage.getItem('_sbSession');
-          if(_braw){
-            var _bsess = JSON.parse(_braw);
-            await _supabase.auth.setSession({access_token:_bsess.access_token,refresh_token:_bsess.refresh_token});
-          }
-          var refreshed=await _supabase.auth.refreshSession();
+          var _brt = localStorage.getItem('_sbRefresh');
+          var refreshed = _brt
+            ? await _supabase.auth.refreshSession({refresh_token:_brt})
+            : await _supabase.auth.refreshSession();
           if(refreshed.data&&refreshed.data.user){
             _currentUser=refreshed.data.user;
-            if(refreshed.data.session){
-              localStorage.setItem('_sbSession', JSON.stringify({
-                access_token: refreshed.data.session.access_token,
-                refresh_token: refreshed.data.session.refresh_token
-              }));
+            if(refreshed.data.session&&refreshed.data.session.refresh_token){
+              localStorage.setItem('_sbRefresh', refreshed.data.session.refresh_token);
             }
           }else{
             // refreshSession falló → verificar si el usuario realmente fue eliminado
@@ -1499,8 +1487,6 @@ async function initAuth(){
     var lastUid   = localStorage.getItem('_lastAuthUserId');
     var lastEmail = localStorage.getItem('_lastAuthUserEmail') || '';
     localStorage.removeItem('_signedOutNormally');
-    // Si hay lastUid → welcome (cerró app, cerró sesión, o volvió al dispositivo)
-    // Si no hay lastUid → login limpio (cuenta eliminada, reinstalación, primer uso)
     if(lastUid){
       _currentUser = {id: lastUid, email: lastEmail};
       showAuthScreen();
