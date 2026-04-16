@@ -107,8 +107,12 @@ async function deleteUserAccount(){
     async function(){
       try{
         var {data:sessionData} = await _supabase.auth.getSession();
+        if(!sessionData || !sessionData.session){
+          var {data:refreshData} = await _supabase.auth.refreshSession();
+          sessionData = refreshData;
+        }
         var token = sessionData && sessionData.session ? sessionData.session.access_token : null;
-        if(!token){ toast('No hay sesión activa'); return; }
+        if(!token){ toast('Sesión expirada. Cierra sesión y vuelve a entrar.'); return; }
         var res = await fetch('https://dshwbvqvfbjtlbcqqviz.supabase.co/functions/v1/delete-account',{
           method:'POST',
           headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}
