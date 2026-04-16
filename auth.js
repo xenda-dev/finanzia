@@ -99,6 +99,38 @@ async function signOut(){
     _showScreen('login');
   }
 }
+async function deleteUserAccount(){
+  confirmDialog(
+    '⚠️',
+    'Eliminar cuenta',
+    'Se eliminarán TODOS tus datos y tu cuenta de forma permanente. Esta acción es irreversible.',
+    async function(){
+      try{
+        var {data:sessionData} = await _supabase.auth.getSession();
+        var token = sessionData && sessionData.session ? sessionData.session.access_token : null;
+        if(!token){ toast('No hay sesión activa'); return; }
+        var res = await fetch('https://dshwbvqvfbjtlbcqqviz.supabase.co/functions/v1/delete-account',{
+          method:'POST',
+          headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}
+        });
+        var json = await res.json();
+        if(!res.ok){ toast('Error: '+(json.error||'No se pudo eliminar')); return; }
+        localStorage.clear();
+        sessionStorage.clear();
+        _currentUser = null;
+        _intentionalSignOut = true;
+        try{ await _supabase.auth.signOut(); }catch(e){}
+        showAuthScreen();
+        _showScreen('login');
+        toast('Cuenta eliminada');
+      }catch(e){
+        toast('Error al eliminar cuenta');
+      }
+    },
+    'Eliminar',
+    'btn-danger'
+  );
+}
 async function getCurrentUser(){
   var {data} = await _supabase.auth.getSession();
   return data.session ? data.session.user : null;

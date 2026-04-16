@@ -5013,6 +5013,10 @@ function renderConfiguracion(){
       <div class="config-item-left"><div class="config-icon" style="background:rgba(239,68,68,.15)">🗑️</div><div><div style="font-size:14px;font-weight:600;color:var(--danger)">${t('reset')}</div><div style="font-size:12px;color:var(--text2)">${t('resetDesc')}</div></div></div>
       <span style="color:var(--text3)">›</span>
     </div>
+    <div class="config-item" onclick="deleteUserAccount()" style="margin-top:4px">
+      <div class="config-item-left"><div class="config-icon" style="background:rgba(239,68,68,.15)">👤</div><div><div style="font-size:14px;font-weight:600;color:var(--danger)">Eliminar mi cuenta</div><div style="font-size:12px;color:var(--text2)">Borra tu cuenta y todos tus datos</div></div></div>
+      <span style="color:var(--text3)">›</span>
+    </div>
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
     <div style="margin-top:32px;text-align:center;color:var(--text3);font-size:11px">${t('version')}</div>
   `;
