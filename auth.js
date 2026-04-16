@@ -134,7 +134,9 @@ async function deleteUserAccount(){
             }
           }catch(e){}
         }
-        if(!token){ toast('Sesión expirada. Cierra sesión y vuelve a entrar.'); return; }
+        var _dbg = localStorage.getItem('_sbRefresh');
+        toast('RT:'+((_dbg&&_dbg.length>0)?'SI('+_dbg.length+')':'NO')+' TK:'+(!token?'NO':'SI'));
+        if(!token){ return; }
         var res = await fetch('https://dshwbvqvfbjtlbcqqviz.supabase.co/functions/v1/delete-account',{
           method:'POST',
           headers:{
