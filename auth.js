@@ -18,6 +18,10 @@ function initSupabase(){
   // Supabase JS v2 procesa el #access_token al crear el cliente y dispara
   // SIGNED_IN en el mismo tick — si el listener llega tarde, el evento se pierde.
   _supabase.auth.onAuthStateChange(function(event, session){
+    // Guardar refresh_token en cada SIGNED_IN para que PIN/bio puedan restaurar la sesión
+    if((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && session.refresh_token){
+      try{ localStorage.setItem('_sbRefresh', session.refresh_token); }catch(e){}
+    }
     if(event === 'SIGNED_OUT'){
       // Si el cierre fue iniciado por nuestro signOut(), él maneja la pantalla
       if(_intentionalSignOut){ _intentionalSignOut = false; return; }
