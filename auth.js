@@ -115,7 +115,11 @@ async function deleteUserAccount(){
         if(!token){ toast('Sesión expirada. Cierra sesión y vuelve a entrar.'); return; }
         var res = await fetch('https://dshwbvqvfbjtlbcqqviz.supabase.co/functions/v1/delete-account',{
           method:'POST',
-          headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}
+          headers:{
+            'Authorization':'Bearer '+token,
+            'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzaHdidnF2ZmJqdGxiY3Fxdml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTM1OTYsImV4cCI6MjA5MDg4OTU5Nn0.kjie4SHtxJZYkX1rspJK2JNpOWfbd-Xdx3UZfgqydXU',
+            'Content-Type':'application/json'
+          }
         });
         var json = await res.json();
         if(!res.ok){ toast('Error: '+(json.error||'No se pudo eliminar')); return; }
@@ -128,7 +132,7 @@ async function deleteUserAccount(){
         _showScreen('login');
         toast('Cuenta eliminada');
       }catch(e){
-        toast('Error al eliminar cuenta');
+        toast('Error: '+e.message);
       }
     },
     'Eliminar',
