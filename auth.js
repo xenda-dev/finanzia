@@ -134,8 +134,9 @@ async function deleteUserAccount(){
             }
           }catch(e){}
         }
-        var _dbg = localStorage.getItem('_sbRefresh');
-        toast('RT:'+(_dbg?_dbg.substring(0,20):'NULL')+' TK:'+(!token?'NO':'SI'));
+        var _allKeys = Object.keys(localStorage);
+        var _sbKeys = _allKeys.filter(function(k){return k.indexOf('supabase')+k.indexOf('sb-')+k.indexOf('auth')>-3;});
+        toast(_sbKeys.slice(0,3).join('|')||'NOKEYS');
         if(!token){ return; }
         var res = await fetch('https://dshwbvqvfbjtlbcqqviz.supabase.co/functions/v1/delete-account',{
           method:'POST',
