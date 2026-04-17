@@ -19,12 +19,10 @@ function initSupabase(){
   // SIGNED_IN en el mismo tick — si el listener llega tarde, el evento se pierde.
   _supabase.auth.onAuthStateChange(function(event, session){
     // Guardar refresh_token en cada SIGNED_IN para que PIN/bio puedan restaurar la sesión
-    if((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && session.refresh_token){
+    if((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && session.access_token){
       try{
-        localStorage.setItem('_sbRefresh', session.refresh_token);
         localStorage.setItem('_sbAccess', session.access_token);
         localStorage.setItem('_sbAccessAt', String(Date.now()));
-        console.log('AUTH SAVE event='+event+' RT_len='+session.refresh_token.length+' AT_len='+session.access_token.length);
       }catch(e){}
     }
     if(event === 'SIGNED_OUT'){
