@@ -20,7 +20,12 @@ function initSupabase(){
   _supabase.auth.onAuthStateChange(function(event, session){
     // Guardar refresh_token en cada SIGNED_IN para que PIN/bio puedan restaurar la sesión
     if((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && session.refresh_token){
-      try{ localStorage.setItem('_sbRefresh', session.refresh_token); }catch(e){}
+      try{
+        localStorage.setItem('_sbRefresh', session.refresh_token);
+        localStorage.setItem('_sbAccess', session.access_token);
+        localStorage.setItem('_sbAccessAt', String(Date.now()));
+        console.log('AUTH SAVE event='+event+' RT_len='+session.refresh_token.length+' AT_len='+session.access_token.length);
+      }catch(e){}
     }
     if(event === 'SIGNED_OUT'){
       // Si el cierre fue iniciado por nuestro signOut(), él maneja la pantalla
@@ -84,6 +89,13 @@ async function signIn(email, password){
   if(error) return _authMsg(error.message);
   _currentUser = data.user;
   _persistLastUserId(data.user.id, data.user.email);
+  if(data.session){
+    try{
+      localStorage.setItem('_sbAccess', data.session.access_token);
+      localStorage.setItem('_sbRefresh', data.session.refresh_token);
+      localStorage.setItem('_sbAccessAt', String(Date.now()));
+    }catch(e){}
+  }
   return {ok:true, user:data.user};
 }
 async function signOut(){
@@ -116,7 +128,15 @@ async function deleteUserAccount(){
           var {data:sd} = await _supabase.auth.getSession();
           if(sd && sd.session) token = sd.session.access_token;
         }catch(e){}
-        // 2. Si no hay token, usar refresh_token directamente via REST (bypassa el SDK)
+        // 2. Usar access_token guardado directamente (menos de 1h desde login)
+        if(!token){
+          try{
+            var _at = localStorage.getItem('_sbAccess');
+            var _tat = parseInt(localStorage.getItem('_sbAccessAt')||'0');
+            if(_at && (Date.now()-_tat) < 3500000) token = _at;
+          }catch(e){}
+        }
+        // 3. Refresh via REST con el refresh_token real
         if(!token){
           try{
             var _rt2 = localStorage.getItem('_sbRefresh');
@@ -129,15 +149,14 @@ async function deleteUserAccount(){
               var _rtData = await _rtRes.json();
               if(_rtData.access_token){
                 token = _rtData.access_token;
+                localStorage.setItem('_sbAccess', token);
+                localStorage.setItem('_sbAccessAt', String(Date.now()));
                 if(_rtData.refresh_token) localStorage.setItem('_sbRefresh', _rtData.refresh_token);
               }
             }
           }catch(e){}
         }
-        var _allKeys = Object.keys(localStorage);
-        var _sbKeys = _allKeys.filter(function(k){return k.indexOf('supabase')+k.indexOf('sb-')+k.indexOf('auth')>-3;});
-        toast(_sbKeys.slice(0,3).join('|')||'NOKEYS');
-        if(!token){ return; }
+        if(!token){ toast('Sesión expirada. Cierra sesión y vuelve a entrar.'); return; }
         var res = await fetch('https://dshwbvqvfbjtlbcqqviz.supabase.co/functions/v1/delete-account',{
           method:'POST',
           headers:{
