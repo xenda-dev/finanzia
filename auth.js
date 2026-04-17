@@ -18,12 +18,8 @@ function initSupabase(){
   // Supabase JS v2 procesa el #access_token al crear el cliente y dispara
   // SIGNED_IN en el mismo tick — si el listener llega tarde, el evento se pierde.
   _supabase.auth.onAuthStateChange(function(event, session){
-    // Guardar refresh_token en cada SIGNED_IN para que PIN/bio puedan restaurar la sesión
-    if((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && session.access_token){
-      try{
-        localStorage.setItem('_sbAccess', session.access_token);
-        localStorage.setItem('_sbAccessAt', String(Date.now()));
-      }catch(e){}
+    if((event==='SIGNED_IN'||event==='TOKEN_REFRESHED')&&session&&session.access_token){
+      try{ localStorage.setItem('_sbAccess',session.access_token); localStorage.setItem('_sbAccessAt',String(Date.now())); }catch(e){}
     }
     if(event === 'SIGNED_OUT'){
       // Si el cierre fue iniciado por nuestro signOut(), él maneja la pantalla
@@ -87,13 +83,7 @@ async function signIn(email, password){
   if(error) return _authMsg(error.message);
   _currentUser = data.user;
   _persistLastUserId(data.user.id, data.user.email);
-  if(data.session){
-    try{
-      localStorage.setItem('_sbAccess', data.session.access_token);
-      localStorage.setItem('_sbRefresh', data.session.refresh_token);
-      localStorage.setItem('_sbAccessAt', String(Date.now()));
-    }catch(e){}
-  }
+  if(data.session){ try{ localStorage.setItem('_sbAccess',data.session.access_token); localStorage.setItem('_sbAccessAt',String(Date.now())); }catch(e){} }
   return {ok:true, user:data.user};
 }
 async function signOut(){
@@ -118,68 +108,88 @@ async function deleteUserAccount(){
     '⚠️',
     'Eliminar cuenta',
     'Se eliminarán TODOS tus datos y tu cuenta de forma permanente. Esta acción es irreversible.',
-    async function(){
-      try{
-        var token = null;
-        // 1. Intentar desde el SDK
-        try{
-          var {data:sd} = await _supabase.auth.getSession();
-          if(sd && sd.session) token = sd.session.access_token;
-        }catch(e){}
-        // 2. Usar access_token guardado directamente (menos de 1h desde login)
-        if(!token){
-          try{
-            var _at = localStorage.getItem('_sbAccess');
-            var _tat = parseInt(localStorage.getItem('_sbAccessAt')||'0');
-            if(_at && (Date.now()-_tat) < 3500000) token = _at;
-          }catch(e){}
-        }
-        // 3. Refresh via REST con el refresh_token real
-        if(!token){
-          try{
-            var _rt2 = localStorage.getItem('_sbRefresh');
-            if(_rt2){
-              var _rtRes = await fetch('https://dshwbvqvfbjtlbcqqviz.supabase.co/auth/v1/token?grant_type=refresh_token',{
-                method:'POST',
-                headers:{'Content-Type':'application/json','apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzaHdidnF2ZmJqdGxiY3Fxdml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTM1OTYsImV4cCI6MjA5MDg4OTU5Nn0.kjie4SHtxJZYkX1rspJK2JNpOWfbd-Xdx3UZfgqydXU'},
-                body:JSON.stringify({refresh_token:_rt2})
-              });
-              var _rtData = await _rtRes.json();
-              if(_rtData.access_token){
-                token = _rtData.access_token;
-                localStorage.setItem('_sbAccess', token);
-                localStorage.setItem('_sbAccessAt', String(Date.now()));
-                if(_rtData.refresh_token) localStorage.setItem('_sbRefresh', _rtData.refresh_token);
-              }
-            }
-          }catch(e){}
-        }
-        if(!token){ toast('Sesión expirada. Cierra sesión y vuelve a entrar.'); return; }
-        var res = await fetch('https://dshwbvqvfbjtlbcqqviz.supabase.co/functions/v1/delete-account',{
-          method:'POST',
-          headers:{
-            'Authorization':'Bearer '+token,
-            'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzaHdidnF2ZmJqdGxiY3Fxdml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTM1OTYsImV4cCI6MjA5MDg4OTU5Nn0.kjie4SHtxJZYkX1rspJK2JNpOWfbd-Xdx3UZfgqydXU',
-            'Content-Type':'application/json'
-          }
-        });
-        var json = await res.json();
-        if(!res.ok){ toast('Error: '+(json.error||'No se pudo eliminar')); return; }
-        localStorage.clear();
-        sessionStorage.clear();
-        _currentUser = null;
-        _intentionalSignOut = true;
-        try{ await _supabase.auth.signOut(); }catch(e){}
-        var el=document.getElementById('onboarding-screen');
-        if(el) el.remove();
-        _showOnboarding();
-      }catch(e){
-        toast('Error: '+e.message);
-      }
-    },
-    'Eliminar',
+    function(){ _showDeletePasswordModal(); },
+    'Continuar',
     'btn-danger'
   );
+}
+function _showDeletePasswordModal(){
+  var old = document.getElementById('delete-pw-overlay');
+  if(old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'delete-pw-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease';
+  ov.innerHTML =
+    '<div style="width:100%;background:var(--surface);border-radius:24px 24px 0 0;padding:24px 24px max(env(safe-area-inset-bottom),32px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
+    +'<div style="display:flex;justify-content:center;margin-bottom:16px"><div style="width:40px;height:4px;border-radius:2px;background:var(--border)"></div></div>'
+    +'<div style="font-size:18px;font-weight:700;color:var(--danger);margin-bottom:6px;text-align:center">⚠️ Confirma tu identidad</div>'
+    +'<div style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:20px">Ingresa tu contraseña para eliminar tu cuenta definitivamente</div>'
+    +'<div style="position:relative;margin-bottom:8px">'
+      +'<input id="del-pw-input" type="password" placeholder="Contraseña" autocomplete="current-password" style="width:100%;padding:14px 48px 14px 16px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:15px;font-family:var(--font);box-sizing:border-box">'
+      +'<button onclick="_toggleDelPw()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px" id="del-pw-eye">&#128065;</button>'
+    +'</div>'
+    +'<div id="del-pw-err" style="min-height:18px;font-size:12px;color:var(--danger);margin-bottom:14px;padding-left:4px"></div>'
+    +'<button id="del-pw-btn" onclick="_confirmDeleteWithPassword()" style="width:100%;padding:15px;border-radius:50px;background:var(--danger);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar mi cuenta</button>'
+    +'<button onclick="_closeDeletePwOverlay()" style="width:100%;padding:12px;border-radius:50px;background:transparent;border:none;color:var(--text2);font-size:14px;cursor:pointer;font-family:var(--font);margin-top:8px">Cancelar</button>'
+    +'</div>';
+  document.body.appendChild(ov);
+  setTimeout(function(){ var i=document.getElementById('del-pw-input'); if(i) i.focus(); },300);
+}
+function _closeDeletePwOverlay(){ var o=document.getElementById('delete-pw-overlay'); if(o) o.remove(); }
+function _toggleDelPw(){
+  var inp=document.getElementById('del-pw-input');
+  var eye=document.getElementById('del-pw-eye');
+  if(!inp) return;
+  if(inp.type==='password'){ inp.type='text'; if(eye) eye.innerHTML='&#128584;'; }
+  else{ inp.type='password'; if(eye) eye.innerHTML='&#128065;'; }
+}
+async function _confirmDeleteWithPassword(){
+  var inp=document.getElementById('del-pw-input');
+  var err=document.getElementById('del-pw-err');
+  var btn=document.getElementById('del-pw-btn');
+  if(!inp) return;
+  var pw=inp.value.trim();
+  if(!pw){ if(err) err.textContent='Ingresa tu contraseña'; return; }
+  var email=(_currentUser&&_currentUser.email)||localStorage.getItem('_lastAuthUserEmail')||'';
+  if(!email){ if(err) err.textContent='No se encontró el email'; return; }
+  if(btn){ btn.disabled=true; btn.textContent='Verificando...'; }
+  try{
+    var {data,error}=await _supabase.auth.signInWithPassword({email:email,password:pw});
+    if(error||!data.session){
+      if(err) err.textContent='Contraseña incorrecta';
+      if(btn){ btn.disabled=false; btn.textContent='Eliminar mi cuenta'; }
+      return;
+    }
+    var token=data.session.access_token;
+    if(btn) btn.textContent='Eliminando...';
+    var res=await fetch('https://dshwbvqvfbjtlbcqqviz.supabase.co/functions/v1/delete-account',{
+      method:'POST',
+      headers:{
+        'Authorization':'Bearer '+token,
+        'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzaHdidnF2ZmJqdGxiY3Fxdml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTM1OTYsImV4cCI6MjA5MDg4OTU5Nn0.kjie4SHtxJZYkX1rspJK2JNpOWfbd-Xdx3UZfgqydXU',
+        'Content-Type':'application/json'
+      }
+    });
+    var json=await res.json();
+    if(!res.ok){
+      if(err) err.textContent='Error: '+(json.error||'No se pudo eliminar');
+      if(btn){ btn.disabled=false; btn.textContent='Eliminar mi cuenta'; }
+      return;
+    }
+    var ov2=document.getElementById('delete-pw-overlay');
+    if(ov2) ov2.remove();
+    localStorage.clear();
+    sessionStorage.clear();
+    _currentUser=null;
+    _intentionalSignOut=true;
+    try{ await _supabase.auth.signOut(); }catch(e){}
+    var el=document.getElementById('onboarding-screen');
+    if(el) el.remove();
+    _showOnboarding();
+  }catch(e){
+    if(err) err.textContent='Error: '+e.message;
+    if(btn){ btn.disabled=false; btn.textContent='Eliminar mi cuenta'; }
+  }
 }
 async function getCurrentUser(){
   var {data} = await _supabase.auth.getSession();
@@ -498,12 +508,6 @@ async function _afterLogin(user){
   localStorage.removeItem('pendingPassword');
   _currentUser = user;
   _injectLogoutBtn(user);
-  try{
-    var {data:_sd} = await _supabase.auth.getSession();
-    if(_sd && _sd.session && _sd.session.refresh_token){
-      localStorage.setItem('_sbRefresh', _sd.session.refresh_token);
-    }
-  }catch(e){}
 
   // Onboarding solo si nunca se completó para este usuario
   if(!_isOnboardingCompleted(user.id)){
@@ -974,18 +978,6 @@ async function _enterWithPinSuccess(){
     return;
   }
   _currentUser = lastUser;
-  if(_supabase){
-    try{
-      var _rt = localStorage.getItem('_sbRefresh');
-      if(_rt){
-        var _rr = await _supabase.auth.refreshSession({refresh_token:_rt});
-        if(_rr.data && _rr.data.user) _currentUser = _rr.data.user;
-        if(_rr.data && _rr.data.session && _rr.data.session.refresh_token){
-          localStorage.setItem('_sbRefresh', _rr.data.session.refresh_token);
-        }
-      }
-    }catch(e){ console.warn('PIN refresh error:',e); }
-  }
   hideAuthScreen();
   if(typeof initApp === 'function') initApp();
   if(typeof _injectLogoutBtn === 'function') _injectLogoutBtn(_currentUser);
@@ -1404,15 +1396,11 @@ async function _startBioFromWelcome(){
       // Bio exitosa → validar con servidor antes de dar acceso
       if(_supabase){
         try{
-          var _brt = localStorage.getItem('_sbRefresh');
-          var refreshed = _brt
-            ? await _supabase.auth.refreshSession({refresh_token:_brt})
-            : await _supabase.auth.refreshSession();
+          // Primero intentar refrescar la sesión (maneja JWT expirado)
+          var refreshed=await _supabase.auth.refreshSession();
           if(refreshed.data&&refreshed.data.user){
+            // Sesión refrescada correctamente
             _currentUser=refreshed.data.user;
-            if(refreshed.data.session&&refreshed.data.session.refresh_token){
-              localStorage.setItem('_sbRefresh', refreshed.data.session.refresh_token);
-            }
           }else{
             // refreshSession falló → verificar si el usuario realmente fue eliminado
             var rv=await _supabase.auth.getUser();
@@ -1445,7 +1433,7 @@ async function _startBioFromWelcome(){
     }
   }catch(err){
     console.error('Biometric auth error:', err);
-    // session/network error — no mostrar toast
+    try{ toast('Error al intentar la autenticaci\u00f3n biom\u00e9trica.'); }catch(e){}
   }
 }
 
