@@ -5574,7 +5574,7 @@ function renderMiPerfil(){
       +toggleRow(iconShield,'Biometr\u00eda (huella)',bioActive,'_toggleBio',true)
     +'</div>'
 
-    +'<input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">'
+    +'<input type="file" id="profile-cam-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
     +'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
   +'</div>'
   +'<div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface);border-top:1px solid var(--border);z-index:50">'
@@ -6280,14 +6280,33 @@ function removeProfilePhoto(){
     renderPage('mi-perfil');
   });
 }function handleProfilePhoto(e){
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    if(!S.profile)S.profile={};
-    S.profile.photo=ev.target.result;
-    var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:localStorage.getItem('_lastAuthUserId')||'';
-    if(_uid) try{localStorage.setItem('_profilePhoto_'+_uid,ev.target.result);}catch(e2){}
-    saveState();updateDrawerProfile();renderPage(S.currentPage||'mi-perfil');
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var img=new Image();
+    img.onload=function(){
+      var MAX=600;
+      var w=img.width,h=img.height;
+      if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+      var canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      var compressed=canvas.toDataURL('image/jpeg',0.75);
+      if(!S.profile)S.profile={};
+      S.profile.photo=compressed;
+      var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:localStorage.getItem('_lastAuthUserId')||'';
+      if(_uid){
+        try{localStorage.setItem('_profilePhoto_'+_uid,compressed);}
+        catch(e2){
+          var q=0.5;
+          while(q>0.1){
+            try{var s2=canvas.toDataURL('image/jpeg',q);localStorage.setItem('_profilePhoto_'+_uid,s2);S.profile.photo=s2;break;}catch(e3){q-=0.1;}
+          }
+        }
+      }
+      saveState();updateDrawerProfile();renderPage(S.currentPage||'mi-perfil');
+    };
+    img.src=ev.target.result;
   };
   reader.readAsDataURL(file);
 }function saveLanguage(v){
