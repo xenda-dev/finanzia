@@ -4935,7 +4935,7 @@ function renderConfiguracion(){
     <div class="config-item" onclick="navigate('mi-perfil')" style="margin-bottom:16px">
       <div class="config-item-left" style="gap:12px">
         <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid var(--primary);overflow:hidden;flex-shrink:0">
-          ${(S.profile&&S.profile.photo)?`<img src="${S.profile.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.profile&&S.profile.name?`<span style="font-size:18px;font-weight:700;color:white">${S.profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</span>`:'<span>👤</span>')}
+          ${_getProfilePhoto()?`<img src="${_getProfilePhoto()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.profile&&S.profile.name?`<span style="font-size:18px;font-weight:700;color:white">${S.profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</span>`:'<span>👤</span>')}
         </div>
         <div>
           <div style="font-size:15px;font-weight:700">${(S.profile&&S.profile.name)||'Mi Perfil'}</div>
@@ -5464,7 +5464,7 @@ function _calcProfileProgress(){
     !!(p.phone&&p.phoneCode),
     !!(p.profession),
     !!(p.financialGoal),
-    !!(p.photo)
+    !!(_getProfilePhoto())
   ];
   return Math.round(checks.filter(Boolean).length/checks.length*100);
 }
@@ -5502,14 +5502,15 @@ function renderMiPerfil(){
   var displayName=p.name||(window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)||'';
   var emailVal=p.email||(window._currentUser&&window._currentUser.email?window._currentUser.email:'');
   var initials=displayName?displayName.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'?';
-  var avatarInner=p.photo
-    ?('<img src="'+p.photo+'" style="width:72px;height:72px;object-fit:cover;border-radius:50%;display:block;flex-shrink:0;">')
+  var _photo=_getProfilePhoto();
+  var avatarInner=_photo
+    ?('<img src="'+_photo+'" style="width:72px;height:72px;object-fit:cover;border-radius:50%;display:block;flex-shrink:0;">')
     :('<span style="font-size:22px;font-weight:700;color:white">'+initials+'</span>');
   var pct=_calcProfileProgress();
   var pinActive=uid&&localStorage.getItem('_pinEnabled_'+uid)==='1'&&!!localStorage.getItem('_userPin_'+uid);
   var bioActive=uid&&localStorage.getItem('_bioEnabled_'+uid)==='1'&&!!localStorage.getItem('_bioCredId_'+uid);
   var phone=(p.phoneCode?p.phoneCode+' ':'')+(p.phone||'');
-  var avatarClick=p.photo?'onclick="viewProfilePhoto()" style="cursor:zoom-in"':'';
+  var avatarClick=_photo?'onclick="viewProfilePhoto()" style="cursor:zoom-in"':'';
   function svgIcon(path,extra){
     return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(extra||'')+path+'</svg>';
   }
@@ -6211,7 +6212,7 @@ function saveProfile(){
 
 function showPhotoOptions(){
   var q="'";
-  var hasPhoto=!!(S.profile&&S.profile.photo);
+  var hasPhoto=!!_getProfilePhoto();
   var sheet=document.createElement('div');
   sheet.id='photo-options-sheet';
   sheet.style.cssText='position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;justify-content:flex-end';
@@ -6254,13 +6255,14 @@ function closePhotoSheet(){
 }
 
 function viewProfilePhoto(){
-  if(!S.profile||!S.profile.photo)return;
+  var _vp=_getProfilePhoto();
+  if(!_vp)return;
   var overlay=document.createElement('div');
   overlay.id='photo-viewer-overlay';
   overlay.style.cssText='position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center';
   overlay.onclick=function(e){if(e.target===overlay)closePhotoViewer();};
   overlay.innerHTML='<button onclick="closePhotoViewer()" style="position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.15);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
-    +'<img src="'+S.profile.photo+'" style="max-width:90vw;max-height:90vh;border-radius:12px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,.6)">';
+    +'<img src="'+_vp+'" style="max-width:90vw;max-height:90vh;border-radius:12px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,.6)">';
   document.body.appendChild(overlay);
 }
 function closePhotoViewer(){
