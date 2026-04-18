@@ -276,6 +276,7 @@ async function saveUserData(userId,data){
   delete toSave.movFilter;
   // _lastSync es solo del cliente
   delete toSave._lastSync;
+  delete toSave.theme;
   // Campos de estado UI — no tienen sentido en otro dispositivo
   delete toSave._fcData;       // formulario de cuenta a medio llenar
   delete toSave._viewAccId;    // cuenta siendo visualizada
@@ -412,6 +413,7 @@ async function syncFromSupabase(userId){
 
     Object.keys(remote).forEach(function(key){
       if(key==='_remoteUpdatedAt') return;
+      if(key==='theme') return;
       var val=remote[key];
       if(val===null||val===undefined) return;
 
