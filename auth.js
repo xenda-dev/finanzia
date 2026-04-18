@@ -130,7 +130,7 @@ function _showDeletePasswordModal(){
   ov.innerHTML =
     '<div style="width:100%;background:var(--surface);border-radius:24px 24px 0 0;padding:24px 24px max(env(safe-area-inset-bottom),32px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
     +'<div style="display:flex;justify-content:center;margin-bottom:16px"><div style="width:40px;height:4px;border-radius:2px;background:var(--border)"></div></div>'
-    +'<div style="font-size:15px;color:var(--text2);text-align:center;margin-bottom:4px">Hola, '+_getFirstNameForDelete()+'</div>'
+    +'<div style="font-size:24px;font-weight:700;color:var(--text);text-align:center;margin-bottom:4px">Hola, '+_getFirstNameForDelete()+'</div>'
     +'<div style="font-size:18px;font-weight:700;color:var(--danger);margin-bottom:8px;text-align:center">⚠️ Confirma tu identidad</div>'
     +'<div style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:20px">Por seguridad es necesario que ingreses la contraseña con la que te registraste para eliminar tu cuenta definitivamente.</div>'
     +'<div style="position:relative;margin-bottom:8px">'

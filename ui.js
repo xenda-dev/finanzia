@@ -149,6 +149,8 @@ function _updateHeader(page){
         hSpacer.innerHTML='';
       }
     }
+    var _navDel=document.getElementById('nav-delete-account-btn');
+    if(_navDel) _navDel.style.display=(page==='mi-perfil')?'flex':'none';
   }
 }
 function renderPage(page){
@@ -5568,11 +5570,7 @@ function renderMiPerfil(){
       +toggleRow(iconLock,'PIN de acceso',pinActive,'_togglePin',false)
       +toggleRow(iconShield,'Biometr\u00eda (huella)',bioActive,'_toggleBio',true)
     +'</div>'
-    +'<div style="padding:14px 16px 16px">'
-      +'<button onclick="deleteUserAccount()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:12px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">'
-        +iconTrash+'Eliminar mi cuenta'
-      +'</button>'
-    +'</div>'
+
     +'<input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">'
     +'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
   +'</div>';

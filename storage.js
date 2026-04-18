@@ -394,6 +394,7 @@ async function syncFromSupabase(userId){
     var keepPage=S.currentPage||'dashboard';
     var keepMovFilter=S.movFilter||{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''};
     var keepCatTab=S._catTab||'gasto';
+    var keepPhoto=S.profile&&S.profile.photo?S.profile.photo:'';
 
     Object.keys(remote).forEach(function(key){
       if(key==='_remoteUpdatedAt') return;
@@ -433,6 +434,7 @@ async function syncFromSupabase(userId){
     S.currentPage=keepPage;
     S.movFilter=keepMovFilter;
     S._catTab=keepCatTab;
+    if(keepPhoto&&S.profile&&!S.profile.photo) S.profile.photo=keepPhoto;
     S._lastSync=remoteTs||Date.now();
     try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}
     // Bloquear save a Supabase 3s — datos vienen DE allí, guardar de vuelta genera loop Realtime
