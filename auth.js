@@ -1050,6 +1050,7 @@ function showPinModal(){
 
   draw();
   document.body.appendChild(overlay);
+  setTimeout(function(){_renderPinDots([],'pin-dots');},0);
 
   window._pinKey = async function(k){
     if(_isPinLocked()){
@@ -1125,7 +1126,8 @@ async function _showPinRecovery(){
         +'<div style="font-size:18px;font-weight:700;color:var(--text,#0F172A);margin-bottom:8px">Recuperar PIN</div>'
         +'<div style="font-size:14px;color:var(--text2,#64748B);line-height:1.6;margin-bottom:24px">Enviaremos un código de 6 dígitos a<br><strong style="color:var(--text,#0F172A)">'+masked+'</strong></div>'
         +'<div id="pr-otp-wrap" style="display:none">'
-          +'<div style="font-size:13px;color:var(--text2,#64748B);margin-bottom:12px">Código enviado — ingrésalo aquí:</div>'
+          +'<div style="font-size:13px;color:var(--text2,#64748B);margin-bottom:4px">Código enviado — ingrésalo aquí:</div>'
+          +'<div id="pr-timer" style="font-size:12px;color:#F59E0B;margin-bottom:10px">Expira en 10:00</div>'
           +'<div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px" id="pr-boxes">'
             +'<input id="pr-0" maxlength="1" inputmode="numeric" style="width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)">'
             +'<input id="pr-1" maxlength="1" inputmode="numeric" style="width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)">'
@@ -1145,6 +1147,7 @@ async function _showPinRecovery(){
   window._pinRecoveryEmail=email;
 }
 function _closePinRecovery(){
+  if(window._prTimerInterval){clearInterval(window._prTimerInterval);window._prTimerInterval=null;}
   var ov=document.getElementById('pin-recovery-overlay');
   if(!ov)return;
   var sh=document.getElementById('pr-sheet');
@@ -1169,6 +1172,7 @@ async function _sendPinRecoveryOtp(){
     if(wrap)wrap.style.display='block';
     setTimeout(function(){var f=document.getElementById('pr-0');if(f)f.focus();},200);
     _setupOtpInputs();
+    _startPinRecoveryTimer(900);
   }catch(e){
     if(btn){btn.disabled=false;btn.textContent='Enviar código';}
     try{toast('Error: '+e.message);}catch(e2){}
@@ -1180,7 +1184,32 @@ async function _resendPinRecoveryOtp(){
   try{
     await _supabase.auth.signInWithOtp({email:email,options:{shouldCreateUser:false}});
     try{toast('Código reenviado ✓');}catch(e){}
+    _startPinRecoveryTimer(900);
   }catch(e){}
+}
+function _startPinRecoveryTimer(secs){
+  if(window._prTimerInterval)clearInterval(window._prTimerInterval);
+  var remaining=secs;
+  function tick(){
+    var m=Math.floor(remaining/60);
+    var s=remaining%60;
+    var el=document.getElementById('pr-timer');
+    if(el){
+      if(remaining<=0){
+        el.textContent='El código ha expirado. Solicita uno nuevo.';
+        el.style.color='#EF4444';
+        clearInterval(window._prTimerInterval);
+        return;
+      }
+      el.textContent='Expira en '+m+':'+(s<10?'0':'')+s;
+      el.style.color=remaining<=60?'#EF4444':'#F59E0B';
+    }else{
+      clearInterval(window._prTimerInterval);
+    }
+    remaining--;
+  }
+  tick();
+  window._prTimerInterval=setInterval(tick,1000);
 }
 function _setupOtpInputs(){
   for(var i=0;i<6;i++){
@@ -1225,6 +1254,7 @@ async function _verifyPinRecoveryOtp(){
     }
     _closePinRecovery();
     window._pinFromProfile=false;
+    window._pinFromRecovery=true;
     showAuthScreen();
     _initSetPinScreen();
     _showScreen('set-pin');
@@ -1359,6 +1389,9 @@ function _initSetPinScreen(){
             window._pinFromProfile=false;
             hideAuthScreen();
             if(typeof renderPage==='function')renderPage('mi-perfil');
+          }else if(window._pinFromRecovery){
+            window._pinFromRecovery=false;
+            _showWelcomeScreen(_currentUser);
           }else{
             try{ toast('PIN guardado correctamente \u2713'); }catch(e){}
             _initBioSetupScreen();
