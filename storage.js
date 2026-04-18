@@ -255,6 +255,11 @@ function saveState(){
 async function saveUserData(userId,data){
   if(typeof _supabase==='undefined'||!_supabase) return;
   var toSave=Object.assign({},data);
+  // No sincronizar foto de perfil (base64 puede ser muy grande y falla silenciosamente)
+  if(toSave.profile&&toSave.profile.photo){
+    toSave.profile=Object.assign({},toSave.profile);
+    delete toSave.profile.photo;
+  }
   // Campos de UI/navegación — no persistir en servidor
   delete toSave.currentPage;
   delete toSave._catTab;

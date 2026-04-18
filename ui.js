@@ -149,8 +149,10 @@ function _updateHeader(page){
         hSpacer.innerHTML='';
       }
     }
+    var _bottomNav=document.querySelector('nav.bottom-nav');
+    if(_bottomNav) _bottomNav.style.display=(page==='mi-perfil')?'none':'';
     var _navDel=document.getElementById('nav-delete-account-btn');
-    if(_navDel) _navDel.style.display=(page==='mi-perfil')?'flex':'none';
+    if(_navDel) _navDel.style.display='none';
   }
 }
 function renderPage(page){
@@ -5540,7 +5542,7 @@ function renderMiPerfil(){
       +'<div style="display:flex;align-items:center;gap:12px">'+ri+'<div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">'+label+'</div>'+badge+'</div></div>'+tgl+'</div>';
   }
   var sl='<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);padding:14px 16px 6px">%L%</div>';
-  return '<div>'
+  return '<div style="padding-bottom:74px">'
     +'<div style="display:flex;align-items:center;gap:16px;padding:20px 16px 16px;background:var(--surface);border-bottom:1px solid var(--border)">'
       +'<div style="position:relative;flex-shrink:0;width:72px;height:72px">'
         +'<div '+avatarClick+' style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid var(--primary);box-sizing:border-box">'
@@ -5573,6 +5575,9 @@ function renderMiPerfil(){
 
     +'<input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">'
     +'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
+  +'</div>'
+  +'<div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface);border-top:1px solid var(--border);z-index:50">'
+    +'<button onclick="deleteUserAccount()" style="width:100%;padding:14px;border-radius:50px;background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.3);color:var(--danger);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar mi cuenta</button>'
   +'</div>';
 }
 
