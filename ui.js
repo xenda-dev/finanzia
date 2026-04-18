@@ -5452,8 +5452,9 @@ function updatePhoneLen(code){var m={'+57':10,'+48':9,'+1':10,'+34':9,'+52':10,'
 // ── Mi Perfil page ────────────────────────────────────────
 function _calcProfileProgress(){
   var p=S.profile||{};
+  var nameVal=p.name||(window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)||'';
   var checks=[
-    !!(p.name&&p.name.trim()),
+    !!(nameVal.trim()),
     !!(p.gender),
     !!(p.residence),
     !!(p.phone&&p.phoneCode),
@@ -5474,6 +5475,7 @@ function _togglePin(isChecked){
     });
     setTimeout(function(){renderPage('mi-perfil');},50);
   }else{
+    window._pinFromProfile=true;
     showAuthScreen();
     _initSetPinScreen();
     _showScreen('set-pin');
@@ -5536,7 +5538,7 @@ function renderMiPerfil(){
       +'<div style="display:flex;align-items:center;gap:12px">'+ri+'<div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">'+label+'</div>'+badge+'</div></div>'+tgl+'</div>';
   }
   var sl='<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);padding:14px 16px 6px">%L%</div>';
-  return '<div style="padding-bottom:80px">'
+  return '<div>'
     +'<div style="display:flex;align-items:center;gap:16px;padding:20px 16px 16px;background:var(--surface);border-bottom:1px solid var(--border)">'
       +'<div style="position:relative;flex-shrink:0;width:72px;height:72px">'
         +'<div '+avatarClick+' style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid var(--primary);box-sizing:border-box">'
@@ -5566,7 +5568,7 @@ function renderMiPerfil(){
       +toggleRow(iconLock,'PIN de acceso',pinActive,'_togglePin',false)
       +toggleRow(iconShield,'Biometr\u00eda (huella)',bioActive,'_toggleBio',true)
     +'</div>'
-    +'<div style="position:fixed;bottom:var(--nav-h);left:0;right:0;padding:10px 16px;background:var(--bg);border-top:1px solid var(--border);z-index:10">'
+    +'<div style="padding:14px 16px 16px">'
       +'<button onclick="deleteUserAccount()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:12px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">'
         +iconTrash+'Eliminar mi cuenta'
       +'</button>'

@@ -419,7 +419,11 @@ async function _activateBioFromSheet(userId, email){
   var ok = await bioRegister(userId, email);
   _closeBioOfferSheet();
   if(ok){
-    try{ toast('Huella activada ✓'); }catch(e){}
+    if(typeof S!=='undefined'&&S.currentPage==='mi-perfil'){
+      setTimeout(function(){if(typeof renderPage==='function')renderPage('mi-perfil');},300);
+    }else{
+      try{ toast('Huella activada \u2713'); }catch(e){}
+    }
   }
 }
 
@@ -1214,9 +1218,15 @@ function _initSetPinScreen(){
       }else{
         if(s.current.join('') === s.first.join('')){
           await saveUserPin(s.current.join(''));
-          try{ toast('PIN guardado correctamente \u2713'); }catch(e){}
-          _initBioSetupScreen();
-          _showScreen('bio-setup');
+          if(window._pinFromProfile){
+            window._pinFromProfile=false;
+            hideAuthScreen();
+            if(typeof renderPage==='function')renderPage('mi-perfil');
+          }else{
+            try{ toast('PIN guardado correctamente \u2713'); }catch(e){}
+            _initBioSetupScreen();
+            _showScreen('bio-setup');
+          }
         }else{
           var errEl = document.getElementById('set-pin-screen-err');
           if(errEl) errEl.textContent = 'Los PIN no coinciden. Int\u00e9ntalo de nuevo.';
@@ -1415,15 +1425,21 @@ async function _startBioFromWelcome(){
           // Primero intentar refrescar la sesión (maneja JWT expirado)
           var refreshed=await _supabase.auth.refreshSession();
           if(refreshed.data&&refreshed.data.user){
+            // Sesión refrescada correctamente
             _currentUser=refreshed.data.user;
-          }else if(refreshed.error&&refreshed.error.status&&refreshed.error.status>=400&&refreshed.error.status<500){
-            // 4xx: servidor rechazó → usuario eliminado o sesión inválida
-            _currentUser=null;
-            _clearAllLocalUserData();
-            showAuthScreen();
-            _showScreen('login');
-            try{toast('Tu sesi\u00f3n ya no es v\u00e1lida. Por favor inicia sesi\u00f3n.');}catch(e){}
-            return;
+          }else{
+            // refreshSession falló → verificar si el usuario realmente fue eliminado
+            var rv=await _supabase.auth.getUser();
+            if(rv.error&&rv.error.message&&rv.error.message.toLowerCase().indexOf('user')!==-1&&rv.error.message.toLowerCase().indexOf('not')!==-1){
+              // Usuario eliminado de la BD → limpiar y mostrar login
+              _currentUser=null;
+              _clearAllLocalUserData();
+              showAuthScreen();
+              _showScreen('login');
+              try{toast('Tu cuenta ya no existe. Por favor regístrate de nuevo.');}catch(e){}
+              return;
+            }
+            // Otro error (red, etc.) → acceso offline con datos locales
           }
         }catch(netErr){
           // Sin conexión → permitir acceso offline con datos locales
