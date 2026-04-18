@@ -119,11 +119,10 @@
         </div>
       </div>
 
-      <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 4px 4px">
-        <input type="checkbox" id="rg-tc" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:#00D4AA;cursor:pointer">
-        <div style="font-size:13px;color:#64748B;line-height:1.5">
-          Acepto los <a href="javascript:openTerminosModal()" style="color:#00D4AA;font-weight:600;text-decoration:underline">Términos y Condiciones</a> y la <a href="javascript:openTerminosModal()" style="color:#00D4AA;font-weight:600;text-decoration:underline">Política de Privacidad</a>
-        </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 4px 0">
+        <input type="checkbox" id="rg-tc" style="width:18px;height:18px;flex-shrink:0;accent-color:#00D4AA;cursor:pointer">
+        <span style="font-size:13px;color:#64748B">Acepto los T&amp;C y Política de Privacidad</span>
+        <button type="button" id="rg-tc-link" style="margin-left:auto;background:none;border:none;color:#00D4AA;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;padding:4px 0;font-family:inherit" ontouchend="event.preventDefault();openTerminosModal()" onclick="openTerminosModal()">Ver</button>
       </div>
       <div id="auth-err-rg" class="auth-err" style="display:none"></div>
       <div id="auth-rg-exists" style="display:none;background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.3);border-radius:12px;padding:14px 16px;font-size:13px;color:#0F766E;margin-top:8px;line-height:1.55">
