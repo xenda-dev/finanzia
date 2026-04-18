@@ -1029,8 +1029,10 @@ function showPinModal(){
       : '';
     overlay.innerHTML =
       '<div id="pin-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
-      +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:40px;height:4px;border-radius:2px;background:var(--border,#E2E8F0)"></div></div>'
-      +'<div style="padding:20px 28px 24px;text-align:center">'
+      +'<div style="display:flex;justify-content:flex-end;padding:14px 16px 0">'
+        +'<button onclick="closePinModal()" style="width:32px;height:32px;border-radius:50%;background:var(--surface2,#F1F5F9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2,#64748B)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+      +'</div>'
+      +'<div style="padding:8px 28px 24px;text-align:center">'
         +'<div style="display:flex;align-items:center;justify-content:center;margin-bottom:10px">'
           +'<img src="/icon-192.png" style="width:40px;height:40px;border-radius:8px" alt="FinanzIA">'
         +'</div>'
@@ -1039,7 +1041,7 @@ function showPinModal(){
         +'<div id="pin-dots" style="display:flex;justify-content:center;gap:16px;margin:16px 0 8px"></div>'
         +'<div id="pin-err" style="min-height:18px;font-size:13px;color:#DC2626;margin-bottom:14px;text-align:center"></div>'
         +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">'+_buildKeypad('_pinKey')+'</div>'
-        +'<button onclick="closePinModal()" style="margin-top:14px;background:none;border:none;color:var(--text2,#94A3B8);font-size:14px;cursor:pointer;font-family:var(--font,inherit)">Cancelar</button>'
+        +'<button onclick="closePinModal();_showPinRecovery()" style="margin-top:16px;background:none;border:none;color:var(--primary,#00D4AA);font-size:14px;cursor:pointer;font-family:var(--font,inherit);text-decoration:underline">¿Olvidaste tu PIN?</button>'
       +'</div>'
       +'</div>';
     _renderPinDots(pin, 'pin-dots');
@@ -1096,6 +1098,141 @@ function showPinModal(){
       }
     }
   };
+}
+
+
+// ════════════════════════════════════════════════════════════
+// RECUPERACIÓN DE PIN vía OTP por correo
+// ════════════════════════════════════════════════════════════
+async function _showPinRecovery(){
+  var email=(_currentUser&&_currentUser.email)||localStorage.getItem('_lastAuthUserEmail')||'';
+  if(!email){ try{toast('No se encontró el correo asociado.');}catch(e){} return; }
+  var ov=document.getElementById('pin-recovery-overlay');
+  if(ov)ov.remove();
+  ov=document.createElement('div');
+  ov.id='pin-recovery-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease;pointer-events:auto';
+  var masked=email.replace(/(.{2})[^@]+(@.+)/,function(m,a,b){return a+'*****'+b;});
+  ov.innerHTML=''
+    +'<div id="pr-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),28px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
+      +'<div style="display:flex;justify-content:flex-end;padding:14px 16px 0">'
+        +'<button onclick="_closePinRecovery()" style="width:32px;height:32px;border-radius:50%;background:var(--surface2,#F1F5F9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2,#64748B)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+      +'</div>'
+      +'<div style="padding:8px 28px 28px;text-align:center">'
+        +'<div style="width:56px;height:56px;border-radius:16px;background:rgba(0,212,170,.12);margin:0 auto 16px;display:flex;align-items:center;justify-content:center">'
+          +'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>'
+        +'</div>'
+        +'<div style="font-size:18px;font-weight:700;color:var(--text,#0F172A);margin-bottom:8px">Recuperar PIN</div>'
+        +'<div style="font-size:14px;color:var(--text2,#64748B);line-height:1.6;margin-bottom:24px">Enviaremos un código de 6 dígitos a<br><strong style="color:var(--text,#0F172A)">'+masked+'</strong></div>'
+        +'<div id="pr-otp-wrap" style="display:none">'
+          +'<div style="font-size:13px;color:var(--text2,#64748B);margin-bottom:12px">Código enviado — ingrésalo aquí:</div>'
+          +'<div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px" id="pr-boxes">'
+            +'<input id="pr-0" maxlength="1" inputmode="numeric" style="width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)">'
+            +'<input id="pr-1" maxlength="1" inputmode="numeric" style="width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)">'
+            +'<input id="pr-2" maxlength="1" inputmode="numeric" style="width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)">'
+            +'<input id="pr-3" maxlength="1" inputmode="numeric" style="width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)">'
+            +'<input id="pr-4" maxlength="1" inputmode="numeric" style="width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)">'
+            +'<input id="pr-5" maxlength="1" inputmode="numeric" style="width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)">'
+          +'</div>'
+          +'<div id="pr-err" style="min-height:16px;font-size:13px;color:#DC2626;margin-bottom:10px;text-align:center"></div>'
+          +'<button id="pr-verify-btn" onclick="_verifyPinRecoveryOtp()" style="width:100%;padding:14px;border-radius:50px;background:var(--primary,#00D4AA);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font,inherit);margin-bottom:10px">Verificar código</button>'
+          +'<button onclick="_resendPinRecoveryOtp()" style="background:none;border:none;color:var(--text2,#94A3B8);font-size:13px;cursor:pointer;font-family:var(--font,inherit)">Reenviar código</button>'
+        +'</div>'
+        +'<button id="pr-send-btn" onclick="_sendPinRecoveryOtp()" style="width:100%;padding:14px;border-radius:50px;background:var(--primary,#00D4AA);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font,inherit)">Enviar código</button>'
+      +'</div>'
+    +'</div>';
+  document.body.appendChild(ov);
+  window._pinRecoveryEmail=email;
+}
+function _closePinRecovery(){
+  var ov=document.getElementById('pin-recovery-overlay');
+  if(!ov)return;
+  var sh=document.getElementById('pr-sheet');
+  if(sh)sh.style.animation='bsSlideDown .22s ease forwards';
+  ov.style.opacity='0';ov.style.transition='opacity .22s';
+  setTimeout(function(){if(ov.parentNode)ov.remove();},240);
+}
+async function _sendPinRecoveryOtp(){
+  var email=window._pinRecoveryEmail;
+  if(!email)return;
+  var btn=document.getElementById('pr-send-btn');
+  if(btn){btn.disabled=true;btn.textContent='Enviando...';}
+  try{
+    var res=await _supabase.auth.signInWithOtp({email:email,options:{shouldCreateUser:false}});
+    if(res.error){
+      if(btn){btn.disabled=false;btn.textContent='Enviar código';}
+      try{toast('Error al enviar el código. Inténtalo de nuevo.');}catch(e){}
+      return;
+    }
+    if(btn)btn.style.display='none';
+    var wrap=document.getElementById('pr-otp-wrap');
+    if(wrap)wrap.style.display='block';
+    setTimeout(function(){var f=document.getElementById('pr-0');if(f)f.focus();},200);
+    _setupOtpInputs();
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='Enviar código';}
+    try{toast('Error: '+e.message);}catch(e2){}
+  }
+}
+async function _resendPinRecoveryOtp(){
+  var email=window._pinRecoveryEmail;
+  if(!email)return;
+  try{
+    await _supabase.auth.signInWithOtp({email:email,options:{shouldCreateUser:false}});
+    try{toast('Código reenviado ✓');}catch(e){}
+  }catch(e){}
+}
+function _setupOtpInputs(){
+  for(var i=0;i<6;i++){
+    (function(idx){
+      var inp=document.getElementById('pr-'+idx);
+      if(!inp)return;
+      inp.addEventListener('input',function(e){
+        var v=e.target.value.replace(/[^0-9]/g,'');
+        e.target.value=v;
+        if(v&&idx<5){var next=document.getElementById('pr-'+(idx+1));if(next)next.focus();}
+        var code='';for(var j=0;j<6;j++){var el=document.getElementById('pr-'+j);code+=el?el.value:'';}
+        if(code.length===6)_verifyPinRecoveryOtp();
+      });
+      inp.addEventListener('keydown',function(e){
+        if(e.key==='Backspace'&&!e.target.value&&idx>0){var prev=document.getElementById('pr-'+(idx-1));if(prev){prev.focus();prev.value='';}}
+      });
+    })(i);
+  }
+}
+async function _verifyPinRecoveryOtp(){
+  var email=window._pinRecoveryEmail;
+  var code='';
+  for(var i=0;i<6;i++){var el=document.getElementById('pr-'+i);code+=(el?el.value:'');}
+  if(code.length<6){
+    var err=document.getElementById('pr-err');
+    if(err)err.textContent='Ingresa los 6 dígitos del código';
+    return;
+  }
+  var btn=document.getElementById('pr-verify-btn');
+  if(btn){btn.disabled=true;btn.textContent='Verificando...';}
+  try{
+    var res=await _supabase.auth.verifyOtp({email:email,token:code,type:'email'});
+    if(res.error){
+      var err=document.getElementById('pr-err');
+      if(err)err.textContent='Código incorrecto o expirado';
+      if(btn){btn.disabled=false;btn.textContent='Verificar código';}
+      return;
+    }
+    if(res.data&&res.data.user){
+      _currentUser=res.data.user;
+      _persistLastUserId(res.data.user.id,res.data.user.email);
+    }
+    _closePinRecovery();
+    window._pinFromProfile=false;
+    showAuthScreen();
+    _initSetPinScreen();
+    _showScreen('set-pin');
+  }catch(e){
+    var err=document.getElementById('pr-err');
+    if(err)err.textContent='Error: '+e.message;
+    if(btn){btn.disabled=false;btn.textContent='Verificar código';}
+  }
 }
 
 function closePinModal(){
