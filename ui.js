@@ -5459,7 +5459,7 @@ function _calcProfileProgress(){
   var nameVal=p.name||(window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)||'';
   var checks=[
     !!(nameVal.trim()),
-    !!(p.gender),
+    !!(p.gender&&p.gender!==''),
     !!(p.residence),
     !!(p.phone&&p.phoneCode),
     !!(p.profession),
@@ -5901,11 +5901,15 @@ function buildProfileFormHTML(){
   var goalOpts=goalList.map(function(g){return '<div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\''+g+'\' )" data-val="'+g+'" style="'+(p.financialGoal===g?'background:rgba(0,212,170,.1)':'')+'">'+g+'</div>';}).join('');
 
   var nameVal=p.name||(_currentUser&&_currentUser.user_metadata&&_currentUser.user_metadata.full_name)||'';
-  var genderOpts=['No especificado','Masculino','Femenino'];
-  var _genderVal=p.gender||'No especificado';
-  var genderCaps=genderOpts.map(function(g){
+  var _genderOpts=['Masculino','Femenino'];
+  var _genderVal=p.gender||'';
+  var genderCaps=_genderOpts.map(function(g){
     var on=_genderVal===g;
-    return '<button type="button" onclick="S.profile.gender=\''+g+'\';document.getElementById(\'cfg-gender\').value=\''+g+'\';this.parentNode.querySelectorAll(\'button\').forEach(function(b){b.style.background=\'transparent\';b.style.color=\'var(--text2)\';b.style.fontWeight=\'500\';});this.style.background=\'var(--primary)\';this.style.color=\'white\';this.style.fontWeight=\'700\';" style="flex:1;padding:8px 4px;border-radius:50px;border:none;background:'+(on?'var(--primary)':'transparent')+';color:'+(on?'white':'var(--text2)')+';font-size:13px;font-weight:'+(on?'700':'500')+';cursor:pointer;font-family:var(--font)">'+g+'</button>';
+    return '<div onclick="S.profile.gender=\''+g+'\';document.getElementById(\'cfg-gender\').value=\''+g+'\';this.parentNode.querySelectorAll(\'div\').forEach(function(b){b.style.borderColor=\'var(--border)\';b.style.background=\'var(--surface2)\';b.querySelector(\'span.gr\').style.display=\'none\';});this.style.borderColor=\'var(--primary)\';this.style.background=\'rgba(0,212,170,.06)\';this.querySelector(\'span.gr\').style.display=\'flex\';" style="flex:1;display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:50px;border:1.5px solid '+(on?'var(--primary)':'var(--border)')+';background:'+(on?'rgba(0,212,170,.06)':'var(--surface2)')+';cursor:pointer;font-family:var(--font)">'
+      +'<span class="gr" style="width:17px;height:17px;border-radius:50%;border:2px solid var(--primary);display:'+(on?'flex':'none')+';align-items:center;justify-content:center;flex-shrink:0"><span style="width:8px;height:8px;border-radius:50%;background:var(--primary);display:block"></span></span>'
+      +'<span class="gr" style="width:17px;height:17px;border-radius:50%;border:2px solid var(--border);display:'+(on?'none':'flex')+';align-items:center;justify-content:center;flex-shrink:0"></span>'
+      +'<span style="font-size:14px;font-weight:600;color:var(--text)">'+g+'</span>'
+    +'</div>';
   }).join('');
   var html=''
     +'<div class="form-group"><label class="form-label">Nombre y apellido</label>'
@@ -5923,7 +5927,7 @@ function buildProfileFormHTML(){
         +'<input type="hidden" id="cfg-phone-code" value="'+(defPhone||'')+'">'+'<input class="form-input" type="tel" id="cfg-phone" value="'+(p.phone||'')+'" placeholder="Número" style="flex:1;font-size:15px" maxlength="15">'
       +'</div></div>'
     +'<div class="form-group"><label class="form-label">Género</label>'
-      +'<div style="background:var(--surface2);border-radius:50px;padding:3px;display:flex;gap:2px">'+genderCaps+'</div>'
+      +'<div style="display:flex;gap:10px">'+genderCaps+'</div>'
       +'<input type="hidden" id="cfg-gender" value="'+(_genderVal)+'"></div>'
     +'<div class="form-group"><label class="form-label">País de origen</label>'
       +'<div class="bs-trigger" onclick="showCountryPickerScreen(\'cfg-country\',\'País de origen\',\'cfg-country-lbl\')" id="cpick-trigger">'
