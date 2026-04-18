@@ -65,14 +65,14 @@ function generateNameFromEmail(email){
     .trim() || 'Usuario';
 }
 
-async function signUp(email, password){
-  var autoName = generateNameFromEmail(email);
+async function signUp(email, password, fullName){
+  var nameToUse = (fullName && fullName.trim()) ? fullName.trim() : generateNameFromEmail(email);
   var {data, error} = await _supabase.auth.signUp({
     email: email,
     password: password,
     options: {
       emailRedirectTo: 'https://finanzia.xenda.co',
-      data: { full_name: autoName }
+      data: { full_name: nameToUse }
     }
   });
   if(error) return _authMsg(error.message);
@@ -477,8 +477,11 @@ async function handleLogin(){
 }
 
 async function handleRegister(){
+  var name=(document.getElementById('rg-name').value||'').trim();
   var email=(document.getElementById('rg-email').value||'').trim();
   var pass=(document.getElementById('rg-pass').value||'').trim();
+  if(!name){_setError('rg','Ingresa tu nombre y apellido');return;}
+  if(name.trim().split(/\s+/).length<2){_setError('rg','Ingresa nombre y apellido completos');return;}
   if(!email||!pass){_setError('rg','Completa todos los campos');return;}
   if(pass.length<8){_setError('rg','Mínimo 8 caracteres');return;}
   if(!/[A-Z]/.test(pass)){_setError('rg','Debe incluir al menos una mayúscula');return;}
@@ -487,7 +490,7 @@ async function handleRegister(){
   var exists=document.getElementById('auth-rg-exists');
   if(exists)exists.style.display='none';
   _setError('rg',''); _setBusy('rg-btn',true,'Crear cuenta');
-  var res=await signUp(email,pass);
+  var res=await signUp(email,pass,name);
   _setBusy('rg-btn',false,'Crear cuenta');
   if(!res.ok){
     if(res.isExists){
@@ -501,6 +504,7 @@ async function handleRegister(){
   // localStorage: el enlace de confirmación puede abrir en nueva instancia de la PWA
   localStorage.setItem('pendingEmail', email);
   localStorage.setItem('pendingPassword', pass);
+  localStorage.setItem('pendingName', name);
   enableContinueIfVerified();
 }
 function goToLoginWithEmail(){
@@ -515,6 +519,7 @@ function goToLoginWithEmail(){
 async function _afterLogin(user){
   localStorage.removeItem('pendingEmail');
   localStorage.removeItem('pendingPassword');
+  localStorage.removeItem('pendingName');
   _currentUser = user;
   _injectLogoutBtn(user);
 
@@ -631,6 +636,7 @@ function goToLogin(){
       if(elPass  && pp) elPass.value  = pp;
       localStorage.removeItem('pendingEmail');
       localStorage.removeItem('pendingPassword');
+      localStorage.removeItem('pendingName');
     }, 80);
   }
 }
@@ -768,6 +774,7 @@ function _clearAllLocalUserData(){
     localStorage.removeItem('_pinLockUntil');
     localStorage.removeItem('pendingEmail');
     localStorage.removeItem('pendingPassword');
+    localStorage.removeItem('pendingName');
     localStorage.removeItem('_signedOutNormally');
     Object.keys(localStorage).forEach(function(key){
       if(key.startsWith('_userPin_')||key.startsWith('_pinEnabled_')||

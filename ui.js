@@ -141,6 +141,14 @@ function _updateHeader(page){
     hTitle.textContent=_getPageTitle(page);
     hBack.style.alignItems='center';
     hBack.style.justifyContent='center';
+    if(hSpacer){
+      if(page==='mi-perfil'){
+        hSpacer.style.display='block';
+        hSpacer.innerHTML='<button onclick="navigate(\'configuracion\')" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>';
+      } else {
+        hSpacer.innerHTML='';
+      }
+    }
   }
 }
 function renderPage(page){
@@ -5013,10 +5021,7 @@ function renderConfiguracion(){
       <div class="config-item-left"><div class="config-icon" style="background:rgba(239,68,68,.15)">🗑️</div><div><div style="font-size:14px;font-weight:600;color:var(--danger)">${t('reset')}</div><div style="font-size:12px;color:var(--text2)">${t('resetDesc')}</div></div></div>
       <span style="color:var(--text3)">›</span>
     </div>
-    <div class="config-item" onclick="deleteUserAccount()" style="margin-top:4px">
-      <div class="config-item-left"><div class="config-icon" style="background:rgba(239,68,68,.15)">👤</div><div><div style="font-size:14px;font-weight:600;color:var(--danger)">Eliminar mi cuenta</div><div style="font-size:12px;color:var(--text2)">Borra tu cuenta y todos tus datos</div></div></div>
-      <span style="color:var(--text3)">›</span>
-    </div>
+
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
     <div style="margin-top:32px;text-align:center;color:var(--text3);font-size:11px">${t('version')}</div>
   `;
@@ -5445,41 +5450,149 @@ function updatePhoneLen(code){var m={'+57':10,'+48':9,'+1':10,'+34':9,'+52':10,'
 
 
 // ── Mi Perfil page ────────────────────────────────────────
+function _calcProfileProgress(){
+  var p=S.profile||{};
+  var checks=[
+    !!(p.name&&p.name.trim()),
+    !!(p.sex),
+    !!(p.residence),
+    !!(p.phone&&p.phoneCode),
+    !!(p.profession),
+    !!(p.financialGoal),
+    !!(p.photo)
+  ];
+  return Math.round(checks.filter(Boolean).length/checks.length*100);
+}
+function _togglePin(isChecked){
+  var uid=window._currentUser&&window._currentUser.id;
+  if(!uid)return;
+  if(!isChecked){
+    confirmDialog('\u26a0\ufe0f','Desactivar PIN','Sin PIN solo podrás ingresar con contraseña. \u00bfContinuar?',function(){
+      localStorage.removeItem('_userPin_'+uid);
+      localStorage.removeItem('_pinEnabled_'+uid);
+      renderPage('mi-perfil');
+      toast('PIN desactivado');
+    });
+    setTimeout(function(){renderPage('mi-perfil');},50);
+  } else {
+    showAuthScreen();
+    _initSetPinScreen();
+    _showScreen('set-pin');
+  }
+}
+function _toggleBio(isChecked){
+  var uid=window._currentUser&&window._currentUser.id;
+  if(!uid)return;
+  if(!isChecked){
+    localStorage.removeItem('_bioEnabled_'+uid);
+    localStorage.removeItem('_bioCredId_'+uid);
+    renderPage('mi-perfil');
+    toast('Biometría desactivada');
+  } else {
+    if(window._currentUser)_showBioOfferSheet(window._currentUser);
+  }
+}
 function renderMiPerfil(){
   var p=S.profile||{};
+  var uid=window._currentUser&&window._currentUser.id;
   var emailVal=p.email||(window._currentUser&&window._currentUser.email?window._currentUser.email:'');
   var initials=p.name?p.name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'?';
   var avatarContent=p.photo
-    ?'<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
-    :'<span style="font-size:28px;font-weight:700;color:white">'+initials+'</span>';
-  var phone=(p.phoneCode?p.phoneCode+' ':'')+( p.phone||'');
-  var camSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>';
-  var editSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-  var gearSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>';
-  function infoRow(label,value,ph){
-    return '<div style="padding:13px 0;border-bottom:1px solid var(--border)">'
-      +'<div style="font-size:11px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">'+label+'</div>'
-      +'<div style="font-size:15px;'+(value?'font-weight:600;color:var(--text)':'color:var(--text3);font-style:italic')+'\">'+(value||(ph||'Sin completar'))+'</div>'
+    ?('<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">')
+    :('<span style="font-size:26px;font-weight:700;color:white">'+initials+'</span>');
+  var pct=_calcProfileProgress();
+  var pinActive=uid&&!!localStorage.getItem('_userPin_'+uid);
+  var bioActive=uid&&localStorage.getItem('_bioEnabled_'+uid)==='true';
+  var phone=(p.phoneCode?p.phoneCode+' ':'')+(p.phone||'');
+  function svgIcon(path,extra){
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(extra||'')+path+'</svg>';
+  }
+  var iconUser=svgIcon('<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>','<circle cx="12" cy="7" r="4"/>');
+  var iconSex=svgIcon('<circle cx="12" cy="8" r="4"/><line x1="12" y1="12" x2="12" y2="20"/><line x1="9" y1="17" x2="15" y2="17"/>');
+  var iconGlobe=svgIcon('<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>');
+  var iconPhone=svgIcon('<path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.63A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>');
+  var iconWork=svgIcon('<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>');
+  var iconTarget=svgIcon('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>');
+  var iconLock=svgIcon('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>');
+  var iconShield=svgIcon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>');
+  var iconEdit='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  var iconTrash='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+  var camBadge='<div onclick="showPhotoOptions()" style="position:absolute;bottom:1px;right:1px;width:24px;height:24px;border-radius:50%;background:#7461EF;border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer">'
+    +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
+    +'</div>';
+  var avatarClick=p.photo?'onclick="viewProfilePhoto()" style="cursor:zoom-in"':'';
+  function infoRow(icon,label,val,empty){
+    var rowIcon='<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+icon+'</div>';
+    var valHtml=val
+      ?('<span style="font-size:14px;font-weight:600;color:var(--text)">'+val+'</span>')
+      :('<span style="font-size:14px;color:var(--text3);font-style:italic">'+(empty||'Sin completar')+'</span>');
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border)">'
+      +'<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">'+label+'</div>'+valHtml+'</div>'
+      +rowIcon
       +'</div>';
   }
-  return '<div>'
-    +'<div style="display:flex;flex-direction:column;align-items:center;padding:28px 20px 24px">'
-      +'<div style="width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid var(--primary);box-shadow:0 4px 20px rgba(0,212,170,.25)">'
-        +avatarContent
+  function toggleRow(icon,label,active,onFn,offFn){
+    var badge=active
+      ?('<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;background:rgba(0,212,170,.12);color:#0F766E;font-size:11px;font-weight:600"><span style="width:5px;height:5px;border-radius:50%;background:#00D4AA;display:inline-block"></span>Activo</span>')
+      :('<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--text3);font-size:11px;font-weight:600"><span style="width:5px;height:5px;border-radius:50%;background:var(--text3);display:inline-block"></span>Inactivo</span>');
+    var toggleHtml='<label style="position:relative;width:44px;height:26px;cursor:pointer;display:inline-block">'
+      +'<input type="checkbox" '+(active?'checked':'')+' onchange="'+(active?offFn:onFn)+'(this.checked)" style="opacity:0;width:0;height:0;position:absolute">'
+      +'<span style="position:absolute;inset:0;border-radius:99px;background:'+(active?'#00D4AA':'var(--border)')+';transition:background .2s"></span>'
+      +'<span style="position:absolute;top:3px;left:'+(active?'21px':'3px')+';width:20px;height:20px;border-radius:50%;background:white;transition:left .2s"></span>'
+      +'</label>';
+    var rowIcon='<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+icon+'</div>';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border)">'
+      +'<div style="display:flex;align-items:center;gap:12px">'
+        +rowIcon
+        +'<div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">'+label+'</div>'+badge+'</div>'
       +'</div>'
-      +(p.name?'<div style="font-size:20px;font-weight:800;margin-top:14px;color:var(--text)">'+p.name+'</div>':'')
-      +(emailVal?'<div style="font-size:13px;color:var(--text3);margin-top:4px">'+emailVal+'</div>':'')
+      +toggleHtml
+      +'</div>';
+  }
+  var secLabel='<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);padding:16px 16px 6px">%LABEL%</div>';
+  return '<div style="padding-bottom:24px">'
+    +'<div style="display:flex;align-items:center;gap:16px;padding:20px 16px 16px;background:var(--surface);border-bottom:1px solid var(--border)">'
+      +'<div style="position:relative;flex-shrink:0">'
+        +'<div '+avatarClick+' style="width:72px;height:72px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;overflow:hidden;border:2.5px solid var(--primary)">'
+          +avatarContent
+        +'</div>'
+        +camBadge
+      +'</div>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(p.name||'Mi Perfil')+'</div>'
+        +'<div style="font-size:12px;color:var(--text3);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+emailVal+'</div>'
+        +'<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px"><span>Perfil completo</span><span style="color:var(--primary);font-weight:700">'+pct+'%</span></div>'
+        +'<div style="height:4px;background:var(--border);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--primary);border-radius:99px"></div></div>'
+      +'</div>'
     +'</div>'
-    +'<div style="display:flex;gap:10px;padding:0 16px 20px">'
-      +'<button onclick="showPhotoOptions()" class="mp-action-btn">'+camSvg+'<span>Establecer foto</span></button>'
-      +'<button onclick="openProfilePage()" class="mp-action-btn">'+editSvg+'<span>Editar info.</span></button>'
-      +'<button onclick="navigate(\'configuracion\')" class="mp-action-btn">'+gearSvg+'<span>Ajustes</span></button>'
+    +'<div style="padding:14px 16px 16px;background:var(--surface);border-bottom:1px solid var(--border)">'
+      +'<button onclick="openProfilePage()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:12px;border:1.5px solid var(--primary);background:transparent;color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font)">'
+        +iconEdit+'Editar información'
+      +'</button>'
     +'</div>'
-    +'<div style="margin:0 16px;background:var(--surface);border-radius:16px;padding:0 16px">'
-      +infoRow('Nombre y apellido',p.name||'','Tu nombre')
-      +infoRow('País de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'','Tu país')
-      +infoRow('Teléfono',phone.trim()||'','Tu teléfono')
-      +infoRow('Profesión',p.profession||'','Tu profesión')
+    +secLabel.replace('%LABEL%','Información personal')
+    +'<div style="background:var(--surface);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
+      +infoRow(iconUser,'Nombre completo',p.name||'')
+      +infoRow(iconSex,'Sexo',p.sex||'')
+      +infoRow(iconGlobe,'País de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'')
+      +infoRow(iconPhone,'Teléfono',phone.trim()||'')
+      +infoRow(iconWork,'Profesión',p.profession||'')
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px">'
+        +'<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Meta financiera</div>'
+          +(p.financialGoal?('<span style="font-size:14px;font-weight:600;color:var(--text)">'+p.financialGoal+'</span>'):('<span style="font-size:14px;color:var(--text3);font-style:italic">Sin completar</span>'))
+        +'</div>'
+        +('<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center">'+iconTarget+'</div>')
+      +'</div>'
+    +'</div>'
+    +secLabel.replace('%LABEL%','Seguridad')
+    +'<div style="background:var(--surface);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
+      +toggleRow(iconLock,'PIN de acceso',pinActive,'_togglePin','_togglePin').replace('border-bottom:1px solid var(--border)','border-bottom:1px solid var(--border)')
+      +toggleRow(iconShield,'Biometría (huella)',bioActive,'_toggleBio','_toggleBio').replace('border-bottom:1px solid var(--border)','')
+    +'</div>'
+    +'<div style="padding:16px 16px 0">'
+      +'<button onclick="deleteUserAccount()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:12px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">'
+        +iconTrash+'Eliminar mi cuenta'
+      +'</button>'
     +'</div>'
     +'<input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">'
     +'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
@@ -5807,9 +5920,16 @@ function buildProfileFormHTML(){
   var goalList=['Ahorrar para emergencias','Control de gastos','Pagar deudas','Comprar vivienda','Viajar','Independencia financiera','Emprender','Jubilación','Educación','Otro'];
   var goalOpts=goalList.map(function(g){return '<div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\''+g+'\' )" data-val="'+g+'" style="'+(p.financialGoal===g?'background:rgba(0,212,170,.1)':'')+'">'+g+'</div>';}).join('');
 
+  var nameVal=p.name||(_currentUser&&_currentUser.user_metadata&&_currentUser.user_metadata.full_name)||'';
   var html=''
-    +'<div class="form-group"><label class="form-label">Nombre y apellido <span style="color:var(--danger)">*</span></label>'
-      +'<input class="form-input" type="text" id="cfg-name" value="'+(p.name||'')+'" placeholder="Ej: Jorge Quintero"></div>'
+    +'<div class="form-group"><label class="form-label">Nombre y apellido</label>'
+      +'<input class="form-input" type="text" id="cfg-name" value="'+nameVal+'" readonly style="opacity:.65;cursor:not-allowed"></div>'
+    +'<div class="form-group"><label class="form-label">Sexo</label>'
+      +'<div class="bs-trigger" onclick="showBS_simple(\'cfg-sex\',\'-lbl\',\'Sexo\',[\' Masculino\',\'Femenino\',\'No binario\',\'Prefiero no decirlo\'],\'Seleccionar\',true)">'
+        +'<span style="font-size:14px;color:'+(p.sex?'var(--text)':'var(--text3)')+'" id="cfg-sex-lbl">'+(p.sex||'Seleccionar')+'</span>'
+        +'<span style="color:var(--text3);font-size:18px">&#x203A;</span>'
+      +'</div>'
+      +'<input type="hidden" id="cfg-sex" value="'+(p.sex||'')+'" ></div>'
     +'<div class="form-group"><label class="form-label">Fecha de nacimiento</label>'
       +'<input class="form-input" type="date" id="cfg-birthdate" value="'+(p.birthdate||'')+'" max="'+new Date().toISOString().slice(0,10)+'"></div>'
     +'<div class="form-group"><label class="form-label">Email</label>'
@@ -6063,24 +6183,23 @@ function saveProfile(){
   if(!S.profile)S.profile={};
   const g=(id)=>document.getElementById(id)?.value||'';
   // Validación de campos obligatorios
-  const reqName=g('cfg-name').trim();
   const reqPhone=g('cfg-phone').trim();
   const reqPhoneCode=g('cfg-phone-code').trim();
   const reqCountry=g('cfg-country').trim();
   const reqResidence=g('cfg-residence').trim();
   const reqGoal=g('cfg-goal').trim();
   const errors=[];
-  if(!reqName)errors.push('Nombre y apellido');
   if(!reqPhoneCode||!reqPhone)errors.push('Teléfono');
   if(!reqCountry)errors.push('País de origen');
   if(!reqResidence)errors.push('País de residencia');
   if(!reqGoal)errors.push('Objetivo financiero');
   if(errors.length>0){
-    toast('⚠️ Completa: '+errors.join(', '));
+    toast('\u26a0\ufe0f Completa: '+errors.join(', '));
     return;
   }
-  S.profile.name=reqName;S.profile.email=g('cfg-email').trim();
-  console.log('Perfil guardado:', S.profile.name);
+  S.profile.name=g('cfg-name').trim()||S.profile.name;
+  S.profile.sex=g('cfg-sex');
+  S.profile.email=g('cfg-email').trim();
   S.profile.birthdate=g('cfg-birthdate');
   S.profile.phone=g('cfg-phone');S.profile.phoneCode=g('cfg-phone-code');
   S.profile.country=g('cfg-country');

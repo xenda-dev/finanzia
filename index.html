@@ -94,6 +94,12 @@
       <p class="auth-subtitle auth-register-subtitle">Estás a un paso de tomar el control de tus finanzas 🎯</p>
 
       <div class="auth-field">
+        <label class="auth-label">Nombre y apellido</label>
+        <input id="rg-name" type="text" autocomplete="name" placeholder="Ej: Jorge Quintero"
+          onkeydown="authKey(event,'handleRegister')" class="auth-input">
+      </div>
+
+      <div class="auth-field">
         <label class="auth-label">Correo</label>
         <input id="rg-email" type="email" autocomplete="email" placeholder="tu@correo.com" class="auth-input">
       </div>
