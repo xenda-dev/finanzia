@@ -5574,7 +5574,7 @@ function renderMiPerfil(){
       +toggleRow(iconShield,'Biometr\u00eda (huella)',bioActive,'_toggleBio',true)
     +'</div>'
 
-    +'<input type="file" id="profile-cam-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
+    +'<input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">'
     +'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
   +'</div>'
   +'<div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface);border-top:1px solid var(--border);z-index:50">'
