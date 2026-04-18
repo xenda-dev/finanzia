@@ -5580,7 +5580,7 @@ function renderMiPerfil(){
     +'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
   +'</div>'
   +'<div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface);border-top:1px solid var(--border);z-index:50">'
-    +'<button onclick="deleteUserAccount()" style="width:100%;padding:14px;border-radius:50px;background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.3);color:var(--danger);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar mi cuenta</button>'
+    +'<button onclick="deleteUserAccount()" style="width:100%;padding:14px;border-radius:50px;background:var(--danger,#EF4444);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar mi cuenta</button>'
   +'</div>';
 }
 

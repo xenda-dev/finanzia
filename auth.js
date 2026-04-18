@@ -1137,8 +1137,8 @@ async function _showPinRecovery(){
         +'<div id="pr-err" style="min-height:16px;font-size:13px;color:#DC2626;margin-bottom:10px;text-align:center"></div>'
         +'<div style="font-size:13px;color:var(--text2,#64748B);margin-bottom:4px">¿No te ha llegado el código?</div>'
         +'<div style="font-size:13px;color:var(--primary,#00D4AA);margin-bottom:4px">Pídelo de nuevo en</div>'
-        +'<div id="pr-timer" style="font-size:13px;font-weight:600;color:#F59E0B;margin-bottom:16px">15:00</div>'
-        +'<button id="pr-resend-btn" onclick="_resendPinRecoveryOtp()" style="display:none;width:100%;padding:13px;border-radius:50px;background:transparent;border:1.5px solid var(--primary,#00D4AA);color:var(--primary,#00D4AA);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font,inherit)">Enviar nuevo código</button>'
+        +'<div id="pr-timer" style="font-size:16px;font-weight:700;color:#F59E0B;margin-bottom:16px">15:00</div>'
+        +'<button id="pr-resend-btn" onclick="_resendPinRecoveryOtp()" disabled style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary,#00D4AA),var(--secondary,#7461EF));border:none;color:white;font-size:15px;font-weight:700;cursor:not-allowed;font-family:var(--font,inherit);opacity:.4;letter-spacing:.3px">Reenviar código</button>'
       +'</div>'
     +'</div>';
   document.body.appendChild(ov);
@@ -1175,7 +1175,7 @@ async function _resendPinRecoveryOtp(){
       try{toast('Error al reenviar. Inténtalo de nuevo.');}catch(e){}
       return;
     }
-    if(rbtn)rbtn.style.display='none';
+    if(rbtn){rbtn.disabled=true;rbtn.style.opacity='.4';rbtn.style.cursor='not-allowed';}
     for(var i=0;i<6;i++){var inp=document.getElementById('pr-'+i);if(inp){inp.value='';inp.style.opacity='1';inp.disabled=false;}}
     var err=document.getElementById('pr-err');if(err)err.textContent='';
     var icon=document.getElementById('pr-icon');
@@ -1201,12 +1201,12 @@ function _startPinRecoveryTimer(secs){
         clearInterval(window._prTimerInterval);
         for(var i=0;i<6;i++){var inp=document.getElementById('pr-'+i);if(inp){inp.disabled=true;inp.style.opacity='.4';}}
         var rbtn=document.getElementById('pr-resend-btn');
-        if(rbtn)rbtn.style.display='block';
+        if(rbtn){rbtn.disabled=false;rbtn.style.opacity='1';rbtn.style.cursor='pointer';}
         var icon=document.getElementById('pr-icon');
         if(icon){icon.style.background='rgba(239,68,68,.1)';var sv=icon.querySelector('svg');if(sv)sv.style.stroke='#EF4444';}
         return;
       }
-      el.textContent='Expira en '+m+':'+(s<10?'0':'')+s;
+      el.textContent=m+':'+(s<10?'0':'')+s;
       el.style.color=remaining<=60?'#EF4444':'#F59E0B';
     }else{
       clearInterval(window._prTimerInterval);
