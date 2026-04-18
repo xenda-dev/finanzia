@@ -119,6 +119,12 @@
         </div>
       </div>
 
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 4px 4px">
+        <input type="checkbox" id="rg-tc" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:#00D4AA;cursor:pointer">
+        <div style="font-size:13px;color:#64748B;line-height:1.5">
+          <span onclick="document.getElementById('rg-tc').click()" style="cursor:pointer">Acepto los </span><button type="button" onclick="event.stopPropagation();openTerminosModal()" style="background:none;border:none;color:#00D4AA;font-size:13px;font-weight:600;cursor:pointer;padding:0;text-decoration:underline">Términos y Condiciones</button><span onclick="document.getElementById('rg-tc').click()" style="cursor:pointer"> y la </span><button type="button" onclick="event.stopPropagation();openTerminosModal()" style="background:none;border:none;color:#00D4AA;font-size:13px;font-weight:600;cursor:pointer;padding:0;text-decoration:underline">Política de Privacidad</button>
+        </div>
+      </div>
       <div id="auth-err-rg" class="auth-err" style="display:none"></div>
       <div id="auth-rg-exists" style="display:none;background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.3);border-radius:12px;padding:14px 16px;font-size:13px;color:#0F766E;margin-top:8px;line-height:1.55">
         Ya tienes cuenta con este correo.<br>
@@ -127,12 +133,6 @@
     </div>
 
     <div class="auth-bottom">
-      <div style="display:flex;align-items:flex-start;gap:10px;padding:0 4px 14px">
-        <input type="checkbox" id="rg-tc" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:#00D4AA;cursor:pointer" onclick="event.stopPropagation()">
-        <div style="font-size:13px;color:#64748B;line-height:1.5">
-          <span onclick="document.getElementById('rg-tc').click()" style="cursor:pointer">Acepto los </span><button type="button" onclick="event.stopPropagation();openTerminosModal()" style="background:none;border:none;color:#00D4AA;font-size:13px;font-weight:600;cursor:pointer;padding:0;text-decoration:underline">Términos y Condiciones</button><span onclick="document.getElementById('rg-tc').click()" style="cursor:pointer"> y la </span><button type="button" onclick="event.stopPropagation();openTerminosModal()" style="background:none;border:none;color:#00D4AA;font-size:13px;font-weight:600;cursor:pointer;padding:0;text-decoration:underline">Política de Privacidad</button>
-        </div>
-      </div>
       <button id="rg-btn" onclick="handleRegister()" class="auth-btn-primary">Registrarse</button>
       <div class="auth-footer" style="position:static;padding:max(env(safe-area-inset-bottom),16px) 20px 12px">© 2026 Xenda.co. Todos los derechos reservados.</div>
     </div>
