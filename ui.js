@@ -5903,7 +5903,7 @@ function buildProfileFormHTML(){
   var goalOpts=goalList.map(function(g){return '<div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\''+g+'\' )" data-val="'+g+'" style="'+(p.financialGoal===g?'background:rgba(0,212,170,.1)':'')+'">'+g+'</div>';}).join('');
 
   var nameVal=p.name||(_currentUser&&_currentUser.user_metadata&&_currentUser.user_metadata.full_name)||'';
-  var genderOpts=['Masculino','Femenino','No especificado'];
+  var genderOpts=['No especificado','Masculino','Femenino'];
   var _genderVal=p.gender||'No especificado';
   var genderCaps=genderOpts.map(function(g){
     var on=_genderVal===g;
@@ -6214,24 +6214,41 @@ function saveProfile(){
 
 function showPhotoOptions(){
   var q="'";
+  var hasPhoto=!!(S.profile&&S.profile.photo);
   var sheet=document.createElement('div');
   sheet.id='photo-options-sheet';
   sheet.style.cssText='position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;justify-content:flex-end';
   var xBtn='<button onclick="closePhotoSheet()" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);flex-shrink:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
   var camSvg='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>';
   var galSvg='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+  var eyeSvg='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var trashSvg='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+  var subtitle=hasPhoto?'Administra tu foto de perfil':'Elige cómo agregar tu foto';
+  var btnsHtml='';
+  if(hasPhoto){
+    btnsHtml=''
+      +'<button onclick="closePhotoSheet();viewProfilePhoto()" style="width:100%;padding:14px 16px;border-radius:12px;border:none;background:var(--surface2);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:12px;margin-bottom:10px">'+eyeSvg+' Ver foto</button>'
+      +'<div style="display:flex;gap:10px;margin-bottom:10px">'
+        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-cam-input'+q+').click()" style="flex:1;padding:13px 8px;border-radius:12px;border:1.5px solid var(--primary);background:rgba(0,212,170,.08);color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+camSvg+' Cámara</button>'
+        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-gal-input'+q+').click()" style="flex:1;padding:13px 8px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+galSvg+' Galería</button>'
+      +'</div>'
+      +'<button onclick="closePhotoSheet();removeProfilePhoto()" style="width:100%;padding:13px 16px;border-radius:12px;border:none;background:rgba(239,68,68,.06);color:var(--danger);font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:12px">'+trashSvg+' Quitar foto</button>';
+  }else{
+    btnsHtml=''
+      +'<div style="display:flex;gap:10px">'
+        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-cam-input'+q+').click()" style="flex:1;padding:14px 8px;border-radius:12px;border:1.5px solid var(--primary);background:rgba(0,212,170,.08);color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+camSvg+' Cámara</button>'
+        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-gal-input'+q+').click()" style="flex:1;padding:14px 8px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+galSvg+' Galería</button>'
+      +'</div>';
+  }
   sheet.innerHTML='<div onclick="closePhotoSheet()" style="flex:1;background:rgba(0,0,0,.5)"></div>'
-    +'<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 32px">'
+    +'<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px)">'
       +'<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px">'
         +'<div><div style="font-size:15px;font-weight:700">Foto de perfil</div>'
-        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">Elige cómo agregar tu foto</div></div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">'+subtitle+'</div></div>'
         +xBtn
       +'</div>'
-      +'<div style="height:1px;background:var(--border);margin:0 20px 20px"></div>'
-      +'<div style="display:flex;gap:12px;padding:0 20px">'
-        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-cam-input'+q+').click()" style="flex:1;padding:14px 8px;border-radius:50px;border:1.5px solid var(--primary);background:rgba(0,212,170,.08);color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+camSvg+' Cámara</button>'
-        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-gal-input'+q+').click()" style="flex:1;padding:14px 8px;border-radius:50px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+galSvg+' Galería</button>'
-      +'</div>'
+      +'<div style="height:1px;background:var(--border);margin:0 20px 16px"></div>'
+      +'<div style="padding:0 20px">'+btnsHtml+'</div>'
     +'</div>';
   document.body.appendChild(sheet);
 }

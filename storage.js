@@ -237,7 +237,15 @@ function loadState(){
 
 function saveState(){
   // localStorage — siempre, síncrono, nunca falla
-  try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}
+  // La foto de perfil se guarda en clave dedicada (_profilePhoto_{uid}), no en finanziaState3
+  try{
+    var _toSaveLocal=Object.assign({},S);
+    if(_toSaveLocal.profile&&_toSaveLocal.profile.photo){
+      _toSaveLocal.profile=Object.assign({},_toSaveLocal.profile);
+      delete _toSaveLocal.profile.photo;
+    }
+    localStorage.setItem('finanziaState3',JSON.stringify(_toSaveLocal));
+  }catch(e){}
   // Supabase — SOLO después de que syncFromSupabase haya completado al menos una vez
   // Esto evita la race condition donde initApp() guarda datos vacíos antes de recibir
   // los datos remotos, pisando S._lastSync y bloqueando el sync para siempre.
@@ -440,7 +448,14 @@ async function syncFromSupabase(userId){
     S.movFilter=keepMovFilter;
     S._catTab=keepCatTab;
     S._lastSync=remoteTs||Date.now();
-    try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}
+    try{
+      var _toSaveSync=Object.assign({},S);
+      if(_toSaveSync.profile&&_toSaveSync.profile.photo){
+        _toSaveSync.profile=Object.assign({},_toSaveSync.profile);
+        delete _toSaveSync.profile.photo;
+      }
+      localStorage.setItem('finanziaState3',JSON.stringify(_toSaveSync));
+    }catch(e){}
     // Bloquear save a Supabase 3s — datos vienen DE allí, guardar de vuelta genera loop Realtime
     window._lastSupabaseSave=Date.now()+3000;
     console.log('✅ sync aplicado',new Date(remoteTs).toLocaleTimeString());
