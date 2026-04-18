@@ -91,7 +91,7 @@
       <div class="auth-logo-row auth-register-logo" style="justify-content:center;">
         <img src="/icon-192.png" class="auth-logo-icon" alt="FinanzIA" style="width:48px;height:48px;">
       </div>
-      <p class="auth-subtitle" style="margin-bottom:12px">Estás a un paso de tomar el control de tus finanzas 🎯</p>
+      <p class="auth-subtitle" style="margin-bottom:8px;font-size:13px">Estás a un paso de tomar el control de tus finanzas 🎯</p>
 
       <div class="auth-field">
         <label class="auth-label">Nombre y apellido</label>
@@ -119,10 +119,10 @@
         </div>
       </div>
 
-      <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 4px 4px" onclick="document.getElementById('rg-tc').click()">
-        <input type="checkbox" id="rg-tc" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:#00D4AA;cursor:pointer" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 4px 4px">
+        <input type="checkbox" id="rg-tc" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:#00D4AA;cursor:pointer">
         <div style="font-size:13px;color:#64748B;line-height:1.5">
-          Acepto los <a href="#" onclick="event.preventDefault();event.stopPropagation();openTerminosModal()" style="color:#00D4AA;font-weight:600;text-decoration:underline">Términos y Condiciones</a> y la <a href="#" onclick="event.preventDefault();event.stopPropagation();openTerminosModal()" style="color:#00D4AA;font-weight:600;text-decoration:underline">Política de Privacidad</a>
+          Acepto los <a href="javascript:openTerminosModal()" style="color:#00D4AA;font-weight:600;text-decoration:underline">Términos y Condiciones</a> y la <a href="javascript:openTerminosModal()" style="color:#00D4AA;font-weight:600;text-decoration:underline">Política de Privacidad</a>
         </div>
       </div>
       <div id="auth-err-rg" class="auth-err" style="display:none"></div>
