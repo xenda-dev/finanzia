@@ -994,23 +994,6 @@ async function _enterWithPinSuccess(){
     return;
   }
   _currentUser = lastUser;
-  if(_supabase){
-    try{
-      var refreshed = await _supabase.auth.refreshSession();
-      if(refreshed.data&&refreshed.data.user){
-        _currentUser = refreshed.data.user;
-      }else if(refreshed.error){
-        _currentUser = null;
-        _clearAllLocalUserData();
-        showAuthScreen();
-        _showScreen('login');
-        try{ toast('Tu sesi\u00f3n ya no es v\u00e1lida. Por favor inicia sesi\u00f3n.'); }catch(e){}
-        return;
-      }
-    }catch(netErr){
-      console.warn('PIN server check offline:', netErr.message);
-    }
-  }
   hideAuthScreen();
   if(typeof initApp === 'function') initApp();
   if(typeof _injectLogoutBtn === 'function') _injectLogoutBtn(_currentUser);
@@ -1413,16 +1396,6 @@ function _showWelcomeScreen(user){
   _showScreen('welcome');
   var fpIcon = document.getElementById('welcome-fp-icon');
   if(fpIcon && typeof _fpSvgSm !== 'undefined') fpIcon.innerHTML = _fpSvgSm;
-  var _wUid = localStorage.getItem('_lastAuthUserId');
-  var _wBioOn = _wUid && localStorage.getItem('_bioEnabled_'+_wUid)==='1' && !!localStorage.getItem('_bioCredId_'+_wUid);
-  var _wPinOn = _wUid && localStorage.getItem('_pinEnabled_'+_wUid)==='1' && !!localStorage.getItem('_userPin_'+_wUid);
-  var _wBtns = document.querySelectorAll('#auth-welcome .welcome-btn');
-  _wBtns.forEach(function(btn){
-    var oc = btn.getAttribute('onclick')||'';
-    if(oc.indexOf('_startBioFromWelcome')!==-1) btn.style.display = _wBioOn ? '' : 'none';
-    else if(oc.indexOf('openPinLogin')!==-1) btn.style.display = _wPinOn ? '' : 'none';
-    else btn.style.display = '';
-  });
 }
 
 async function _startBioFromWelcome(){
@@ -1442,18 +1415,16 @@ async function _startBioFromWelcome(){
           // Primero intentar refrescar la sesión (maneja JWT expirado)
           var refreshed=await _supabase.auth.refreshSession();
           if(refreshed.data&&refreshed.data.user){
-            // Sesión refrescada correctamente
             _currentUser=refreshed.data.user;
-          }else if(refreshed.error){
-            // Servidor rechazó el token → usuario eliminado o sesión inválida
+          }else if(refreshed.error&&refreshed.error.status&&refreshed.error.status>=400&&refreshed.error.status<500){
+            // 4xx: servidor rechazó → usuario eliminado o sesión inválida
             _currentUser=null;
             _clearAllLocalUserData();
             showAuthScreen();
             _showScreen('login');
-            try{toast('Tu sesión ya no es válida. Por favor inicia sesión.');}catch(e){}
+            try{toast('Tu sesi\u00f3n ya no es v\u00e1lida. Por favor inicia sesi\u00f3n.');}catch(e){}
             return;
           }
-          // Sin error y sin user → offline, continuar con datos locales
         }catch(netErr){
           // Sin conexión → permitir acceso offline con datos locales
           console.warn('Bio server check fallido (posiblemente offline):',netErr);
