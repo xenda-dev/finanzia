@@ -5454,7 +5454,7 @@ function _calcProfileProgress(){
   var p=S.profile||{};
   var checks=[
     !!(p.name&&p.name.trim()),
-    !!(p.sex),
+    !!(p.gender),
     !!(p.residence),
     !!(p.phone&&p.phoneCode),
     !!(p.profession),
@@ -5467,14 +5467,14 @@ function _togglePin(isChecked){
   var uid=window._currentUser&&window._currentUser.id;
   if(!uid)return;
   if(!isChecked){
-    confirmDialog('\u26a0\ufe0f','Desactivar PIN','Sin PIN solo podrás ingresar con contraseña. \u00bfContinuar?',function(){
+    confirmDialog('\u26a0\ufe0f','Desactivar PIN','Sin PIN solo podr\u00e1s ingresar con contrase\u00f1a. \u00bfContinuar?',function(){
       localStorage.removeItem('_userPin_'+uid);
       localStorage.removeItem('_pinEnabled_'+uid);
       renderPage('mi-perfil');
       toast('PIN desactivado');
     });
     setTimeout(function(){renderPage('mi-perfil');},50);
-  } else {
+  }else{
     showAuthScreen();
     _initSetPinScreen();
     _showScreen('set-pin');
@@ -5487,8 +5487,8 @@ function _toggleBio(isChecked){
     localStorage.removeItem('_bioEnabled_'+uid);
     localStorage.removeItem('_bioCredId_'+uid);
     renderPage('mi-perfil');
-    toast('Biometría desactivada');
-  } else {
+    toast('Biometr\u00eda desactivada');
+  }else{
     if(window._currentUser)_showBioOfferSheet(window._currentUser);
   }
 }
@@ -5501,14 +5501,12 @@ function renderMiPerfil(){
     ?('<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">')
     :('<span style="font-size:26px;font-weight:700;color:white">'+initials+'</span>');
   var pct=_calcProfileProgress();
-  var pinActive=uid&&!!localStorage.getItem('_userPin_'+uid);
-  var bioActive=uid&&localStorage.getItem('_bioEnabled_'+uid)==='true';
+  var pinActive=uid&&localStorage.getItem('_pinEnabled_'+uid)==='1'&&!!localStorage.getItem('_userPin_'+uid);
+  var bioActive=uid&&localStorage.getItem('_bioEnabled_'+uid)==='1'&&!!localStorage.getItem('_bioCredId_'+uid);
   var phone=(p.phoneCode?p.phoneCode+' ':'')+(p.phone||'');
   function svgIcon(path,extra){
     return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(extra||'')+path+'</svg>';
   }
-  var iconUser=svgIcon('<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>','<circle cx="12" cy="7" r="4"/>');
-  var iconSex=svgIcon('<circle cx="12" cy="8" r="4"/><line x1="12" y1="12" x2="12" y2="20"/><line x1="9" y1="17" x2="15" y2="17"/>');
   var iconGlobe=svgIcon('<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>');
   var iconPhone=svgIcon('<path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.63A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>');
   var iconWork=svgIcon('<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>');
@@ -5521,27 +5519,28 @@ function renderMiPerfil(){
     +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
     +'</div>';
   var avatarClick=p.photo?'onclick="viewProfilePhoto()" style="cursor:zoom-in"':'';
-  function infoRow(icon,label,val,empty){
+  function infoRow(icon,label,val){
     var rowIcon='<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+icon+'</div>';
     var valHtml=val
       ?('<span style="font-size:14px;font-weight:600;color:var(--text)">'+val+'</span>')
-      :('<span style="font-size:14px;color:var(--text3);font-style:italic">'+(empty||'Sin completar')+'</span>');
+      :('<span style="font-size:14px;color:var(--text3);font-style:italic">Sin completar</span>');
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border)">'
       +'<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">'+label+'</div>'+valHtml+'</div>'
       +rowIcon
       +'</div>';
   }
-  function toggleRow(icon,label,active,onFn,offFn){
+  function toggleRow(icon,label,active,fn,isLast){
     var badge=active
       ?('<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;background:rgba(0,212,170,.12);color:#0F766E;font-size:11px;font-weight:600"><span style="width:5px;height:5px;border-radius:50%;background:#00D4AA;display:inline-block"></span>Activo</span>')
       :('<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--text3);font-size:11px;font-weight:600"><span style="width:5px;height:5px;border-radius:50%;background:var(--text3);display:inline-block"></span>Inactivo</span>');
-    var toggleHtml='<label style="position:relative;width:44px;height:26px;cursor:pointer;display:inline-block">'
-      +'<input type="checkbox" '+(active?'checked':'')+' onchange="'+(active?offFn:onFn)+'(this.checked)" style="opacity:0;width:0;height:0;position:absolute">'
-      +'<span style="position:absolute;inset:0;border-radius:99px;background:'+(active?'#00D4AA':'var(--border)')+';transition:background .2s"></span>'
-      +'<span style="position:absolute;top:3px;left:'+(active?'21px':'3px')+';width:20px;height:20px;border-radius:50%;background:white;transition:left .2s"></span>'
-      +'</label>';
+    var track='<span style="position:absolute;inset:0;border-radius:99px;background:'+(active?'var(--primary)':'var(--border)')+'"></span>';
+    var thumb='<span style="position:absolute;top:3px;'+(active?'right:3px':'left:3px')+';width:20px;height:20px;border-radius:50%;background:white"></span>';
+    var toggleHtml='<label style="position:relative;width:44px;height:26px;cursor:pointer;display:inline-block;flex-shrink:0">'
+      +'<input type="checkbox" '+(active?'checked':'')+' onchange="'+fn+'(this.checked)" style="opacity:0;width:0;height:0;position:absolute">'
+      +track+thumb+'</label>';
     var rowIcon='<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+icon+'</div>';
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border)">'
+    var border=isLast?'':'border-bottom:1px solid var(--border)';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;'+border+'">'
       +'<div style="display:flex;align-items:center;gap:12px">'
         +rowIcon
         +'<div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">'+label+'</div>'+badge+'</div>'
@@ -5549,7 +5548,7 @@ function renderMiPerfil(){
       +toggleHtml
       +'</div>';
   }
-  var secLabel='<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);padding:16px 16px 6px">%LABEL%</div>';
+  var sl='<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);padding:16px 16px 6px">%L%</div>';
   return '<div style="padding-bottom:24px">'
     +'<div style="display:flex;align-items:center;gap:16px;padding:20px 16px 16px;background:var(--surface);border-bottom:1px solid var(--border)">'
       +'<div style="position:relative;flex-shrink:0">'
@@ -5565,18 +5564,16 @@ function renderMiPerfil(){
         +'<div style="height:4px;background:var(--border);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--primary);border-radius:99px"></div></div>'
       +'</div>'
     +'</div>'
-    +'<div style="padding:14px 16px 16px;background:var(--surface);border-bottom:1px solid var(--border)">'
+    +'<div style="padding:14px 16px;background:var(--surface);border-bottom:1px solid var(--border)">'
       +'<button onclick="openProfilePage()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:12px;border:1.5px solid var(--primary);background:transparent;color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font)">'
-        +iconEdit+'Editar información'
+        +iconEdit+'Editar informaci\u00f3n'
       +'</button>'
     +'</div>'
-    +secLabel.replace('%LABEL%','Información personal')
+    +sl.replace('%L%','Informaci\u00f3n personal')
     +'<div style="background:var(--surface);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
-      +infoRow(iconUser,'Nombre completo',p.name||'')
-      +infoRow(iconSex,'Sexo',p.sex||'')
-      +infoRow(iconGlobe,'País de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'')
-      +infoRow(iconPhone,'Teléfono',phone.trim()||'')
-      +infoRow(iconWork,'Profesión',p.profession||'')
+      +infoRow(iconGlobe,'Pa\u00eds de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'')
+      +infoRow(iconPhone,'Tel\u00e9fono',phone.trim()||'')
+      +infoRow(iconWork,'Profesi\u00f3n',p.profession||'')
       +'<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px">'
         +'<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Meta financiera</div>'
           +(p.financialGoal?('<span style="font-size:14px;font-weight:600;color:var(--text)">'+p.financialGoal+'</span>'):('<span style="font-size:14px;color:var(--text3);font-style:italic">Sin completar</span>'))
@@ -5584,10 +5581,10 @@ function renderMiPerfil(){
         +('<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center">'+iconTarget+'</div>')
       +'</div>'
     +'</div>'
-    +secLabel.replace('%LABEL%','Seguridad')
+    +sl.replace('%L%','Seguridad')
     +'<div style="background:var(--surface);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
-      +toggleRow(iconLock,'PIN de acceso',pinActive,'_togglePin','_togglePin').replace('border-bottom:1px solid var(--border)','border-bottom:1px solid var(--border)')
-      +toggleRow(iconShield,'Biometría (huella)',bioActive,'_toggleBio','_toggleBio').replace('border-bottom:1px solid var(--border)','')
+      +toggleRow(iconLock,'PIN de acceso',pinActive,'_togglePin',false)
+      +toggleRow(iconShield,'Biometr\u00eda (huella)',bioActive,'_toggleBio',true)
     +'</div>'
     +'<div style="padding:16px 16px 0">'
       +'<button onclick="deleteUserAccount()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:12px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">'
@@ -5921,15 +5918,17 @@ function buildProfileFormHTML(){
   var goalOpts=goalList.map(function(g){return '<div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\''+g+'\' )" data-val="'+g+'" style="'+(p.financialGoal===g?'background:rgba(0,212,170,.1)':'')+'">'+g+'</div>';}).join('');
 
   var nameVal=p.name||(_currentUser&&_currentUser.user_metadata&&_currentUser.user_metadata.full_name)||'';
+  var genderOpts=['Masculino','Femenino'];
+  var genderCaps=genderOpts.map(function(g){
+    var on=p.gender===g;
+    return '<button type="button" onclick="S.profile.gender=\''+g+'\';document.getElementById(\'cfg-gender\').value=\''+g+'\';this.parentNode.querySelectorAll(\'button\').forEach(function(b){b.style.background=\'transparent\';b.style.color=\'var(--text2)\';b.style.fontWeight=\'500\';});this.style.background=\'var(--primary)\';this.style.color=\'white\';this.style.fontWeight=\'700\';" style="flex:1;padding:8px 4px;border-radius:50px;border:none;background:'+(on?'var(--primary)':'transparent')+';color:'+(on?'white':'var(--text2)')+';font-size:13px;font-weight:'+(on?'700':'500')+';cursor:pointer;font-family:var(--font)">'+g+'</button>';
+  }).join('');
   var html=''
     +'<div class="form-group"><label class="form-label">Nombre y apellido</label>'
       +'<input class="form-input" type="text" id="cfg-name" value="'+nameVal+'" readonly style="opacity:.65;cursor:not-allowed"></div>'
-    +'<div class="form-group"><label class="form-label">Sexo</label>'
-      +'<div class="bs-trigger" onclick="showBS_simple(\'cfg-sex\',\'-lbl\',\'Sexo\',[\' Masculino\',\'Femenino\',\'No binario\',\'Prefiero no decirlo\'],\'Seleccionar\',true)">'
-        +'<span style="font-size:14px;color:'+(p.sex?'var(--text)':'var(--text3)')+'" id="cfg-sex-lbl">'+(p.sex||'Seleccionar')+'</span>'
-        +'<span style="color:var(--text3);font-size:18px">&#x203A;</span>'
-      +'</div>'
-      +'<input type="hidden" id="cfg-sex" value="'+(p.sex||'')+'" ></div>'
+    +'<div class="form-group"><label class="form-label">Género</label>'
+      +'<div style="background:var(--surface2);border-radius:50px;padding:3px;display:flex;gap:2px">'+genderCaps+'</div>'
+      +'<input type="hidden" id="cfg-gender" value="'+(p.gender||'')+'"></div>'
     +'<div class="form-group"><label class="form-label">Fecha de nacimiento</label>'
       +'<input class="form-input" type="date" id="cfg-birthdate" value="'+(p.birthdate||'')+'" max="'+new Date().toISOString().slice(0,10)+'"></div>'
     +'<div class="form-group"><label class="form-label">Email</label>'
@@ -6194,11 +6193,11 @@ function saveProfile(){
   if(!reqResidence)errors.push('País de residencia');
   if(!reqGoal)errors.push('Objetivo financiero');
   if(errors.length>0){
-    toast('\u26a0\ufe0f Completa: '+errors.join(', '));
+    toast('⚠️ Completa: '+errors.join(', '));
     return;
   }
   S.profile.name=g('cfg-name').trim()||S.profile.name;
-  S.profile.sex=g('cfg-sex');
+  S.profile.gender=g('cfg-gender');
   S.profile.email=g('cfg-email').trim();
   S.profile.birthdate=g('cfg-birthdate');
   S.profile.phone=g('cfg-phone');S.profile.phoneCode=g('cfg-phone-code');

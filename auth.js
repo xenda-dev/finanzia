@@ -66,13 +66,13 @@ function generateNameFromEmail(email){
 }
 
 async function signUp(email, password, fullName){
-  var nameToUse = (fullName && fullName.trim()) ? fullName.trim() : generateNameFromEmail(email);
+  var autoName = (fullName&&fullName.trim())?fullName.trim():generateNameFromEmail(email);
   var {data, error} = await _supabase.auth.signUp({
     email: email,
     password: password,
     options: {
       emailRedirectTo: 'https://finanzia.xenda.co',
-      data: { full_name: nameToUse }
+      data: { full_name: autoName }
     }
   });
   if(error) return _authMsg(error.message);
@@ -481,7 +481,7 @@ async function handleRegister(){
   var email=(document.getElementById('rg-email').value||'').trim();
   var pass=(document.getElementById('rg-pass').value||'').trim();
   if(!name){_setError('rg','Ingresa tu nombre y apellido');return;}
-  if(name.trim().split(/\s+/).length<2){_setError('rg','Ingresa nombre y apellido completos');return;}
+  if(name.split(/\s+/).filter(Boolean).length<2){_setError('rg','Ingresa nombre y apellido completos');return;}
   if(!email||!pass){_setError('rg','Completa todos los campos');return;}
   if(pass.length<8){_setError('rg','Mínimo 8 caracteres');return;}
   if(!/[A-Z]/.test(pass)){_setError('rg','Debe incluir al menos una mayúscula');return;}
@@ -994,6 +994,23 @@ async function _enterWithPinSuccess(){
     return;
   }
   _currentUser = lastUser;
+  if(_supabase){
+    try{
+      var refreshed = await _supabase.auth.refreshSession();
+      if(refreshed.data&&refreshed.data.user){
+        _currentUser = refreshed.data.user;
+      }else if(refreshed.error){
+        _currentUser = null;
+        _clearAllLocalUserData();
+        showAuthScreen();
+        _showScreen('login');
+        try{ toast('Tu sesi\u00f3n ya no es v\u00e1lida. Por favor inicia sesi\u00f3n.'); }catch(e){}
+        return;
+      }
+    }catch(netErr){
+      console.warn('PIN server check offline:', netErr.message);
+    }
+  }
   hideAuthScreen();
   if(typeof initApp === 'function') initApp();
   if(typeof _injectLogoutBtn === 'function') _injectLogoutBtn(_currentUser);
@@ -1396,6 +1413,16 @@ function _showWelcomeScreen(user){
   _showScreen('welcome');
   var fpIcon = document.getElementById('welcome-fp-icon');
   if(fpIcon && typeof _fpSvgSm !== 'undefined') fpIcon.innerHTML = _fpSvgSm;
+  var _wUid = localStorage.getItem('_lastAuthUserId');
+  var _wBioOn = _wUid && localStorage.getItem('_bioEnabled_'+_wUid)==='1' && !!localStorage.getItem('_bioCredId_'+_wUid);
+  var _wPinOn = _wUid && localStorage.getItem('_pinEnabled_'+_wUid)==='1' && !!localStorage.getItem('_userPin_'+_wUid);
+  var _wBtns = document.querySelectorAll('#auth-welcome .welcome-btn');
+  _wBtns.forEach(function(btn){
+    var oc = btn.getAttribute('onclick')||'';
+    if(oc.indexOf('_startBioFromWelcome')!==-1) btn.style.display = _wBioOn ? '' : 'none';
+    else if(oc.indexOf('openPinLogin')!==-1) btn.style.display = _wPinOn ? '' : 'none';
+    else btn.style.display = '';
+  });
 }
 
 async function _startBioFromWelcome(){
@@ -1417,20 +1444,16 @@ async function _startBioFromWelcome(){
           if(refreshed.data&&refreshed.data.user){
             // Sesión refrescada correctamente
             _currentUser=refreshed.data.user;
-          }else{
-            // refreshSession falló → verificar si el usuario realmente fue eliminado
-            var rv=await _supabase.auth.getUser();
-            if(rv.error&&rv.error.message&&rv.error.message.toLowerCase().indexOf('user')!==-1&&rv.error.message.toLowerCase().indexOf('not')!==-1){
-              // Usuario eliminado de la BD → limpiar y mostrar login
-              _currentUser=null;
-              _clearAllLocalUserData();
-              showAuthScreen();
-              _showScreen('login');
-              try{toast('Tu cuenta ya no existe. Por favor regístrate de nuevo.');}catch(e){}
-              return;
-            }
-            // Otro error (red, etc.) → acceso offline con datos locales
+          }else if(refreshed.error){
+            // Servidor rechazó el token → usuario eliminado o sesión inválida
+            _currentUser=null;
+            _clearAllLocalUserData();
+            showAuthScreen();
+            _showScreen('login');
+            try{toast('Tu sesión ya no es válida. Por favor inicia sesión.');}catch(e){}
+            return;
           }
+          // Sin error y sin user → offline, continuar con datos locales
         }catch(netErr){
           // Sin conexión → permitir acceso offline con datos locales
           console.warn('Bio server check fallido (posiblemente offline):',netErr);
