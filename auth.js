@@ -1114,37 +1114,39 @@ async function _showPinRecovery(){
   ov.id='pin-recovery-overlay';
   ov.style.cssText='position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease;pointer-events:auto';
   var masked=email.replace(/(.{2})[^@]+(@.+)/,function(m,a,b){return a+'*****'+b;});
+  var inputStyle='width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)';
   ov.innerHTML=''
     +'<div id="pr-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),28px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
       +'<div style="display:flex;justify-content:flex-end;padding:14px 16px 0">'
         +'<button onclick="_closePinRecovery()" style="width:32px;height:32px;border-radius:50%;background:var(--surface2,#F1F5F9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2,#64748B)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
       +'</div>'
-      +'<div style="padding:8px 28px 28px;text-align:center">'
-        +'<div style="width:56px;height:56px;border-radius:16px;background:rgba(0,212,170,.12);margin:0 auto 16px;display:flex;align-items:center;justify-content:center">'
+      +'<div style="padding:4px 28px 28px;text-align:center">'
+        +'<div id="pr-icon" style="width:56px;height:56px;border-radius:16px;background:rgba(0,212,170,.12);margin:0 auto 14px;display:flex;align-items:center;justify-content:center">'
           +'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>'
         +'</div>'
         +'<div style="font-size:18px;font-weight:700;color:var(--text,#0F172A);margin-bottom:8px">Recuperar PIN</div>'
-        +'<div style="font-size:14px;color:var(--text2,#64748B);line-height:1.6;margin-bottom:24px">Enviaremos un código de 6 dígitos a<br><strong style="color:var(--text,#0F172A)">'+masked+'</strong></div>'
-        +'<div id="pr-otp-wrap" style="display:none">'
-          +'<div style="font-size:13px;color:var(--text2,#64748B);margin-bottom:4px">Código enviado — ingrésalo aquí:</div>'
-          +'<div id="pr-timer" style="font-size:12px;color:#F59E0B;margin-bottom:10px">Expira en 10:00</div>'
-          +'<div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px" id="pr-boxes">'
-            +'<input id="pr-0" maxlength="1" inputmode="numeric" style="width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)">'
-            +'<input id="pr-1" maxlength="1" inputmode="numeric" style="width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)">'
-            +'<input id="pr-2" maxlength="1" inputmode="numeric" style="width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)">'
-            +'<input id="pr-3" maxlength="1" inputmode="numeric" style="width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)">'
-            +'<input id="pr-4" maxlength="1" inputmode="numeric" style="width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)">'
-            +'<input id="pr-5" maxlength="1" inputmode="numeric" style="width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)">'
-          +'</div>'
-          +'<div id="pr-err" style="min-height:16px;font-size:13px;color:#DC2626;margin-bottom:10px;text-align:center"></div>'
-          +'<button id="pr-verify-btn" onclick="_verifyPinRecoveryOtp()" style="width:100%;padding:14px;border-radius:50px;background:var(--primary,#00D4AA);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font,inherit);margin-bottom:10px">Verificar código</button>'
-          +'<button onclick="_resendPinRecoveryOtp()" style="background:none;border:none;color:var(--text2,#94A3B8);font-size:13px;cursor:pointer;font-family:var(--font,inherit)">Reenviar código</button>'
+        +'<div style="font-size:14px;color:var(--text2,#64748B);line-height:1.6;margin-bottom:20px">Hemos enviado un código de 6 dígitos a<br><strong style="color:var(--text,#0F172A)">'+masked+'</strong></div>'
+        +'<div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px" id="pr-boxes">'
+          +'<input id="pr-0" maxlength="1" inputmode="numeric" style="'+inputStyle+'">'
+          +'<input id="pr-1" maxlength="1" inputmode="numeric" style="'+inputStyle+'">'
+          +'<input id="pr-2" maxlength="1" inputmode="numeric" style="'+inputStyle+'">'
+          +'<input id="pr-3" maxlength="1" inputmode="numeric" style="'+inputStyle+'">'
+          +'<input id="pr-4" maxlength="1" inputmode="numeric" style="'+inputStyle+'">'
+          +'<input id="pr-5" maxlength="1" inputmode="numeric" style="'+inputStyle+'">'
         +'</div>'
-        +'<button id="pr-send-btn" onclick="_sendPinRecoveryOtp()" style="width:100%;padding:14px;border-radius:50px;background:var(--primary,#00D4AA);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font,inherit)">Enviar código</button>'
+        +'<div id="pr-err" style="min-height:16px;font-size:13px;color:#DC2626;margin-bottom:10px;text-align:center"></div>'
+        +'<div style="font-size:13px;color:var(--text2,#64748B);margin-bottom:4px">¿No te ha llegado el código?</div>'
+        +'<div style="font-size:13px;color:var(--primary,#00D4AA);margin-bottom:4px">Pídelo de nuevo en</div>'
+        +'<div id="pr-timer" style="font-size:13px;font-weight:600;color:#F59E0B;margin-bottom:16px">15:00</div>'
+        +'<button id="pr-resend-btn" onclick="_resendPinRecoveryOtp()" style="display:none;width:100%;padding:13px;border-radius:50px;background:transparent;border:1.5px solid var(--primary,#00D4AA);color:var(--primary,#00D4AA);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font,inherit)">Enviar nuevo código</button>'
       +'</div>'
     +'</div>';
   document.body.appendChild(ov);
   window._pinRecoveryEmail=email;
+  setTimeout(function(){var f=document.getElementById('pr-0');if(f)f.focus();},200);
+  _setupOtpInputs();
+  _startPinRecoveryTimer(900);
+  _sendPinRecoveryOtpSilent(email);
 }
 function _closePinRecovery(){
   if(window._prTimerInterval){clearInterval(window._prTimerInterval);window._prTimerInterval=null;}
@@ -1155,37 +1157,35 @@ function _closePinRecovery(){
   ov.style.opacity='0';ov.style.transition='opacity .22s';
   setTimeout(function(){if(ov.parentNode)ov.remove();},240);
 }
-async function _sendPinRecoveryOtp(){
-  var email=window._pinRecoveryEmail;
-  if(!email)return;
-  var btn=document.getElementById('pr-send-btn');
-  if(btn){btn.disabled=true;btn.textContent='Enviando...';}
+async function _sendPinRecoveryOtpSilent(email){
   try{
     var res=await _supabase.auth.signInWithOtp({email:email,options:{shouldCreateUser:false}});
-    if(res.error){
-      if(btn){btn.disabled=false;btn.textContent='Enviar código';}
-      try{toast('Error al enviar el código. Inténtalo de nuevo.');}catch(e){}
-      return;
-    }
-    if(btn)btn.style.display='none';
-    var wrap=document.getElementById('pr-otp-wrap');
-    if(wrap)wrap.style.display='block';
-    setTimeout(function(){var f=document.getElementById('pr-0');if(f)f.focus();},200);
-    _setupOtpInputs();
-    _startPinRecoveryTimer(900);
-  }catch(e){
-    if(btn){btn.disabled=false;btn.textContent='Enviar código';}
-    try{toast('Error: '+e.message);}catch(e2){}
-  }
+    if(res.error){ try{toast('Error al enviar el código. Cierra y vuelve a intentarlo.');}catch(e){} }
+  }catch(e){ try{toast('Error: '+e.message);}catch(e2){} }
 }
 async function _resendPinRecoveryOtp(){
   var email=window._pinRecoveryEmail;
   if(!email)return;
+  var rbtn=document.getElementById('pr-resend-btn');
+  if(rbtn){rbtn.disabled=true;rbtn.textContent='Enviando...';}
   try{
-    await _supabase.auth.signInWithOtp({email:email,options:{shouldCreateUser:false}});
-    try{toast('Código reenviado ✓');}catch(e){}
+    var res=await _supabase.auth.signInWithOtp({email:email,options:{shouldCreateUser:false}});
+    if(res.error){
+      if(rbtn){rbtn.disabled=false;rbtn.textContent='Enviar nuevo código';}
+      try{toast('Error al reenviar. Inténtalo de nuevo.');}catch(e){}
+      return;
+    }
+    if(rbtn)rbtn.style.display='none';
+    for(var i=0;i<6;i++){var inp=document.getElementById('pr-'+i);if(inp){inp.value='';inp.style.opacity='1';inp.disabled=false;}}
+    var err=document.getElementById('pr-err');if(err)err.textContent='';
+    var icon=document.getElementById('pr-icon');
+    if(icon){icon.style.background='rgba(0,212,170,.12)';icon.querySelector('svg').style.stroke='#00D4AA';}
     _startPinRecoveryTimer(900);
-  }catch(e){}
+    setTimeout(function(){var f=document.getElementById('pr-0');if(f)f.focus();},100);
+    try{toast('Código reenviado ✓');}catch(e){}
+  }catch(e){
+    if(rbtn){rbtn.disabled=false;rbtn.textContent='Enviar nuevo código';}
+  }
 }
 function _startPinRecoveryTimer(secs){
   if(window._prTimerInterval)clearInterval(window._prTimerInterval);
@@ -1196,9 +1196,14 @@ function _startPinRecoveryTimer(secs){
     var el=document.getElementById('pr-timer');
     if(el){
       if(remaining<=0){
-        el.textContent='El código ha expirado. Solicita uno nuevo.';
+        el.textContent='Código expirado';
         el.style.color='#EF4444';
         clearInterval(window._prTimerInterval);
+        for(var i=0;i<6;i++){var inp=document.getElementById('pr-'+i);if(inp){inp.disabled=true;inp.style.opacity='.4';}}
+        var rbtn=document.getElementById('pr-resend-btn');
+        if(rbtn)rbtn.style.display='block';
+        var icon=document.getElementById('pr-icon');
+        if(icon){icon.style.background='rgba(239,68,68,.1)';var sv=icon.querySelector('svg');if(sv)sv.style.stroke='#EF4444';}
         return;
       }
       el.textContent='Expira en '+m+':'+(s<10?'0':'')+s;
@@ -1238,14 +1243,13 @@ async function _verifyPinRecoveryOtp(){
     if(err)err.textContent='Ingresa los 6 dígitos del código';
     return;
   }
-  var btn=document.getElementById('pr-verify-btn');
-  if(btn){btn.disabled=true;btn.textContent='Verificando...';}
   try{
     var res=await _supabase.auth.verifyOtp({email:email,token:code,type:'email'});
     if(res.error){
       var err=document.getElementById('pr-err');
       if(err)err.textContent='Código incorrecto o expirado';
-      if(btn){btn.disabled=false;btn.textContent='Verificar código';}
+      for(var i=0;i<6;i++){var b=document.getElementById('pr-'+i);if(b)b.value='';}
+      setTimeout(function(){var f=document.getElementById('pr-0');if(f)f.focus();},50);
       return;
     }
     if(res.data&&res.data.user){
@@ -1261,7 +1265,6 @@ async function _verifyPinRecoveryOtp(){
   }catch(e){
     var err=document.getElementById('pr-err');
     if(err)err.textContent='Error: '+e.message;
-    if(btn){btn.disabled=false;btn.textContent='Verificar código';}
   }
 }
 
