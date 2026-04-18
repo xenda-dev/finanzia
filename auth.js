@@ -485,6 +485,8 @@ async function handleRegister(){
   var email=(document.getElementById('rg-email').value||'').trim();
   var pass=(document.getElementById('rg-pass').value||'').trim();
   if(!name){_setError('rg','Ingresa tu nombre y apellido');return;}
+  var tcCheck=document.getElementById('rg-tc');
+  if(!tcCheck||!tcCheck.checked){_setError('rg','Debes aceptar los Términos y Condiciones para continuar');return;}
   if(name.split(/\s+/).filter(Boolean).length<2){_setError('rg','Ingresa nombre y apellido completos');return;}
   if(!email||!pass){_setError('rg','Completa todos los campos');return;}
   if(pass.length<8){_setError('rg','Mínimo 8 caracteres');return;}
@@ -1394,7 +1396,7 @@ function _initSetPinScreen(){
             if(typeof renderPage==='function')renderPage('mi-perfil');
           }else if(window._pinFromRecovery){
             window._pinFromRecovery=false;
-            _showWelcomeScreen(_currentUser);
+            openPinLogin();
           }else{
             try{ toast('PIN guardado correctamente \u2713'); }catch(e){}
             _initBioSetupScreen();

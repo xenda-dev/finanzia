@@ -127,6 +127,12 @@
     </div>
 
     <div class="auth-bottom">
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:0 4px 14px">
+        <input type="checkbox" id="rg-tc" style="width:18px;height:18px;margin-top:1px;flex-shrink:0;accent-color:#00D4AA;cursor:pointer">
+        <label for="rg-tc" style="font-size:13px;color:#64748B;line-height:1.5;cursor:pointer">
+          Acepto los <button type="button" onclick="openTerminosModal()" style="background:none;border:none;color:#00D4AA;font-size:13px;font-weight:600;cursor:pointer;padding:0;text-decoration:underline">Términos y Condiciones</button> y la <button type="button" onclick="openTerminosModal()" style="background:none;border:none;color:#00D4AA;font-size:13px;font-weight:600;cursor:pointer;padding:0;text-decoration:underline">Política de Privacidad</button>
+        </label>
+      </div>
       <button id="rg-btn" onclick="handleRegister()" class="auth-btn-primary">Registrarse</button>
       <div class="auth-footer" style="position:static;padding:max(env(safe-area-inset-bottom),16px) 20px 12px">© 2026 Xenda.co. Todos los derechos reservados.</div>
     </div>
