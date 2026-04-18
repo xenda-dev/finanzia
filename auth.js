@@ -171,14 +171,17 @@ async function _confirmDeleteWithPassword(){
     }
     var token=data.session.access_token;
     if(btn) btn.textContent='Eliminando...';
+    var controller=new AbortController();
+    var fetchTimeout=setTimeout(function(){controller.abort();},15000);
     var res=await fetch('https://dshwbvqvfbjtlbcqqviz.supabase.co/functions/v1/delete-account',{
       method:'POST',
       headers:{
         'Authorization':'Bearer '+token,
         'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzaHdidnF2ZmJqdGxiY3Fxdml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMTM1OTYsImV4cCI6MjA5MDg4OTU5Nn0.kjie4SHtxJZYkX1rspJK2JNpOWfbd-Xdx3UZfgqydXU',
-        'Content-Type':'application/json'
-      }
+      },
+      signal:controller.signal
     });
+    clearTimeout(fetchTimeout);
     var json=await res.json();
     if(!res.ok){
       if(err) err.textContent='Error: '+(json.error||'No se pudo eliminar');
