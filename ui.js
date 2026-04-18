@@ -6225,11 +6225,11 @@ function showPhotoOptions(){
   var btnsHtml='';
   if(hasPhoto){
     btnsHtml=''
-      +'<div style="display:flex;gap:10px;margin-bottom:10px">'
-        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-cam-input'+q+').click()" style="flex:1;padding:13px 8px;border-radius:12px;border:1.5px solid var(--primary);background:rgba(0,212,170,.08);color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+camSvg+' Cámara</button>'
-        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-gal-input'+q+').click()" style="flex:1;padding:13px 8px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+galSvg+' Galería</button>'
-      +'</div>'
-      +'<button onclick="closePhotoSheet();removeProfilePhoto()" style="width:100%;padding:13px 16px;border-radius:12px;border:none;background:rgba(239,68,68,.06);color:var(--danger);font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:12px">'+trashSvg+' Quitar foto</button>';
+      +'<div style="display:flex;gap:8px">'
+        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-cam-input'+q+').click()" style="flex:1;padding:13px 4px;border-radius:12px;border:1.5px solid var(--primary);background:rgba(0,212,170,.08);color:var(--primary);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px">'+camSvg+' Cámara</button>'
+        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-gal-input'+q+').click()" style="flex:1;padding:13px 4px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px">'+galSvg+' Galería</button>'
+        +'<button onclick="closePhotoSheet();removeProfilePhoto()" style="flex:1;padding:13px 4px;border-radius:12px;border:none;background:rgba(239,68,68,.06);color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px">'+trashSvg+' Quitar</button>'
+      +'</div>';
   }else{
     btnsHtml=''
       +'<div style="display:flex;gap:10px">'
