@@ -5903,9 +5903,10 @@ function buildProfileFormHTML(){
   var goalOpts=goalList.map(function(g){return '<div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\''+g+'\' )" data-val="'+g+'" style="'+(p.financialGoal===g?'background:rgba(0,212,170,.1)':'')+'">'+g+'</div>';}).join('');
 
   var nameVal=p.name||(_currentUser&&_currentUser.user_metadata&&_currentUser.user_metadata.full_name)||'';
-  var genderOpts=['Masculino','Femenino'];
+  var genderOpts=['Masculino','Femenino','No especificado'];
+  var _genderVal=p.gender||'No especificado';
   var genderCaps=genderOpts.map(function(g){
-    var on=p.gender===g;
+    var on=_genderVal===g;
     return '<button type="button" onclick="S.profile.gender=\''+g+'\';document.getElementById(\'cfg-gender\').value=\''+g+'\';this.parentNode.querySelectorAll(\'button\').forEach(function(b){b.style.background=\'transparent\';b.style.color=\'var(--text2)\';b.style.fontWeight=\'500\';});this.style.background=\'var(--primary)\';this.style.color=\'white\';this.style.fontWeight=\'700\';" style="flex:1;padding:8px 4px;border-radius:50px;border:none;background:'+(on?'var(--primary)':'transparent')+';color:'+(on?'white':'var(--text2)')+';font-size:13px;font-weight:'+(on?'700':'500')+';cursor:pointer;font-family:var(--font)">'+g+'</button>';
   }).join('');
   var html=''
@@ -5925,7 +5926,7 @@ function buildProfileFormHTML(){
       +'</div></div>'
     +'<div class="form-group"><label class="form-label">Género</label>'
       +'<div style="background:var(--surface2);border-radius:50px;padding:3px;display:flex;gap:2px">'+genderCaps+'</div>'
-      +'<input type="hidden" id="cfg-gender" value="'+(p.gender||'')+'"></div>'
+      +'<input type="hidden" id="cfg-gender" value="'+(_genderVal)+'"></div>'
     +'<div class="form-group"><label class="form-label">País de origen</label>'
       +'<div class="bs-trigger" onclick="showCountryPickerScreen(\'cfg-country\',\'País de origen\',\'cfg-country-lbl\')" id="cpick-trigger">'
         +'<span style="font-size:14px;color:'+(p.country?'var(--text)':'var(--text3)')+'" id="cfg-country-lbl">'+(p.country?(countryFlagGlobal(p.country)+' '+p.country):'Seleccionar país de origen')+'</span>'
@@ -6254,13 +6255,14 @@ function closePhotoViewer(){
   if(el)el.remove();
 }
 function removeProfilePhoto(){
-  confirmDialog('🗑️','¿Eliminar foto de perfil?','Esta acción no se puede deshacer.',function(){
+  confirmDialog('\ud83d\uddd1\ufe0f','¿Eliminar foto de perfil?','Esta acción no se puede deshacer.',function(){
     if(!S.profile)S.profile={};
     S.profile.photo='';
+    var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:localStorage.getItem('_lastAuthUserId')||'';
+    if(_uid) try{localStorage.removeItem('_profilePhoto_'+_uid);}catch(e2){}
     saveState();
     updateDrawerProfile();
-    closeProfilePage();
-    openProfilePage();
+    renderPage('mi-perfil');
   });
 }function handleProfilePhoto(e){
   const file=e.target.files[0];if(!file)return;
@@ -6268,7 +6270,9 @@ function removeProfilePhoto(){
   reader.onload=ev=>{
     if(!S.profile)S.profile={};
     S.profile.photo=ev.target.result;
-    saveState();updateDrawerProfile();renderPage(S.currentPage||'configuracion');
+    var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:localStorage.getItem('_lastAuthUserId')||'';
+    if(_uid) try{localStorage.setItem('_profilePhoto_'+_uid,ev.target.result);}catch(e2){}
+    saveState();updateDrawerProfile();renderPage(S.currentPage||'mi-perfil');
   };
   reader.readAsDataURL(file);
 }function saveLanguage(v){

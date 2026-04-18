@@ -212,6 +212,12 @@ function loadState(){
   // language and weekStart stay empty until user chooses
   // currencies stay empty until user sets up profile
   if(typeof applyThemeMode==='function')applyThemeMode();
+  // Inyectar foto de perfil desde clave dedicada (nunca se sincroniza a Supabase)
+  var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:localStorage.getItem('_lastAuthUserId')||'';
+  if(_uid){
+    var _storedPhoto=localStorage.getItem('_profilePhoto_'+_uid);
+    if(_storedPhoto){if(!S.profile)S.profile={};S.profile.photo=_storedPhoto;}
+  }
   // Update drawer profile
   updateDrawerProfile();
 }function updateDrawerProfile(){
@@ -255,11 +261,6 @@ function saveState(){
 async function saveUserData(userId,data){
   if(typeof _supabase==='undefined'||!_supabase) return;
   var toSave=Object.assign({},data);
-  // No sincronizar foto de perfil (base64 puede ser muy grande y falla silenciosamente)
-  if(toSave.profile&&toSave.profile.photo){
-    toSave.profile=Object.assign({},toSave.profile);
-    delete toSave.profile.photo;
-  }
   // Campos de UI/navegación — no persistir en servidor
   delete toSave.currentPage;
   delete toSave._catTab;
@@ -399,7 +400,6 @@ async function syncFromSupabase(userId){
     var keepPage=S.currentPage||'dashboard';
     var keepMovFilter=S.movFilter||{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''};
     var keepCatTab=S._catTab||'gasto';
-    var keepPhoto=S.profile&&S.profile.photo?S.profile.photo:'';
 
     Object.keys(remote).forEach(function(key){
       if(key==='_remoteUpdatedAt') return;
@@ -439,12 +439,17 @@ async function syncFromSupabase(userId){
     S.currentPage=keepPage;
     S.movFilter=keepMovFilter;
     S._catTab=keepCatTab;
-    if(keepPhoto&&S.profile&&!S.profile.photo) S.profile.photo=keepPhoto;
     S._lastSync=remoteTs||Date.now();
     try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}
     // Bloquear save a Supabase 3s — datos vienen DE allí, guardar de vuelta genera loop Realtime
     window._lastSupabaseSave=Date.now()+3000;
     console.log('✅ sync aplicado',new Date(remoteTs).toLocaleTimeString());
+    // Restaurar foto desde clave dedicada (el sync no la tiene)
+    var _syncUid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:'';
+    if(_syncUid){
+      var _sp=localStorage.getItem('_profilePhoto_'+_syncUid);
+      if(_sp){if(!S.profile)S.profile={};S.profile.photo=_sp;}
+    }
     if(typeof renderPage==='function') renderPage(S.currentPage);
     if(typeof updateDrawerProfile==='function') updateDrawerProfile();
     if(typeof refreshCurrencyToggle==='function') refreshCurrencyToggle();
