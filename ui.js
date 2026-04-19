@@ -237,10 +237,10 @@ var DRAWER_GROUPS={
     headerMsg:'<strong style="color:var(--text)">El futuro se planifica hoy.</strong> Metas, presupuestos y pagos en un solo lugar.',
     bannerBg:'rgba(116,97,239,0.06)',bannerBorder:'rgba(116,97,239,0.2)',
     items:[
-      {svgIcon:_dico('<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',_PC),iconBg:'#7461EF1A',label:'Presupuestos',sub:'Controla tus gastos',page:'presupuestos'},
-      {svgIcon:_dico('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',_PC),iconBg:'#7461EF1A',label:'Metas de ahorro',sub:'Tus objetivos claros',page:'metas'},
-      {svgIcon:_dico('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M8 18h.01M12 18h.01"/>',_PC),iconBg:'#7461EF1A',label:'Pagos programados',sub:'Nunca olvides un pago',page:'pagos'},
-      {svgIcon:_dico('<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/>',_PC),iconBg:'#7461EF1A',label:'Suscripciones',sub:'Gestiona tus servicios',page:'suscripciones'},
+      {svgIcon:_dico('<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',_TC),iconBg:'#00D4AA1A',label:'Presupuestos',sub:'Controla tus gastos',page:'presupuestos'},
+      {svgIcon:_dico('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',_TC),iconBg:'#00D4AA1A',label:'Metas de ahorro',sub:'Tus objetivos claros',page:'metas'},
+      {svgIcon:_dico('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M8 18h.01M12 18h.01"/>',_TC),iconBg:'#00D4AA1A',label:'Pagos programados',sub:'Nunca olvides un pago',page:'pagos'},
+      {svgIcon:_dico('<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/>',_TC),iconBg:'#00D4AA1A',label:'Suscripciones',sub:'Gestiona tus servicios',page:'suscripciones'},
     ]
   },
   herramientas:{
@@ -8097,10 +8097,11 @@ function saveNewList(){
   if(!type){toast('Selecciona un tipo de lista');return;}
   var tipo=LISTA_TIPOS.find(function(t){return t.id===type;})||LISTA_TIPOS[5];
   if(!S.shoppingLists)S.shoppingLists=[];
-  var exists=S.shoppingLists.find(function(l){return l.type===type;});
+  var _activeLists=filterDeleted(S.shoppingLists||[]);
+  var exists=_activeLists.find(function(l){return l.type===type;});
   if(exists&&type!=='custom'){toast('Ya tienes una lista de '+tipo.name);closeModal();openListDetail(exists.id);return;}
   var items=(DEFAULT_LIST_ITEMS[type]||[]).map(function(i){return {id:uid(),name:i.name,done:false,section:i.section||''};});
-  var name=type==='custom'?('Lista '+(S.shoppingLists.filter(function(l){return l.type==='custom';}).length+1)):tipo.name;
+  var name=type==='custom'?('Lista '+(_activeLists.filter(function(l){return l.type==='custom';}).length+1)):tipo.name;
   completeAction(function(){S.shoppingLists.push(stampItem({id:uid(),name:name,type:type,color:tipo.color,items:items,createdAt:todayStr()}));},'listas','Lista creada ✓');
 }
 function deleteList(id){
