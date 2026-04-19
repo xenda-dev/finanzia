@@ -2622,7 +2622,7 @@ function closeCatPanel(){var el=document.getElementById('cat-panel-overlay');if(
 function openCatPanel(){
   var overlay=document.createElement('div');
   overlay.id='cat-panel-overlay';
-  overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
+  overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   var tab=S._catTab||'gasto';
   var btnStyle=function(active){return'flex:1;padding:8px 6px;border-radius:50px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);transition:.15s;background:'+(active?'var(--primary)':'transparent')+';color:'+(active?'white':'var(--text2)');};
   overlay.innerHTML=
