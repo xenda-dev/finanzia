@@ -5836,6 +5836,7 @@ function showCurrenciesPickerScreen(){
   var backSvg='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
   var ov=document.createElement('div');
   ov.id='picker-screen-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   ov.innerHTML=
     '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0;position:relative">'
     +'<button onclick="closePickerScreen()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;z-index:1">'+backSvg+'</button>'
