@@ -274,7 +274,7 @@ function renderDrawerGroup(groupKey){
   }
   function _mkCard(item){
     var bg=item.iconBg||'rgba(0,212,170,0.1)';
-    return '<button onclick="navigate(\''+item.page+'\')" style="display:flex;flex-direction:column;align-items:flex-start;padding:16px 14px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:10px;font-family:var(--font);text-align:left;min-height:116px">'
+    return '<button onclick="navigate(\''+item.page+'\')" style="display:flex;flex-direction:column;align-items:flex-start;padding:16px 14px;background:var(--surface2);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:10px;font-family:var(--font);text-align:left;min-height:116px">'
       +'<div style="width:42px;height:42px;border-radius:12px;background:'+bg+';display:flex;align-items:center;justify-content:center">'+item.svgIcon+'</div>'
       +'<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text)">'+item.label+'</div>'
       +(item.sub?'<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.3">'+item.sub+'</div>':'')
@@ -5581,7 +5581,7 @@ function renderMiPerfil(){
   }
   var sl='<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);padding:14px 16px 6px">%L%</div>';
   return '<div>'
-    +'<div style="display:flex;align-items:center;gap:16px;padding:20px 16px 16px;background:var(--surface);border-bottom:1px solid var(--border)">'
+    +'<div style="display:flex;align-items:center;gap:16px;padding:20px 16px 16px;background:var(--surface2);border-bottom:1px solid var(--border)">'
       +'<div style="position:relative;flex-shrink:0;width:72px;height:72px">'
         +'<div '+avatarClick+' style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid var(--primary);box-sizing:border-box">'
           +avatarInner
@@ -5599,7 +5599,7 @@ function renderMiPerfil(){
       +'</div>'
     +'</div>'
     +sl.replace('%L%','Informaci\u00f3n personal')
-    +'<div style="background:var(--surface);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
+    +'<div style="background:var(--surface2);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
       +infoRow(iconGlobe,'Pa\u00eds de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'',false)
       +infoRow(iconPhone,'Tel\u00e9fono',phone.trim()||'',false)
       +infoRow(iconOccup,'Ocupación',p.occupation||'',false)
@@ -5607,7 +5607,7 @@ function renderMiPerfil(){
       +infoRow(iconTarget,'Meta financiera',p.financialGoal||'',true)
     +'</div>'
     +sl.replace('%L%','Seguridad')
-    +'<div style="background:var(--surface);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
+    +'<div style="background:var(--surface2);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
       +toggleRow(iconLock,'PIN de acceso',pinActive,'_togglePin',false)
       +toggleRow(iconShield,'Biometr\u00eda (huella)',bioActive,'_toggleBio',true)
     +'</div>'
@@ -5873,7 +5873,7 @@ function _savePickerCurrencies(){
 function openProfilePage(){
   var overlay=document.createElement('div');
   overlay.id='profile-page-overlay';
-  overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
+  overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   var header='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'
     +'<button onclick="closeProfilePage()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
     +'<span style="font-size:17px;font-weight:800">Datos Generales</span>'
