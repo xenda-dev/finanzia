@@ -5909,9 +5909,10 @@ function buildProfileFormHTML(){
   var _genderVal=p.gender||'';
   var genderCaps=_genderOpts.map(function(g){
     var on=_genderVal===g;
-    return '<div onclick="S.profile.gender=\''+g+'\';document.getElementById(\'cfg-gender\').value=\''+g+'\';this.parentNode.querySelectorAll(\'div\').forEach(function(b){b.style.borderColor=\'var(--border)\';b.style.background=\'var(--surface2)\';b.querySelector(\'span.gr\').style.display=\'none\';});this.style.borderColor=\'var(--primary)\';this.style.background=\'rgba(0,212,170,.06)\';this.querySelector(\'span.gr\').style.display=\'flex\';" style="flex:1;display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:50px;border:1.5px solid '+(on?'var(--primary)':'var(--border)')+';background:'+(on?'rgba(0,212,170,.06)':'var(--surface2)')+';cursor:pointer;font-family:var(--font)">'
-      +'<span class="gr" style="width:17px;height:17px;border-radius:50%;border:2px solid var(--primary);display:'+(on?'flex':'none')+';align-items:center;justify-content:center;flex-shrink:0"><span style="width:8px;height:8px;border-radius:50%;background:var(--primary);display:block"></span></span>'
-      +'<span class="gr" style="width:17px;height:17px;border-radius:50%;border:2px solid var(--border);display:'+(on?'none':'flex')+';align-items:center;justify-content:center;flex-shrink:0"></span>'
+    var circleInner=on?'<span style="width:8px;height:8px;border-radius:50%;background:var(--primary);display:block"></span>':'';
+    var circleBorder=on?'var(--primary)':'var(--border)';
+    return '<div id="gcap-'+g+'" onclick="_selectGender(\''+g+'\')" style="flex:1;display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:50px;border:1.5px solid '+(on?'var(--primary)':'var(--border)')+';background:'+(on?'rgba(0,212,170,.06)':'white')+';cursor:pointer;font-family:var(--font)">'
+      +'<span style="width:17px;height:17px;border-radius:50%;border:2px solid '+circleBorder+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+circleInner+'</span>'
       +'<span style="font-size:14px;font-weight:600;color:var(--text)">'+g+'</span>'
     +'</div>';
   }).join('');
@@ -6170,6 +6171,23 @@ const COUNTRY_DATA={
 
 
 
+function _selectGender(g){
+  ['Masculino','Femenino'].forEach(function(opt){
+    var el=document.getElementById('gcap-'+opt);
+    if(!el)return;
+    var isOn=opt===g;
+    el.style.borderColor=isOn?'var(--primary)':'var(--border)';
+    el.style.background=isOn?'rgba(0,212,170,.06)':'white';
+    var circle=el.querySelector('span');
+    if(circle){
+      circle.style.borderColor=isOn?'var(--primary)':'var(--border)';
+      circle.innerHTML=isOn?'<span style="width:8px;height:8px;border-radius:50%;background:var(--primary);display:block"></span>':'';
+    }
+  });
+  S.profile.gender=g;
+  var hidden=document.getElementById('cfg-gender');
+  if(hidden)hidden.value=g;
+}
 function saveProfile(){
   if(!S.profile)S.profile={};
   const g=(id)=>document.getElementById(id)?.value||'';
@@ -8105,7 +8123,7 @@ function openSiguenos(){
   ];
   var ov=document.createElement('div');
   ov.id='siguenos-sheet';
-  ov.style.cssText='position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;justify-content:flex-end';
+  ov.style.cssText='position:fixed;inset:0;z-index:10002;display:flex;flex-direction:column;justify-content:flex-end';
   var rows=items.map(function(it){
     return '<a href="'+it.url+'" target="_blank" rel="noopener" onclick="document.getElementById(\'siguenos-sheet\').remove()" style="display:flex;align-items:center;gap:14px;padding:12px;border-radius:12px;text-decoration:none;color:var(--text)">'
       +'<div style="width:42px;height:42px;border-radius:12px;background:'+it.bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+it.svg+'</div>'
@@ -8145,7 +8163,7 @@ function openSoporteModal(){
   var email=(S.profile&&S.profile.email)||(window._currentUser&&window._currentUser.email?window._currentUser.email:'')||'';
   var ov=document.createElement('div');
   ov.id='soporte-modal';
-  ov.style.cssText='position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;overflow-y:auto';
+  ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;overflow-y:auto';
   ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:92vh;display:flex;flex-direction:column;overflow:hidden">'
     +'<div style="display:flex;justify-content:center;padding:12px 0 4px;flex-shrink:0"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
     +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 14px;flex-shrink:0">'
