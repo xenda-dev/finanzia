@@ -30,7 +30,7 @@ function buildNumFormatExample(){
 function setNumFormat(val){
   var _m=document.getElementById('main');var _sy=_m?_m.scrollTop:0;
   completeAction(function(){S.numFormat=val;},'configuracion');
-  if(_m)_m.scrollTop=_sy;
+  requestAnimationFrame(function(){if(_m)_m.scrollTop=_sy;});
 }
 function buildThemeCaps(){
   var opts=[['light','☀️ Claro'],['dark','🌙 Oscuro'],['auto','⚙️ Auto']];
@@ -46,7 +46,7 @@ function setThemeInline(val){
   saveState();
   var _m=document.getElementById('main');var _sy=_m?_m.scrollTop:0;
   renderPage('configuracion');
-  if(_m)_m.scrollTop=_sy;
+  requestAnimationFrame(function(){if(_m)_m.scrollTop=_sy;});
 }
 function setTheme(val){
   S.theme=val;
@@ -292,7 +292,7 @@ function renderDrawerGroup(groupKey){
     var _secs={},_ord=[];
     g.items.forEach(function(item){var s=item.section||'';if(!_secs[s]){_secs[s]=[];_ord.push(s);}_secs[s].push(item);});
     _ord.forEach(function(sec,i){
-      if(sec)html+='<div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:10px 16px 4px">'+sec+'</div>';
+      if(sec)html+='<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:10px 16px 3px">'+sec+'</div>';
       html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 16px '+(i===_ord.length-1?'16px':'0px')+'">';
       _secs[sec].forEach(function(item){html+=_mkCard(item);});
       html+='</div>';
@@ -363,9 +363,9 @@ function closeModal(){
 async function openNotifPage(){
   const overlay=document.createElement('div');
   overlay.id='notif-page-overlay';
-  overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
+  overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   overlay.innerHTML=
-    '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'+
+    '<div style="background:var(--surface2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'+
     '<button onclick="document.getElementById(\'notif-page-overlay\').remove()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>'+
     '<span style="font-size:17px;font-weight:800">Notificaciones</span>'+
     '<button onclick="requestNotifPerm()" style="background:var(--primary);border:none;color:white;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-family:var(--font)">Activar</button>'+
@@ -384,7 +384,7 @@ function buildNotifToggles(){
   var descs={'notifPayments':'Recordatorio antes de que venza un pago','notifBudget':'Cuando llegues al 80% o 100% del presupuesto','notifGoal':'Celebración al completar una meta de ahorro','notifWeekly':'Resumen de gastos cada lunes','notifMonthly':'Balance de ingresos vs gastos al cierre del mes','notifDebt':'Cuando una deuda supere el 40% de tus ingresos'};
   return keys.map(function(key){
     var isOn=!!(S.notifPrefs&&S.notifPrefs[key]);
-    return '<div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px">'
+    return '<div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px">'
       +'<div style="flex:1"><div style="font-size:14px;font-weight:600">'+labels[key]+'</div><div style="font-size:12px;color:var(--text2);margin-top:2px">'+descs[key]+'</div></div>'
       +'<div onclick="toggleNotifPref(\''+key+'\')" style="width:44px;height:24px;border-radius:12px;background:'+(isOn?'var(--primary)':'var(--border)')+';cursor:pointer;position:relative;flex-shrink:0">'
       +'<div style="width:20px;height:20px;border-radius:50%;background:white;position:absolute;top:2px;'+(isOn?'right:2px':'left:2px')+';box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>'
@@ -5009,7 +5009,7 @@ function renderConfiguracion(){
       <div style="padding:12px 14px;border-bottom:1px solid var(--border)">
         <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:7px">${t('weekStart')}</label>
         <div class="bs-trigger" onclick="showBS_week()" style="background:var(--surface)">
-          <span style="font-size:14px">${({lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'})[S.weekStart]||'Seleccionar'}</span>
+          <span style="font-size:14px">📅 ${({lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'})[S.weekStart]||'Seleccionar'}</span>
           <span style="color:var(--text3);font-size:18px">›</span>
         </div>
       </div>
@@ -5577,7 +5577,7 @@ function renderMiPerfil(){
       +'<div style="display:flex;align-items:center;gap:12px">'+ri+'<div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">'+label+'</div>'+badge+'</div></div>'+tgl+'</div>';
   }
   var sl='<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);padding:14px 16px 6px">%L%</div>';
-  return '<div>'+sl.replace('%L%','Perfil')+'<div style="background:var(--surface2);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
+  return '<div style="padding-top:16px">'+'<div style="background:var(--surface2);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
     +'<div style="display:flex;align-items:center;gap:16px;padding:16px 14px;">'
       +'<div style="position:relative;flex-shrink:0;width:72px;height:72px">'
         +'<div '+avatarClick+' style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid var(--primary);box-sizing:border-box">'
@@ -5625,15 +5625,15 @@ function _openPickerScreen(title,searchPlaceholder){
   var backSvg='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
   var ov=document.createElement('div');
   ov.id='picker-screen-overlay';
-  ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
+  ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   ov.innerHTML='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0">'
     +'<button onclick="closePickerScreen()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">'+backSvg+'</button>'
     +'<span style="font-size:17px;font-weight:800;flex:1">'+title+'</span>'
     +'</div>'
     +'<div style="padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">'
-      +'<input id="picker-search" class="form-input" placeholder="'+searchPlaceholder+'" oninput="_filterPickerList(this.value)" style="font-size:14px;padding:10px 14px">'
+      +'<input id="picker-search" class="form-input" placeholder="'+searchPlaceholder+'" oninput="_filterPickerList(this.value)" style="font-size:14px;padding:10px 14px;background:var(--surface)">'
     +'</div>'
-    +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:8px"></div>';
+    +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:12px 16px"></div>';
   document.body.appendChild(ov);
   setTimeout(function(){var s=document.getElementById('picker-search');if(s)s.focus();},200);
 }
@@ -5777,13 +5777,15 @@ function showLangPickerScreen(){
       if(!list)return;
       var langs=ALL_LANGUAGES;
       if(q)langs=langs.filter(function(l){return l.label.toLowerCase().indexOf(q.toLowerCase())!==-1;});
-      list.innerHTML=langs.map(function(l){
-        var sel=l.id===S.language;
-        return '<div class="picker-item" onclick="_selectLang(\''+l.id+'\')" style="'+(sel?'background:rgba(0,212,170,.08)':'')+'">'
-          +'<span>'+l.flag+' '+l.label+'</span>'
-          +(sel?'<svg style="margin-left:auto;flex-shrink:0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'')
+      var _rows=langs.map(function(l,i){
+        var sel=l.id===S.language;var last=i===langs.length-1;
+        return '<div onclick="_selectLang(\''+l.id+'\')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;'+(sel?'background:rgba(0,212,170,.06);':'')+(last?'':'border-bottom:1px solid var(--border);')+'">' 
+          +'<span style="font-size:15px">'+l.flag+'</span>'
+          +'<span style="font-size:14px;flex:1;color:var(--text);font-weight:'+(sel?'700':'400')+'">'+l.label+'</span>'
+          +(sel?'<svg style="flex-shrink:0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'')
           +'</div>';
-      }).join('');
+      });
+      list.innerHTML='<div style="background:var(--surface2);border-radius:16px;overflow:hidden;border:1px solid var(--border)">'+_rows.join('')+'</div>';
     }
   };
   _openPickerScreen('Idioma','Buscar idioma...');
@@ -5807,12 +5809,12 @@ function showCurrenciesPickerScreen(){
       if(!list)return;
       var items=ALL_CURRENCIES;
       if(q)items=items.filter(function(c){return(c.code+' '+c.name).toLowerCase().indexOf(q.toLowerCase())!==-1;});
-      list.innerHTML=items.map(function(c){
+      var _crows=items.map(function(c,i){
         var checked=window._pickerCurSel.indexOf(c.code)!==-1;
-        var meta=getCurrencyMeta(c.code);
-        var sym=meta?meta.sym:c.code;
-        return '<div class="picker-item" onclick="_togglePickerCur(\''+c.code+'\')" style="'+(checked?'background:rgba(0,212,170,.08)':'')+'">'
-          +'<div style="width:20px;height:20px;border-radius:5px;border:2px solid '+(checked?'var(--primary)':'var(--border)')+';background:'+(checked?'var(--primary)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.1s">'
+        var meta=getCurrencyMeta(c.code);var sym=meta?meta.sym:c.code;
+        var last=i===items.length-1;
+        return '<div onclick="_togglePickerCur(\''+c.code+'\')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;'+(checked?'background:rgba(0,212,170,.06);':'')+(last?'':'border-bottom:1px solid var(--border);')+'">' 
+          +'<div style="width:22px;height:22px;border-radius:6px;border:2px solid '+(checked?'var(--primary)':'var(--border)')+';background:'+(checked?'var(--primary)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.1s">'
             +(checked?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'')
           +'</div>'
           +'<div style="flex:1;min-width:0">'
@@ -5820,14 +5822,15 @@ function showCurrenciesPickerScreen(){
             +'<div style="font-size:12px;color:var(--text3)">'+c.name+'</div>'
           +'</div>'
           +'</div>';
-      }).join('');
+      });
+      list.innerHTML='<div style="background:var(--surface2);border-radius:16px;overflow:hidden;border:1px solid var(--border)">'+_crows.join('')+'</div>';
     }
   };
   closePickerScreen();
   var backSvg='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
   var ov=document.createElement('div');
   ov.id='picker-screen-overlay';
-  ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
+  ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   ov.innerHTML='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0">'
     +'<button onclick="closePickerScreen()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">'+backSvg+'</button>'
     +'<span style="font-size:17px;font-weight:800;flex:1">Monedas activas</span>'
@@ -5836,7 +5839,7 @@ function showCurrenciesPickerScreen(){
     +'<div style="padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">'
       +'<input id="picker-search" class="form-input" placeholder="Buscar moneda..." oninput="_filterPickerList(this.value)" style="font-size:14px;padding:10px 14px">'
     +'</div>'
-    +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:8px"></div>'
+    +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:12px 16px"></div>'
     +'<div style="flex-shrink:0;padding:12px 16px;background:var(--surface);border-top:1px solid var(--border)">'
       +'<button onclick="_savePickerCurrencies()" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Guardar</button>'
     +'</div>';
