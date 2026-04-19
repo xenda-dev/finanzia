@@ -365,7 +365,7 @@ async function openNotifPage(){
   overlay.id='notif-page-overlay';
   overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   overlay.innerHTML=
-    '<div style="background:var(--surface2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'+
+    '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'+
     '<button onclick="document.getElementById(\'notif-page-overlay\').remove()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>'+
     '<span style="font-size:17px;font-weight:800">Notificaciones</span>'+
     '<button onclick="requestNotifPerm()" style="background:var(--primary);border:none;color:white;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-family:var(--font)">Activar</button>'+
@@ -3045,10 +3045,13 @@ function renderHerramientas(){
   }).join('');
   return '<div class="ai-chat-wrap">'
     +'<div class="ai-chat-header">'
-      +'<div class="ai-chat-avatar">🤖</div>'
+      +'<div class="ai-chat-avatar">'
+        +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>'
+        +'<img src="/emiliano-chat.png" onerror="this.style.display=\'none\'" alt="Emiliano">'
+      +'</div>'
       +'<div class="ai-chat-info">'
         +'<div class="ai-chat-name">Emiliano</div>'
-        +'<div class="ai-chat-status">💼 Wealth Manager · FinanzIA</div>'
+        +'<div class="ai-chat-status">Wealth Manager · FinanzIA</div>'
       +'</div>'
     +'</div>'
     +'<div class="ai-messages" id="ai-messages">'
@@ -5626,12 +5629,12 @@ function _openPickerScreen(title,searchPlaceholder){
   var ov=document.createElement('div');
   ov.id='picker-screen-overlay';
   ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
-  ov.innerHTML='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0">'
-    +'<button onclick="closePickerScreen()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">'+backSvg+'</button>'
-    +'<span style="font-size:17px;font-weight:800;flex:1">'+title+'</span>'
+  ov.innerHTML='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0;position:relative">';
+    +'<button onclick="closePickerScreen()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;z-index:1">'+backSvg+'</button>'
+    +'<span style="position:absolute;left:0;right:0;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">'+title+'</span>'
+    +'<div style="width:36px;flex-shrink:0;margin-left:auto"></div>'
     +'</div>'
-    +'<div style="padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">'
-      +'<input id="picker-search" class="form-input" placeholder="'+searchPlaceholder+'" oninput="_filterPickerList(this.value)" style="font-size:14px;padding:10px 14px;background:var(--surface)">'
+      +'<input id="picker-search" class="form-input" placeholder="'+searchPlaceholder+'" oninput="_filterPickerList(this.value)" style="font-size:14px;padding:10px 14px">'
     +'</div>'
     +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:12px 16px"></div>';
   document.body.appendChild(ov);
@@ -5831,9 +5834,9 @@ function showCurrenciesPickerScreen(){
   var ov=document.createElement('div');
   ov.id='picker-screen-overlay';
   ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
-  ov.innerHTML='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0">'
+  ov.innerHTML='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0;position:relative">';
     +'<button onclick="closePickerScreen()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">'+backSvg+'</button>'
-    +'<span style="font-size:17px;font-weight:800;flex:1">Monedas activas</span>'
+    +'<span style="position:absolute;left:0;right:0;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">Monedas activas</span>'
     +'<span id="picker-cur-count" style="font-size:12px;color:var(--primary);font-weight:700;background:rgba(0,212,170,.12);padding:3px 10px;border-radius:50px">'+sel.length+'/2</span>'
     +'</div>'
     +'<div style="padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">'
