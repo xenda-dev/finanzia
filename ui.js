@@ -249,48 +249,53 @@ var DRAWER_GROUPS={
     headerMsg:'<strong style="color:var(--text)">Aqu\u00ed vive lo que te da claridad.</strong> Simula, analiza y toma decisiones sin adivinar.',
     bannerBg:'rgba(116,97,239,0.06)',bannerBorder:'rgba(116,97,239,0.15)',
     items:[
-      {svgIcon:_dico('<path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/>',_TC),iconBg:'#00D4AA1A',label:'Simuladores',sub:'Ahorro, cr\u00e9ditos, inflaci\u00f3n',page:'simuladores'},
-      {svgIcon:_dico('<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',_GC),iconBg:'#10B9811A',label:'Salud financiera',sub:'Test de 18 preguntas',page:'test'},
-      {svgIcon:_dico('<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',_RC),iconBg:'#EF44441A',label:'Estrategia deudas',sub:'Snowball y avalancha',page:'estrategia'},
-      {svgIcon:_dico('<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',_BC),iconBg:'#3B82F61A',label:'Tipo de cambio',sub:'COP, PLN y m\u00e1s',page:'cambio'},
-      {svgIcon:_dico('<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',_AC),iconBg:'#F59E0B1A',label:'Listas de compra',sub:'S\u00faper, hogar y m\u00e1s',page:'listas'},
+      {svgIcon:_dico('<path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/>',_TC),iconBg:'#00D4AA1A',label:'Simuladores',sub:'Ahorro, cr\u00e9ditos, inflaci\u00f3n',page:'simuladores',section:'Simula tu futuro'},
+      {svgIcon:_dico('<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',_GC),iconBg:'#10B9811A',label:'Salud financiera',sub:'Test de 18 preguntas',page:'test',section:'Simula tu futuro'},
+      {svgIcon:_dico('<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',_RC),iconBg:'#EF44441A',label:'Estrategia deudas',sub:'Snowball y avalancha',page:'estrategia',section:'Estrategia y m\u00e1s'},
+      {svgIcon:_dico('<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',_BC),iconBg:'#3B82F61A',label:'Tipo de cambio',sub:'COP, PLN y m\u00e1s',page:'cambio',section:'Estrategia y m\u00e1s'},
+      {svgIcon:_dico('<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',_AC),iconBg:'#F59E0B1A',label:'Listas de compra',sub:'S\u00faper, hogar y m\u00e1s',page:'listas',section:'Estrategia y m\u00e1s'},
     ]
   }
 };
 function renderDrawerGroup(groupKey){
   var g=DRAWER_GROUPS[groupKey];
   if(!g)return'';
-  var is2col=(groupKey==='midinero'||groupKey==='herramientas'||groupKey==='planificacion');
-  var cols=is2col?'1fr 1fr':'1fr 1fr 1fr';
+  var hasArrow=(groupKey==='midinero'||groupKey==='planificacion');
+  var hasSections=groupKey==='herramientas';
+  var _arr='<div style="color:var(--text3);margin-top:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>';
   var html='<div style="padding:16px 16px 4px">'
     +'<div style="font-size:22px;font-weight:800;color:var(--text)">'+g.label+'</div>';
-  if(g.headerSub){
-    html+='<div style="font-size:13px;color:var(--text2);margin-top:2px">'+g.headerSub+'</div>';
-  }
+  if(g.headerSub)html+='<div style="font-size:13px;color:var(--text2);margin-top:2px">'+g.headerSub+'</div>';
   html+='</div>';
   if(g.headerMsg){
     html+='<div style="margin:8px 16px 6px;padding:12px 14px;background:'+g.bannerBg+';border-radius:14px;border:0.5px solid '+g.bannerBorder+'">'
       +'<div style="font-size:13px;color:var(--text2);line-height:1.5">'+g.headerMsg+'</div>'
       +'</div>';
   }
-  html+='<div style="display:grid;grid-template-columns:'+cols+';gap:10px;padding:10px 16px 32px">';
-  g.items.forEach(function(item){
-    var iconBg=item.iconBg||'rgba(0,212,170,0.1)';
-    if(is2col){
-      html+='<button onclick="navigate(\''+item.page+'\')" style="display:flex;flex-direction:column;align-items:flex-start;padding:16px 14px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:10px;font-family:var(--font);text-align:left;min-height:116px">'
-        +'<div style="width:42px;height:42px;border-radius:12px;background:'+iconBg+';display:flex;align-items:center;justify-content:center">'+item.svgIcon+'</div>'
-        +'<div><div style="font-size:13px;font-weight:700;color:var(--text)">'+item.label+'</div>'
-        +(item.sub?'<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.3">'+item.sub+'</div>':'')
-        +'</div>'
-        +'</button>';
-    }else{
-      html+='<button onclick="navigate(\''+item.page+'\')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 8px 16px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:8px;font-family:var(--font);min-height:100px">'
-        +'<div style="width:40px;height:40px;border-radius:11px;background:'+iconBg+';display:flex;align-items:center;justify-content:center">'+item.svgIcon+'</div>'
-        +'<span style="font-size:11px;font-weight:700;color:var(--text);text-align:center;line-height:1.3">'+item.label+'</span>'
-        +'</button>';
-    }
-  });
-  html+='</div>';
+  function _mkCard(item){
+    var bg=item.iconBg||'rgba(0,212,170,0.1)';
+    return '<button onclick="navigate(\''+item.page+'\')" style="display:flex;flex-direction:column;align-items:flex-start;padding:16px 14px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:10px;font-family:var(--font);text-align:left;min-height:116px">'
+      +'<div style="width:42px;height:42px;border-radius:12px;background:'+bg+';display:flex;align-items:center;justify-content:center">'+item.svgIcon+'</div>'
+      +'<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text)">'+item.label+'</div>'
+      +(item.sub?'<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.3">'+item.sub+'</div>':'')
+      +'</div>'
+      +(hasArrow?_arr:'')
+      +'</button>';
+  }
+  if(hasSections){
+    var _secs={},_ord=[];
+    g.items.forEach(function(item){var s=item.section||'';if(!_secs[s]){_secs[s]=[];_ord.push(s);}_secs[s].push(item);});
+    _ord.forEach(function(sec,i){
+      if(sec)html+='<div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:10px 16px 4px">'+sec+'</div>';
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 16px '+(i===_ord.length-1?'16px':'0px')+'">';
+      _secs[sec].forEach(function(item){html+=_mkCard(item);});
+      html+='</div>';
+    });
+  }else{
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 16px 32px">';
+    g.items.forEach(function(item){html+=_mkCard(item);});
+    html+='</div>';
+  }
   return html;
 }
 // ════════════════════════════════════════════════════════════
