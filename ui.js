@@ -27,7 +27,11 @@ function buildNumFormatExample(){
     return meta.pos==='before'?meta.sym+str:str+' '+meta.sym;
   }catch(e){return n.toFixed(d);}
 }
-function setNumFormat(val){completeAction(function(){S.numFormat=val;},'configuracion');}
+function setNumFormat(val){
+  var _m=document.getElementById('main');var _sy=_m?_m.scrollTop:0;
+  completeAction(function(){S.numFormat=val;},'configuracion');
+  if(_m)_m.scrollTop=_sy;
+}
 function buildThemeCaps(){
   var opts=[['light','☀️ Claro'],['dark','🌙 Oscuro'],['auto','⚙️ Auto']];
   var cur=S.theme||'light';
@@ -40,7 +44,9 @@ function setThemeInline(val){
   S.theme=val;
   applyThemeMode();
   saveState();
+  var _m=document.getElementById('main');var _sy=_m?_m.scrollTop:0;
   renderPage('configuracion');
+  if(_m)_m.scrollTop=_sy;
 }
 function setTheme(val){
   S.theme=val;
@@ -4991,55 +4997,46 @@ function renderConfiguracion(){
       </div>
       <span style="color:var(--text3)">›</span>
     </div>
-    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">${t('preferences')}</div>
-
-    <!-- Language -->
-    <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
-      <label style="font-size:14px;font-weight:600;margin:0">${t('language')}</label>
-      <div class="bs-trigger" onclick="showLangPickerScreen()">
-        <span style="font-size:14px">${langCurrent?langCurrent.flag+' '+langCurrent.label:'Seleccionar idioma'}</span>
-        <span style="color:var(--text3);font-size:18px">›</span>
+    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">${t('preferences')}</div>
+    <div style="background:var(--surface2);border-radius:16px;overflow:hidden;border:1px solid var(--border);margin-bottom:10px">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border)">
+        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:7px">${t('language')}</label>
+        <div class="bs-trigger" onclick="showLangPickerScreen()" style="background:var(--surface)">
+          <span style="font-size:14px">${langCurrent?langCurrent.flag+' '+langCurrent.label:'Seleccionar idioma'}</span>
+          <span style="color:var(--text3);font-size:18px">›</span>
+        </div>
+      </div>
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border)">
+        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:7px">${t('weekStart')}</label>
+        <div class="bs-trigger" onclick="showBS_week()" style="background:var(--surface)">
+          <span style="font-size:14px">${({lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'})[S.weekStart]||'Seleccionar'}</span>
+          <span style="color:var(--text3);font-size:18px">›</span>
+        </div>
+      </div>
+      <div style="padding:12px 14px">
+        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:7px">${t('activeCurrencies')}</label>
+        <div class="bs-trigger" onclick="showCurrenciesPickerScreen()" style="background:var(--surface)">
+          <span style="font-size:14px" id="cfg-cur-lbl">${(S.currencies&&S.currencies.length)?(S.currencies.join(' · ')):'Seleccionar'}</span>
+          <span style="color:var(--text3);font-size:18px">›</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-top:5px">Selecciona 1 o 2 monedas.</div>
       </div>
     </div>
 
-    <!-- Week start -->
-    <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
-      <label style="font-size:14px;font-weight:600;margin:0">${t('weekStart')}</label>
-      <div class="bs-trigger" onclick="showBS_week()">
-        <span style="font-size:14px">📅 ${({lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'})[S.weekStart]||'Seleccionar'}</span>
-        <span style="color:var(--text3);font-size:18px">›</span>
+    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 8px">${t('appearance')}</div>
+    <div style="background:var(--surface2);border-radius:16px;overflow:hidden;border:1px solid var(--border);margin-bottom:10px">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border)">
+        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:7px">${t('theme')}</label>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:50px;padding:3px;display:flex;gap:2px">
+          ${buildThemeCaps()}
+        </div>
       </div>
-    </div>
-
-    <!-- Currency Format -->
-    
-
-    <!-- Currencies -->
-    <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
-      <label style="font-size:14px;font-weight:600;margin:0">${t('activeCurrencies')}</label>
-      <div class="bs-trigger" onclick="showCurrenciesPickerScreen()">
-        <span style="font-size:14px" id="cfg-cur-lbl">💱 ${(S.currencies&&S.currencies.length)?(S.currencies.join(' · ')):'Seleccionar'}</span>
-        <span style="color:var(--text3);font-size:18px">›</span>
-      </div>
-      <div style="font-size:11px;color:var(--text2)">Selecciona 1 o 2 monedas.</div>
-    </div>
-
-    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 10px">${t('appearance')}</div>
-    <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
-      <label style="font-size:14px;font-weight:600;margin:0">${t('theme')}</label>
-      <div style="background:var(--surface2);border-radius:50px;padding:3px;display:flex;gap:2px">
-        ${buildThemeCaps()}
-      </div>
-    </div>
-
-    <!-- Formato de moneda -->
-    <div class="config-item" style="flex-direction:column;align-items:stretch;gap:8px;cursor:default">
-      <label style="font-size:14px;font-weight:600;margin:0">💱 Formato de moneda</label>
-      <div style="background:var(--surface2);border-radius:50px;padding:3px;display:flex;gap:2px">
-        ${buildNumFormatCaps()}
-      </div>
-      <div style="font-size:11px;color:var(--text2);margin-top:4px">
-        Ejemplo: <strong>${buildNumFormatExample()}</strong>
+      <div style="padding:12px 14px">
+        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:7px">Formato de moneda</label>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:50px;padding:3px;display:flex;gap:2px">
+          ${buildNumFormatCaps()}
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin-top:5px">Ejemplo: <strong>${buildNumFormatExample()}</strong></div>
       </div>
     </div>
 
@@ -5580,8 +5577,8 @@ function renderMiPerfil(){
       +'<div style="display:flex;align-items:center;gap:12px">'+ri+'<div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">'+label+'</div>'+badge+'</div></div>'+tgl+'</div>';
   }
   var sl='<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);padding:14px 16px 6px">%L%</div>';
-  return '<div>'
-    +'<div style="display:flex;align-items:center;gap:16px;padding:20px 16px 16px;background:var(--surface2);border-bottom:1px solid var(--border)">'
+  return '<div>'+sl.replace('%L%','Perfil')+'<div style="background:var(--surface2);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
+    +'<div style="display:flex;align-items:center;gap:16px;padding:16px 14px;">'
       +'<div style="position:relative;flex-shrink:0;width:72px;height:72px">'
         +'<div '+avatarClick+' style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid var(--primary);box-sizing:border-box">'
           +avatarInner
@@ -5597,6 +5594,7 @@ function renderMiPerfil(){
         +'<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px"><span>Perfil completo</span><span style="color:var(--primary);font-weight:700">'+pct+'%</span></div>'
         +'<div style="height:4px;background:var(--border);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--primary);border-radius:99px"></div></div>'
       +'</div>'
+    +'</div>'
     +'</div>'
     +sl.replace('%L%','Informaci\u00f3n personal')
     +'<div style="background:var(--surface2);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
