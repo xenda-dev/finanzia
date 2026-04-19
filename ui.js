@@ -5136,6 +5136,8 @@ function closeBottomSheet(){
   if(o)o.remove();
   _bsCfg=null;
   _bsAllItems=[];
+  var mr=document.getElementById('modal-root');
+  if(mr)mr.style.zIndex='';
 }
 
 // ── Helper label de moneda en trigger BS ─────────────────
@@ -8145,6 +8147,8 @@ function openSiguenos(){
 var _SOPORTE_ASUNTOS=['No puedo iniciar sesión','Problema con mis datos','La app no funciona correctamente','Consulta sobre la app','Sugerencia o mejora','Eliminar mi cuenta','Otro'];
 function _showSoporteAsuntoBS(){
   var cur=document.getElementById('sop-asunto')?document.getElementById('sop-asunto').value:'';
+  var mr=document.getElementById('modal-root');
+  if(mr)mr.style.zIndex='10003';
   showBottomSheet({
     title:'Asunto',
     items:_SOPORTE_ASUNTOS.map(function(a){return{val:a,label:a};}),
@@ -8155,6 +8159,8 @@ function _showSoporteAsuntoBS(){
       var lbl=document.getElementById('sop-asunto-lbl');
       if(inp)inp.value=val;
       if(lbl){lbl.textContent=val;lbl.style.color='var(--text)';}
+      var mr2=document.getElementById('modal-root');
+      if(mr2)mr2.style.zIndex='';
     }
   });
 }
