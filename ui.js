@@ -8211,7 +8211,7 @@ async function _enviarSoporte(){
 function openAcercaDeModal(){
   var ov=document.createElement('div');
   ov.id='acercade-modal';
-  ov.style.cssText='position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);display:flex;align-items:flex-end';
+  ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.6);display:flex;align-items:flex-end';
   ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 40px">'
     +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
     +'<div style="display:flex;justify-content:flex-end;padding:4px 16px 0">'
