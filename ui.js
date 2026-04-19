@@ -146,7 +146,7 @@ function _updateHeader(page){
   hBack.style.display=isDash?'none':'flex';
   if(hSpacer)hSpacer.style.display=isDash?'none':'block';
   if(!isDash){
-    var _isGrp=(page==='grp-midinero'||page==='grp-planificacion'||page==='grp-herramientas');
+    var _isGrp=(page==='grp-midinero'||page==='grp-planificacion'||page==='grp-herramientas'||page==='herramientas');
     hTitle.style.display=_isGrp?'none':'block';
     if(!_isGrp) hTitle.textContent=_getPageTitle(page);
     hBack.style.alignItems='center';
@@ -5628,16 +5628,16 @@ function _openPickerScreen(title,searchPlaceholder){
   var backSvg='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
   var ov=document.createElement('div');
   ov.id='picker-screen-overlay';
-  ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
-  ov.innerHTML='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0;position:relative">';
+  ov.innerHTML=
+    '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0;position:relative">'
     +'<button onclick="closePickerScreen()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;z-index:1">'+backSvg+'</button>'
     +'<span style="position:absolute;left:0;right:0;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">'+title+'</span>'
     +'<div style="width:36px;flex-shrink:0;margin-left:auto"></div>'
     +'</div>'
-      +'<input id="picker-search" class="form-input" placeholder="'+searchPlaceholder+'" oninput="_filterPickerList(this.value)" style="font-size:14px;padding:10px 14px">'
+    +'<div style="padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">'
+    +'<input id="picker-search" class="form-input" placeholder="'+searchPlaceholder+'" oninput="_filterPickerList(this.value)" style="font-size:14px;padding:10px 14px">'
     +'</div>'
     +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:12px 16px"></div>';
-  document.body.appendChild(ov);
   setTimeout(function(){var s=document.getElementById('picker-search');if(s)s.focus();},200);
 }
 function closePickerScreen(){
@@ -5833,14 +5833,14 @@ function showCurrenciesPickerScreen(){
   var backSvg='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
   var ov=document.createElement('div');
   ov.id='picker-screen-overlay';
-  ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
-  ov.innerHTML='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0;position:relative">';
-    +'<button onclick="closePickerScreen()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">'+backSvg+'</button>'
+  ov.innerHTML=
+    '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0;position:relative">'
+    +'<button onclick="closePickerScreen()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;z-index:1">'+backSvg+'</button>'
     +'<span style="position:absolute;left:0;right:0;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">Monedas activas</span>'
-    +'<span id="picker-cur-count" style="font-size:12px;color:var(--primary);font-weight:700;background:rgba(0,212,170,.12);padding:3px 10px;border-radius:50px">'+sel.length+'/2</span>'
+    +'<span id="picker-cur-count" style="font-size:12px;color:var(--primary);font-weight:700;background:rgba(0,212,170,.12);padding:3px 10px;border-radius:50px;position:absolute;right:16px">'+sel.length+'/2</span>'
     +'</div>'
     +'<div style="padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">'
-      +'<input id="picker-search" class="form-input" placeholder="Buscar moneda..." oninput="_filterPickerList(this.value)" style="font-size:14px;padding:10px 14px">'
+    +'<input id="picker-search" class="form-input" placeholder="Buscar moneda..." oninput="_filterPickerList(this.value)" style="font-size:14px;padding:10px 14px">'
     +'</div>'
     +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:12px 16px"></div>'
     +'<div style="flex-shrink:0;padding:12px 16px;background:var(--surface);border-top:1px solid var(--border)">'
