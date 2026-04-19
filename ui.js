@@ -44,6 +44,8 @@ function setThemeInline(val){
 }
 function setTheme(val){
   S.theme=val;
+  var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:(localStorage.getItem('_lastAuthUserId')||'default');
+  try{localStorage.setItem('_themeSet_'+_uid,'1');}catch(e){}
   applyThemeMode();
   togglePPick('theme-picker');
   saveState();
@@ -8249,7 +8251,7 @@ function openAcercaDeModal(){
 function openTerminosModal(){
   var ov=document.createElement('div');
   ov.id='terminos-modal';
-  ov.style.cssText='position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);display:flex;align-items:flex-end';
+  ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.6);display:flex;align-items:flex-end';
 
   var s='font-size:14px;color:var(--text2);line-height:1.7';
   var h3='font-size:14px;font-weight:800;color:var(--text);margin:18px 0 6px';

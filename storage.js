@@ -203,7 +203,11 @@ function loadState(){
   if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
   if(!S.analysisPeriodSub)S.analysisPeriodSub='anual';if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
   if(!S.exchangeRate)S.exchangeRate={PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''};
-  if(!S.theme)S.theme='light';
+  // Tema: siempre light por defecto. Solo persiste si el usuario lo cambió en este dispositivo.
+  var _uid2=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:(localStorage.getItem('_lastAuthUserId')||'');
+  var _themeKey='_themeSet_'+(_uid2||'default');
+  if(!localStorage.getItem(_themeKey))S.theme='light';
+  else if(!S.theme)S.theme='light';
   if(!S.language&&!S._langUserSet){
     var _nl=((navigator.language||'').split('-')[0]||'').toLowerCase();
     var _sl=['es','en','zh','hi','ar','pt','fr','ru','bn','id','de','ja','tr','ko','vi','it','pl','fa','sw','ur'];
