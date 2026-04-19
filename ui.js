@@ -214,53 +214,79 @@ function initExchangeWidget(){
 function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('overlay').classList.add('active');}
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('overlay').classList.remove('active');}
 // ── Drawer Group Portal ─────────────────────────────────────
+function _dico(d,c){return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';}
+var _TC='#00D4AA',_PC='#7461EF',_RC='#EF4444',_GC='#10B981',_BC='#3B82F6',_AC='#F59E0B';
 var DRAWER_GROUPS={
   midinero:{
-    label:'Mi Dinero',icon:'💰',color:'#00D4AA',
+    label:'Mi Dinero',color:'#00D4AA',
+    headerSub:'\u00bfQu\u00e9 vamos a revisar hoy?',
+    headerMsg:'<strong style="color:var(--text)">Cada peso cuenta.</strong> Todo en un solo lugar para que nunca pierdas el hilo.',
+    bannerBg:'rgba(0,212,170,0.06)',bannerBorder:'rgba(0,212,170,0.2)',
     items:[
-      {icon:'💳',label:'Cuentas',page:'mis-cuentas'},
-      {icon:'📋',label:'Movimientos',page:'movimientos'},
-      {icon:'💸',label:'Deudas',page:'deudas'},
+      {svgIcon:_dico('<rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M7 15h2"/><path d="M12 15h3"/>',_TC),iconBg:'#00D4AA1A',label:'Cuentas',sub:'Bancos y billeteras',page:'mis-cuentas'},
+      {svgIcon:_dico('<path d="M8 3h8"/><path d="M6 7h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/><path d="M12 11v4"/><path d="M10 13h4"/>',_TC),iconBg:'#00D4AA1A',label:'Ahorros',sub:'Metas y objetivos',page:'metas'},
+      {svgIcon:_dico('<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/>',_RC),iconBg:'#EF44441A',label:'Deudas',sub:'Cr\u00e9ditos y pagos',page:'deudas'},
+      {svgIcon:_dico('<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',_TC),iconBg:'#00D4AA1A',label:'Inversiones',sub:'Portafolio y activos',page:'inversiones'},
     ]
   },
   planificacion:{
-    label:'Planificación',icon:'📅',color:'#7461EF',
+    label:'Planificaci\u00f3n',color:'#7461EF',
+    headerSub:'Organiza tu futuro financiero',
+    headerMsg:'<strong style="color:var(--text)">El futuro se planifica hoy.</strong> Metas, presupuestos y pagos en un solo lugar.',
+    bannerBg:'rgba(116,97,239,0.06)',bannerBorder:'rgba(116,97,239,0.2)',
     items:[
-      {icon:'📊',label:'Presupuestos',page:'presupuestos'},
-      {icon:'🎯',label:'Metas de ahorro',page:'metas'},
-      {icon:'🔔',label:'Pagos programados',page:'pagos'},
-      {icon:'🔁',label:'Suscripciones',page:'suscripciones'},
+      {svgIcon:_dico('<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',_PC),iconBg:'#7461EF1A',label:'Presupuestos',page:'presupuestos'},
+      {svgIcon:_dico('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',_PC),iconBg:'#7461EF1A',label:'Metas de ahorro',page:'metas'},
+      {svgIcon:_dico('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M8 18h.01M12 18h.01"/>',_PC),iconBg:'#7461EF1A',label:'Pagos programados',page:'pagos'},
+      {svgIcon:_dico('<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/>',_PC),iconBg:'#7461EF1A',label:'Suscripciones',page:'suscripciones'},
     ]
   },
   herramientas:{
-    label:'Herramientas',icon:'🔧',color:'#F59E0B',
+    label:'Herramientas',color:'#F59E0B',
+    headerSub:'Para decidir mejor con tu dinero',
+    headerMsg:'<strong style="color:var(--text)">Aqu\u00ed vive lo que te da claridad.</strong> Simula, analiza y toma decisiones sin adivinar.',
+    bannerBg:'rgba(116,97,239,0.06)',bannerBorder:'rgba(116,97,239,0.15)',
     items:[
-      {icon:'🤖',label:'Emiliano IA',page:'herramientas'},
-      {icon:'📊',label:'Simuladores',page:'simuladores'},
-      {icon:'🏥',label:'Salud financiera',page:'test'},
-      {icon:'❄️',label:'Estrategia deudas',page:'estrategia'},
-      {icon:'💱',label:'Tipo de cambio',page:'cambio'},
-      {icon:'🛒',label:'Listas de compra',page:'listas'},
+      {svgIcon:_dico('<path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/>',_TC),iconBg:'#00D4AA1A',label:'Simuladores',sub:'Ahorro, cr\u00e9ditos, inflaci\u00f3n',page:'simuladores'},
+      {svgIcon:_dico('<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',_GC),iconBg:'#10B9811A',label:'Salud financiera',sub:'Test de 18 preguntas',page:'test'},
+      {svgIcon:_dico('<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',_RC),iconBg:'#EF44441A',label:'Estrategia deudas',sub:'Snowball y avalancha',page:'estrategia'},
+      {svgIcon:_dico('<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',_BC),iconBg:'#3B82F61A',label:'Tipo de cambio',sub:'COP, PLN y m\u00e1s',page:'cambio'},
+      {svgIcon:_dico('<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',_AC),iconBg:'#F59E0B1A',label:'Listas de compra',sub:'S\u00faper, hogar y m\u00e1s',page:'listas'},
     ]
   }
 };
 function renderDrawerGroup(groupKey){
   var g=DRAWER_GROUPS[groupKey];
   if(!g)return'';
-  var questions={midinero:'\u00bfQu\u00e9 quieres gestionar?',planificacion:'\u00bfQu\u00e9 quieres planificar?',herramientas:'\u00bfQu\u00e9 herramienta necesitas?'};
-  var qtitle=questions[groupKey]||'';
-  var html='';
-  if(qtitle){
-    html+='<div style="padding:20px 16px 8px;text-align:center">'
-      +'<div style="font-size:18px;font-weight:800;color:var(--text);line-height:1.3">'+qtitle+'</div>'
+  var is2col=(groupKey==='midinero'||groupKey==='herramientas');
+  var cols=is2col?'1fr 1fr':'1fr 1fr 1fr';
+  var html='<div style="padding:16px 16px 4px">'
+    +'<div style="font-size:22px;font-weight:800;color:var(--text)">'+g.label+'</div>';
+  if(g.headerSub){
+    html+='<div style="font-size:13px;color:var(--text2);margin-top:2px">'+g.headerSub+'</div>';
+  }
+  html+='</div>';
+  if(g.headerMsg){
+    html+='<div style="margin:8px 16px 6px;padding:12px 14px;background:'+g.bannerBg+';border-radius:14px;border:0.5px solid '+g.bannerBorder+'">'
+      +'<div style="font-size:13px;color:var(--text2);line-height:1.5">'+g.headerMsg+'</div>'
       +'</div>';
   }
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:12px 0 32px">';
+  html+='<div style="display:grid;grid-template-columns:'+cols+';gap:10px;padding:10px 16px 32px">';
   g.items.forEach(function(item){
-    html+='<button onclick="navigate(\'' +item.page+ '\')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 8px 16px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:8px;font-family:var(--font);min-height:100px">'
-      +'<span style="font-size:30px;line-height:1">'+item.icon+'</span>'
-      +'<span style="font-size:11px;font-weight:700;color:var(--text);text-align:center;line-height:1.3">'+item.label+'</span>'
-      +'</button>';
+    var iconBg=item.iconBg||'rgba(0,212,170,0.1)';
+    if(is2col){
+      html+='<button onclick="navigate(\''+item.page+'\')" style="display:flex;flex-direction:column;align-items:flex-start;padding:16px 14px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:10px;font-family:var(--font);text-align:left;min-height:116px">'
+        +'<div style="width:42px;height:42px;border-radius:12px;background:'+iconBg+';display:flex;align-items:center;justify-content:center">'+item.svgIcon+'</div>'
+        +'<div><div style="font-size:13px;font-weight:700;color:var(--text)">'+item.label+'</div>'
+        +(item.sub?'<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.3">'+item.sub+'</div>':'')
+        +'</div>'
+        +'</button>';
+    }else{
+      html+='<button onclick="navigate(\''+item.page+'\')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 8px 16px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:8px;font-family:var(--font);min-height:100px">'
+        +'<div style="width:40px;height:40px;border-radius:11px;background:'+iconBg+';display:flex;align-items:center;justify-content:center">'+item.svgIcon+'</div>'
+        +'<span style="font-size:11px;font-weight:700;color:var(--text);text-align:center;line-height:1.3">'+item.label+'</span>'
+        +'</button>';
+    }
   });
   html+='</div>';
   return html;
@@ -7549,7 +7575,7 @@ const LISTA_TIPOS = [
 
 
 function renderListas(){
-  const lists = S.shoppingLists||[];
+  const lists = filterDeleted(S.shoppingLists||[]);
   return `
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
       <button class="btn btn-primary btn-sm" onclick="openModal('newList',{})">+ Nueva lista</button>

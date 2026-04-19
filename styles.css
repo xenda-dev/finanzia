@@ -32,6 +32,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .nav-item.active{color:var(--primary)}
 .nav-icon{width:22px;height:22px}
 .nav-fab{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 20px rgba(0,212,170,.5);font-size:26px;line-height:1;flex-shrink:0;margin-top:-16px}
+@keyframes emi-pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,212,170,0.45)}55%{box-shadow:0 0 0 7px rgba(0,212,170,0)}}
+@keyframes emi-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.nav-emiliano{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border:none;background:none;cursor:pointer;flex:1;font-family:var(--font);color:var(--text3)}
+.nav-emiliano .emi-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),var(--primary));border:2px solid rgba(0,212,170,0.35);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;animation:emi-pulse 2.8s ease-in-out infinite,emi-float 3.2s ease-in-out infinite}
+.nav-emiliano .emi-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%}
+.nav-emiliano .emi-lbl{font-size:10px;color:var(--text3)}
+.nav-emiliano.active .emi-lbl{color:var(--primary)}
 #drawer{position:fixed;top:0;left:-290px;width:290px;height:100%;background:var(--surface);z-index:200;transition:.3s ease;overflow:hidden;display:flex;flex-direction:column;}
 #drawer.open{left:0;box-shadow:4px 0 32px rgba(0,0,0,.6)}
 #overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:190;opacity:0;pointer-events:none;transition:.3s}
@@ -556,7 +563,3 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   font-size:14px;color:var(--text);transition:.1s;
 }
 .picker-item:active{background:var(--surface2);}
-
-/* ── Emiliano avatar animations ── */
-@keyframes emiPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,212,170,.4)}50%{box-shadow:0 0 0 5px rgba(0,212,170,.1)}}
-@keyframes emiFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
