@@ -82,13 +82,14 @@ async function signIn(email, password){
   var {data, error} = await _supabase.auth.signInWithPassword({email, password});
   if(error) return _authMsg(error.message);
   _currentUser = data.user;
-  _persistLastUserId(data.user.id, data.user.email);
+  var _sName=(data.user.user_metadata&&data.user.user_metadata.full_name)||'';
+  _persistLastUserId(data.user.id, data.user.email, _sName);
   if(data.session){ try{ localStorage.setItem('_sbAccess',data.session.access_token); localStorage.setItem('_sbAccessAt',String(Date.now())); }catch(e){} }
   return {ok:true, user:data.user};
 }
 async function signOut(){
   try{
-    if(_currentUser && _currentUser.id){ _persistLastUserId(_currentUser.id, _currentUser.email); }
+    if(_currentUser && _currentUser.id){ var _oName=(_currentUser.user_metadata&&_currentUser.user_metadata.full_name)||''; _persistLastUserId(_currentUser.id, _currentUser.email, _oName); }
     _intentionalSignOut = true;
     localStorage.setItem('_signedOutNormally', '1'); // marca que fue un cierre voluntario
     await _supabase.auth.signOut();
@@ -741,10 +742,11 @@ function _hasQuickAccess(uid){
 }
 
 // Persiste el UID y email del último usuario autenticado para detectar eliminaciones posteriores
-function _persistLastUserId(uid, email){
+function _persistLastUserId(uid, email, name){
   if(uid){
     localStorage.setItem('_lastAuthUserId', uid);
     if(email) localStorage.setItem('_lastAuthUserEmail', email);
+    if(name) localStorage.setItem('_lastAuthUserName', name);
   }
 }
 

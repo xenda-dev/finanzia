@@ -8159,11 +8159,15 @@ function _showSoporteAsuntoBS(){
   });
 }
 function openSoporteModal(){
-  var name=(S.profile&&S.profile.name)||'';
-  if(!name&&window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)
-    name=window._currentUser.user_metadata.full_name;
-  if(!name){var _pn=localStorage.getItem('pendingName');if(_pn)name=_pn;}
-  var email=(S.profile&&S.profile.email)||(window._currentUser&&window._currentUser.email)||localStorage.getItem('_lastAuthUserEmail')||'';
+  var name=(S.profile&&S.profile.name)
+    ||(window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)
+    ||localStorage.getItem('_lastAuthUserName')
+    ||localStorage.getItem('pendingName')
+    ||'';
+  var email=(S.profile&&S.profile.email)
+    ||(window._currentUser&&window._currentUser.email)
+    ||localStorage.getItem('_lastAuthUserEmail')
+    ||'';
   var ov=document.createElement('div');
   ov.id='soporte-modal';
   ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;overflow-y:auto';
