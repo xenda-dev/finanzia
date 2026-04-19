@@ -216,54 +216,49 @@ function closeDrawer(){document.getElementById('drawer').classList.remove('open'
 // ── Drawer Group Portal ─────────────────────────────────────
 var DRAWER_GROUPS={
   midinero:{
-    label:'Mi Dinero',icon:'',color:'#00D4AA',
+    label:'Mi Dinero',icon:'💰',color:'#00D4AA',
     items:[
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>',label:'Cuentas',page:'mis-cuentas'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><path d="M19 10c0-3.87-3.13-7-7-7S5 6.13 5 10c0 2.38 1.19 4.47 3 5.74V17a1 1 0 001 1h6a1 1 0 001-1v-1.26A6.99 6.99 0 0019 10z"/><path d="M9 17v1a2 2 0 002 2h2a2 2 0 002-2v-1"/></svg>',label:'Ahorros',page:'metas'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>',label:'Deudas',page:'deudas'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><polyline points="3 17 8 12 12 15 16 9 21 6"/><path d="M17 6h4v4"/></svg>',label:'Inversiones',page:'inversiones'},
+      {icon:'💳',label:'Cuentas',page:'mis-cuentas'},
+      {icon:'📋',label:'Movimientos',page:'movimientos'},
+      {icon:'💸',label:'Deudas',page:'deudas'},
     ]
   },
   planificacion:{
-    label:'Planificación',icon:'',color:'#7461EF',
+    label:'Planificación',icon:'📅',color:'#7461EF',
     items:[
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="1.5" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',label:'Presupuestos',page:'presupuestos'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',label:'Metas de ahorro',page:'metas'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="1.5" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>',label:'Pagos programados',page:'pagos'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="1.5" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>',label:'Suscripciones',page:'suscripciones'},
+      {icon:'📊',label:'Presupuestos',page:'presupuestos'},
+      {icon:'🎯',label:'Metas de ahorro',page:'metas'},
+      {icon:'🔔',label:'Pagos programados',page:'pagos'},
+      {icon:'🔁',label:'Suscripciones',page:'suscripciones'},
     ]
   },
   herramientas:{
-    label:'Herramientas',icon:'',color:'#F59E0B',
+    label:'Herramientas',icon:'🔧',color:'#F59E0B',
     items:[
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-6"/></svg>',label:'Simuladores',page:'simuladores'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',label:'Salud financiera',page:'test'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>',label:'Estrategia deudas',page:'estrategia'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>',label:'Tipo de cambio',page:'cambio'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><polyline points="4 6 5 7 7 5"/><polyline points="4 12 5 13 7 11"/><polyline points="4 18 5 19 7 17"/></svg>',label:'Listas de compra',page:'listas'},
+      {icon:'🤖',label:'Emiliano IA',page:'herramientas'},
+      {icon:'📊',label:'Simuladores',page:'simuladores'},
+      {icon:'🏥',label:'Salud financiera',page:'test'},
+      {icon:'❄️',label:'Estrategia deudas',page:'estrategia'},
+      {icon:'💱',label:'Tipo de cambio',page:'cambio'},
+      {icon:'🛒',label:'Listas de compra',page:'listas'},
     ]
   }
 };
 function renderDrawerGroup(groupKey){
   var g=DRAWER_GROUPS[groupKey];
   if(!g)return'';
-  var msgs={
-    midinero:'<div style="font-size:17px;font-weight:800;color:var(--text);line-height:1.3">Tu dinero, tu historia.</div><div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5">Aqu\u00ed vive tu dinero, cu\u00eddalo y hazlo crecer.</div><div style="font-size:12px;color:var(--primary);margin-top:2px;font-weight:600">\u00bfQu\u00e9 vamos a revisar hoy? \ud83d\udc9a</div>',
-    planificacion:'<div style="font-size:17px;font-weight:800;color:var(--text);line-height:1.3">El futuro no se improvisa.</div><div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5">Presupuesta, ahorra y programa. T\u00fa decides el ritmo \u2726</div>',
-    herramientas:'<div style="font-size:17px;font-weight:800;color:var(--text);line-height:1.3">Toma decisiones con claridad. \u2726</div><div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5">Aqu\u00ed tienes todo para analizar, simular y planificar tu dinero.</div>'
-  };
+  var questions={midinero:'\u00bfQu\u00e9 quieres gestionar?',planificacion:'\u00bfQu\u00e9 quieres planificar?',herramientas:'\u00bfQu\u00e9 herramienta necesitas?'};
+  var qtitle=questions[groupKey]||'';
   var html='';
-  var msg=msgs[groupKey]||'';
-  if(msg){
-    html+='<div style="padding:20px 16px 10px;text-align:center">'+msg+'</div>';
+  if(qtitle){
+    html+='<div style="padding:20px 16px 8px;text-align:center">'
+      +'<div style="font-size:18px;font-weight:800;color:var(--text);line-height:1.3">'+qtitle+'</div>'
+      +'</div>';
   }
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 0 32px">';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:12px 0 32px">';
   g.items.forEach(function(item){
-    var iconHtml=item.svg
-      ?'<div style="pointer-events:none">'+item.svg+'</div>'
-      :'<span style="font-size:30px;line-height:1">'+item.icon+'</span>';
-    html+='<button onclick="navigate(\''+item.page+'\')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 8px 16px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:8px;font-family:var(--font);min-height:100px">'
-      +iconHtml
+    html+='<button onclick="navigate(\'' +item.page+ '\')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 8px 16px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:8px;font-family:var(--font);min-height:100px">'
+      +'<span style="font-size:30px;line-height:1">'+item.icon+'</span>'
       +'<span style="font-size:11px;font-weight:700;color:var(--text);text-align:center;line-height:1.3">'+item.label+'</span>'
       +'</button>';
   });
@@ -7554,7 +7549,7 @@ const LISTA_TIPOS = [
 
 
 function renderListas(){
-  const lists = filterDeleted(S.shoppingLists||[]);
+  const lists = S.shoppingLists||[];
   return `
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
       <button class="btn btn-primary btn-sm" onclick="openModal('newList',{})">+ Nueva lista</button>
@@ -8074,7 +8069,7 @@ function saveNewList(){
   if(!type){toast('Selecciona un tipo de lista');return;}
   var tipo=LISTA_TIPOS.find(function(t){return t.id===type;})||LISTA_TIPOS[5];
   if(!S.shoppingLists)S.shoppingLists=[];
-  var exists=filterDeleted(S.shoppingLists||[]).find(function(l){return l.type===type;});
+  var exists=S.shoppingLists.find(function(l){return l.type===type;});
   if(exists&&type!=='custom'){toast('Ya tienes una lista de '+tipo.name);closeModal();openListDetail(exists.id);return;}
   var items=(DEFAULT_LIST_ITEMS[type]||[]).map(function(i){return {id:uid(),name:i.name,done:false,section:i.section||''};});
   var name=type==='custom'?('Lista '+(S.shoppingLists.filter(function(l){return l.type==='custom';}).length+1)):tipo.name;
@@ -8298,4 +8293,176 @@ function openTerminosModal(){
   var ul='margin:0 0 10px;padding-left:20px';
   var warn='margin:10px 0;padding:10px 14px;background:rgba(239,68,68,.07);border-radius:8px;font-size:13px';
   var ok='margin:10px 0;padding:10px 14px;background:rgba(0,212,170,.08);border-radius:8px;font-size:13px';
-  var email='<button onclick="document.getElementById(\'terminos-modal\').remove();openSoporteModal()" style="background:none;bord
+  var email='<button onclick="document.getElementById(\'terminos-modal\').remove();openSoporteModal()" style="background:none;border:none;color:var(--primary);cursor:pointer;font-family:var(--font);font-size:14px;font-weight:600;text-decoration:underline;padding:0">soporte@xenda.co</button>';
+
+  var tcContent='<div style="'+s+'">'
+    +'<p style="'+p+'">Última actualización: abril 2026 · Operado por <strong>Xenda.co</strong></p>'
+
+    +'<h3 style="'+h3+'">1. Aceptación de los términos</h3>'
+    +'<p style="'+p+'">Al descargar, instalar o usar FinanzIA ("la Aplicación"), aceptas quedar vinculado por estos Términos y Condiciones ("Términos"). Si no estás de acuerdo, no uses la Aplicación. El uso continuado después de modificaciones implica aceptación de los nuevos términos.</p>'
+
+    +'<h3 style="'+h3+'">2. Descripción del servicio</h3>'
+    +'<p style="'+p+'">FinanzIA es una aplicación de gestión de finanzas personales que permite registrar cuentas, ingresos, gastos, presupuestos, metas y deudas, con sincronización en tiempo real entre dispositivos. El servicio se provee como está, sin garantías implícitas de disponibilidad continua.</p>'
+
+    +'<h3 style="'+h3+'">3. Elegibilidad</h3>'
+    +'<ul style="'+ul+'">'
+    +'<li>Tener al menos <strong>18 años</strong> de edad</li>'
+    +'<li>Tener capacidad legal para celebrar contratos en tu jurisdicción</li>'
+    +'<li>Proporcionar información veraz y completa durante el registro</li>'
+    +'<li>Mantener la seguridad de tus credenciales de acceso</li>'
+    +'</ul>'
+
+    +'<h3 style="'+h3+'">4. Uso aceptable</h3>'
+    +'<p style="'+p+'">Queda prohibido usar FinanzIA para:</p>'
+    +'<ul style="'+ul+'">'
+    +'<li>Actividades ilegales, fraudulentas o que vulneren derechos de terceros</li>'
+    +'<li>Intentar acceder a cuentas ajenas o vulnerar la seguridad del sistema</li>'
+    +'<li>Introducir malware, virus o código malicioso</li>'
+    +'<li>Realizar ingeniería inversa o descompilar la Aplicación</li>'
+    +'<li>Revender o sublicenciar el acceso al servicio</li>'
+    +'</ul>'
+
+    +'<h3 style="'+h3+'">5. Descargo financiero — IMPORTANTE</h3>'
+    +'<div style="'+warn+'"><strong>⚠️ FinanzIA es una herramienta de organización y análisis financiero personal. NO constituye asesoramiento financiero, de inversión, fiscal o legal certificado.</strong> Los análisis, sugerencias y proyecciones que muestra la Aplicación son de carácter exclusivamente informativo y educativo. Las decisiones financieras que tomes son de tu exclusiva responsabilidad.</div>'
+
+    +'<h3 style="'+h3+'">6. Propiedad intelectual</h3>'
+    +'<p style="'+p+'">Todos los derechos de propiedad intelectual sobre FinanzIA — incluyendo código, diseño, marca, logotipos y contenido — pertenecen a <strong>Xenda.co</strong>. Se te otorga una licencia limitada, no exclusiva e intransferible para usar la Aplicación según estos Términos.</p>'
+
+    +'<h3 style="'+h3+'">7. Cuentas y seguridad</h3>'
+    +'<p style="'+p+'">Eres responsable de mantener la confidencialidad de tu contraseña y PIN. Notifícanos inmediatamente ante cualquier acceso no autorizado. Xenda.co no será responsable por pérdidas derivadas del uso no autorizado de tu cuenta.</p>'
+
+    +'<h3 style="'+h3+'">8. Suspensión y eliminación</h3>'
+    +'<p style="'+p+'">Xenda.co puede suspender o terminar tu acceso si violas estos Términos. Puedes eliminar tu cuenta en cualquier momento desde Configuración. Tras la eliminación, tus datos se conservan 30 días para posible reactivación y luego se eliminan permanentemente.</p>'
+
+    +'<h3 style="'+h3+'">9. Limitación de responsabilidad</h3>'
+    +'<p style="'+p+'">En la máxima medida permitida por la ley aplicable, Xenda.co no será responsable por daños indirectos, incidentales, especiales o consecuentes, incluyendo pérdida de datos o beneficios, derivados de:</p>'
+    +'<ul style="'+ul+'">'
+    +'<li>Tu uso o incapacidad de usar la Aplicación</li>'
+    +'<li>Acceso no autorizado a tus datos por causas fuera de nuestro control</li>'
+    +'<li>Decisiones financieras basadas en información de la Aplicación</li>'
+    +'<li>Interrupciones del servicio por mantenimiento o causas de fuerza mayor</li>'
+    +'</ul>'
+
+    +'<h3 style="'+h3+'">10. Modificaciones del servicio</h3>'
+    +'<p style="'+p+'">Xenda.co se reserva el derecho de modificar, suspender o discontinuar la Aplicación en cualquier momento. Te notificaremos con antelación razonable ante cambios significativos.</p>'
+
+    +'<h3 style="'+h3+'">11. Jurisdicción y ley aplicable</h3>'
+    +'<p style="'+p+'">Estos Términos se rigen por las leyes de la <strong>República de Colombia</strong>. Cualquier disputa se resolverá ante los tribunales competentes de Colombia, sin perjuicio de las normas de protección al consumidor aplicables en tu país de residencia.</p>'
+
+    +'<h3 style="'+h3+'">12. Contacto</h3>'
+    +'<p style="'+p+'">Para consultas sobre estos Términos: '+email+'<br>Sitio web: <a href="https://xenda.co" target="_blank" style="color:var(--primary)">xenda.co</a></p>'
+    +'</div>';
+
+  var ppContent='<div style="'+s+'">'
+    +'<p style="'+p+'">Última actualización: abril 2026 · <strong>Xenda.co</strong> — Responsable del tratamiento de datos</p>'
+
+    +'<h3 style="'+h3+'">1. Información que recopilamos</h3>'
+    +'<p style="'+p+'"><strong>Datos de cuenta:</strong> Nombre y apellido, correo electrónico, país de origen y residencia, número de teléfono, profesión y foto de perfil (opcional).</p>'
+    +'<p style="'+p+'"><strong>Datos financieros:</strong> Cuentas bancarias (solo nombre y saldo, no credenciales), transacciones, presupuestos, metas, deudas y suscripciones que ingresas voluntariamente. <strong>No accedemos a tu banca en línea ni almacenamos credenciales bancarias.</strong></p>'
+    +'<p style="'+p+'"><strong>Datos técnicos:</strong> Idioma y moneda de preferencia, configuración de la app, timestamps de uso para sincronización.</p>'
+
+    +'<h3 style="'+h3+'">2. Finalidad y base legal del tratamiento</h3>'
+    +'<ul style="'+ul+'">'
+    +'<li><strong>Prestación del servicio:</strong> Sincronizar y mostrar tus datos financieros en todos tus dispositivos</li>'
+    +'<li><strong>Mejora del servicio:</strong> Análisis agregados y anónimos de uso para mejorar funcionalidades</li>'
+    +'<li><strong>Comunicación:</strong> Notificaciones sobre actualizaciones importantes del servicio</li>'
+    +'<li><strong>Cumplimiento legal:</strong> Obligaciones establecidas por la legislación aplicable</li>'
+    +'</ul>'
+    +'<p style="'+p+'">La base legal es la ejecución del contrato de servicio y tu consentimiento explícito al aceptar estos términos.</p>'
+
+    +'<h3 style="'+h3+'">3. Cómo protegemos tus datos</h3>'
+    +'<ul style="'+ul+'">'
+    +'<li>Transmisión cifrada mediante <strong>TLS/SSL</strong></li>'
+    +'<li>Almacenamiento seguro en <strong>Supabase</strong> con Row Level Security (RLS) — solo tú accedes a tus datos</li>'
+    +'<li>Autenticación segura con contraseña, PIN y/o biometría</li>'
+    +'<li>Tokens de acceso con expiración automática</li>'
+    +'<li>Sin acceso de empleados a datos financieros individuales</li>'
+    +'</ul>'
+
+    +'<h3 style="'+h3+'">4. No vendemos tus datos</h3>'
+    +'<div style="'+ok+'"><strong>✅ Xenda.co no vende, alquila, intercambia ni comparte tu información personal con terceros con fines publicitarios o comerciales, bajo ninguna circunstancia.</strong></div>'
+    +'<p style="'+p+'">Únicamente compartimos datos con:</p>'
+    +'<ul style="'+ul+'">'
+    +'<li><strong>Supabase Inc.</strong> (infraestructura de base de datos, EE.UU.) — bajo acuerdo de procesamiento de datos</li>'
+    +'<li><strong>Autoridades competentes</strong> cuando lo exija una orden judicial o ley aplicable</li>'
+    +'</ul>'
+
+    +'<h3 style="'+h3+'">5. Transferencias internacionales de datos</h3>'
+    +'<p style="'+p+'">Tus datos se almacenan en servidores de Supabase ubicados en <strong>Estados Unidos</strong>. Esta transferencia se realiza bajo las garantías contractuales adecuadas conforme al RGPD (cláusulas contractuales tipo) y la Ley 1581 de 2012 de Colombia. Al usar FinanzIA consientes expresamente esta transferencia.</p>'
+
+    +'<h3 style="'+h3+'">6. Tus derechos</h3>'
+    +'<p style="'+p+'">Tienes derecho a:</p>'
+    +'<ul style="'+ul+'">'
+    +'<li><strong>Acceder</strong> a tus datos personales</li>'
+    +'<li><strong>Rectificar</strong> información incorrecta o incompleta</li>'
+    +'<li><strong>Suprimir</strong> tu cuenta y todos los datos asociados</li>'
+    +'<li><strong>Exportar</strong> tus datos en formato legible (JSON)</li>'
+    +'<li><strong>Oponerte</strong> al tratamiento para fines distintos al servicio</li>'
+    +'<li><strong>Revocar</strong> el consentimiento en cualquier momento</li>'
+    +'</ul>'
+    +'<p style="'+p+'">Para ejercer estos derechos contacta: '+email+'</p>'
+    +'<p style="'+p+'">Los usuarios de la Unión Europea también tienen derecho a presentar una reclamación ante la autoridad de protección de datos de su país.</p>'
+
+    +'<h3 style="'+h3+'">7. Retención de datos</h3>'
+    +'<ul style="'+ul+'">'
+    +'<li>Datos activos: conservados mientras mantengas cuenta activa</li>'
+    +'<li>Tras eliminar cuenta: disponibles 30 días para reactivación</li>'
+    +'<li>Después de 30 días: eliminación permanente e irreversible</li>'
+    +'<li>Datos de facturación: conservados 7 años por obligación legal</li>'
+    +'</ul>'
+
+    +'<h3 style="'+h3+'">8. Menores de edad</h3>'
+    +'<p style="'+p+'">FinanzIA no está dirigida a personas menores de 18 años. No recopilamos intencionalmente datos de menores. Si detectamos datos de un menor, los eliminaremos de inmediato y cancelaremos la cuenta.</p>'
+
+    +'<h3 style="'+h3+'">9. Cookies y almacenamiento local</h3>'
+    +'<p style="'+p+'">FinanzIA usa <strong>localStorage</strong> del navegador/dispositivo exclusivamente para almacenar tus datos financieros localmente y mantener tu sesión activa. No usamos cookies de terceros ni rastreadores publicitarios.</p>'
+
+    +'<h3 style="'+h3+'">10. Notificación de brechas de seguridad</h3>'
+    +'<p style="'+p+'">En caso de una brecha de seguridad que afecte tus datos personales, te notificaremos por email en un plazo máximo de 72 horas desde que tengamos conocimiento del incidente, conforme al RGPD y normativa aplicable.</p>'
+
+    +'<h3 style="'+h3+'">11. Marco legal aplicable</h3>'
+    +'<p style="'+p+'">Esta Política de Privacidad cumple con:</p>'
+    +'<ul style="'+ul+'">'
+    +'<li><strong>Ley 1581 de 2012</strong> (Colombia) — Protección de datos personales</li>'
+    +'<li><strong>Decreto 1377 de 2013</strong> (Colombia) — Reglamentación Ley 1581</li>'
+    +'<li><strong>RGPD / GDPR</strong> (Unión Europea) — Para usuarios europeos</li>'
+    +'<li><strong>CCPA</strong> (California, EE.UU.) — Para usuarios californianos</li>'
+    +'</ul>'
+
+    +'<h3 style="'+h3+'">12. Contacto y DPO</h3>'
+    +'<p style="'+p+'">Para consultas sobre privacidad y protección de datos:<br>'
+    +email+'<br>'
+    +'<a href="https://xenda.co" target="_blank" style="color:var(--primary)">xenda.co</a><br>'
+    +'<span style="font-size:12px;color:var(--text3)">Xenda.co · Colombia</span></p>'
+    +'</div>';
+
+  ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:90vh;display:flex;flex-direction:column;overflow:hidden">'
+    +'<div style="display:flex;justify-content:center;padding:12px 0 4px;flex-shrink:0"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px;flex-shrink:0">'
+      +'<div style="font-size:17px;font-weight:800">Legal</div>'
+      +'<button onclick="document.getElementById(\'terminos-modal\').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px">✕</button>'
+    +'</div>'
+    +'<div style="display:flex;gap:6px;padding:0 16px 12px;flex-shrink:0">'
+      +'<button id="tab-tc" onclick="_switchTerminosTab(\'tc\')" style="flex:1;padding:9px 6px;border-radius:50px;border:none;background:var(--primary);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">Términos y Condiciones</button>'
+      +'<button id="tab-pp" onclick="_switchTerminosTab(\'pp\')" style="flex:1;padding:9px 6px;border-radius:50px;border:none;background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">Política de Privacidad</button>'
+    +'</div>'
+    +'<div id="terminos-content" style="flex:1;overflow-y:auto;padding:0 20px 32px">'
+      +tcContent
+    +'</div>'
+  +'</div>';
+  ov._tcContent=tcContent;
+  ov._ppContent=ppContent;
+  document.body.appendChild(ov);
+}
+function _switchTerminosTab(tab){
+  var ov=document.getElementById('terminos-modal');
+  var con=document.getElementById('terminos-content');
+  var btnTc=document.getElementById('tab-tc');
+  var btnPp=document.getElementById('tab-pp');
+  if(!ov||!con)return;
+  var isTc=tab==='tc';
+  con.innerHTML=isTc?ov._tcContent:ov._ppContent;
+  con.scrollTop=0;
+  if(btnTc){btnTc.style.background=isTc?'var(--primary)':'var(--surface2)';btnTc.style.color=isTc?'white':'var(--text2)';btnTc.style.fontWeight=isTc?'700':'600';}
+  if(btnPp){btnPp.style.background=isTc?'var(--surface2)':'var(--primary)';btnPp.style.color=isTc?'var(--text2)':'white';btnPp.style.fontWeight=isTc?'600':'700';}
+}
