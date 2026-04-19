@@ -216,6 +216,12 @@ function loadState(){
   // language and weekStart stay empty until user chooses
   // currencies stay empty until user sets up profile
   if(typeof applyThemeMode==='function')applyThemeMode();
+  // Inyectar foto de perfil desde clave dedicada (nunca se sincroniza a Supabase)
+  var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:(localStorage.getItem('_lastAuthUserId')||'');
+  if(_uid){
+    var _storedPhoto=localStorage.getItem('_profilePhoto_'+_uid);
+    if(_storedPhoto){if(!S.profile)S.profile={};S.profile.photo=_storedPhoto;}
+  }
   // Update drawer profile
   updateDrawerProfile();
 }function _getProfilePhoto(){
@@ -466,6 +472,12 @@ async function syncFromSupabase(userId){
     // Bloquear save a Supabase 3s — datos vienen DE allí, guardar de vuelta genera loop Realtime
     window._lastSupabaseSave=Date.now()+3000;
     console.log('✅ sync aplicado',new Date(remoteTs).toLocaleTimeString());
+    // Restaurar foto desde clave dedicada (el sync no la tiene)
+    var _syncUid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:'';
+    if(_syncUid){
+      var _sp=localStorage.getItem('_profilePhoto_'+_syncUid);
+      if(_sp){if(!S.profile)S.profile={};S.profile.photo=_sp;}
+    }
     if(typeof renderPage==='function') renderPage(S.currentPage);
     if(typeof updateDrawerProfile==='function') updateDrawerProfile();
     if(typeof refreshCurrencyToggle==='function') refreshCurrencyToggle();

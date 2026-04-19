@@ -195,10 +195,13 @@
   <div id="auth-welcome" class="auth-panel" style="display:none">
 
     <!-- Logo -->
-    <div class="auth-top auth-top-logo" style="flex-shrink:0">
+    <div class="auth-top auth-top-logo" style="flex-shrink:0;position:relative">
       <div class="auth-logo-row" style="justify-content:center;">
         <img src="/icon-192.png" class="auth-logo-icon" alt="FinanzIA" style="width:48px;height:48px;">
       </div>
+      <button onclick="openSoporteModal()" aria-label="Soporte" style="position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:50%;background:#CBD5E1;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-width="3"/></svg>
+      </button>
     </div>
 
     <!-- Nombre + título + subtítulo -->
@@ -494,34 +497,10 @@
     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Cuentas
   </button>
   <button class="nav-item" data-page="herramientas" onclick="navigate('herramientas')" style="position:relative">
-    <img src="emiliano-avatar.png" alt="Emiliano" style="width:26px;height:26px;border-radius:50%;object-fit:cover;object-position:center top;pointer-events:none;margin-bottom:2px" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div style="display:none;width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#00D4AA,#7461EF);align-items:center;justify-content:center;font-size:10px;font-weight:800;color:white;margin-bottom:2px">Em</div>
+    <img src="emiliano-avatar.png" alt="Emiliano" style="width:30px;height:30px;border-radius:50%;object-fit:cover;object-position:center top;pointer-events:none;margin-bottom:2px;border:1.5px solid rgba(0,212,170,.5);animation:emiPulse 2.5s ease-in-out infinite,emiFloat 3s ease-in-out infinite" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div style="display:none;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#00D4AA,#7461EF);align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;margin-bottom:2px;border:1.5px solid rgba(0,212,170,.5);animation:emiPulse 2.5s ease-in-out infinite,emiFloat 3s ease-in-out infinite">Em</div>
     Emiliano
   </button>
 </nav>
 <div id="modal-root">
-  <div class="modal-backdrop" onclick="closeModal()"></div>
-  <div class="modal-sheet" id="modal-sheet"></div>
-</div>
-<div id="confirm-root">
-  <div class="confirm-backdrop"></div>
-  <div class="confirm-dialog">
-    <div class="confirm-icon" id="confirm-icon">⚠️</div>
-    <div class="confirm-title" id="confirm-title">¿Eliminar?</div>
-    <div class="confirm-msg" id="confirm-msg">Esta acción no se puede deshacer.</div>
-    <div class="confirm-actions">
-      <button class="btn btn-secondary btn-sm" onclick="closeConfirm()">Cancelar</button>
-      <button class="btn btn-danger btn-sm" id="confirm-ok" onclick="runConfirm()">Confirmar</button>
-    </div>
-  </div>
-</div>
-<div id="toast"></div>
-</div>
-
-<script src="storage.js"></script>
-<script src="finance.js"></script>
-<script src="ui.js"></script>
-<script src="auth.js"></script>
-<script src="app.js"></script>
-</body>
-</html>
+  <div class="modal-backdrop" onclick="closeMo

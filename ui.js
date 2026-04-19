@@ -206,7 +206,7 @@ var DRAWER_GROUPS={
     items:[
       {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',label:'Cuentas',page:'mis-cuentas'},
       {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2M5 21H3"/><path d="M9 21V10h6v11"/></svg>',label:'Ahorros',page:'metas'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',label:'Deudas',page:'deudas'},
+      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>',label:'Deudas',page:'deudas'},
       {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',label:'Inversiones',page:'inversiones'},
     ]
   },
@@ -222,11 +222,11 @@ var DRAWER_GROUPS={
   herramientas:{
     label:'Herramientas',icon:'🔧',color:'#F59E0B',
     items:[
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',label:'Simuladores',page:'simuladores'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',label:'Salud financiera',page:'test'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',label:'Estrategia deudas',page:'estrategia'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>',label:'Tipo de cambio',page:'cambio'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>',label:'Listas de compra',page:'listas'},
+      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-6"/></svg>',label:'Simuladores',page:'simuladores'},
+      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',label:'Salud financiera',page:'test'},
+      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>',label:'Estrategia deudas',page:'estrategia'},
+      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>',label:'Tipo de cambio',page:'cambio'},
+      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><polyline points="4 6 5 7 7 5"/><polyline points="4 12 5 13 7 11"/><polyline points="4 18 5 19 7 17"/></svg>',label:'Listas de compra',page:'listas'},
     ]
   }
 };
@@ -236,7 +236,7 @@ function renderDrawerGroup(groupKey){
   var msgs={
     midinero:'<div style="font-size:17px;font-weight:800;color:var(--text);line-height:1.3">Tu dinero, tu historia.</div><div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5">Aqu\u00ed vive tu dinero, cu\u00eddalo y hazlo crecer \u00bfQu\u00e9 vamos a revisar hoy? \ud83d\udc9a</div>',
     planificacion:'<div style="font-size:17px;font-weight:800;color:var(--text);line-height:1.3">El futuro no se improvisa.</div><div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5">Presupuesta, ahorra y programa. T\u00fa decides el ritmo \u2726</div>',
-    herramientas:'<div style="font-size:17px;font-weight:800;color:var(--text);line-height:1.3">FinanzIA te da lo que los bancos no te cuentan.</div><div style="font-size:12px;color:var(--text2);margin-top:4px">\ud83d\udca1</div>'
+    herramientas:'<div style="font-size:17px;font-weight:800;color:var(--text);line-height:1.3">Toma decisiones con claridad. \u2726</div><div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5">Aqu\u00ed tienes todo para analizar, simular y planificar tu dinero.</div>'
   };
   var cols='1fr 1fr';
   var html='';
@@ -5455,8 +5455,9 @@ function renderMiPerfil(){
   var p=S.profile||{};
   var emailVal=p.email||(window._currentUser&&window._currentUser.email?window._currentUser.email:'');
   var initials=p.name?p.name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'?';
-  var avatarContent=p.photo
-    ?'<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+  var _photo=typeof _getProfilePhoto==='function'?_getProfilePhoto():(p.photo||'');
+  var avatarContent=_photo
+    ?'<img src="'+_photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
     :'<span style="font-size:28px;font-weight:700;color:white">'+initials+'</span>';
   var phone=(p.phoneCode?p.phoneCode+' ':'')+( p.phone||'');
   var camSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>';
@@ -6122,6 +6123,9 @@ function showPhotoOptions(){
   var xBtn='<button onclick="closePhotoSheet()" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);flex-shrink:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
   var camSvg='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>';
   var galSvg='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+  var trashSvg='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+  var hasPhoto=S.profile&&S.profile.photo;
+  var quitarBtn=hasPhoto?('<button onclick="closePhotoSheet();removeProfilePhoto()" style="flex:1;padding:14px 8px;border-radius:50px;border:1.5px solid var(--danger);background:rgba(239,68,68,.07);color:var(--danger);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+trashSvg+' Quitar</button>'):'';
   sheet.innerHTML='<div onclick="closePhotoSheet()" style="flex:1;background:rgba(0,0,0,.5)"></div>'
     +'<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 32px">'
       +'<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px">'
@@ -6130,9 +6134,10 @@ function showPhotoOptions(){
         +xBtn
       +'</div>'
       +'<div style="height:1px;background:var(--border);margin:0 20px 20px"></div>'
-      +'<div style="display:flex;gap:12px;padding:0 20px">'
+      +'<div style="display:flex;gap:10px;padding:0 20px">'
         +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-cam-input'+q+').click()" style="flex:1;padding:14px 8px;border-radius:50px;border:1.5px solid var(--primary);background:rgba(0,212,170,.08);color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+camSvg+' Cámara</button>'
         +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-gal-input'+q+').click()" style="flex:1;padding:14px 8px;border-radius:50px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+galSvg+' Galería</button>'
+        +quitarBtn
       +'</div>'
     +'</div>';
   document.body.appendChild(sheet);
@@ -6160,6 +6165,8 @@ function removeProfilePhoto(){
   confirmDialog('🗑️','¿Eliminar foto de perfil?','Esta acción no se puede deshacer.',function(){
     if(!S.profile)S.profile={};
     S.profile.photo='';
+    var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:localStorage.getItem('_lastAuthUserId')||'';
+    if(_uid) try{localStorage.removeItem('_profilePhoto_'+_uid);}catch(e2){}
     saveState();
     updateDrawerProfile();
     closeProfilePage();
@@ -6171,7 +6178,9 @@ function removeProfilePhoto(){
   reader.onload=ev=>{
     if(!S.profile)S.profile={};
     S.profile.photo=ev.target.result;
-    saveState();updateDrawerProfile();renderPage(S.currentPage||'configuracion');
+    var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:localStorage.getItem('_lastAuthUserId')||'';
+    if(_uid) try{localStorage.setItem('_profilePhoto_'+_uid,ev.target.result);}catch(e2){}
+    saveState();updateDrawerProfile();renderPage(S.currentPage||'mi-perfil');
   };
   reader.readAsDataURL(file);
 }function saveLanguage(v){
@@ -7907,7 +7916,7 @@ function saveNewList(){
   if(!type){toast('Selecciona un tipo de lista');return;}
   var tipo=LISTA_TIPOS.find(function(t){return t.id===type;})||LISTA_TIPOS[5];
   if(!S.shoppingLists)S.shoppingLists=[];
-  var exists=S.shoppingLists.find(function(l){return l.type===type;});
+  var exists=filterDeleted(S.shoppingLists||[]).find(function(l){return l.type===type;});
   if(exists&&type!=='custom'){toast('Ya tienes una lista de '+tipo.name);closeModal();openListDetail(exists.id);return;}
   var items=(DEFAULT_LIST_ITEMS[type]||[]).map(function(i){return {id:uid(),name:i.name,done:false,section:i.section||''};});
   var name=type==='custom'?('Lista '+(S.shoppingLists.filter(function(l){return l.type==='custom';}).length+1)):tipo.name;
@@ -8263,29 +8272,4 @@ function openTerminosModal(){
     +'<div style="display:flex;justify-content:center;padding:12px 0 4px;flex-shrink:0"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
     +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px;flex-shrink:0">'
       +'<div style="font-size:17px;font-weight:800">Legal</div>'
-      +'<button onclick="document.getElementById(\'terminos-modal\').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px">✕</button>'
-    +'</div>'
-    +'<div style="display:flex;gap:6px;padding:0 16px 12px;flex-shrink:0">'
-      +'<button id="tab-tc" onclick="_switchTerminosTab(\'tc\')" style="flex:1;padding:9px 6px;border-radius:50px;border:none;background:var(--primary);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">Términos y Condiciones</button>'
-      +'<button id="tab-pp" onclick="_switchTerminosTab(\'pp\')" style="flex:1;padding:9px 6px;border-radius:50px;border:none;background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">Política de Privacidad</button>'
-    +'</div>'
-    +'<div id="terminos-content" style="flex:1;overflow-y:auto;padding:0 20px 32px">'
-      +tcContent
-    +'</div>'
-  +'</div>';
-  ov._tcContent=tcContent;
-  ov._ppContent=ppContent;
-  document.body.appendChild(ov);
-}
-function _switchTerminosTab(tab){
-  var ov=document.getElementById('terminos-modal');
-  var con=document.getElementById('terminos-content');
-  var btnTc=document.getElementById('tab-tc');
-  var btnPp=document.getElementById('tab-pp');
-  if(!ov||!con)return;
-  var isTc=tab==='tc';
-  con.innerHTML=isTc?ov._tcContent:ov._ppContent;
-  con.scrollTop=0;
-  if(btnTc){btnTc.style.background=isTc?'var(--primary)':'var(--surface2)';btnTc.style.color=isTc?'white':'var(--text2)';btnTc.style.fontWeight=isTc?'700':'600';}
-  if(btnPp){btnPp.style.background=isTc?'var(--surface2)':'var(--primary)';btnPp.style.color=isTc?'var(--text2)':'white';btnPp.style.fontWeight=isTc?'600':'700';}
-}
+      +'<button onclick="document.getElementById(\'terminos-modal\').remove()" style="width:32px;height:32px;border-radiu
