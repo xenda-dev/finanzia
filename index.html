@@ -91,7 +91,13 @@
       <div class="auth-logo-row auth-register-logo" style="justify-content:center;">
         <img src="/icon-192.png" class="auth-logo-icon" alt="FinanzIA" style="width:48px;height:48px;">
       </div>
-      <p class="auth-subtitle auth-register-subtitle">Estás a un paso de tomar el control de tus finanzas 🎯</p>
+      <p class="auth-subtitle" style="margin-bottom:8px;font-size:13px">Estás a un paso de tomar el control de tus finanzas 🎯</p>
+
+      <div class="auth-field">
+        <label class="auth-label">Nombre y apellido</label>
+        <input id="rg-name" type="text" autocomplete="name" placeholder="Ej: Jorge Quintero"
+          onkeydown="authKey(event,'handleRegister')" class="auth-input">
+      </div>
 
       <div class="auth-field">
         <label class="auth-label">Correo</label>
@@ -121,6 +127,13 @@
     </div>
 
     <div class="auth-bottom">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <input type="checkbox" id="rg-tc" style="width:18px;height:18px;flex-shrink:0;accent-color:#00D4AA;cursor:pointer">
+        <span style="font-size:13px;color:#64748B;flex:1">Acepto los T&amp;C y Política de Privacidad</span>
+        <button type="button" onclick="openTerminosModal()" style="flex-shrink:0;cursor:pointer;width:32px;height:32px;border-radius:8px;background:rgba(0,212,170,.1);border:none;display:flex;align-items:center;justify-content:center;padding:0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </button>
+      </div>
       <button id="rg-btn" onclick="handleRegister()" class="auth-btn-primary">Registrarse</button>
       <div class="auth-footer" style="position:static;padding:max(env(safe-area-inset-bottom),16px) 20px 12px">© 2026 Xenda.co. Todos los derechos reservados.</div>
     </div>
@@ -194,7 +207,7 @@
   <!-- ─── BIENVENIDA (con sesión + biometría) ── -->
   <div id="auth-welcome" class="auth-panel" style="display:none">
 
-    <!-- Logo -->
+    <!-- Logo + botón soporte -->
     <div class="auth-top auth-top-logo" style="flex-shrink:0;position:relative">
       <div class="auth-logo-row" style="justify-content:center;">
         <img src="/icon-192.png" class="auth-logo-icon" alt="FinanzIA" style="width:48px;height:48px;">
@@ -493,14 +506,4 @@
     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>Movimientos
   </button>
   <button class="nav-fab" onclick="openTransactionModal();">＋</button>
-  <button class="nav-item" data-page="mis-cuentas" onclick="navigate('mis-cuentas')">
-    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Cuentas
-  </button>
-  <button class="nav-item" data-page="herramientas" onclick="navigate('herramientas')" style="position:relative">
-    <img src="emiliano-avatar.png" alt="Emiliano" style="width:30px;height:30px;border-radius:50%;object-fit:cover;object-position:center top;pointer-events:none;margin-bottom:2px;border:1.5px solid rgba(0,212,170,.5);animation:emiPulse 2.5s ease-in-out infinite,emiFloat 3s ease-in-out infinite" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div style="display:none;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#00D4AA,#7461EF);align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;margin-bottom:2px;border:1.5px solid rgba(0,212,170,.5);animation:emiPulse 2.5s ease-in-out infinite,emiFloat 3s ease-in-out infinite">Em</div>
-    Emiliano
-  </button>
-</nav>
-<div id="modal-root">
-  <div class="modal-backdrop" onclick="closeMo
+  <button class="n

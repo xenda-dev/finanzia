@@ -44,6 +44,8 @@ function setThemeInline(val){
 }
 function setTheme(val){
   S.theme=val;
+  var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:(localStorage.getItem('_lastAuthUserId')||'default');
+  try{localStorage.setItem('_themeSet_'+_uid,'1');}catch(e){}
   applyThemeMode();
   togglePPick('theme-picker');
   saveState();
@@ -141,6 +143,18 @@ function _updateHeader(page){
     hTitle.textContent=_getPageTitle(page);
     hBack.style.alignItems='center';
     hBack.style.justifyContent='center';
+    if(hSpacer){
+      if(page==='mi-perfil'){
+        hSpacer.style.display='block';
+        hSpacer.innerHTML='<button onclick="navigate(\'configuracion\')" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>';
+      }else{
+        hSpacer.innerHTML='';
+      }
+    }
+    var _bottomNav=document.querySelector('nav.bottom-nav');
+    if(_bottomNav) _bottomNav.style.display=(page==='mi-perfil')?'none':'';
+    var _navDel=document.getElementById('nav-delete-account-btn');
+    if(_navDel) _navDel.style.display='none';
   }
 }
 function renderPage(page){
@@ -202,25 +216,25 @@ function closeDrawer(){document.getElementById('drawer').classList.remove('open'
 // ── Drawer Group Portal ─────────────────────────────────────
 var DRAWER_GROUPS={
   midinero:{
-    label:'Mi Dinero',icon:'💰',color:'#00D4AA',
+    label:'Mi Dinero',icon:'',color:'#00D4AA',
     items:[
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',label:'Cuentas',page:'mis-cuentas'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2M5 21H3"/><path d="M9 21V10h6v11"/></svg>',label:'Ahorros',page:'metas'},
+      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>',label:'Cuentas',page:'mis-cuentas'},
+      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><path d="M19 10c0-3.87-3.13-7-7-7S5 6.13 5 10c0 2.38 1.19 4.47 3 5.74V17a1 1 0 001 1h6a1 1 0 001-1v-1.26A6.99 6.99 0 0019 10z"/><path d="M9 17v1a2 2 0 002 2h2a2 2 0 002-2v-1"/></svg>',label:'Ahorros',page:'metas'},
       {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>',label:'Deudas',page:'deudas'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',label:'Inversiones',page:'inversiones'},
+      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><polyline points="3 17 8 12 12 15 16 9 21 6"/><path d="M17 6h4v4"/></svg>',label:'Inversiones',page:'inversiones'},
     ]
   },
   planificacion:{
-    label:'Planificación',icon:'📅',color:'#7461EF',
+    label:'Planificación',icon:'',color:'#7461EF',
     items:[
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',label:'Presupuestos',page:'presupuestos'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',label:'Metas de ahorro',page:'metas'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>',label:'Pagos programados',page:'pagos'},
-      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>',label:'Suscripciones',page:'suscripciones'},
+      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="1.5" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',label:'Presupuestos',page:'presupuestos'},
+      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',label:'Metas de ahorro',page:'metas'},
+      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="1.5" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>',label:'Pagos programados',page:'pagos'},
+      {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="1.5" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>',label:'Suscripciones',page:'suscripciones'},
     ]
   },
   herramientas:{
-    label:'Herramientas',icon:'🔧',color:'#F59E0B',
+    label:'Herramientas',icon:'',color:'#F59E0B',
     items:[
       {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-6"/></svg>',label:'Simuladores',page:'simuladores'},
       {svg:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>',label:'Salud financiera',page:'test'},
@@ -234,17 +248,16 @@ function renderDrawerGroup(groupKey){
   var g=DRAWER_GROUPS[groupKey];
   if(!g)return'';
   var msgs={
-    midinero:'<div style="font-size:17px;font-weight:800;color:var(--text);line-height:1.3">Tu dinero, tu historia.</div><div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5">Aqu\u00ed vive tu dinero, cu\u00eddalo y hazlo crecer \u00bfQu\u00e9 vamos a revisar hoy? \ud83d\udc9a</div>',
+    midinero:'<div style="font-size:17px;font-weight:800;color:var(--text);line-height:1.3">Tu dinero, tu historia.</div><div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5">Aqu\u00ed vive tu dinero, cu\u00eddalo y hazlo crecer.</div><div style="font-size:12px;color:var(--primary);margin-top:2px;font-weight:600">\u00bfQu\u00e9 vamos a revisar hoy? \ud83d\udc9a</div>',
     planificacion:'<div style="font-size:17px;font-weight:800;color:var(--text);line-height:1.3">El futuro no se improvisa.</div><div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5">Presupuesta, ahorra y programa. T\u00fa decides el ritmo \u2726</div>',
     herramientas:'<div style="font-size:17px;font-weight:800;color:var(--text);line-height:1.3">Toma decisiones con claridad. \u2726</div><div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5">Aqu\u00ed tienes todo para analizar, simular y planificar tu dinero.</div>'
   };
-  var cols='1fr 1fr';
   var html='';
   var msg=msgs[groupKey]||'';
   if(msg){
     html+='<div style="padding:20px 16px 10px;text-align:center">'+msg+'</div>';
   }
-  html+='<div style="display:grid;grid-template-columns:'+cols+';gap:12px;padding:12px 0 32px">';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 0 32px">';
   g.items.forEach(function(item){
     var iconHtml=item.svg
       ?'<div style="pointer-events:none">'+item.svg+'</div>'
@@ -4929,7 +4942,7 @@ function renderConfiguracion(){
     <div class="config-item" onclick="navigate('mi-perfil')" style="margin-bottom:16px">
       <div class="config-item-left" style="gap:12px">
         <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid var(--primary);overflow:hidden;flex-shrink:0">
-          ${(S.profile&&S.profile.photo)?`<img src="${S.profile.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.profile&&S.profile.name?`<span style="font-size:18px;font-weight:700;color:white">${S.profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</span>`:'<span>👤</span>')}
+          ${_getProfilePhoto()?`<img src="${_getProfilePhoto()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.profile&&S.profile.name?`<span style="font-size:18px;font-weight:700;color:white">${S.profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</span>`:'<span>👤</span>')}
         </div>
         <div>
           <div style="font-size:15px;font-weight:700">${(S.profile&&S.profile.name)||'Mi Perfil'}</div>
@@ -5019,10 +5032,7 @@ function renderConfiguracion(){
       <div class="config-item-left"><div class="config-icon" style="background:rgba(239,68,68,.15)">🗑️</div><div><div style="font-size:14px;font-weight:600;color:var(--danger)">${t('reset')}</div><div style="font-size:12px;color:var(--text2)">${t('resetDesc')}</div></div></div>
       <span style="color:var(--text3)">›</span>
     </div>
-    <div class="config-item" onclick="deleteUserAccount()" style="margin-top:4px">
-      <div class="config-item-left"><div class="config-icon" style="background:rgba(239,68,68,.15)">👤</div><div><div style="font-size:14px;font-weight:600;color:var(--danger)">Eliminar mi cuenta</div><div style="font-size:12px;color:var(--text2)">Borra tu cuenta y todos tus datos</div></div></div>
-      <span style="color:var(--text3)">›</span>
-    </div>
+
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
     <div style="margin-top:32px;text-align:center;color:var(--text3);font-size:11px">${t('version')}</div>
   `;
@@ -5070,7 +5080,8 @@ function showBottomSheet(cfg){
   _bsAllItems=cfg.items||[];
   var overlay=document.createElement('div');
   overlay.id='bs-overlay';
-  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
+  var _bsZ=cfg.zIndex||9999;
+  overlay.style.cssText='position:fixed;inset:0;z-index:'+_bsZ+';background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
   overlay.onclick=function(e){if(e.target===overlay)closeBottomSheet();};
   var searchHtml=cfg.searchable
     ?'<div style="padding:8px 16px 10px"><input id="bs-search" class="form-input" placeholder="Buscar..." oninput="_filterBS(this.value)" style="font-size:14px;padding:10px 14px"></div>'
@@ -5451,45 +5462,133 @@ function updatePhoneLen(code){var m={'+57':10,'+48':9,'+1':10,'+34':9,'+52':10,'
 
 
 // ── Mi Perfil page ────────────────────────────────────────
+function _calcProfileProgress(){
+  var p=S.profile||{};
+  var nameVal=p.name||(window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)||'';
+  var checks=[
+    !!(nameVal.trim()),
+    !!(p.gender&&p.gender!==''),
+    !!(p.residence),
+    !!(p.phone&&p.phoneCode),
+    !!(p.profession),
+    !!(p.financialGoal),
+    !!(_getProfilePhoto())
+  ];
+  return Math.round(checks.filter(Boolean).length/checks.length*100);
+}
+function _togglePin(isChecked){
+  var uid=window._currentUser&&window._currentUser.id;
+  if(!uid)return;
+  if(!isChecked){
+    confirmDialog('\u26a0\ufe0f','Desactivar PIN','Sin PIN solo podr\u00e1s ingresar con contrase\u00f1a. \u00bfContinuar?',function(){
+      localStorage.removeItem('_userPin_'+uid);
+      localStorage.removeItem('_pinEnabled_'+uid);
+      renderPage('mi-perfil');
+    });
+    setTimeout(function(){renderPage('mi-perfil');},50);
+  }else{
+    window._pinFromProfile=true;
+    showAuthScreen();
+    _initSetPinScreen();
+    _showScreen('set-pin');
+  }
+}
+function _toggleBio(isChecked){
+  var uid=window._currentUser&&window._currentUser.id;
+  if(!uid)return;
+  if(!isChecked){
+    localStorage.removeItem('_bioEnabled_'+uid);
+    localStorage.removeItem('_bioCredId_'+uid);
+    renderPage('mi-perfil');
+  }else{
+    if(window._currentUser)_showBioOfferSheet(window._currentUser);
+  }
+}
 function renderMiPerfil(){
   var p=S.profile||{};
+  var uid=window._currentUser&&window._currentUser.id;
+  var displayName=p.name||(window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)||'';
   var emailVal=p.email||(window._currentUser&&window._currentUser.email?window._currentUser.email:'');
-  var initials=p.name?p.name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'?';
-  var _photo=typeof _getProfilePhoto==='function'?_getProfilePhoto():(p.photo||'');
-  var avatarContent=_photo
-    ?'<img src="'+_photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
-    :'<span style="font-size:28px;font-weight:700;color:white">'+initials+'</span>';
-  var phone=(p.phoneCode?p.phoneCode+' ':'')+( p.phone||'');
-  var camSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>';
-  var editSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-  var gearSvg='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>';
-  function infoRow(label,value,ph){
-    return '<div style="padding:13px 0;border-bottom:1px solid var(--border)">'
-      +'<div style="font-size:11px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px">'+label+'</div>'
-      +'<div style="font-size:15px;'+(value?'font-weight:600;color:var(--text)':'color:var(--text3);font-style:italic')+'\">'+(value||(ph||'Sin completar'))+'</div>'
-      +'</div>';
+  var initials=displayName?displayName.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'?';
+  var _photo=_getProfilePhoto();
+  var avatarInner=_photo
+    ?('<img src="'+_photo+'" style="width:72px;height:72px;object-fit:cover;border-radius:50%;display:block;flex-shrink:0;">')
+    :('<span style="font-size:22px;font-weight:700;color:white">'+initials+'</span>');
+  var pct=_calcProfileProgress();
+  var pinActive=uid&&localStorage.getItem('_pinEnabled_'+uid)==='1'&&!!localStorage.getItem('_userPin_'+uid);
+  var bioActive=uid&&localStorage.getItem('_bioEnabled_'+uid)==='1'&&!!localStorage.getItem('_bioCredId_'+uid);
+  var phone=(p.phoneCode?p.phoneCode+' ':'')+(p.phone||'');
+  var avatarClick=_photo?'onclick="viewProfilePhoto()" style="cursor:zoom-in"':'';
+  function svgIcon(path,extra){
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(extra||'')+path+'</svg>';
   }
+  var iconGlobe=svgIcon('<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>');
+  var iconPhone=svgIcon('<path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.63A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>');
+  var iconWork=svgIcon('<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>');
+  var iconOccup=svgIcon('<path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>');
+  var iconTarget=svgIcon('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>');
+  var iconLock=svgIcon('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>');
+  var iconShield=svgIcon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>');
+  var iconEdit='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  var iconTrash='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+  var camBadge='<div onclick="showPhotoOptions()" style="position:absolute;bottom:1px;right:1px;width:24px;height:24px;border-radius:50%;background:#7461EF;border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1">'
+    +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
+    +'</div>';
+  function infoRow(icon,label,val,last){
+    var ri='<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+icon+'</div>';
+    var vHtml=val?('<span style="font-size:14px;font-weight:600;color:var(--text)">'+val+'</span>'):('<span style="font-size:14px;color:var(--text3);font-style:italic">Sin completar</span>');
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px;'+(last?'':'border-bottom:1px solid var(--border)')+'">'
+      +'<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">'+label+'</div>'+vHtml+'</div>'+ri+'</div>';
+  }
+  function toggleRow(icon,label,active,fn,last){
+    var badge=active
+      ?('<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;background:rgba(0,212,170,.12);color:#0F766E;font-size:11px;font-weight:600"><span style="width:5px;height:5px;border-radius:50%;background:#00D4AA;display:inline-block"></span>Activo</span>')
+      :('<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--text3);font-size:11px;font-weight:600"><span style="width:5px;height:5px;border-radius:50%;background:var(--text3);display:inline-block"></span>Inactivo</span>');
+    var track='<span style="position:absolute;inset:0;border-radius:99px;background:'+(active?'var(--primary)':'var(--border)')+'"></span>';
+    var thumb='<span style="position:absolute;top:3px;'+(active?'right:3px':'left:3px')+';width:20px;height:20px;border-radius:50%;background:white"></span>';
+    var tgl='<label style="position:relative;width:44px;height:26px;cursor:pointer;display:inline-block;flex-shrink:0"><input type="checkbox" '+(active?'checked':'')+' onchange="'+fn+'(this.checked)" style="opacity:0;width:0;height:0;position:absolute">'+track+thumb+'</label>';
+    var ri='<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+icon+'</div>';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;'+(last?'':'border-bottom:1px solid var(--border)')+'">'
+      +'<div style="display:flex;align-items:center;gap:12px">'+ri+'<div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">'+label+'</div>'+badge+'</div></div>'+tgl+'</div>';
+  }
+  var sl='<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);padding:14px 16px 6px">%L%</div>';
   return '<div>'
-    +'<div style="display:flex;flex-direction:column;align-items:center;padding:28px 20px 24px">'
-      +'<div style="width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid var(--primary);box-shadow:0 4px 20px rgba(0,212,170,.25)">'
-        +avatarContent
+    +'<div style="display:flex;align-items:center;gap:16px;padding:20px 16px 16px;background:var(--surface);border-bottom:1px solid var(--border)">'
+      +'<div style="position:relative;flex-shrink:0;width:72px;height:72px">'
+        +'<div '+avatarClick+' style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid var(--primary);box-sizing:border-box">'
+          +avatarInner
+        +'</div>'
+        +camBadge
       +'</div>'
-      +(p.name?'<div style="font-size:20px;font-weight:800;margin-top:14px;color:var(--text)">'+p.name+'</div>':'')
-      +(emailVal?'<div style="font-size:13px;color:var(--text3);margin-top:4px">'+emailVal+'</div>':'')
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'
+          +'<span style="font-size:17px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(displayName||'Mi Perfil')+'</span>'
+          +'<button onclick="openProfilePage()" style="flex-shrink:0;border:none;background:transparent;padding:2px;cursor:pointer;display:flex;align-items:center;line-height:1">'+iconEdit+'</button>'
+        +'</div>'
+        +'<div style="font-size:12px;color:var(--text3);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+emailVal+'</div>'
+        +'<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px"><span>Perfil completo</span><span style="color:var(--primary);font-weight:700">'+pct+'%</span></div>'
+        +'<div style="height:4px;background:var(--border);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--primary);border-radius:99px"></div></div>'
+      +'</div>'
     +'</div>'
-    +'<div style="display:flex;gap:10px;padding:0 16px 20px">'
-      +'<button onclick="showPhotoOptions()" class="mp-action-btn">'+camSvg+'<span>Establecer foto</span></button>'
-      +'<button onclick="openProfilePage()" class="mp-action-btn">'+editSvg+'<span>Editar info.</span></button>'
-      +'<button onclick="navigate(\'configuracion\')" class="mp-action-btn">'+gearSvg+'<span>Ajustes</span></button>'
+    +sl.replace('%L%','Informaci\u00f3n personal')
+    +'<div style="background:var(--surface);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
+      +infoRow(iconGlobe,'Pa\u00eds de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'',false)
+      +infoRow(iconPhone,'Tel\u00e9fono',phone.trim()||'',false)
+      +infoRow(iconOccup,'Ocupación',p.occupation||'',false)
+      +infoRow(iconWork,'Profesi\u00f3n',p.profession||'',false)
+      +infoRow(iconTarget,'Meta financiera',p.financialGoal||'',true)
     +'</div>'
-    +'<div style="margin:0 16px;background:var(--surface);border-radius:16px;padding:0 16px">'
-      +infoRow('Nombre y apellido',p.name||'','Tu nombre')
-      +infoRow('País de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'','Tu país')
-      +infoRow('Teléfono',phone.trim()||'','Tu teléfono')
-      +infoRow('Profesión',p.profession||'','Tu profesión')
+    +sl.replace('%L%','Seguridad')
+    +'<div style="background:var(--surface);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
+      +toggleRow(iconLock,'PIN de acceso',pinActive,'_togglePin',false)
+      +toggleRow(iconShield,'Biometr\u00eda (huella)',bioActive,'_toggleBio',true)
     +'</div>'
+
     +'<input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">'
     +'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
+  +'</div>'
+  +'<div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface);border-top:1px solid var(--border);z-index:50">'
+    +'<button onclick="deleteUserAccount()" style="width:100%;padding:14px;border-radius:50px;background:var(--danger,#EF4444);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar mi cuenta</button>'
   +'</div>';
 }
 
@@ -5749,7 +5848,7 @@ function openProfilePage(){
   overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
   var header='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'
     +'<button onclick="closeProfilePage()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
-    +'<span style="font-size:17px;font-weight:800">Mi Perfil</span>'
+    +'<span style="font-size:17px;font-weight:800">Datos Generales</span>'
     +'<div style="width:40px"></div>'
     +'</div>';
   var body='<div style="flex:1;overflow-y:auto;padding:16px">'+buildProfileFormHTML()+'</div>';
@@ -5772,9 +5871,6 @@ function buildProfileFormHTML(){
   var avatarInner=p.photo?('<img src="'+p.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">')
     :(p.name?('<span style="font-size:26px;font-weight:700;color:white">'+p.name.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)+'</span>')
     :'<span>👤</span>');
-  var removeBtn=p.photo?('<button onclick="removeProfilePhoto()" style="background:none;border:none;color:var(--danger);font-size:11px;cursor:pointer;margin-top:6px;font-family:var(--font)">🗑️ Quitar foto</button>'):'';
-  // Phone selector
-  var phoneHtml='<div id="cfg-avatar" '+( p.photo ? 'onclick="viewProfilePhoto()"'+' style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:32px;border:3px solid var(--primary);overflow:hidden;cursor:zoom-in"' : 'style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:32px;border:3px solid var(--primary);overflow:hidden"' )+'>'+avatarInner+'</div>';
   // Phone codes from COUNTRY_DATA
   var phoneMap={};
   var flags={'Afganistán':'🇦🇫','Albania':'🇦🇱','Alemania':'🇩🇪','Andorra':'🇦🇩','Angola':'🇦🇴','Antigua y Barbuda':'🇦🇬','Arabia Saudita':'🇸🇦','Argelia':'🇩🇿','Argentina':'🇦🇷','Armenia':'🇦🇲','Australia':'🇦🇺','Austria':'🇦🇹','Azerbaiyán':'🇦🇿','Bahamas':'🇧🇸','Bangladés':'🇧🇩','Barbados':'🇧🇧','Baréin':'🇧🇭','Bélgica':'🇧🇪','Belice':'🇧🇿','Benín':'🇧🇯','Bielorrusia':'🇧🇾','Birmania':'🇲🇲','Bolivia':'🇧🇴','Bosnia y Herzegovina':'🇧🇦','Botsuana':'🇧🇼','Brasil':'🇧🇷','Brunéi':'🇧🇳','Bulgaria':'🇧🇬','Burkina Faso':'🇧🇫','Burundi':'🇧🇮','Bután':'🇧🇹','Cabo Verde':'🇨🇻','Camboya':'🇰🇭','Camerún':'🇨🇲','Canadá':'🇨🇦','Catar':'🇶🇦','Chad':'🇹🇩','Chile':'🇨🇱','Chipre':'🇨🇾','Ciudad del Vaticano':'🇻🇦','Colombia':'🇨🇴','Comoras':'🇰🇲','Corea del Sur':'🇰🇷','Costa de Marfil':'🇨🇮','Costa Rica':'🇨🇷','Croacia':'🇭🇷','Cuba':'🇨🇺','Dinamarca':'🇩🇰','Dominica':'🇩🇲','Ecuador':'🇪🇨','Egipto':'🇪🇬','El Salvador':'🇸🇻','Emiratos Árabes Unidos':'🇦🇪','Eritrea':'🇪🇷','Eslovaquia':'🇸🇰','Eslovenia':'🇸🇮','España':'🇪🇸','Estados Federados de Micronesia':'🇫🇲','Estados Unidos':'🇺🇸','Estonia':'🇪🇪','Etiopía':'🇪🇹','Filipinas':'🇵🇭','Finlandia':'🇫🇮','Fiyi':'🇫🇯','Francia':'🇫🇷','Gabón':'🇬🇦','Gambia':'🇬🇲','Georgia':'🇬🇪','Ghana':'🇬🇭','Granada':'🇬🇩','Grecia':'🇬🇷','Guatemala':'🇬🇹','Guinea':'🇬🇳','Guinea Ecuatorial':'🇬🇶','Guinea-Bisáu':'🇬🇼','Guyana':'🇬🇾','Haití':'🇭🇹','Honduras':'🇭🇳','Hungría':'🇭🇺','India':'🇮🇳','Indonesia':'🇮🇩','Irán':'🇮🇷','Irak':'🇮🇶','Irlanda':'🇮🇪','Islandia':'🇮🇸','Islas Marshall':'🇲🇭','Islas Salomón':'🇸🇧','Israel':'🇮🇱','Italia':'🇮🇹','Jamaica':'🇯🇲','Japón':'🇯🇵','Jordania':'🇯🇴','Kazajistán':'🇰🇿','Kenia':'🇰🇪','Kirguistán':'🇰🇬','Kiribati':'🇰🇮','Kosovo':'🇽🇰','Kuwait':'🇰🇼','Laos':'🇱🇦','Lesoto':'🇱🇸','Letonia':'🇱🇻','Líbano':'🇱🇧','Liberia':'🇱🇷','Libia':'🇱🇾','Liechtenstein':'🇱🇮','Lituania':'🇱🇹','Luxemburgo':'🇱🇺','Macedonia del Norte':'🇲🇰','Madagascar':'🇲🇬','Malasia':'🇲🇾','Malaui':'🇲🇼','Maldivas':'🇲🇻','Mali':'🇲🇱','Malta':'🇲🇹','Marruecos':'🇲🇦','Mauricio':'🇲🇺','Mauritania':'🇲🇷','México':'🇲🇽','Moldavia':'🇲🇩','Mónaco':'🇲🇨','Mongolia':'🇲🇳','Montenegro':'🇲🇪','Mozambique':'🇲🇿','Namibia':'🇳🇦','Nauru':'🇳🇷','Nepal':'🇳🇵','Nicaragua':'🇳🇮','Níger':'🇳🇪','Nigeria':'🇳🇬','Noruega':'🇳🇴','Nueva Zelanda':'🇳🇿','Omán':'🇴🇲','Países Bajos':'🇳🇱','Pakistán':'🇵🇰','Palaos':'🇵🇼','Autoridad Nacional Palestina':'🇵🇸','Panamá':'🇵🇦','Papúa Nueva Guinea':'🇵🇬','Paraguay':'🇵🇾','Perú':'🇵🇪','Polonia':'🇵🇱','Portugal':'🇵🇹','Reino Unido':'🇬🇧','República Centroafricana':'🇨🇫','República Checa':'🇨🇿','República Democrática del Congo':'🇨🇩','República Dominicana':'🇩🇴','República Popular China':'🇨🇳','Ruanda':'🇷🇼','Rumania':'🇷🇴','Rusia':'🇷🇺','Samoa':'🇼🇸','San Cristóbal y Nieves':'🇰🇳','San Marino':'🇸🇲','San Vicente y las Granadinas':'🇻🇨','Santa Lucía':'🇱🇨','Santo Tomé y Príncipe':'🇸🇹','Senegal':'🇸🇳','Serbia':'🇷🇸','Seychelles':'🇸🇨','Sierra Leona':'🇸🇱','Singapur':'🇸🇬','Siria':'🇸🇾','Somalia':'🇸🇴','Sri Lanka':'🇱🇰','Sudáfrica':'🇿🇦','Sudán':'🇸🇩','Sudán del Sur':'🇸🇸','Suecia':'🇸🇪','Suiza':'🇨🇭','Surinam':'🇸🇷','Tailandia':'🇹🇭','Tanzania':'🇹🇿','Tayikistán':'🇹🇯','Timor Oriental':'🇹🇱','Togo':'🇹🇬','Tonga':'🇹🇴','Trinidad y Tobago':'🇹🇹','Túnez':'🇹🇳','Turkmenistán':'🇹🇲','Tuvalu':'🇹🇻','Ucrania':'🇺🇦','Uganda':'🇺🇬','Uruguay':'🇺🇾','Uzbekistán':'🇺🇿','Vanuatu':'🇻🇺','Venezuela':'🇻🇪','Vietnam':'🇻🇳','Wallis y Futuna':'🇼🇫','Yemen':'🇾🇪','Yibuti':'🇩🇯','Zambia':'🇿🇲','Zimbabue':'🇿🇼'};
@@ -5814,13 +5910,25 @@ function buildProfileFormHTML(){
   var goalList=['Ahorrar para emergencias','Control de gastos','Pagar deudas','Comprar vivienda','Viajar','Independencia financiera','Emprender','Jubilación','Educación','Otro'];
   var goalOpts=goalList.map(function(g){return '<div class="ppick-item" onclick="selectPPick(\'cfg-goal\',\'gpick\',\''+g+'\' )" data-val="'+g+'" style="'+(p.financialGoal===g?'background:rgba(0,212,170,.1)':'')+'">'+g+'</div>';}).join('');
 
+  var nameVal=p.name||(_currentUser&&_currentUser.user_metadata&&_currentUser.user_metadata.full_name)||'';
+  var _genderOpts=['Masculino','Femenino'];
+  var _genderVal=p.gender||'';
+  var genderCaps=_genderOpts.map(function(g){
+    var on=_genderVal===g;
+    var circleInner=on?'<span style="width:8px;height:8px;border-radius:50%;background:var(--primary);display:block"></span>':'';
+    var circleBorder=on?'var(--primary)':'var(--border)';
+    return '<div id="gcap-'+g+'" onclick="_selectGender(\''+g+'\')" style="flex:1;display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:50px;border:1.5px solid '+(on?'var(--primary)':'var(--border)')+';background:'+(on?'rgba(0,212,170,.06)':'white')+';cursor:pointer;font-family:var(--font)">'
+      +'<span style="width:17px;height:17px;border-radius:50%;border:2px solid '+circleBorder+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+circleInner+'</span>'
+      +'<span style="font-size:14px;font-weight:600;color:var(--text)">'+g+'</span>'
+    +'</div>';
+  }).join('');
   var html=''
-    +'<div class="form-group"><label class="form-label">Nombre y apellido <span style="color:var(--danger)">*</span></label>'
-      +'<input class="form-input" type="text" id="cfg-name" value="'+(p.name||'')+'" placeholder="Ej: Jorge Quintero"></div>'
-    +'<div class="form-group"><label class="form-label">Fecha de nacimiento</label>'
-      +'<input class="form-input" type="date" id="cfg-birthdate" value="'+(p.birthdate||'')+'" max="'+new Date().toISOString().slice(0,10)+'"></div>'
+    +'<div class="form-group"><label class="form-label">Nombre y apellido</label>'
+      +'<input class="form-input" type="text" id="cfg-name" value="'+nameVal+'" readonly style="opacity:.65;cursor:not-allowed"></div>'
     +'<div class="form-group"><label class="form-label">Email</label>'
       +'<input class="form-input" type="email" id="cfg-email" value="'+emailVal+'" readonly style="opacity:.65;cursor:not-allowed"></div>'
+    +'<div class="form-group"><label class="form-label">Fecha de nacimiento</label>'
+      +'<input class="form-input" type="date" id="cfg-birthdate" value="'+(p.birthdate||'')+'" max="'+new Date().toISOString().slice(0,10)+'"></div>'
     +'<div class="form-group"><label class="form-label">Teléfono</label>'
       +'<div style="display:flex;gap:6px">'
         +'<div class="bs-trigger" onclick="showPhoneCodePickerScreen()" style="width:130px;flex-shrink:0;padding:10px 12px">'
@@ -5829,6 +5937,9 @@ function buildProfileFormHTML(){
         +'</div>'
         +'<input type="hidden" id="cfg-phone-code" value="'+(defPhone||'')+'">'+'<input class="form-input" type="tel" id="cfg-phone" value="'+(p.phone||'')+'" placeholder="Número" style="flex:1;font-size:15px" maxlength="15">'
       +'</div></div>'
+    +'<div class="form-group"><label class="form-label">Género</label>'
+      +'<div style="display:flex;gap:10px">'+genderCaps+'</div>'
+      +'<input type="hidden" id="cfg-gender" value="'+(_genderVal)+'"></div>'
     +'<div class="form-group"><label class="form-label">País de origen</label>'
       +'<div class="bs-trigger" onclick="showCountryPickerScreen(\'cfg-country\',\'País de origen\',\'cfg-country-lbl\')" id="cpick-trigger">'
         +'<span style="font-size:14px;color:'+(p.country?'var(--text)':'var(--text3)')+'" id="cfg-country-lbl">'+(p.country?(countryFlagGlobal(p.country)+' '+p.country):'Seleccionar país de origen')+'</span>'
@@ -6066,18 +6177,33 @@ const COUNTRY_DATA={
 
 
 
+function _selectGender(g){
+  ['Masculino','Femenino'].forEach(function(opt){
+    var el=document.getElementById('gcap-'+opt);
+    if(!el)return;
+    var isOn=opt===g;
+    el.style.borderColor=isOn?'var(--primary)':'var(--border)';
+    el.style.background=isOn?'rgba(0,212,170,.06)':'white';
+    var circle=el.querySelector('span');
+    if(circle){
+      circle.style.borderColor=isOn?'var(--primary)':'var(--border)';
+      circle.innerHTML=isOn?'<span style="width:8px;height:8px;border-radius:50%;background:var(--primary);display:block"></span>':'';
+    }
+  });
+  S.profile.gender=g;
+  var hidden=document.getElementById('cfg-gender');
+  if(hidden)hidden.value=g;
+}
 function saveProfile(){
   if(!S.profile)S.profile={};
   const g=(id)=>document.getElementById(id)?.value||'';
   // Validación de campos obligatorios
-  const reqName=g('cfg-name').trim();
   const reqPhone=g('cfg-phone').trim();
   const reqPhoneCode=g('cfg-phone-code').trim();
   const reqCountry=g('cfg-country').trim();
   const reqResidence=g('cfg-residence').trim();
   const reqGoal=g('cfg-goal').trim();
   const errors=[];
-  if(!reqName)errors.push('Nombre y apellido');
   if(!reqPhoneCode||!reqPhone)errors.push('Teléfono');
   if(!reqCountry)errors.push('País de origen');
   if(!reqResidence)errors.push('País de residencia');
@@ -6086,8 +6212,9 @@ function saveProfile(){
     toast('⚠️ Completa: '+errors.join(', '));
     return;
   }
-  S.profile.name=reqName;S.profile.email=g('cfg-email').trim();
-  console.log('Perfil guardado:', S.profile.name);
+  S.profile.name=g('cfg-name').trim()||S.profile.name;
+  S.profile.gender=g('cfg-gender');
+  S.profile.email=g('cfg-email').trim();
   S.profile.birthdate=g('cfg-birthdate');
   S.profile.phone=g('cfg-phone');S.profile.phoneCode=g('cfg-phone-code');
   S.profile.country=g('cfg-country');
@@ -6117,28 +6244,40 @@ function saveProfile(){
 
 function showPhotoOptions(){
   var q="'";
+  var hasPhoto=!!_getProfilePhoto();
   var sheet=document.createElement('div');
   sheet.id='photo-options-sheet';
   sheet.style.cssText='position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;justify-content:flex-end';
   var xBtn='<button onclick="closePhotoSheet()" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);flex-shrink:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
   var camSvg='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>';
   var galSvg='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
-  var trashSvg='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
-  var hasPhoto=S.profile&&S.profile.photo;
-  var quitarBtn=hasPhoto?('<button onclick="closePhotoSheet();removeProfilePhoto()" style="flex:1;padding:14px 8px;border-radius:50px;border:1.5px solid var(--danger);background:rgba(239,68,68,.07);color:var(--danger);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+trashSvg+' Quitar</button>'):'';
+  var eyeSvg='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var trashSvg='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+  var subtitle=hasPhoto?'Administra tu foto de perfil':'Elige cómo agregar tu foto';
+  var btnsHtml='';
+  if(hasPhoto){
+    btnsHtml=''
+      +'<div style="display:flex;gap:8px">'
+        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-cam-input'+q+').click()" style="flex:1;padding:13px 4px;border-radius:12px;border:1.5px solid var(--primary);background:rgba(0,212,170,.08);color:var(--primary);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px">'+camSvg+' Cámara</button>'
+        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-gal-input'+q+').click()" style="flex:1;padding:13px 4px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px">'+galSvg+' Galería</button>'
+        +'<button onclick="closePhotoSheet();removeProfilePhoto()" style="flex:1;padding:13px 4px;border-radius:12px;border:none;background:rgba(239,68,68,.06);color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px">'+trashSvg+' Quitar</button>'
+      +'</div>';
+  }else{
+    btnsHtml=''
+      +'<div style="display:flex;gap:10px">'
+        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-cam-input'+q+').click()" style="flex:1;padding:14px 8px;border-radius:12px;border:1.5px solid var(--primary);background:rgba(0,212,170,.08);color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+camSvg+' Cámara</button>'
+        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-gal-input'+q+').click()" style="flex:1;padding:14px 8px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+galSvg+' Galería</button>'
+      +'</div>';
+  }
   sheet.innerHTML='<div onclick="closePhotoSheet()" style="flex:1;background:rgba(0,0,0,.5)"></div>'
-    +'<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 32px">'
+    +'<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px)">'
       +'<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px">'
         +'<div><div style="font-size:15px;font-weight:700">Foto de perfil</div>'
-        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">Elige cómo agregar tu foto</div></div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">'+subtitle+'</div></div>'
         +xBtn
       +'</div>'
-      +'<div style="height:1px;background:var(--border);margin:0 20px 20px"></div>'
-      +'<div style="display:flex;gap:10px;padding:0 20px">'
-        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-cam-input'+q+').click()" style="flex:1;padding:14px 8px;border-radius:50px;border:1.5px solid var(--primary);background:rgba(0,212,170,.08);color:var(--primary);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+camSvg+' Cámara</button>'
-        +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-gal-input'+q+').click()" style="flex:1;padding:14px 8px;border-radius:50px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+galSvg+' Galería</button>'
-        +quitarBtn
-      +'</div>'
+      +'<div style="height:1px;background:var(--border);margin:0 20px 16px"></div>'
+      +'<div style="padding:0 20px">'+btnsHtml+'</div>'
     +'</div>';
   document.body.appendChild(sheet);
 }
@@ -6148,13 +6287,14 @@ function closePhotoSheet(){
 }
 
 function viewProfilePhoto(){
-  if(!S.profile||!S.profile.photo)return;
+  var _vp=_getProfilePhoto();
+  if(!_vp)return;
   var overlay=document.createElement('div');
   overlay.id='photo-viewer-overlay';
   overlay.style.cssText='position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center';
   overlay.onclick=function(e){if(e.target===overlay)closePhotoViewer();};
   overlay.innerHTML='<button onclick="closePhotoViewer()" style="position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.15);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
-    +'<img src="'+S.profile.photo+'" style="max-width:90vw;max-height:90vh;border-radius:12px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,.6)">';
+    +'<img src="'+_vp+'" style="max-width:90vw;max-height:90vh;border-radius:12px;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,.6)">';
   document.body.appendChild(overlay);
 }
 function closePhotoViewer(){
@@ -6162,25 +6302,43 @@ function closePhotoViewer(){
   if(el)el.remove();
 }
 function removeProfilePhoto(){
-  confirmDialog('🗑️','¿Eliminar foto de perfil?','Esta acción no se puede deshacer.',function(){
+  confirmDialog('\ud83d\uddd1\ufe0f','¿Eliminar foto de perfil?','Esta acción no se puede deshacer.',function(){
     if(!S.profile)S.profile={};
     S.profile.photo='';
     var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:localStorage.getItem('_lastAuthUserId')||'';
     if(_uid) try{localStorage.removeItem('_profilePhoto_'+_uid);}catch(e2){}
     saveState();
     updateDrawerProfile();
-    closeProfilePage();
-    openProfilePage();
+    renderPage('mi-perfil');
   });
 }function handleProfilePhoto(e){
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    if(!S.profile)S.profile={};
-    S.profile.photo=ev.target.result;
-    var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:localStorage.getItem('_lastAuthUserId')||'';
-    if(_uid) try{localStorage.setItem('_profilePhoto_'+_uid,ev.target.result);}catch(e2){}
-    saveState();updateDrawerProfile();renderPage(S.currentPage||'mi-perfil');
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var img=new Image();
+    img.onload=function(){
+      var MAX=600;
+      var w=img.width,h=img.height;
+      if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+      var canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      var compressed=canvas.toDataURL('image/jpeg',0.75);
+      if(!S.profile)S.profile={};
+      S.profile.photo=compressed;
+      var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:localStorage.getItem('_lastAuthUserId')||'';
+      if(_uid){
+        try{localStorage.setItem('_profilePhoto_'+_uid,compressed);}
+        catch(e2){
+          var q=0.5;
+          while(q>0.1){
+            try{var s2=canvas.toDataURL('image/jpeg',q);localStorage.setItem('_profilePhoto_'+_uid,s2);S.profile.photo=s2;break;}catch(e3){q-=0.1;}
+          }
+        }
+      }
+      saveState();updateDrawerProfile();renderPage(S.currentPage||'mi-perfil');
+    };
+    img.src=ev.target.result;
   };
   reader.readAsDataURL(file);
 }function saveLanguage(v){
@@ -7971,7 +8129,7 @@ function openSiguenos(){
   ];
   var ov=document.createElement('div');
   ov.id='siguenos-sheet';
-  ov.style.cssText='position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;justify-content:flex-end';
+  ov.style.cssText='position:fixed;inset:0;z-index:10002;display:flex;flex-direction:column;justify-content:flex-end';
   var rows=items.map(function(it){
     return '<a href="'+it.url+'" target="_blank" rel="noopener" onclick="document.getElementById(\'siguenos-sheet\').remove()" style="display:flex;align-items:center;gap:14px;padding:12px;border-radius:12px;text-decoration:none;color:var(--text)">'
       +'<div style="width:42px;height:42px;border-radius:12px;background:'+it.bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+it.svg+'</div>'
@@ -7993,11 +8151,14 @@ function openSiguenos(){
 var _SOPORTE_ASUNTOS=['No puedo iniciar sesión','Problema con mis datos','La app no funciona correctamente','Consulta sobre la app','Sugerencia o mejora','Eliminar mi cuenta','Otro'];
 function _showSoporteAsuntoBS(){
   var cur=document.getElementById('sop-asunto')?document.getElementById('sop-asunto').value:'';
+  var mr=document.getElementById('modal-root');
+  if(mr)mr.style.zIndex='10003';
   showBottomSheet({
     title:'Asunto',
     items:_SOPORTE_ASUNTOS.map(function(a){return{val:a,label:a};}),
     selected:cur,
     searchable:false,
+    zIndex:10003,
     onSelect:function(val){
       var inp=document.getElementById('sop-asunto');
       var lbl=document.getElementById('sop-asunto-lbl');
@@ -8007,11 +8168,23 @@ function _showSoporteAsuntoBS(){
   });
 }
 function openSoporteModal(){
-  var name=(S.profile&&S.profile.name)||'';
-  var email=(S.profile&&S.profile.email)||(window._currentUser&&window._currentUser.email?window._currentUser.email:'')||'';
+  var name='';
+  // 1. S.profile (dentro de la app)
+  if(S.profile&&S.profile.name) name=S.profile.name;
+  // 2. finanziaState3 en localStorage (disponible desde antes del login)
+  if(!name){try{var _fs=JSON.parse(localStorage.getItem('finanziaState3')||'{}');if(_fs.profile&&_fs.profile.name)name=_fs.profile.name;}catch(e){}}
+  // 3. user_metadata de Supabase
+  if(!name&&window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)
+    name=window._currentUser.user_metadata.full_name;
+  // 4. _lastAuthUserName persistido
+  if(!name)name=localStorage.getItem('_lastAuthUserName')||'';
+  var email=(S.profile&&S.profile.email)
+    ||(window._currentUser&&window._currentUser.email)
+    ||localStorage.getItem('_lastAuthUserEmail')
+    ||'';
   var ov=document.createElement('div');
   ov.id='soporte-modal';
-  ov.style.cssText='position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;overflow-y:auto';
+  ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;overflow-y:auto';
   ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:92vh;display:flex;flex-direction:column;overflow:hidden">'
     +'<div style="display:flex;justify-content:center;padding:12px 0 4px;flex-shrink:0"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
     +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 14px;flex-shrink:0">'
@@ -8079,7 +8252,7 @@ async function _enviarSoporte(){
 function openAcercaDeModal(){
   var ov=document.createElement('div');
   ov.id='acercade-modal';
-  ov.style.cssText='position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);display:flex;align-items:flex-end';
+  ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.6);display:flex;align-items:flex-end';
   ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 40px">'
     +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
     +'<div style="display:flex;justify-content:flex-end;padding:4px 16px 0">'
@@ -8117,7 +8290,7 @@ function openAcercaDeModal(){
 function openTerminosModal(){
   var ov=document.createElement('div');
   ov.id='terminos-modal';
-  ov.style.cssText='position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);display:flex;align-items:flex-end';
+  ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.6);display:flex;align-items:flex-end';
 
   var s='font-size:14px;color:var(--text2);line-height:1.7';
   var h3='font-size:14px;font-weight:800;color:var(--text);margin:18px 0 6px';
@@ -8125,151 +8298,4 @@ function openTerminosModal(){
   var ul='margin:0 0 10px;padding-left:20px';
   var warn='margin:10px 0;padding:10px 14px;background:rgba(239,68,68,.07);border-radius:8px;font-size:13px';
   var ok='margin:10px 0;padding:10px 14px;background:rgba(0,212,170,.08);border-radius:8px;font-size:13px';
-  var email='<button onclick="document.getElementById(\'terminos-modal\').remove();openSoporteModal()" style="background:none;border:none;color:var(--primary);cursor:pointer;font-family:var(--font);font-size:14px;font-weight:600;text-decoration:underline;padding:0">soporte@xenda.co</button>';
-
-  var tcContent='<div style="'+s+'">'
-    +'<p style="'+p+'">Última actualización: abril 2026 · Operado por <strong>Xenda.co</strong></p>'
-
-    +'<h3 style="'+h3+'">1. Aceptación de los términos</h3>'
-    +'<p style="'+p+'">Al descargar, instalar o usar FinanzIA ("la Aplicación"), aceptas quedar vinculado por estos Términos y Condiciones ("Términos"). Si no estás de acuerdo, no uses la Aplicación. El uso continuado después de modificaciones implica aceptación de los nuevos términos.</p>'
-
-    +'<h3 style="'+h3+'">2. Descripción del servicio</h3>'
-    +'<p style="'+p+'">FinanzIA es una aplicación de gestión de finanzas personales que permite registrar cuentas, ingresos, gastos, presupuestos, metas y deudas, con sincronización en tiempo real entre dispositivos. El servicio se provee como está, sin garantías implícitas de disponibilidad continua.</p>'
-
-    +'<h3 style="'+h3+'">3. Elegibilidad</h3>'
-    +'<ul style="'+ul+'">'
-    +'<li>Tener al menos <strong>18 años</strong> de edad</li>'
-    +'<li>Tener capacidad legal para celebrar contratos en tu jurisdicción</li>'
-    +'<li>Proporcionar información veraz y completa durante el registro</li>'
-    +'<li>Mantener la seguridad de tus credenciales de acceso</li>'
-    +'</ul>'
-
-    +'<h3 style="'+h3+'">4. Uso aceptable</h3>'
-    +'<p style="'+p+'">Queda prohibido usar FinanzIA para:</p>'
-    +'<ul style="'+ul+'">'
-    +'<li>Actividades ilegales, fraudulentas o que vulneren derechos de terceros</li>'
-    +'<li>Intentar acceder a cuentas ajenas o vulnerar la seguridad del sistema</li>'
-    +'<li>Introducir malware, virus o código malicioso</li>'
-    +'<li>Realizar ingeniería inversa o descompilar la Aplicación</li>'
-    +'<li>Revender o sublicenciar el acceso al servicio</li>'
-    +'</ul>'
-
-    +'<h3 style="'+h3+'">5. Descargo financiero — IMPORTANTE</h3>'
-    +'<div style="'+warn+'"><strong>⚠️ FinanzIA es una herramienta de organización y análisis financiero personal. NO constituye asesoramiento financiero, de inversión, fiscal o legal certificado.</strong> Los análisis, sugerencias y proyecciones que muestra la Aplicación son de carácter exclusivamente informativo y educativo. Las decisiones financieras que tomes son de tu exclusiva responsabilidad.</div>'
-
-    +'<h3 style="'+h3+'">6. Propiedad intelectual</h3>'
-    +'<p style="'+p+'">Todos los derechos de propiedad intelectual sobre FinanzIA — incluyendo código, diseño, marca, logotipos y contenido — pertenecen a <strong>Xenda.co</strong>. Se te otorga una licencia limitada, no exclusiva e intransferible para usar la Aplicación según estos Términos.</p>'
-
-    +'<h3 style="'+h3+'">7. Cuentas y seguridad</h3>'
-    +'<p style="'+p+'">Eres responsable de mantener la confidencialidad de tu contraseña y PIN. Notifícanos inmediatamente ante cualquier acceso no autorizado. Xenda.co no será responsable por pérdidas derivadas del uso no autorizado de tu cuenta.</p>'
-
-    +'<h3 style="'+h3+'">8. Suspensión y eliminación</h3>'
-    +'<p style="'+p+'">Xenda.co puede suspender o terminar tu acceso si violas estos Términos. Puedes eliminar tu cuenta en cualquier momento desde Configuración. Tras la eliminación, tus datos se conservan 30 días para posible reactivación y luego se eliminan permanentemente.</p>'
-
-    +'<h3 style="'+h3+'">9. Limitación de responsabilidad</h3>'
-    +'<p style="'+p+'">En la máxima medida permitida por la ley aplicable, Xenda.co no será responsable por daños indirectos, incidentales, especiales o consecuentes, incluyendo pérdida de datos o beneficios, derivados de:</p>'
-    +'<ul style="'+ul+'">'
-    +'<li>Tu uso o incapacidad de usar la Aplicación</li>'
-    +'<li>Acceso no autorizado a tus datos por causas fuera de nuestro control</li>'
-    +'<li>Decisiones financieras basadas en información de la Aplicación</li>'
-    +'<li>Interrupciones del servicio por mantenimiento o causas de fuerza mayor</li>'
-    +'</ul>'
-
-    +'<h3 style="'+h3+'">10. Modificaciones del servicio</h3>'
-    +'<p style="'+p+'">Xenda.co se reserva el derecho de modificar, suspender o discontinuar la Aplicación en cualquier momento. Te notificaremos con antelación razonable ante cambios significativos.</p>'
-
-    +'<h3 style="'+h3+'">11. Jurisdicción y ley aplicable</h3>'
-    +'<p style="'+p+'">Estos Términos se rigen por las leyes de la <strong>República de Colombia</strong>. Cualquier disputa se resolverá ante los tribunales competentes de Colombia, sin perjuicio de las normas de protección al consumidor aplicables en tu país de residencia.</p>'
-
-    +'<h3 style="'+h3+'">12. Contacto</h3>'
-    +'<p style="'+p+'">Para consultas sobre estos Términos: '+email+'<br>Sitio web: <a href="https://xenda.co" target="_blank" style="color:var(--primary)">xenda.co</a></p>'
-    +'</div>';
-
-  var ppContent='<div style="'+s+'">'
-    +'<p style="'+p+'">Última actualización: abril 2026 · <strong>Xenda.co</strong> — Responsable del tratamiento de datos</p>'
-
-    +'<h3 style="'+h3+'">1. Información que recopilamos</h3>'
-    +'<p style="'+p+'"><strong>Datos de cuenta:</strong> Nombre y apellido, correo electrónico, país de origen y residencia, número de teléfono, profesión y foto de perfil (opcional).</p>'
-    +'<p style="'+p+'"><strong>Datos financieros:</strong> Cuentas bancarias (solo nombre y saldo, no credenciales), transacciones, presupuestos, metas, deudas y suscripciones que ingresas voluntariamente. <strong>No accedemos a tu banca en línea ni almacenamos credenciales bancarias.</strong></p>'
-    +'<p style="'+p+'"><strong>Datos técnicos:</strong> Idioma y moneda de preferencia, configuración de la app, timestamps de uso para sincronización.</p>'
-
-    +'<h3 style="'+h3+'">2. Finalidad y base legal del tratamiento</h3>'
-    +'<ul style="'+ul+'">'
-    +'<li><strong>Prestación del servicio:</strong> Sincronizar y mostrar tus datos financieros en todos tus dispositivos</li>'
-    +'<li><strong>Mejora del servicio:</strong> Análisis agregados y anónimos de uso para mejorar funcionalidades</li>'
-    +'<li><strong>Comunicación:</strong> Notificaciones sobre actualizaciones importantes del servicio</li>'
-    +'<li><strong>Cumplimiento legal:</strong> Obligaciones establecidas por la legislación aplicable</li>'
-    +'</ul>'
-    +'<p style="'+p+'">La base legal es la ejecución del contrato de servicio y tu consentimiento explícito al aceptar estos términos.</p>'
-
-    +'<h3 style="'+h3+'">3. Cómo protegemos tus datos</h3>'
-    +'<ul style="'+ul+'">'
-    +'<li>Transmisión cifrada mediante <strong>TLS/SSL</strong></li>'
-    +'<li>Almacenamiento seguro en <strong>Supabase</strong> con Row Level Security (RLS) — solo tú accedes a tus datos</li>'
-    +'<li>Autenticación segura con contraseña, PIN y/o biometría</li>'
-    +'<li>Tokens de acceso con expiración automática</li>'
-    +'<li>Sin acceso de empleados a datos financieros individuales</li>'
-    +'</ul>'
-
-    +'<h3 style="'+h3+'">4. No vendemos tus datos</h3>'
-    +'<div style="'+ok+'"><strong>✅ Xenda.co no vende, alquila, intercambia ni comparte tu información personal con terceros con fines publicitarios o comerciales, bajo ninguna circunstancia.</strong></div>'
-    +'<p style="'+p+'">Únicamente compartimos datos con:</p>'
-    +'<ul style="'+ul+'">'
-    +'<li><strong>Supabase Inc.</strong> (infraestructura de base de datos, EE.UU.) — bajo acuerdo de procesamiento de datos</li>'
-    +'<li><strong>Autoridades competentes</strong> cuando lo exija una orden judicial o ley aplicable</li>'
-    +'</ul>'
-
-    +'<h3 style="'+h3+'">5. Transferencias internacionales de datos</h3>'
-    +'<p style="'+p+'">Tus datos se almacenan en servidores de Supabase ubicados en <strong>Estados Unidos</strong>. Esta transferencia se realiza bajo las garantías contractuales adecuadas conforme al RGPD (cláusulas contractuales tipo) y la Ley 1581 de 2012 de Colombia. Al usar FinanzIA consientes expresamente esta transferencia.</p>'
-
-    +'<h3 style="'+h3+'">6. Tus derechos</h3>'
-    +'<p style="'+p+'">Tienes derecho a:</p>'
-    +'<ul style="'+ul+'">'
-    +'<li><strong>Acceder</strong> a tus datos personales</li>'
-    +'<li><strong>Rectificar</strong> información incorrecta o incompleta</li>'
-    +'<li><strong>Suprimir</strong> tu cuenta y todos los datos asociados</li>'
-    +'<li><strong>Exportar</strong> tus datos en formato legible (JSON)</li>'
-    +'<li><strong>Oponerte</strong> al tratamiento para fines distintos al servicio</li>'
-    +'<li><strong>Revocar</strong> el consentimiento en cualquier momento</li>'
-    +'</ul>'
-    +'<p style="'+p+'">Para ejercer estos derechos contacta: '+email+'</p>'
-    +'<p style="'+p+'">Los usuarios de la Unión Europea también tienen derecho a presentar una reclamación ante la autoridad de protección de datos de su país.</p>'
-
-    +'<h3 style="'+h3+'">7. Retención de datos</h3>'
-    +'<ul style="'+ul+'">'
-    +'<li>Datos activos: conservados mientras mantengas cuenta activa</li>'
-    +'<li>Tras eliminar cuenta: disponibles 30 días para reactivación</li>'
-    +'<li>Después de 30 días: eliminación permanente e irreversible</li>'
-    +'<li>Datos de facturación: conservados 7 años por obligación legal</li>'
-    +'</ul>'
-
-    +'<h3 style="'+h3+'">8. Menores de edad</h3>'
-    +'<p style="'+p+'">FinanzIA no está dirigida a personas menores de 18 años. No recopilamos intencionalmente datos de menores. Si detectamos datos de un menor, los eliminaremos de inmediato y cancelaremos la cuenta.</p>'
-
-    +'<h3 style="'+h3+'">9. Cookies y almacenamiento local</h3>'
-    +'<p style="'+p+'">FinanzIA usa <strong>localStorage</strong> del navegador/dispositivo exclusivamente para almacenar tus datos financieros localmente y mantener tu sesión activa. No usamos cookies de terceros ni rastreadores publicitarios.</p>'
-
-    +'<h3 style="'+h3+'">10. Notificación de brechas de seguridad</h3>'
-    +'<p style="'+p+'">En caso de una brecha de seguridad que afecte tus datos personales, te notificaremos por email en un plazo máximo de 72 horas desde que tengamos conocimiento del incidente, conforme al RGPD y normativa aplicable.</p>'
-
-    +'<h3 style="'+h3+'">11. Marco legal aplicable</h3>'
-    +'<p style="'+p+'">Esta Política de Privacidad cumple con:</p>'
-    +'<ul style="'+ul+'">'
-    +'<li><strong>Ley 1581 de 2012</strong> (Colombia) — Protección de datos personales</li>'
-    +'<li><strong>Decreto 1377 de 2013</strong> (Colombia) — Reglamentación Ley 1581</li>'
-    +'<li><strong>RGPD / GDPR</strong> (Unión Europea) — Para usuarios europeos</li>'
-    +'<li><strong>CCPA</strong> (California, EE.UU.) — Para usuarios californianos</li>'
-    +'</ul>'
-
-    +'<h3 style="'+h3+'">12. Contacto y DPO</h3>'
-    +'<p style="'+p+'">Para consultas sobre privacidad y protección de datos:<br>'
-    +email+'<br>'
-    +'<a href="https://xenda.co" target="_blank" style="color:var(--primary)">xenda.co</a><br>'
-    +'<span style="font-size:12px;color:var(--text3)">Xenda.co · Colombia</span></p>'
-    +'</div>';
-
-  ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:90vh;display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="display:flex;justify-content:center;padding:12px 0 4px;flex-shrink:0"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px;flex-shrink:0">'
-      +'<div style="font-size:17px;font-weight:800">Legal</div>'
-      +'<button onclick="document.getElementById(\'terminos-modal\').remove()" style="width:32px;height:32px;border-radiu
+  var email='<button onclick="document.getElementById(\'terminos-modal\').remove();openSoporteModal()" style="background:none;bord

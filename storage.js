@@ -203,7 +203,11 @@ function loadState(){
   if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
   if(!S.analysisPeriodSub)S.analysisPeriodSub='anual';if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
   if(!S.exchangeRate)S.exchangeRate={PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''};
-  if(!S.theme)S.theme='light';
+  // Tema: siempre light por defecto. Solo persiste si el usuario lo cambió en este dispositivo.
+  var _uid2=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:(localStorage.getItem('_lastAuthUserId')||'');
+  var _themeKey='_themeSet_'+(_uid2||'default');
+  if(!localStorage.getItem(_themeKey))S.theme='light';
+  else if(!S.theme)S.theme='light';
   if(!S.language&&!S._langUserSet){
     var _nl=((navigator.language||'').split('-')[0]||'').toLowerCase();
     var _sl=['es','en','zh','hi','ar','pt','fr','ru','bn','id','de','ja','tr','ko','vi','it','pl','fa','sw','ur'];
@@ -212,9 +216,6 @@ function loadState(){
   // language and weekStart stay empty until user chooses
   // currencies stay empty until user sets up profile
   if(typeof applyThemeMode==='function')applyThemeMode();
-  // Inyectar foto desde clave dedicada
-  var _puid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:(localStorage.getItem('_lastAuthUserId')||'');
-  if(_puid){var _psp=localStorage.getItem('_profilePhoto_'+_puid);if(_psp){if(!S.profile)S.profile={};S.profile.photo=_psp;}}
   // Update drawer profile
   updateDrawerProfile();
 }function _getProfilePhoto(){
@@ -241,10 +242,14 @@ function updateDrawerProfile(){
 
 function saveState(){
   // localStorage — siempre, síncrono, nunca falla
+  // La foto de perfil se guarda en clave dedicada (_profilePhoto_{uid}), no en finanziaState3
   try{
-    var _sl=Object.assign({},S);
-    if(_sl.profile&&_sl.profile.photo){_sl.profile=Object.assign({},_sl.profile);delete _sl.profile.photo;}
-    localStorage.setItem('finanziaState3',JSON.stringify(_sl));
+    var _toSaveLocal=Object.assign({},S);
+    if(_toSaveLocal.profile&&_toSaveLocal.profile.photo){
+      _toSaveLocal.profile=Object.assign({},_toSaveLocal.profile);
+      delete _toSaveLocal.profile.photo;
+    }
+    localStorage.setItem('finanziaState3',JSON.stringify(_toSaveLocal));
   }catch(e){}
   // Supabase — SOLO después de que syncFromSupabase haya completado al menos una vez
   // Esto evita la race condition donde initApp() guarda datos vacíos antes de recibir
@@ -269,13 +274,13 @@ function saveState(){
 async function saveUserData(userId,data){
   if(typeof _supabase==='undefined'||!_supabase) return;
   var toSave=Object.assign({},data);
-  if(toSave.profile&&toSave.profile.photo){toSave.profile=Object.assign({},toSave.profile);delete toSave.profile.photo;}
   // Campos de UI/navegación — no persistir en servidor
   delete toSave.currentPage;
   delete toSave._catTab;
   delete toSave.movFilter;
   // _lastSync es solo del cliente
   delete toSave._lastSync;
+  delete toSave.theme;
   // Campos de estado UI — no tienen sentido en otro dispositivo
   delete toSave._fcData;       // formulario de cuenta a medio llenar
   delete toSave._viewAccId;    // cuenta siendo visualizada
@@ -412,6 +417,7 @@ async function syncFromSupabase(userId){
 
     Object.keys(remote).forEach(function(key){
       if(key==='_remoteUpdatedAt') return;
+      if(key==='theme') return;
       var val=remote[key];
       if(val===null||val===undefined) return;
 
@@ -449,13 +455,17 @@ async function syncFromSupabase(userId){
     S.movFilter=keepMovFilter;
     S._catTab=keepCatTab;
     S._lastSync=remoteTs||Date.now();
-    try{localStorage.setItem('finanziaState3',JSON.stringify(S));}catch(e){}
+    try{
+      var _toSaveSync=Object.assign({},S);
+      if(_toSaveSync.profile&&_toSaveSync.profile.photo){
+        _toSaveSync.profile=Object.assign({},_toSaveSync.profile);
+        delete _toSaveSync.profile.photo;
+      }
+      localStorage.setItem('finanziaState3',JSON.stringify(_toSaveSync));
+    }catch(e){}
     // Bloquear save a Supabase 3s — datos vienen DE allí, guardar de vuelta genera loop Realtime
     window._lastSupabaseSave=Date.now()+3000;
     console.log('✅ sync aplicado',new Date(remoteTs).toLocaleTimeString());
-    // Restaurar foto desde clave dedicada post-sync
-    var _suid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:'';
-    if(_suid){var _ssp=localStorage.getItem('_profilePhoto_'+_suid);if(_ssp){if(!S.profile)S.profile={};S.profile.photo=_ssp;}}
     if(typeof renderPage==='function') renderPage(S.currentPage);
     if(typeof updateDrawerProfile==='function') updateDrawerProfile();
     if(typeof refreshCurrencyToggle==='function') refreshCurrencyToggle();
