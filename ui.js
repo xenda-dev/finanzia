@@ -146,9 +146,21 @@ function _updateHeader(page){
   hBack.style.display=isDash?'none':'flex';
   if(hSpacer)hSpacer.style.display=isDash?'none':'block';
   if(!isDash){
-    var _isGrp=(page==='grp-midinero'||page==='grp-planificacion'||page==='grp-herramientas'||page==='herramientas');
-    hTitle.style.display=_isGrp?'none':'block';
-    if(!_isGrp) hTitle.textContent=_getPageTitle(page);
+    var _isGrp=(page==='grp-midinero'||page==='grp-planificacion'||page==='grp-herramientas');
+    var _isChat=(page==='herramientas');
+    if(_isChat){
+      hTitle.style.display='flex';
+      hTitle.style.cssText='display:flex;align-items:center;gap:10px;flex:1;text-align:left;overflow:hidden';
+      hTitle.innerHTML='<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),var(--primary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid rgba(0,212,170,0.3);position:relative;flex-shrink:0">'
+        +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>'
+        +'<img src="/emiliano-chat.png" onerror="this.style.display=\'none\'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%">'
+        +'</div>'
+        +'<div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600;color:var(--text);line-height:1.2">Emiliano</div><div style="font-size:11px;color:var(--primary);line-height:1.3">Wealth Manager · FinanzIA</div></div>';
+    }else{
+      hTitle.style.cssText='display:none;font-size:16px;font-weight:700;color:var(--text);flex:1;text-align:center';
+      hTitle.style.display=_isGrp?'none':'block';
+      if(!_isGrp) hTitle.textContent=_getPageTitle(page);
+    }
     hBack.style.alignItems='center';
     hBack.style.justifyContent='center';
     if(hSpacer){
@@ -3044,16 +3056,6 @@ function renderHerramientas(){
     return '<button class="ai-quick-btn" onclick="aiQuickQuestion(\'' + q + '\')">'+q+'</button>';
   }).join('');
   return '<div class="ai-chat-wrap">'
-    +'<div class="ai-chat-header">'
-      +'<div class="ai-chat-avatar">'
-        +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>'
-        +'<img src="/emiliano-chat.png" onerror="this.style.display=\'none\'" alt="Emiliano">'
-      +'</div>'
-      +'<div class="ai-chat-info">'
-        +'<div class="ai-chat-name">Emiliano</div>'
-        +'<div class="ai-chat-status">Wealth Manager · FinanzIA</div>'
-      +'</div>'
-    +'</div>'
     +'<div class="ai-messages" id="ai-messages">'
       +'<div class="ai-date-sep"><span>Hoy</span></div>'
       +'<div class="ai-msg ai-msg-bot">'
@@ -5628,6 +5630,7 @@ function _openPickerScreen(title,searchPlaceholder){
   var backSvg='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
   var ov=document.createElement('div');
   ov.id='picker-screen-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   ov.innerHTML=
     '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0;position:relative">'
     +'<button onclick="closePickerScreen()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;z-index:1">'+backSvg+'</button>'
@@ -5638,7 +5641,7 @@ function _openPickerScreen(title,searchPlaceholder){
     +'<input id="picker-search" class="form-input" placeholder="'+searchPlaceholder+'" oninput="_filterPickerList(this.value)" style="font-size:14px;padding:10px 14px">'
     +'</div>'
     +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:12px 16px"></div>';
-  setTimeout(function(){var s=document.getElementById('picker-search');if(s)s.focus();},200);
+  document.body.appendChild(ov);
 }
 function closePickerScreen(){
   var el=document.getElementById('picker-screen-overlay');
@@ -5848,7 +5851,6 @@ function showCurrenciesPickerScreen(){
     +'</div>';
   document.body.appendChild(ov);
   _pickerCtx.render('');
-  setTimeout(function(){var s=document.getElementById('picker-search');if(s)s.focus();},200);
 }
 function _togglePickerCur(code){
   var sel=window._pickerCurSel||(window._pickerCurSel=[]);
