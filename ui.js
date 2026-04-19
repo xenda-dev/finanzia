@@ -8159,11 +8159,16 @@ function _showSoporteAsuntoBS(){
   });
 }
 function openSoporteModal(){
-  var name=(S.profile&&S.profile.name)
-    ||(window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)
-    ||localStorage.getItem('_lastAuthUserName')
-    ||localStorage.getItem('pendingName')
-    ||'';
+  var name='';
+  // 1. S.profile (dentro de la app)
+  if(S.profile&&S.profile.name) name=S.profile.name;
+  // 2. finanziaState3 en localStorage (disponible desde antes del login)
+  if(!name){try{var _fs=JSON.parse(localStorage.getItem('finanziaState3')||'{}');if(_fs.profile&&_fs.profile.name)name=_fs.profile.name;}catch(e){}}
+  // 3. user_metadata de Supabase
+  if(!name&&window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)
+    name=window._currentUser.user_metadata.full_name;
+  // 4. _lastAuthUserName persistido
+  if(!name)name=localStorage.getItem('_lastAuthUserName')||'';
   var email=(S.profile&&S.profile.email)
     ||(window._currentUser&&window._currentUser.email)
     ||localStorage.getItem('_lastAuthUserEmail')
