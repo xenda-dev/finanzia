@@ -5075,7 +5075,8 @@ function showBottomSheet(cfg){
   _bsAllItems=cfg.items||[];
   var overlay=document.createElement('div');
   overlay.id='bs-overlay';
-  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
+  var _bsZ=cfg.zIndex||9999;
+  overlay.style.cssText='position:fixed;inset:0;z-index:'+_bsZ+';background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
   overlay.onclick=function(e){if(e.target===overlay)closeBottomSheet();};
   var searchHtml=cfg.searchable
     ?'<div style="padding:8px 16px 10px"><input id="bs-search" class="form-input" placeholder="Buscar..." oninput="_filterBS(this.value)" style="font-size:14px;padding:10px 14px"></div>'
@@ -5136,8 +5137,6 @@ function closeBottomSheet(){
   if(o)o.remove();
   _bsCfg=null;
   _bsAllItems=[];
-  var mr=document.getElementById('modal-root');
-  if(mr)mr.style.zIndex='';
 }
 
 // ── Helper label de moneda en trigger BS ─────────────────
@@ -8154,13 +8153,12 @@ function _showSoporteAsuntoBS(){
     items:_SOPORTE_ASUNTOS.map(function(a){return{val:a,label:a};}),
     selected:cur,
     searchable:false,
+    zIndex:10003,
     onSelect:function(val){
       var inp=document.getElementById('sop-asunto');
       var lbl=document.getElementById('sop-asunto-lbl');
       if(inp)inp.value=val;
       if(lbl){lbl.textContent=val;lbl.style.color='var(--text)';}
-      var mr2=document.getElementById('modal-root');
-      if(mr2)mr2.style.zIndex='';
     }
   });
 }
