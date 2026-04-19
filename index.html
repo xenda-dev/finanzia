@@ -122,7 +122,9 @@
       <div style="display:flex;align-items:center;gap:10px;padding:10px 4px 0">
         <input type="checkbox" id="rg-tc" style="width:18px;height:18px;flex-shrink:0;accent-color:#00D4AA;cursor:pointer">
         <span style="font-size:13px;color:#64748B">Acepto los T&amp;C y Política de Privacidad</span>
-        <button type="button" id="rg-tc-link" style="margin-left:auto;background:none;border:none;color:#00D4AA;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;padding:4px 0;font-family:inherit" ontouchend="event.preventDefault();openTerminosModal()" onclick="openTerminosModal()">Ver</button>
+        <div onclick="openTerminosModal()" style="margin-left:auto;flex-shrink:0;cursor:pointer;width:32px;height:32px;border-radius:8px;background:rgba(0,212,170,.1);display:flex;align-items:center;justify-content:center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </div>
       </div>
       <div id="auth-err-rg" class="auth-err" style="display:none"></div>
       <div id="auth-rg-exists" style="display:none;background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.3);border-radius:12px;padding:14px 16px;font-size:13px;color:#0F766E;margin-top:8px;line-height:1.55">
