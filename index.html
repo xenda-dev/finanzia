@@ -119,13 +119,6 @@
         </div>
       </div>
 
-      <div style="display:flex;align-items:center;gap:10px;padding:10px 4px 0">
-        <input type="checkbox" id="rg-tc" style="width:18px;height:18px;flex-shrink:0;accent-color:#00D4AA;cursor:pointer">
-        <span style="font-size:13px;color:#64748B">Acepto los T&amp;C y Política de Privacidad</span>
-        <button type="button" onclick="openTerminosModal()" style="margin-left:auto;flex-shrink:0;cursor:pointer;width:32px;height:32px;border-radius:8px;background:rgba(0,212,170,.1);border:none;display:flex;align-items:center;justify-content:center;padding:0">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        </button>
-      </div>
       <div id="auth-err-rg" class="auth-err" style="display:none"></div>
       <div id="auth-rg-exists" style="display:none;background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.3);border-radius:12px;padding:14px 16px;font-size:13px;color:#0F766E;margin-top:8px;line-height:1.55">
         Ya tienes cuenta con este correo.<br>
@@ -134,6 +127,13 @@
     </div>
 
     <div class="auth-bottom">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <input type="checkbox" id="rg-tc" style="width:18px;height:18px;flex-shrink:0;accent-color:#00D4AA;cursor:pointer">
+        <span style="font-size:13px;color:#64748B;flex:1">Acepto los T&amp;C y Política de Privacidad</span>
+        <button type="button" onclick="openTerminosModal()" style="flex-shrink:0;cursor:pointer;width:32px;height:32px;border-radius:8px;background:rgba(0,212,170,.1);border:none;display:flex;align-items:center;justify-content:center;padding:0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </button>
+      </div>
       <button id="rg-btn" onclick="handleRegister()" class="auth-btn-primary">Registrarse</button>
       <div class="auth-footer" style="position:static;padding:max(env(safe-area-inset-bottom),16px) 20px 12px">© 2026 Xenda.co. Todos los derechos reservados.</div>
     </div>
@@ -212,8 +212,8 @@
       <div class="auth-logo-row" style="justify-content:center;">
         <img src="/icon-192.png" class="auth-logo-icon" alt="FinanzIA" style="width:48px;height:48px;">
       </div>
-      <button onclick="openSoporteModal()" aria-label="Soporte" style="position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:8px;background:var(--surface2,#F1F5F9);border:0.5px solid var(--border,#E2E8F0);display:flex;align-items:center;justify-content:center;cursor:pointer">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text2,#64748B)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+      <button onclick="openSoporteModal()" aria-label="Soporte" style="position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:50%;background:#CBD5E1;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-width="3"/></svg>
       </button>
     </div>
 
