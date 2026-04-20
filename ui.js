@@ -3600,11 +3600,10 @@ function openLoanForm(typeKey){
   screen.id='loan-form-screen';
   screen.style.cssText='position:fixed;inset:0;z-index:210;background:var(--surface);display:flex;flex-direction:column;overflow:hidden;animation:fadeInPage .2s ease';
   var inner='';
-  inner+='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:52px 16px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0">';
-  inner+='<button onclick="closeLoanForm()" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:6px 8px;line-height:1;border-radius:8px;display:flex;align-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>';
-  inner+='<div style="width:36px;height:36px;border-radius:10px;background:'+t.color+'22;display:flex;align-items:center;justify-content:center;font-size:20px">'+t.icon+'</div>';
-  inner+='<div><div style="font-size:17px;font-weight:800;color:var(--text)">'+t.label+'</div>';
-  inner+='<div style="font-size:11px;color:var(--text3)">Tasa máx. referencial: '+t.maxRate.toFixed(1)+'% EA</div></div>';
+  inner+='<div style="height:var(--header-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:4px;flex-shrink:0">';
+  inner+='<button onclick="closeLoanForm()" style="width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
+  inner+='<div style="flex:1;text-align:center;font-size:16px;font-weight:700;color:var(--text)">'+t.label+'</div>';
+  inner+='<div style="width:36px;height:36px;flex-shrink:0"></div>';
   inner+='</div>';
   inner+='<div style="flex:1;overflow-y:auto;padding:16px">';
   // Info card
@@ -3669,6 +3668,13 @@ function openLoanForm(typeKey){
   inner+='</div>';
   inner+='</div>'; // loan-result
   inner+='</div>'; // scroll
+  inner+='<nav style="height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;flex-shrink:0;padding-bottom:max(env(safe-area-inset-bottom),14px)">';
+  inner+='<button onclick="closeLoanForm();navigate(\'dashboard\')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border:none;background:none;color:var(--text3);cursor:pointer;flex:1;font-size:10px;font-family:var(--font)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio</button>';
+  inner+='<button onclick="closeLoanForm();navigate(\'movimientos\')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border:none;background:none;color:var(--text3);cursor:pointer;flex:1;font-size:10px;font-family:var(--font)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>Movimientos</button>';
+  inner+='<button onclick="closeLoanForm();openTransactionModal()" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:26px;line-height:1;flex-shrink:0;margin-top:-16px">＋</button>';
+  inner+='<button onclick="closeLoanForm();navigate(\'mis-cuentas\')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border:none;background:none;color:var(--text3);cursor:pointer;flex:1;font-size:10px;font-family:var(--font)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Cuentas</button>';
+  inner+='<button onclick="closeLoanForm()" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border:none;background:none;cursor:pointer;flex:1;font-family:var(--font);color:var(--primary)"><div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),var(--primary));border:2px solid rgba(0,212,170,0.35);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg></div></button>';
+  inner+='</nav>';
   screen.innerHTML=inner;
   document.body.appendChild(screen);
   window._loanType=t;
