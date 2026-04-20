@@ -3098,27 +3098,28 @@ function renderSimuladores(){
     {svg:_svg.calculadora,label:'Cr\u00e9ditos',sub:'Calcula cuotas y amortizaci\u00f3n',page:'calculadora',color:'#EF4444'},
     {svg:_svg.inflacion,label:'Inflaci\u00f3n',sub:'Protege tu poder adquisitivo',page:'inflacion',color:'#F59E0B'}
   ];
+  var cStyle='display:flex;flex-direction:column;align-items:flex-start;padding:14px 12px;background:var(--surface2);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:8px;font-family:var(--font);text-align:left;min-height:116px;width:100%';
   function mkCard(s){
-    return '<button onclick="navigate(\''+s.page+'\')" style="display:flex;flex-direction:column;align-items:flex-start;padding:11px;background:var(--surface2);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;font-family:var(--font);gap:7px;width:100%;height:100%;box-sizing:border-box;overflow:hidden">'
-      +'<div style="width:36px;height:36px;border-radius:10px;background:'+s.color+'1A;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+s.svg+'</div>'
-      +'<div style="min-width:0"><div style="font-size:12px;font-weight:700;color:var(--text)">'+s.label+'</div>'
-      +'<div style="font-size:10px;color:var(--text2);margin-top:2px;line-height:1.3">'+s.sub+'</div></div>'
+    return '<button onclick="navigate(\''+s.page+'\')" style="'+cStyle+'">'
+      +'<div style="width:40px;height:40px;border-radius:12px;background:'+s.color+'1A;display:flex;align-items:center;justify-content:center">'+s.svg+'</div>'
+      +'<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text)">'+s.label+'</div>'
+      +'<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.3">'+s.sub+'</div></div>'
       +'</button>';
   }
-  var html='<div style="height:calc(100dvh - var(--header-h) - var(--nav-h));display:flex;flex-direction:column;padding:12px 16px 8px;box-sizing:border-box;overflow:hidden">';
-  html+='<div style="flex-shrink:0;margin-bottom:8px">';
+  var html='<div style="padding:12px 16px 20px">';
+  html+='<div style="margin-bottom:8px">';
   html+='<div style="font-size:22px;font-weight:800;color:var(--text)">Simuladores</div>';
   html+='<div style="font-size:12px;color:var(--text2);margin-top:2px">Calcula y proyecta antes de tomar decisiones</div>';
   html+='</div>';
-  html+='<div style="flex-shrink:0;margin-bottom:8px;padding:9px 12px;background:rgba(0,212,170,.06);border-radius:12px;border:0.5px solid rgba(0,212,170,.2)">';
+  html+='<div style="margin-bottom:10px;padding:9px 12px;background:rgba(0,212,170,.06);border-radius:12px;border:0.5px solid rgba(0,212,170,.2)">';
   html+='<div style="font-size:12px;color:var(--text2);line-height:1.5"><strong style="color:var(--text)">Simula antes de decidir.</strong> Proyecta escenarios reales con tus propios datos.</div>';
   html+='</div>';
-  html+='<div style="flex-shrink:0;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Ahorro y futuro</div>';
-  html+='<div style="flex:3;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:7px;margin-bottom:6px">';
+  html+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Ahorro y futuro</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">';
   sec1.forEach(function(s){html+=mkCard(s);});
   html+='</div>';
-  html+='<div style="flex-shrink:0;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Cr\u00e9dito e inflaci\u00f3n</div>';
-  html+='<div style="flex:2;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:7px">';
+  html+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Cr\u00e9dito e inflaci\u00f3n</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
   sec2.forEach(function(s){html+=mkCard(s);});
   html+='</div>';
   html+='</div>';
