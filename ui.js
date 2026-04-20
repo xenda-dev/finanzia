@@ -3524,29 +3524,18 @@ function closeTestResult(){
 }
 function renderCalculadora(){
   var q="'";
-  var html='';
-  html+='<div class="card" style="margin-bottom:14px;padding:14px;border-left:3px solid #EF4444">';
-  html+='<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">📐 ¿Para qué sirve?</div>';
-  html+='<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Simula cualquier tipo de crédito: calcula tu cuota mensual, el total de intereses y el plan de amortización completo. Ideal para evaluar antes de endeudarte.</div>';
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
-  html+='<div style="background:rgba(16,185,129,.08);border-radius:var(--radius-sm);padding:8px">';
-  html+='<div style="font-size:9px;font-weight:700;color:var(--success);margin-bottom:4px;text-transform:uppercase">✅ Úsalo para</div>';
-  html+='<div style="font-size:11px;color:var(--text2);line-height:1.5">· Comparar tasas entre bancos<br>· Saber si puedes pagar la cuota<br>· Entender cuánto pagas de más</div>';
+  var html='<div style="padding:12px 16px 20px">';
+  html+='<div style="margin-bottom:10px;padding:9px 12px;background:rgba(239,68,68,.06);border-radius:12px;border:0.5px solid rgba(239,68,68,.25)">';
+  html+='<div style="font-size:12px;color:var(--text2);line-height:1.4"><strong style="color:var(--text)">Simula tu cr\u00e9dito.</strong> Compara tasas, cuotas y amortizaci\u00f3n antes de decidir. Tasas m\u00e1x. son referenciales.</div>';
   html+='</div>';
-  html+='<div style="background:rgba(239,68,68,.08);border-radius:var(--radius-sm);padding:8px">';
-  html+='<div style="font-size:9px;font-weight:700;color:var(--danger);margin-bottom:4px;text-transform:uppercase">⚠️ Recuerda</div>';
-  html+='<div style="font-size:11px;color:var(--text2);line-height:1.5">· Tasas máx. son referenciales<br>· No incluye seguros ni comisiones<br>· Confirma con tu entidad</div>';
-  html+='</div>';
-  html+='</div></div>';
-  html+='<div style="margin-bottom:14px">';
-  html+='<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Selecciona el tipo de crédito</div>';
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">';
+  html+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Selecciona el tipo de cr\u00e9dito</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px">';
   var types=window._LOAN_TYPES||[];
   types.forEach(function(t){
-    html+='<button onclick="openLoanForm('+q+t.key+q+')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 8px 14px;background:var(--surface);border:1px solid var(--border);border-radius:18px;cursor:pointer;gap:8px;font-family:var(--font);min-height:90px;border-top:3px solid '+t.color+';box-shadow:var(--card-shadow)">';
-    html+='<span style="font-size:28px;line-height:1">'+t.icon+'</span>';
-    html+='<span style="font-size:11px;font-weight:700;color:var(--text);text-align:center;line-height:1.3">'+t.label+'</span>';
-    html+='<span style="font-size:9px;color:var(--text3)">máx. '+t.maxRate.toFixed(1)+'% EA</span>';
+    html+='<button onclick="openLoanForm('+q+t.key+q+')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:16px;cursor:pointer;gap:6px;font-family:var(--font);border-top:3px solid '+t.color+';box-shadow:var(--card-shadow);width:100%">';
+    html+='<span style="font-size:24px;line-height:1">'+t.icon+'</span>';
+    html+='<span style="font-size:10px;font-weight:700;color:var(--text);text-align:center;line-height:1.3">'+t.label+'</span>';
+    html+='<span style="font-size:8px;color:var(--text3)">m\u00e1x. '+t.maxRate.toFixed(1)+'% EA</span>';
     html+='</button>';
   });
   html+='</div></div>';
@@ -3673,7 +3662,7 @@ function openLoanForm(typeKey){
   inner+='<button onclick="closeLoanForm();navigate(\'movimientos\')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border:none;background:none;color:var(--text3);cursor:pointer;flex:1;font-size:10px;font-family:var(--font)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>Movimientos</button>';
   inner+='<button onclick="closeLoanForm();openTransactionModal()" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:26px;line-height:1;flex-shrink:0;margin-top:-16px">＋</button>';
   inner+='<button onclick="closeLoanForm();navigate(\'mis-cuentas\')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border:none;background:none;color:var(--text3);cursor:pointer;flex:1;font-size:10px;font-family:var(--font)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Cuentas</button>';
-  inner+='<button onclick="closeLoanForm()" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border:none;background:none;cursor:pointer;flex:1;font-family:var(--font);color:var(--primary)"><div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),var(--primary));border:2px solid rgba(0,212,170,0.35);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg></div></button>';
+  inner+='<button onclick="closeLoanForm()" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border:none;background:none;cursor:pointer;flex:1;font-family:var(--font);color:var(--primary)"><div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),var(--primary));border:2px solid rgba(0,212,170,0.35);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg><img src="/emiliano-avatar.png" onerror="this.style.display=\'none\'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Emiliano"></div></button>';
   inner+='</nav>';
   screen.innerHTML=inner;
   document.body.appendChild(screen);
