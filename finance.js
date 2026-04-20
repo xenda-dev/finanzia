@@ -582,8 +582,8 @@ function toggleRule502030(){
 function renderJubilacion(){
   return'<div style="padding:0">'+
     '<div class="card" style="margin-bottom:14px;padding:14px;border-left:3px solid #7461EF">'+
-      '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">👴 ¿Para qué sirve?</div>'+
-      '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Te ayuda a estimar cuánto capital acumularás al momento de retirarte y si ese capital es suficiente para vivir los años que vienen. Es esencial para cualquier persona que quiera planificar su independencia financiera.</div>'+
+      '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">👴 ¿Cuánto necesitas para jubilarte tranquilo?</div>'+
+      '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Aquí lo calculamos sin rodeos. Estima cuánto capital acumularás al retirarte y si es suficiente para vivir tranquilo los años que vienen.</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
         '<div style="background:rgba(116,97,239,.08);border-radius:var(--radius-sm);padding:8px">'+
           '<div style="font-size:9px;font-weight:700;color:#7461EF;margin-bottom:4px;text-transform:uppercase">¿Quién lo usa?</div>'+
@@ -731,8 +731,8 @@ function calcJubilacion(){
 function renderEmergencia(){
   return'<div style="padding:0">'+
     '<div class="card" style="margin-bottom:14px;padding:14px;border-left:3px solid #10B981">'+
-      '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">🛡️ ¿Para qué sirve?</div>'+
-      '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Un fondo de emergencia es un colchón de dinero líquido para imprevistos: pérdida de empleo, enfermedad, reparaciones urgentes. Sin él, cualquier emergencia termina en deuda.</div>'+
+      '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">🛡️ Tu colchón financiero</div>'+
+      '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Ese dinero que te salva cuando todo sale mal. Pérdida de empleo, enfermedad, reparaciones urgentes. ¿Tienes el tuyo listo?</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
         '<div style="background:rgba(16,185,129,.08);border-radius:var(--radius-sm);padding:8px">'+
           '<div style="font-size:9px;font-weight:700;color:var(--success);margin-bottom:4px;text-transform:uppercase">¿Cuántos meses?</div>'+
@@ -844,8 +844,8 @@ function calcEmergencia(){
 function renderInflacion(){
   return'<div style="padding:0">'+
     '<div class="card" style="margin-bottom:14px;padding:14px;border-left:3px solid #F59E0B">'+
-      '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">💸 ¿Para qué sirve?</div>'+
-      '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">La inflación reduce silenciosamente el valor de tu dinero. Este simulador muestra cuánto poder adquisitivo pierdes con el tiempo y cuánto necesitas invertir para protegerte.</div>'+
+      '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">💸 La inflación te come el dinero. Aquí lo vemos juntos.</div>'+
+      '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Descubre cuánto pierde tu dinero en el tiempo y cuánto necesitas invertir para no perder poder adquisitivo.</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
         '<div style="background:rgba(245,158,11,.1);border-radius:var(--radius-sm);padding:8px">'+
           '<div style="font-size:9px;font-weight:700;color:var(--warning);margin-bottom:4px;text-transform:uppercase">Ejemplo real</div>'+
@@ -935,8 +935,8 @@ function calcInflacion(){
 function renderRentabilidad(){
   return'<div style="padding:0">'+
     '<div class="card" style="margin-bottom:14px;padding:14px;border-left:3px solid #3B82F6">'+
-      '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">📊 ¿Para qué sirve?</div>'+
-      '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Mide el rendimiento real de una inversión considerando el tiempo, los rendimientos recibidos y ajustando por inflación. Fundamental para comparar si una inversión valió la pena.</div>'+
+      '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">📊 ¿Tu inversión realmente rindió?</div>'+
+      '<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Calcula el retorno real ajustado por inflación y tiempo. Porque un número bonito no siempre significa una buena inversión.</div>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
         '<div style="background:rgba(59,130,246,.08);border-radius:var(--radius-sm);padding:8px">'+
           '<div style="font-size:9px;font-weight:700;color:#3B82F6;margin-bottom:4px;text-transform:uppercase">ROI vs CAGR</div>'+
@@ -1055,7 +1055,7 @@ function setEstrategiaMetodo(m){
 }
 function renderEstrategia(){
   const debts=S.accounts.filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency);
-  if(!debts.length)return '<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">¡Sin deudas!</div><div class="empty-desc">No tienes deudas registradas en '+S.currency+'</div></div>';
+  if(!debts.length)return '<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">¡Sin deudas registradas!</div><div class="empty-desc">Eso es una buena noticia 🙌 Agrega tus deudas en la sección Deudas para usar este simulador.</div></div>';
 
   const metodo=window._estrategiaMetodo||'';
   const extra=parseFloat((window._estrategiaExtra||'').toString().replace(/[^0-9.]/g,''))||0;
