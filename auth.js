@@ -39,7 +39,7 @@ function initSupabase(){
       var btn = document.getElementById('verify-continue-btn');
       if(u && u.email_confirmed_at && btn){
         btn.disabled = false;
-        try{ toast('\u00a1Correo confirmado! Ya puedes continuar.'); }catch(e){}
+        try{ toast('¡Listo! Correo confirmado ✓'); }catch(e){}
       }else if(btn){
         // Fallback: el evento llegó pero email_confirmed_at aún no está
         enableContinueIfVerified();
@@ -108,9 +108,9 @@ async function deleteUserAccount(){
   confirmDialog(
     '⚠️',
     'Eliminar cuenta',
-    'Se eliminarán TODOS tus datos y tu cuenta de forma permanente. Esta acción es irreversible.',
+    '¿Seguro que quieres irte? Borraremos todos tus datos para siempre. Esto no tiene marcha atrás.',
     function(){ _showDeletePasswordModal(); },
-    'Continuar',
+    'Sí, eliminar todo',
     'btn-danger'
   );
 }
@@ -133,13 +133,13 @@ function _showDeletePasswordModal(){
     +'<div style="display:flex;justify-content:center;margin-bottom:16px"><div style="width:40px;height:4px;border-radius:2px;background:var(--border)"></div></div>'
     +'<div style="font-size:24px;font-weight:700;color:var(--text);text-align:center;margin-bottom:4px">Hola, '+_getFirstNameForDelete()+'</div>'
     +'<div style="font-size:18px;font-weight:700;color:var(--danger);margin-bottom:8px;text-align:center">⚠️ Confirma tu identidad</div>'
-    +'<div style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:20px">Por seguridad es necesario que ingreses la contraseña con la que te registraste para eliminar tu cuenta definitivamente.</div>'
+    +'<div style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:20px">Ingresa tu contraseña para confirmar. Después, borraremos todo permanentemente.</div>'
     +'<div style="position:relative;margin-bottom:8px">'
       +'<input id="del-pw-input" type="password" placeholder="Contraseña" autocomplete="current-password" style="width:100%;padding:14px 48px 14px 16px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:15px;font-family:var(--font);box-sizing:border-box">'
       +'<button onclick="_toggleDelPw()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px" id="del-pw-eye">&#128065;</button>'
     +'</div>'
     +'<div id="del-pw-err" style="min-height:18px;font-size:12px;color:var(--danger);margin-bottom:14px;padding-left:4px"></div>'
-    +'<button id="del-pw-btn" onclick="_confirmDeleteWithPassword()" style="width:100%;padding:15px;border-radius:50px;background:var(--danger);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar mi cuenta</button>'
+    +'<button id="del-pw-btn" onclick="_confirmDeleteWithPassword()" style="width:100%;padding:15px;border-radius:50px;background:var(--danger);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Sí, eliminar todo</button>'
     +'<button onclick="_closeDeletePwOverlay()" style="width:100%;padding:12px;border-radius:50px;background:transparent;border:none;color:var(--text2);font-size:14px;cursor:pointer;font-family:var(--font);margin-top:8px">Cancelar</button>'
     +'</div>';
   document.body.appendChild(ov);
@@ -166,8 +166,8 @@ async function _confirmDeleteWithPassword(){
   try{
     var {data,error}=await _supabase.auth.signInWithPassword({email:email,password:pw});
     if(error||!data.session){
-      if(err) err.textContent='Contraseña incorrecta';
-      if(btn){ btn.disabled=false; btn.textContent='Eliminar mi cuenta'; }
+      if(err) err.textContent='Esa contraseña no coincide. ¿La revisamos?';
+      if(btn){ btn.disabled=false; btn.textContent='Sí, eliminar todo'; }
       return;
     }
     var token=data.session.access_token;
@@ -185,8 +185,8 @@ async function _confirmDeleteWithPassword(){
     clearTimeout(fetchTimeout);
     var json=await res.json();
     if(!res.ok){
-      if(err) err.textContent='Error: '+(json.error||'No se pudo eliminar');
-      if(btn){ btn.disabled=false; btn.textContent='Eliminar mi cuenta'; }
+      if(err) err.textContent='Algo salió mal. Inténtalo de nuevo.';
+      if(btn){ btn.disabled=false; btn.textContent='Sí, eliminar todo'; }
       return;
     }
     var ov2=document.getElementById('delete-pw-overlay');
@@ -200,8 +200,8 @@ async function _confirmDeleteWithPassword(){
     if(el) el.remove();
     _showOnboarding();
   }catch(e){
-    if(err) err.textContent='Error: '+e.message;
-    if(btn){ btn.disabled=false; btn.textContent='Eliminar mi cuenta'; }
+    if(err) err.textContent='Ups, algo falló: '+e.message+'. Intenta de nuevo.';
+    if(btn){ btn.disabled=false; btn.textContent='Sí, eliminar todo'; }
   }
 }
 async function getCurrentUser(){
@@ -357,7 +357,7 @@ async function _handleBioSheetUnlock(){
     _closeBioSheet();
     showAuthScreen();
     _showScreen('login');
-    try{ toast('Usa tu contraseña para continuar'); }catch(e){}
+    try{ toast('Hmm, no te reconocí. Intenta con tu contraseña.'); }catch(e){}
   }
 }
 
@@ -426,7 +426,7 @@ async function _activateBioFromSheet(userId, email){
     if(typeof S!=='undefined'&&S.currentPage==='mi-perfil'){
       setTimeout(function(){if(typeof renderPage==='function')renderPage('mi-perfil');},300);
     }else{
-      try{ toast('Huella activada \u2713'); }catch(e){}
+      try{ toast('¡Listo! Huella activada ✓'); }catch(e){}
     }
   }
 }
@@ -462,7 +462,7 @@ function _setBusy(id,busy,label){
 async function handleLogin(){
   var email=(document.getElementById('li-email').value||'').trim();
   var pass=(document.getElementById('li-pass').value||'').trim();
-  if(!email||!pass){_setError('li','Completa todos los campos');return;}
+  if(!email||!pass){_setError('li','Falta algo por completar 👆');return;}
   _setError('li',''); _setBusy('li-btn',true,'Iniciar sesión');
   var res=await signIn(email,pass);
   _setBusy('li-btn',false,'Iniciar sesión');
@@ -492,7 +492,7 @@ async function handleRegister(){
   var tcCheck=document.getElementById('rg-tc');
   if(!tcCheck||!tcCheck.checked){_setError('rg','Debes aceptar los Términos y Condiciones para continuar');return;}
   if(name.split(/\s+/).filter(Boolean).length<2){_setError('rg','Ingresa nombre y apellido completos');return;}
-  if(!email||!pass){_setError('rg','Completa todos los campos');return;}
+  if(!email||!pass){_setError('rg','Falta algo por completar 👆');return;}
   if(pass.length<8){_setError('rg','Mínimo 8 caracteres');return;}
   if(!/[A-Z]/.test(pass)){_setError('rg','Debe incluir al menos una mayúscula');return;}
   if(!/[0-9]/.test(pass)){_setError('rg','Debe incluir al menos un número');return;}
@@ -578,7 +578,7 @@ function _injectLogoutBtn(){
   var drawer = document.getElementById('drawer'); if(!drawer) return;
   var container = document.createElement('div');
   container.id = 'drawer-logout-btn';
-  container.setAttribute('onclick', 'signOut()');
+  container.setAttribute('onclick', 'confirmDialog("👋","¿Cerrar sesión?","Tus datos quedan seguros. Puedes volver cuando quieras.",function(){signOut();},"Salir","btn-danger")');
   container.style.cssText = 'padding:8px 16px;border-top:1px solid var(--border);margin-top:2px;cursor:pointer;flex-shrink:0';
   container.innerHTML =
     '<div style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:50px;background:rgba(239,68,68,.08);color:var(--danger);font-size:14px;font-weight:600;font-family:var(--font)">'
@@ -628,7 +628,7 @@ async function handleRecoverPassword(){
   }catch(e){
     _setError('rc','Algo salió mal. Intenta de nuevo.');
   }
-  if(btn){btn.disabled=false;btn.textContent='Recuperar contraseña';}
+  if(btn){btn.disabled=false;btn.textContent='Enviar enlace';}
 }
 function goToLogin(){
   _emailConfirmPending = false;
@@ -657,12 +657,12 @@ function _authMsg(msg){
   if(!msg)return{ok:false,msg:'Error desconocido'};
   if(msg.includes('already registered'))return{ok:false,msg:'',isExists:true};
   if(msg.includes('User already registered'))return{ok:false,msg:'',isExists:true};
-  if(msg.includes('Invalid login'))return{ok:false,msg:'Correo o contraseña incorrectos'};
+  if(msg.includes('Invalid login'))return{ok:false,msg:'Hmm, algo no cuadra. ¿Revisamos el correo o la contraseña?'};
   if(msg.includes('Password should'))return{ok:false,msg:'Contraseña débil: mínimo 8 caracteres, mayúscula, número y símbolo'};
   if(msg.includes('valid email'))return{ok:false,msg:'Ingresa un correo válido'};
   if(msg.includes('Email not confirmed'))return{ok:false,msg:'Confirma tu correo antes de entrar'};
   if(msg.includes('rate limit'))return{ok:false,msg:'Demasiados intentos. Espera unos minutos'};
-  return{ok:false,msg:msg};
+  return{ok:false,msg:'Hmm, algo no cuadra. ¿Revisamos el correo o la contraseña?'};
 }
 
 
@@ -876,7 +876,7 @@ async function _pinUseBiometric(){
       _currentUser = res.data.user;
     }catch(e){
       showAuthScreen(); _showScreen('login');
-      try{ toast('Sesión expirada'); }catch(ex){}
+      try{ toast('Tu sesión expiró — vuelve a entrar 🔐','info'); }catch(ex){}
       return;
     }
     hideAuthScreen();
@@ -911,7 +911,7 @@ function showSetPinModal(user){
 
   function draw(){
     var title    = st.step === 1 ? 'Crea tu PIN de 4 dígitos' : 'Confirma tu PIN';
-    var subtitle = st.step === 1 ? 'Lo usarás para ingresar rápidamente' : 'Ingresa el mismo PIN de nuevo';
+    var subtitle = st.step === 1 ? 'Lo usarás para entrar rápido sin escribir tu contraseña' : 'Ingresa el mismo PIN de nuevo';
     overlay.innerHTML =
       '<div id="set-pin-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
       +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:40px;height:4px;border-radius:2px;background:var(--border,#E2E8F0)"></div></div>'
@@ -1360,7 +1360,7 @@ function _initSetPinScreen(){
 
   function refreshPinScreen(){
     var title = st.step === 1 ? 'Crea tu PIN de 4 d\u00edgitos' : 'Confirma tu PIN';
-    var sub   = st.step === 1 ? 'Lo usar\u00e1s para ingresar r\u00e1pidamente' : 'Ingresa el mismo PIN de nuevo';
+    var sub   = st.step === 1 ? 'Lo usarás para entrar rápido sin escribir tu contraseña' : 'Ingresa el mismo PIN de nuevo';
     var titleEl  = document.getElementById('set-pin-screen-title');
     var subEl    = document.getElementById('set-pin-screen-subtitle');
     var errEl    = document.getElementById('set-pin-screen-err');
@@ -1432,7 +1432,7 @@ function _initBioSetupScreen(){
     if(btnEl)  btnEl.style.display = 'none';
   }else{
     if(infoEl) infoEl.textContent = 'Activa tu huella o Face ID para ingresar m\u00e1s r\u00e1pido, sin recordar contrase\u00f1as.';
-    if(btnEl){ btnEl.style.display = ''; btnEl.disabled = false; btnEl.textContent = 'Activar ahora'; }
+    if(btnEl){ btnEl.style.display = ''; btnEl.disabled = false; btnEl.textContent = 'Activar huella'; }
   }
 }
 
@@ -1496,7 +1496,7 @@ function enableContinueIfVerified(){
       if(rv.data&&rv.data.user&&rv.data.user.email_confirmed_at){
         clearInterval(interval);
         btn.disabled=false;
-        try{ toast('\u00a1Correo confirmado! Ya puedes continuar.'); }catch(e){}
+        try{ toast('¡Listo! Correo confirmado ✓'); }catch(e){}
       }
     }).catch(function(){ clearInterval(interval); });
   },2000);
@@ -1582,7 +1582,8 @@ function _showWelcomeScreen(user){
     }catch(e){}
   }
   var greetEl = document.getElementById('welcome-greeting');
-  if(greetEl) greetEl.textContent = '\u00a1Hola, ' + firstName + '!';
+  var _hr=new Date().getHours();var _greet=_hr<12?'\u00a1Buenos d\u00edas':_hr<19?'\u00a1Buenas tardes':'\u00a1Buenas noches';
+  if(greetEl) greetEl.textContent = _greet + ', ' + firstName + '!';
   _showScreen('welcome');
   var fpIcon = document.getElementById('welcome-fp-icon');
   if(fpIcon && typeof _fpSvgSm !== 'undefined') fpIcon.innerHTML = _fpSvgSm;
@@ -1736,24 +1737,24 @@ function _showOnboarding(){
       shadow:'rgba(0,212,170,.25)',
       btnGrad:'linear-gradient(135deg,#00D4AA,#00A884)',
       icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
-      title:'Toma el control total<br>de tu dinero',
-      sub:'Centraliza tus cuentas, ingresos y gastos en un solo lugar. Visualiza tu salud financiera en tiempo real.'
+      title:'Tus finanzas, por fin<br>en orden \uD83D\uDC9A',
+      sub:'Registra, analiza y controla tu dinero desde un solo lugar. Sin complicaciones.'
     },
     {
-      accent:'#00D4AA',
-      shadow:'rgba(0,212,170,.25)',
-      btnGrad:'linear-gradient(135deg,#00D4AA,#00A884)',
+      accent:'#7461EF',
+      shadow:'rgba(116,97,239,.25)',
+      btnGrad:'linear-gradient(135deg,#7461EF,#5B4ED4)',
       icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-3.16A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-3.16A2.5 2.5 0 0 0 14.5 2z"/></svg>',
-      title:'Decisiones inteligentes<br>con IA',
-      sub:'Recibe consejos personalizados para ahorrar m\u00e1s y gastar mejor. Nuestros algoritmos detectan patrones y optimizan tus presupuestos.'
+      title:'Metas que s\u00ed<br>se cumplen \uD83C\uDFAF',
+      sub:'Crea presupuestos, define metas de ahorro y programa tus pagos. Tu dinero, con prop\u00f3sito.'
     },
     {
-      accent:'#00D4AA',
-      shadow:'rgba(0,212,170,.25)',
-      btnGrad:'linear-gradient(135deg,#00D4AA,#00A884)',
+      accent:'#10B981',
+      shadow:'rgba(16,185,129,.25)',
+      btnGrad:'linear-gradient(135deg,#10B981,#059669)',
       icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>',
-      title:'Tu privacidad es primero',
-      sub:'Tu informaci\u00f3n viaja cifrada y protegida con acceso biom\u00e9trico. Tus datos financieros son solo tuyos.'
+      title:'Emiliano, tu<br>copiloto financiero \uD83E\uDD1D',
+      sub:'Pregúntale lo que quieras sobre tus finanzas. Ve tus datos en tiempo real y toma mejores decisiones.'
     }
   ];
   var cur=0;
@@ -1780,7 +1781,7 @@ function _showOnboarding(){
       +'<div style="padding:24px 24px 44px;display:flex;flex-direction:column;align-items:center;gap:20px;flex-shrink:0">'
         +'<div style="display:flex;align-items:center;gap:8px">'+dots+'</div>'
         +'<button onclick="_onboardingNext()" style="width:100%;padding:16px;border-radius:50px;background:'+s.btnGrad+';border:none;color:white;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px;box-shadow:0 8px 24px '+s.shadow+'">'
-          +(isLast?'\u00a1Comenzar ahora!':'Siguiente')
+          +(isLast?'Empecemos \uD83D\uDE80':'Siguiente \u2192')
         +'</button>'
       +'</div>';
   }
