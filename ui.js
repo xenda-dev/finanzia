@@ -146,7 +146,7 @@ function _updateHeader(page){
   hBack.style.display=isDash?'none':'flex';
   if(hSpacer)hSpacer.style.display=isDash?'none':'block';
   if(!isDash){
-    var _isGrp=(page==='grp-midinero'||page==='grp-planificacion'||page==='grp-herramientas');
+    var _isGrp=(page==='grp-midinero'||page==='grp-planificacion'||page==='grp-herramientas'||page==='simuladores');
     var _isChat=(page==='herramientas');
     if(_isChat){
       hTitle.style.display='flex';
@@ -3080,33 +3080,47 @@ function renderHerramientas(){
 // SIMULADORES HUB
 // ════════════════════════════════════════════════════════════
 function renderSimuladores(){
+  var _svg={
+    simulador:_dico('<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10"/><path d="M12 6v6l4 2"/><path d="M18 2v4M22 6h-4"/>','#00D4AA'),
+    jubilacion:_dico('<circle cx="12" cy="7" r="4"/><path d="M6 21v-2a6 6 0 0 1 12 0v2"/><polyline points="16 12 18 14 22 10"/>','#7461EF'),
+    emergencia:_dico('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>','#10B981'),
+    rentabilidad:_dico('<path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/>','#3B82F6'),
+    calculadora:_dico('<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>','#EF4444'),
+    inflacion:_dico('<line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>','#F59E0B')
+  };
   var sections=[
     {label:'Ahorro y futuro',items:[
-      {icon:'\uD83D\uDCB0',label:'Ahorro',sub:'Proyecta tu dinero en el tiempo',page:'simulador',color:'#00D4AA'},
-      {icon:'\uD83D\uDC74',label:'Jubilaci\u00f3n',sub:'Planifica tu retiro',page:'jubilacion',color:'#7461EF'},
-      {icon:'\uD83D\uDEE1\uFE0F',label:'Emergencia',sub:'Construye tu colch\u00f3n financiero',page:'emergencia',color:'#10B981'},
-      {icon:'\uD83D\uDCCA',label:'Rentabilidad',sub:'Mide el retorno de tus inversiones',page:'rentabilidad',color:'#3B82F6'}
+      {svg:_svg.simulador,label:'Ahorro',sub:'Proyecta tu dinero en el tiempo',page:'simulador',color:'#00D4AA'},
+      {svg:_svg.jubilacion,label:'Jubilaci\u00f3n',sub:'Planifica tu retiro',page:'jubilacion',color:'#7461EF'},
+      {svg:_svg.emergencia,label:'Emergencia',sub:'Construye tu colch\u00f3n financiero',page:'emergencia',color:'#10B981'},
+      {svg:_svg.rentabilidad,label:'Rentabilidad',sub:'Mide el retorno de tus inversiones',page:'rentabilidad',color:'#3B82F6'}
     ]},
     {label:'Cr\u00e9dito e inflaci\u00f3n',items:[
-      {icon:'\uD83D\uDCD0',label:'Cr\u00e9ditos',sub:'Calcula cuotas y amortizaci\u00f3n',page:'calculadora',color:'#EF4444'},
-      {icon:'\uD83D\uDCB8',label:'Inflaci\u00f3n',sub:'Protege tu poder adquisitivo',page:'inflacion',color:'#F59E0B'}
+      {svg:_svg.calculadora,label:'Cr\u00e9ditos',sub:'Calcula cuotas y amortizaci\u00f3n',page:'calculadora',color:'#EF4444'},
+      {svg:_svg.inflacion,label:'Inflaci\u00f3n',sub:'Protege tu poder adquisitivo',page:'inflacion',color:'#F59E0B'}
     ]}
   ];
-  var html='<div style="margin-bottom:16px;padding:12px 14px;background:rgba(0,212,170,.06);border-radius:14px;border:0.5px solid rgba(0,212,170,.2)">';
+  var html='<div style="padding:0 16px calc(var(--nav-h) + 16px)">';
+  html+='<div style="padding:14px 0 10px">';
+  html+='<div style="font-size:22px;font-weight:800;color:var(--text)">Simuladores</div>';
+  html+='<div style="font-size:13px;color:var(--text2);margin-top:2px">Calcula y proyecta antes de tomar decisiones</div>';
+  html+='</div>';
+  html+='<div style="margin-bottom:14px;padding:10px 12px;background:rgba(0,212,170,.06);border-radius:14px;border:0.5px solid rgba(0,212,170,.2)">';
   html+='<div style="font-size:13px;color:var(--text2);line-height:1.5"><strong style="color:var(--text)">Simula antes de decidir.</strong> Proyecta escenarios reales con tus propios datos y toma mejores decisiones.</div>';
   html+='</div>';
   sections.forEach(function(sec,si){
-    html+='<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:'+(si===0?'0':'10px')+' 0 8px">'+sec.label+'</div>';
-    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">';
+    html+='<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:'+(si===0?'0':'8px')+' 0 7px">'+sec.label+'</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">';
     sec.items.forEach(function(s){
-      html+='<button onclick="navigate(\''+s.page+'\')" style="display:flex;flex-direction:column;align-items:flex-start;padding:16px 14px;background:var(--surface2);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:10px;font-family:var(--font);text-align:left;min-height:116px;width:100%">';
-      html+='<div style="width:42px;height:42px;border-radius:12px;background:'+s.color+'1A;display:flex;align-items:center;justify-content:center;font-size:22px">'+s.icon+'</div>';
+      html+='<button onclick="navigate(\''+s.page+'\')" style="display:flex;flex-direction:column;align-items:flex-start;padding:12px;background:var(--surface2);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:8px;font-family:var(--font);text-align:left;min-height:96px;width:100%">';
+      html+='<div style="width:38px;height:38px;border-radius:10px;background:'+s.color+'1A;display:flex;align-items:center;justify-content:center">'+s.svg+'</div>';
       html+='<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text)">'+s.label+'</div>';
       html+='<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.3">'+s.sub+'</div></div>';
       html+='</button>';
     });
     html+='</div>';
   });
+  html+='</div>';
   return html;
 }
 
