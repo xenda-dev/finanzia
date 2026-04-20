@@ -222,7 +222,7 @@ function renderPage(page){
     }
   }catch(e){
     console.error('renderPage ERROR ['+page+']:',e);
-    el.innerHTML='<div style="padding:32px 20px;text-align:center"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="font-size:15px;font-weight:700;color:var(--danger);margin-bottom:8px">Error al cargar '+page+'</div><div style="font-size:12px;color:var(--text2);font-family:monospace">'+e.message+'</div></div>';
+    el.innerHTML='<div style="padding:32px 20px;text-align:center"><div style="font-size:40px;margin-bottom:12px">😬</div><div style="font-size:15px;font-weight:700;color:var(--danger);margin-bottom:8px">Algo salió mal al cargar esta sección</div><div style="font-size:12px;color:var(--text2);margin-bottom:16px">Recarga la app o vuelve al inicio. Si persiste, exporta tus datos y contáctanos.</div><div style="font-size:11px;color:var(--text3);font-family:monospace">'+e.message+'</div></div>';
   }
   try{document.getElementById('main').scrollTo(0,0);}catch(e){}
 }
@@ -319,7 +319,7 @@ function renderDrawerGroup(groupKey){
 // ════════════════════════════════════════════════════════════
 // TOAST & CONFIRM
 // ════════════════════════════════════════════════════════════
-function toast(msg){try{var t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}catch(e){}}
+function toast(msg,type){try{var t=document.getElementById('toast');if(!t)return;t.textContent=msg;var _tp=type||(msg.indexOf('\u2713')!==-1||msg.indexOf('Listo')!==-1||msg.indexOf('Aporte')!==-1||msg.indexOf('Guardado')!==-1?'success':msg.indexOf('Error')!==-1||msg.indexOf('sali\u00f3 mal')!==-1||msg.indexOf('\u26a0')!==-1||msg.indexOf('incorrecta')!==-1?'error':'info');t.setAttribute('data-toast',_tp);t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}catch(e){}}
 
 let _confirmCb=null;
 function confirmDialog(icon,title,msg,cb,okLabel='Confirmar',okClass='btn-danger'){
@@ -473,6 +473,7 @@ function renderDashboard(){
   const bal=getTotalBalance();
   const savings=inc-exp;
   const savingsRate=inc>0?Math.round(savings/inc*100):0;
+  const hasAccounts=filterDeleted(S.accounts).filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency).length>0;
   const _pays=filterDeleted(S.scheduledPayments);
   const urgentPayments=_pays.filter(p=>daysUntil(p.nextDate)<=3&&daysUntil(p.nextDate)>=0);
   const overduePayments=_pays.filter(p=>daysUntil(p.nextDate)<0);
@@ -485,7 +486,7 @@ function renderDashboard(){
     const cat=getCat(b.categoryId);
     const color=pct>=90?'var(--danger)':pct>=70?'var(--warning)':'var(--primary)';
     return`<div class="budget-item"><div class="budget-header"><span class="budget-name">${cat?cat.icon+' '+cat.name:'Sin cat.'}</span><span class="budget-amounts">${fmt(spent)}/${fmt(b.amount)}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
-  }).join(''):'<div style="color:var(--text2);font-size:13px">Sin presupuestos</div>';
+  }).join(''):'<div style="color:var(--text2);font-size:13px">Sin presupuestos todavía. Crear uno es el primer paso 📊</div>';
 
   const alertHtml=[
     ...overduePayments.map(p=>`<div class="alert-banner">🚨 <span><strong>${p.name}</strong> venció hace ${Math.abs(daysUntil(p.nextDate))} días — ${fmt(p.amount,p.currency)}</span></div>`),
@@ -496,12 +497,13 @@ function renderDashboard(){
   return`
     ${alertHtml}
     <div id="exchange-widget" class="exchange-widget"></div>
+    ${!hasAccounts?'<div class="empty-state" style="margin-bottom:12px"><div class="empty-icon">💳</div><div class="empty-title">Agrega tu primera cuenta</div><div class="empty-desc">Empieza a ver tus finanzas aquí 💳</div><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="navigate(\'cuentas\')">Agregar cuenta</button></div>':''}
     <div class="balance-card">
-      <div class="balance-label">Balance total (${S.currency})</div>
+      <div class="balance-label">Tu balance total · ${S.currency}</div>
       <div class="balance-amount">${fmt(bal)}</div>
       <div class="balance-row">
-        <div class="balance-stat"><div class="balance-stat-label">↑ Ingresos mes</div><div class="balance-stat-val inc">${fmt(inc)}</div></div>
-        <div class="balance-stat"><div class="balance-stat-label">↓ Gastos mes</div><div class="balance-stat-val exp">${fmt(exp)}</div></div>
+        <div class="balance-stat"><div class="balance-stat-label">↑ Ingresos del mes</div><div class="balance-stat-val inc">${fmt(inc)}</div></div>
+        <div class="balance-stat"><div class="balance-stat-label">↓ Gastos del mes</div><div class="balance-stat-val exp">${fmt(exp)}</div></div>
       </div>
     </div>
     <div class="kpi-row">
@@ -513,7 +515,7 @@ function renderDashboard(){
       <div class="kpi-card" style="cursor:pointer" onclick="navigate('metas')">
         <div class="kpi-label">🎯 Total ahorrado</div>
         <div class="kpi-val" style="font-size:13px;color:var(--success)">${fmt(totalGoalSavings)}</div>
-        <div style="font-size:10px;color:${savingsRate<=0?'var(--text3)':savingsRate>=20?'var(--success)':savingsRate>=10?'var(--warning)':'var(--danger)'};margin-top:2px">${savingsRate<=0?'—':savingsRate+'% del ingreso'}</div>
+        <div style="font-size:10px;color:${savingsRate<0?'var(--danger)':savingsRate===0?'var(--text3)':savingsRate>=20?'var(--success)':savingsRate>=10?'var(--warning)':'var(--danger)'};margin-top:2px">${savingsRate<0?'Gastaste más de lo que ingresó':savingsRate===0?'¡Cada peso cuenta!':savingsRate>=20?'¡Vas increíble! '+savingsRate+'%':savingsRate+'% del ingreso'}</div>
       </div>
       <div class="kpi-card" style="cursor:pointer" onclick="navigate('deudas')">
         <div class="kpi-label">💸 Total deudas</div>
@@ -530,7 +532,7 @@ function renderDashboard(){
     <div class="section-header"><div class="section-title">📊 ${t('budgets')}</div><button class="btn-text" onclick="navigate('presupuestos')">Ver todos</button></div>
     <div class="card">${budgetHtml}</div>
     <div class="section-header"><div class="section-title">📋 ${t('recentMovements')}</div><button class="btn-text" onclick="navigate('movimientos')">Ver todos</button></div>
-    ${recentTxs.length?recentTxs.map(txRow).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Sin movimientos</div><div class="empty-desc">Toca + para registrar</div></div>'}
+    ${recentTxs.length?recentTxs.map(txRow).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Aquí verás tus últimos movimientos</div><div class="empty-desc">¡Registra el primero con el botón ＋!</div></div>'}
   `;
 }
 
@@ -578,7 +580,7 @@ function renderMovimientos(){
       ${['todos','ingreso','gasto','transferencia'].map(tab=>`<button class="chip ${f.tab===tab?'active':''}" onclick="S.movFilter.tab='${tab}';renderPage('movimientos')">${tab==='todos'?'Todos':tab==='ingreso'?'Ingresos':tab==='gasto'?'Gastos':'Transferencias'}</button>`).join('')}
     </div>
     ${txs.length>0?`<div style="font-size:12px;color:var(--text2);margin-bottom:10px">${txs.length} movimientos · Balance: <span style="color:${total>=0?'var(--success)':'var(--danger)'};font-weight:700">${fmt(total)}</span></div>`:''}
-    ${txs.length?txs.map(txRow).join(''):'<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Sin resultados</div><div class="empty-desc">Ajusta los filtros</div></div>'}
+    ${txs.length?txs.map(txRow).join(''):'<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Nada que coincida con ese filtro</div><div class="empty-desc">Prueba cambiando la búsqueda.</div></div>'}
   `;
 }
 
@@ -742,8 +744,8 @@ function renderMisCuentas(){
 
   if(activos.length===0&&pasivos.length===0){
     html+='<div class="empty-state"><div class="empty-icon">💳</div>'
-      +'<div class="empty-title">Sin cuentas</div>'
-      +'<div class="empty-desc">Toca "+ Nueva cuenta" para empezar</div></div>';
+      +'<div class="empty-title">Aún no tienes cuentas</div>'
+      +'<div class="empty-desc">Agrega la primera y empieza a ver tu patrimonio real 💳</div></div>';
     return html;
   }
 
@@ -1858,7 +1860,7 @@ function pickFotoAcreedor(){showPhotoSheetAcreedor();}function saveAccountFC(){
   S._fcData={};
   S._cuentasGrupo=grpId;
   _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
-  toast(existing?'Cuenta actualizada ✓':'Cuenta creada ✓');
+  toast(existing?'¡Cuenta actualizada! ✓':'¡Cuenta creada! ✓');
   navigate('mis-cuentas');
 }
 
@@ -1878,13 +1880,13 @@ function deleteAccountFC(){
     return;
   }
   var grpId=acc._grpId||'banco';
-  confirmDialog('🗑️','Eliminar cuenta','Los movimientos asociados quedarán sin cuenta. ¿Deseas continuar?',function(){
+  confirmDialog('🗑️','¿Eliminar esta cuenta?','Sus movimientos quedarán sin cuenta asignada. No se puede deshacer.',function(){
     S.accounts=softDelete(S.accounts,accId);
     saveState();
     S._fcData={};
     S._cuentasGrupo=grpId;
     _navHistory=_navHistory.filter(function(p){return p!=='form-cuenta'&&p!=='cuentas'&&p!=='cuentas-grupo';});
-    toast('Cuenta eliminada');
+    toast('Cuenta eliminada ✓');
     navigate('mis-cuentas');
   });
 }
@@ -1943,7 +1945,7 @@ function renderSuscripciones(){
     +'</div>'
     +(proximas>0?'<div style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:8px 14px;text-align:center">'
       +'<div style="font-size:20px">🔔</div>'
-      +'<div style="font-size:11px;font-weight:700;color:var(--danger)">'+proximas+' vence'+(proximas>1?'n':'')+' esta semana</div>'
+      +'<div style="font-size:11px;font-weight:700;color:var(--danger)">'+proximas+' vence'+(proximas>1?'n':'')+' pronto ⚡</div>'
     +'</div>':'')
     +'</div>';
 
@@ -1953,8 +1955,8 @@ function renderSuscripciones(){
 
   if(!subs.length){
     html+='<div class="empty-state"><div class="empty-icon">🔁</div>'
-      +'<div class="empty-title">Sin suscripciones</div>'
-      +'<div class="empty-desc">Registra tus servicios recurrentes</div></div>';
+      +'<div class="empty-title">Sin suscripciones registradas</div>'
+      +'<div class="empty-desc">Agrega tus servicios y controla cuánto gastas al mes 🔁</div></div>';
     return html;
   }
 
@@ -2144,15 +2146,15 @@ function saveSubs(){
   } else {
     S.subscriptions.push(stampItem(obj));
   }
-  var _subsMsg=id?'Suscripción actualizada ✓':'Suscripción guardada ✓';
+  var _subsMsg=id?'Suscripción actualizada ✓':'¡Suscripción registrada! No más sorpresas en el extracto 📋';
   completeAction(function(){
     if(id){var idx=S.subscriptions.findIndex(function(x){return x.id===id;});if(idx>=0)S.subscriptions[idx]=stampItem(obj);else S.subscriptions.push(stampItem(obj));}
     else{S.subscriptions.push(stampItem(obj));}
   },'suscripciones',_subsMsg);
 }
 function deleteSubs(id){
-  confirmDialog('🗑️','¿Eliminar suscripción?','Esta acción no se puede deshacer.',function(){
-    completeAction(function(){S.subscriptions=softDelete(S.subscriptions||[],id);},'suscripciones','Suscripción eliminada');
+  confirmDialog('🗑️','¿Eliminar suscripción?','Dejaremos de rastrearla. Recuerda cancelarla directamente con el servicio.',function(){
+    completeAction(function(){S.subscriptions=softDelete(S.subscriptions||[],id);},'suscripciones','Suscripción eliminada ✓');
   });
 }
 // BS helpers para suscripciones
@@ -2353,13 +2355,15 @@ function renderPresupuestos(){
       +'<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2)">'
       +'<span>Usado: <strong style="color:'+totalColor+'">'+totalPct+'%</strong></span>'
       +'<span>Restante: <strong style="color:'+(totalLimit-totalSpent>=0?'var(--success)':'var(--danger)')+'">'+fmt(Math.max(0,totalLimit-totalSpent))+'</strong></span>'
-      +'</div></div>';
+      +'</div>'
+      +(totalPct>100?'<div style="margin-top:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--danger)">🚨 <strong>¡Límite superado!</strong> Gastaste más de lo planeado. ¿Ajustamos algo?</div>':totalPct>=70?'<div style="margin-top:10px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--warning)">👀 Ojo — ya llevas el '+totalPct+'%. Vas por buen camino, pero vigila los gastos.</div>':'')
+      +'</div>';
   }
   html+='<div style="display:flex;justify-content:flex-end;margin-bottom:12px">'
     +'<button class="btn btn-primary btn-sm" onclick="openModal(\'budget\',{})">+ '+(t('newBudget')||'Nuevo presupuesto')+'</button>'
     +'</div>';
   html+=!budgets.length
-    ?'<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Sin presupuestos</div><div class="empty-desc">Define límites por categoría</div></div>'
+    ?'<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Sin presupuestos todavía</div><div class="empty-desc">Crear uno es el primer paso para controlar tus gastos 📊</div></div>'
     :renderBudgetGroups(budgets);
   return html;
 }
@@ -2369,7 +2373,7 @@ function renderMetas(){
   const totalSaved=goals.reduce((s,g)=>s+(parseFloat(g.current)||0),0);
   const totalTarget=goals.reduce((s,g)=>s+(parseFloat(g.target)||0),0);
   const motivMsg=(pct)=>{
-    if(pct>=100)return{icon:'🏆',msg:'¡Meta alcanzada! Sigue así, eres increíble.',color:'var(--success)'};
+    if(pct>=100)return{icon:'🎉',msg:'¡Lo lograste! Meta alcanzada al 100%. ¡Eso sí que es ahorro inteligente! 💪',color:'var(--success)'};
     if(pct>=80)return{icon:'🔥',msg:'¡Casi llegás! Estás en la recta final.',color:'var(--warning)'};
     if(pct>=50)return{icon:'💪',msg:'¡Vas a la mitad! Cada peso cuenta.',color:'var(--info)'};
     if(pct>=25)return{icon:'🌱',msg:'Buen comienzo, estás construyendo tu futuro.',color:'var(--primary)'};
@@ -2386,7 +2390,7 @@ function renderMetas(){
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
       <button class="btn btn-primary btn-sm" onclick="openModal('goal',{})">+ ${t('newGoal')||'Nueva meta'}</button>
     </div>
-    ${!goals.length?'<div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-title">Sin metas</div><div class="empty-desc">Define tus objetivos de ahorro</div></div>':
+    ${!goals.length?'<div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-title">¿A qué le estás ahorrando?</div><div class="empty-desc">Crea tu primera meta y empieza a llegar 🎯</div></div>':
     goals.map(g=>{
       const rawPct=g.target>0?Math.round(g.current/g.target*100):0;
       const barPct=Math.min(100,rawPct);
@@ -2430,7 +2434,7 @@ function renderPagos(){
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
       <button class="btn btn-primary btn-sm" onclick="openModal('payment',{})">+ ${t('newPayment')||'Nuevo pago'}</button>
     </div>
-    ${(()=>{const _sp=filterDeleted(S.scheduledPayments);if(!_sp.length)return '<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-title">Sin pagos programados</div><div class="empty-desc">Programa tus pagos recurrentes</div></div>';return _sp.map(p=>{
+    ${(()=>{const _sp=filterDeleted(S.scheduledPayments);if(!_sp.length)return '<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-title">Ningún pago programado aún</div><div class="empty-desc">Agrégalos aquí y olvídate de los vencimientos \ud83d\uddd3\ufe0f</div></div>';return _sp.map(p=>{
       const days=daysUntil(p.nextDate);
       const cat=getCat(p.categoryId);
       const borderColor=days<0?'var(--danger)':days===0?'var(--warning)':days<=3?'#F59E0B88':(p.color||'var(--border)');
@@ -2459,7 +2463,7 @@ function registerPaymentManual(id){
   const tx=stampItem({id:uid(),type:'gasto',accountId:p.accountId||'',categoryId:p.categoryId||'',subcategoryId:p.subcategoryId||'',amount:p.amount,currency:p.currency||S.currency,date:todayStr(),description:p.name,paymentMethod:''});
   S.transactions.push(tx);
   advancePayment(p);
-  saveState();renderPage('pagos');toast('Pago registrado ✓');
+  saveState();renderPage('pagos');toast('Pago registrado ✓','success');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -2478,7 +2482,7 @@ function renderDeudas(){
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
       <button class="btn btn-primary btn-sm" onclick="openModal('account',{defaultType:'pasivo'})">+ ${t('newDebt')||'Nueva deuda'}</button>
     </div>
-    ${!pasivos.length?'<div class="empty-state"><div class="empty-icon">💸</div><div class="empty-title">Sin deudas en '+S.currency+'</div><div class="empty-desc">Las cuentas pasivas aparecerán aquí</div></div>':
+    ${!pasivos.length?'<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">¡Sin deudas en '+S.currency+'!</div><div class="empty-desc">Eso es un logro. Si tienes alguna, regístrala aquí para hacer seguimiento.</div></div>':
     pasivos.map(a=>{
       const bal=Math.abs(getBalance(a.id));
       const b=getBank(a.bankEntity,a.currency||S.currency);
@@ -2504,6 +2508,7 @@ function renderDeudas(){
           ${a.paymentDate?`<span>Pago: día ${a.paymentDate}</span>`:''}
           ${a.monthlyPayment?`<span>Cuota: ${fmt(a.monthlyPayment,a.currency||S.currency)}</span>`:''}
         </div>`:''}
+        ${a.tae&&parseFloat(a.tae)>=25?`<div style="margin-top:8px;font-size:11px;color:var(--danger);background:rgba(239,68,68,.08);border-radius:8px;padding:6px 10px">⚠️ Tasa alta (${a.tae}%). Con el simulador de estrategia puedes ver cómo liquidarla antes.</div>`:''}
         <button class="btn btn-primary btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();openModal('debtPayment',{id:'${a.id}'})">💳 Registrar pago</button>
       </div>`;
     }).join('')}
@@ -2610,7 +2615,7 @@ function renderAnalisis(){
     ${sortedCats.length?`<div style="display:flex;align-items:center;gap:16px">
       <svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="var(--surface3)" stroke-width="18"/>${donutPaths}</svg>
       <div style="flex:1">${legendItems}</div>
-    </div>`:'<div style="color:var(--text2);font-size:13px">Sin datos de gastos en este período</div>'}
+    </div>`:'<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Nada que mostrar aún</div><div class="empty-desc">Registra gastos en este período y aquí verás el desglose por categoría 📈</div></div>'}
     </div>
   `;
 }
@@ -2679,7 +2684,7 @@ function renderCatList(tab){
       html+='<span style="color:'+g.color+';font-size:24px;font-weight:300;line-height:1">\u203A</span>';
       html+='</div>';
     });
-    return html||'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías de gasto</div></div>';
+    return html||'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías de gasto</div><div class="empty-desc">Crea la primera para clasificar tus gastos</div></div>';
   }
   if(tab==='ingreso'){
     var grpInc=[
@@ -2703,7 +2708,7 @@ function renderCatList(tab){
       grouped+='<span style="color:'+g.color+';font-size:24px;font-weight:300;line-height:1">\u203A</span>';
       grouped+='</div>';
     });
-    return grouped||'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías de ingreso</div></div>';
+    return grouped||'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías de ingreso</div><div class="empty-desc">Crea la primera para clasificar tus ingresos</div></div>';
   }
   if(tab==='transferencia'){
     var transCats=S.categories.filter(function(c){return c.type==='transferencia';});
@@ -2755,7 +2760,7 @@ function renderCatItem(cat){
 function renderCategorias(){
   var btn='<div style="display:flex;justify-content:flex-end;margin-bottom:12px">'+
     '<button class="btn btn-primary btn-sm" onclick="openModal(\'category\',{})">+ '+(t('newCategory')||'Nueva categoría')+'</button></div>';
-  if(!S.categories.length)return btn+'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
+  if(!S.categories.length)return btn+'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Estas son tus categorías base</div><div class="empty-desc">Puedes crear las que necesites 🏷️</div></div>';
   return btn+S.categories.map(function(cat){return renderCatItem(cat);}).join('');
 }function toggleCatGroup(id,header){
   const el=document.getElementById(id);
@@ -2866,8 +2871,8 @@ function toggleNsGroup(id,header){
   var arrow=header.querySelector('.cat-arrow');
   if(arrow)arrow.textContent=el.classList.contains('hidden')?'▶':'▼';
 }
-function deleteCat(id){confirmDialog('🗑️','¿Eliminar categoría?','Se eliminarán sus subcategorías y los movimientos perderán la categoría.',function(){S.categories=softDelete(S.categories,id);S.subcategories=S.subcategories.map(function(s){return s.categoryId===id?Object.assign({},s,{deleted:true,updated_at:new Date().toISOString()}):s;});saveState();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Eliminada');});}
-function deleteSub(id){confirmDialog('🗑️','¿Eliminar subcategoría?','',function(){S.subcategories=softDelete(S.subcategories,id);saveState();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Eliminada');});}
+function deleteCat(id){confirmDialog('🗑️','¿Eliminar esta categoría?','Los movimientos asociados perderán su clasificación. Esta acción no se puede deshacer.',function(){S.categories=softDelete(S.categories,id);S.subcategories=S.subcategories.map(function(s){return s.categoryId===id?Object.assign({},s,{deleted:true,updated_at:new Date().toISOString()}):s;});saveState();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Categoría eliminada ✓');});}
+function deleteSub(id){confirmDialog('🗑️','¿Eliminar subcategoría?','Sus movimientos quedarán sin subcategoría.',function(){S.subcategories=softDelete(S.subcategories,id);saveState();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Subcategoría eliminada ✓');});}
 
 // ════════════════════════════════════════════════════════════
 // I18N — Translations
@@ -2901,10 +2906,10 @@ const TRANSLATIONS = {
     language:'Idioma',weekStart:'Inicio de semana',activeCurrencies:'Monedas activas',
     theme:'Tema',dark:'Oscuro',light:'Claro',changeTo:'Cambiar a',
     notifications:'Notificaciones',notifGranted:'✅ Activadas',notifDenied:'🚫 Bloqueadas',notifDefault:'⏳ Sin configurar',notifNA:'No disponible',
-    export:'Exportar datos',exportDesc:'Descarga respaldo JSON',
-    import:'Importar datos',importDesc:'Restaura desde respaldo',
-    reset:'Restaurar app',resetDesc:'Elimina TODOS los datos',
-    resetConfirm:'¿Restaurar la app?',resetMsg:'Se eliminarán TODOS tus datos. Esta acción es irreversible.',
+    export:'Exportar datos',exportDesc:'Descarga tu respaldo seguro',
+    import:'Importar datos',importDesc:'Restaura desde un respaldo previo',
+    reset:'Restaurar app',resetDesc:'Borra todos los datos — sin vuelta atrás',
+    resetConfirm:'¿Borrar TODO?',resetMsg:'Esta acción borra todos tus datos y no se puede deshacer. Tómatelo en serio.',
     monday:'Lunes',sunday:'Domingo',
     search:'Buscar...',selected:'seleccionadas',
     activeText:'activo',passiveText:'pasivo',net:'Patrimonio',
@@ -2912,7 +2917,7 @@ const TRANSLATIONS = {
     spent:'Gastado',remaining:'Restante',
     installments:'¿A cuántas cuotas?',tcDetected:'(TC detectada)',
     tapOptions:'👆 opciones',
-    version:'FinanzIA v3.3 · Datos locales · Hecho con ❤️',
+    version:'FinanzIA v3.3 · Hecho con ❤️ para ti',
     grpMain:'Principal',grpPlan:'Planificación',grpAnalysis:'Análisis',grpManage:'Gestión',
     grpMoney:'Mi Dinero',grpReports:'Reportes',grpTools:'Herramientas',grpConfig:'Configuración',aiAssistant:'Asistente IA',loanCalc:'Calculadora préstamo',savingsSim:'Simulador de ahorro',
     noEntity:'Sin entidad',accActive:'Activo',accPassive:'Pasivo',
@@ -3059,7 +3064,7 @@ function renderHerramientas(){
     +'<div class="ai-messages" id="ai-messages">'
       +'<div class="ai-date-sep"><span>Hoy</span></div>'
       +'<div class="ai-msg ai-msg-bot">'
-        +'<div>👋 ¡Hola! Soy <strong>Emiliano</strong>, tu Wealth Manager personal. Tengo acceso a tus datos financieros en tiempo real y puedo ayudarte con análisis, estrategias y consejos personalizados.<br><br>¿En qué te puedo ayudar hoy?<br><br><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px">'+quickBtns+'</div></div>'
+        +'<div>👋 ¡Hola! Soy <strong>Emiliano</strong>, tu Wealth Manager · FinanzIA. Veo tus datos en tiempo real y estoy aquí para ayudarte a tomar mejores decisiones con tu plata.<br><br>¿Qué analizamos hoy?<br><br><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px">'+quickBtns+'</div></div>'
         +'<div class="ai-msg-time">'+timeStr+'</div>'
       +'</div>'
     +'</div>'
@@ -3089,13 +3094,13 @@ function renderSimuladores(){
     inflacion:_dico('<line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>','#F59E0B')
   };
   var sec1=[
-    {svg:_svg.simulador,label:'Ahorro',sub:'Proyecta tu dinero en el tiempo',page:'simulador',color:'#00D4AA'},
-    {svg:_svg.jubilacion,label:'Jubilaci\u00f3n',sub:'Planifica tu retiro',page:'jubilacion',color:'#7461EF'},
-    {svg:_svg.emergencia,label:'Emergencia',sub:'Construye tu colch\u00f3n financiero',page:'emergencia',color:'#10B981'},
-    {svg:_svg.rentabilidad,label:'Rentabilidad',sub:'Mide el retorno de tus inversiones',page:'rentabilidad',color:'#3B82F6'}
+    {svg:_svg.simulador,label:'Ahorro',sub:'Ponle cifras a tus sue\u00f1os 📈',page:'simulador',color:'#00D4AA'},
+    {svg:_svg.jubilacion,label:'Jubilaci\u00f3n',sub:'\u00bfCu\u00e1nto necesitas para jubilarte tranquilo?',page:'jubilacion',color:'#7461EF'},
+    {svg:_svg.emergencia,label:'Emergencia',sub:'Tu colch\u00f3n para cuando todo sale mal',page:'emergencia',color:'#10B981'},
+    {svg:_svg.rentabilidad,label:'Rentabilidad',sub:'Mide el retorno real de tus inversiones',page:'rentabilidad',color:'#3B82F6'}
   ];
   var sec2=[
-    {svg:_svg.calculadora,label:'Cr\u00e9ditos',sub:'Calcula cuotas y amortizaci\u00f3n',page:'calculadora',color:'#EF4444'},
+    {svg:_svg.calculadora,label:'Cr\u00e9ditos',sub:'Simula antes de firmar. S\u00e9 lo que enfrentas.',page:'calculadora',color:'#EF4444'},
     {svg:_svg.inflacion,label:'Inflaci\u00f3n',sub:'Protege tu poder adquisitivo',page:'inflacion',color:'#F59E0B'}
   ];
   var cStyle='display:flex;flex-direction:column;align-items:flex-start;padding:14px 12px;background:var(--surface2);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:8px;font-family:var(--font);text-align:left;min-height:116px;width:100%';
@@ -3109,10 +3114,10 @@ function renderSimuladores(){
   var html='<div style="padding:12px 16px 20px">';
   html+='<div style="margin-bottom:8px">';
   html+='<div style="font-size:22px;font-weight:800;color:var(--text)">Simuladores</div>';
-  html+='<div style="font-size:12px;color:var(--text2);margin-top:2px">Calcula y proyecta antes de tomar decisiones</div>';
+  html+='<div style="font-size:12px;color:var(--text2);margin-top:2px">Calcula y proyecta antes de comprometerte</div>';
   html+='</div>';
   html+='<div style="margin-bottom:10px;padding:9px 12px;background:rgba(0,212,170,.06);border-radius:12px;border:0.5px solid rgba(0,212,170,.2)">';
-  html+='<div style="font-size:12px;color:var(--text2);line-height:1.5"><strong style="color:var(--text)">Simula antes de decidir.</strong> Proyecta escenarios reales con tus propios datos.</div>';
+  html+='<div style="font-size:12px;color:var(--text2);line-height:1.5"><strong style="color:var(--text)">¿Y si lo calculas antes de decidir?</strong> Simula escenarios reales con tus propios datos.</div>';
   html+='</div>';
   html+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Ahorro y futuro</div>';
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">';
@@ -3169,19 +3174,19 @@ var TEST_QUESTIONS=[
 ];
 var TEST_LEVELS=[
   {min:0,max:24,emoji:'🔴',label:'Salud Financiera Precaria',color:'#EF4444',
-   desc:'Tu situación financiera requiere atención inmediata. Es fundamental establecer un presupuesto, crear un fondo de emergencia y buscar asesoramiento profesional.',
+   desc:'🔴 Momento de actuar. Empecemos por lo básico, paso a paso.',
    actions:['Crea un presupuesto básico: anota todos tus ingresos y gastos durante 1 mes','Elimina gastos innecesarios (suscripciones, comidas fuera, compras impulsivas)','Evita nuevas deudas y paga preferiblemente en efectivo o débito','Negocia con acreedores si tienes deudas impagadas','Busca aumentar ingresos: trabajo adicional o venta de artículos','Consulta con un asesor financiero o servicio de ayuda de deudas']},
   {min:25,max:40,emoji:'🟠',label:'Salud Financiera Preocupante',color:'#F97316',
-   desc:'Estás en una situación frágil. Necesitas construir bases financieras sólidas y desarrollar mejores hábitos de ahorro.',
+   desc:'🟠 Hay trabajo por hacer. No es drama — es solo el punto de partida.',
    actions:['Establece un presupuesto mensual realista y síguelo','Crea un fondo de emergencia inicial (mínimo 1 mes de gastos)','Prioriza el pago de deudas con intereses altos','Automatiza un ahorro mínimo mensual aunque sea pequeño','Aprende educación financiera básica: libros, podcasts, cursos gratuitos']},
   {min:41,max:59,emoji:'🟡',label:'Salud Financiera Buena',color:'#EAB308',
-   desc:'Tienes bases sólidas pero hay margen importante de mejora. Es momento de optimizar y establecer objetivos más ambiciosos.',
+   desc:'🟡 Buena base. Con algunos ajustes puedes llegar al siguiente nivel.',
    actions:['Aumenta tu fondo de emergencia (objetivo: 3-6 meses de gastos)','Establece objetivos financieros a corto, medio y largo plazo','Comienza a invertir si aún no lo haces (fondos indexados, planes de pensiones)','Revisa y optimiza tus seguros de vida, hogar y salud','Aumenta el porcentaje de ahorro mensual (objetivo: 15-20% de ingresos)']},
   {min:60,max:79,emoji:'🟢',label:'Salud Financiera Muy Saludable',color:'#22C55E',
-   desc:'Excelente trabajo. Tienes hábitos financieros sólidos. Enfócate en maximizar tu patrimonio y planificación a largo plazo.',
+   desc:'🟢 Tus finanzas están en muy buena forma. Sigue así y ve por más.',
    actions:['Maximiza tus inversiones: diversifica entre renta variable, fija y alternativos','Optimiza fiscalmente tus inversiones (planes de pensiones, seguros fiscales)','Revisa tu cartera de inversión al menos 2 veces al año','Planifica tu jubilación activamente con cálculos reales','Protege tu patrimonio con seguros de vida y responsabilidad civil']},
   {min:80,max:100,emoji:'🌟',label:'Salud Financiera Excelente',color:'#10B981',
-   desc:'Estás en la élite financiera. Tu desafío es mantener, proteger y hacer crecer tu patrimonio de forma eficiente.',
+   desc:'🌟 Estás en la élite financiera. En serio — muy pocos llegan aquí.',
    actions:['Trabaja con un asesor financiero para optimización fiscal y patrimonial','Diversifica internacionalmente tus inversiones','Optimiza tu estructura patrimonial si aplica','Rebalancea tu cartera regularmente según tu estrategia','Prepara plan de sucesión y disfruta de tu éxito financiero']}
 ];
 var _testAnswers={};
@@ -3338,8 +3343,8 @@ function renderTest(){
   var h='';
   // Info card
   h+='<div class="card" style="margin-bottom:14px;padding:14px;border-left:3px solid #7461EF">';
-  h+='<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">🏥 ¿Para qué sirve?</div>';
-  h+='<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Evalúa tu situación financiera en 5 áreas clave. Donde tenemos tus datos reales, pre-calculamos la respuesta. Siempre puedes ajustarla.</div>';
+  h+='<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">18 preguntas. Sin trampa, sin juicio.</div>';
+  h+='<div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Solo para saber dónde estás y hacia dónde ir. Donde tenemos tus datos reales, pre-calculamos la respuesta. Siempre puedes ajustarla.</div>';
   h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
   h+='<div style="background:rgba(116,97,239,.08);border-radius:var(--radius-sm);padding:8px"><div style="font-size:9px;font-weight:700;color:#7461EF;margin-bottom:4px;text-transform:uppercase">18 preguntas</div><div style="font-size:11px;color:var(--text2);line-height:1.5">5 categorías · ~5 min · Sé honesto/a</div></div>';
   h+='<div style="background:rgba(0,212,170,.08);border-radius:var(--radius-sm);padding:8px"><div style="font-size:9px;font-weight:700;color:var(--primary);margin-bottom:4px;text-transform:uppercase">Inteligente</div><div style="font-size:11px;color:var(--text2);line-height:1.5">Usa tus datos reales para pre-calcular respuestas</div></div>';
@@ -3548,7 +3553,7 @@ function renderCalculadora(){
   html+='<div style="font-size:12px;color:var(--text2);margin-top:2px">Simula cuotas, intereses y amortizaci\u00f3n</div>';
   html+='</div>';
   html+='<div style="margin-bottom:14px;padding:10px 12px;background:rgba(239,68,68,.06);border-radius:14px;border:0.5px solid rgba(239,68,68,.2)">';
-  html+='<div style="font-size:13px;color:var(--text2);line-height:1.5"><strong style="color:var(--text)">Antes de endeudarte, simula.</strong> Tasas m\u00e1x. son referenciales \u2014 confirma con tu entidad financiera.</div>';
+  html+='<div style="font-size:13px;color:var(--text2);line-height:1.5"><strong style="color:var(--text)">Antes de firmar, simula.</strong> Así sabes exactamente a qué te estás metiendo.</div>';
   html+='</div>';
   secs.forEach(function(sec,si){
     html+='<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;'+(si>0?'padding-top:10px;':'')+' margin-bottom:7px">'+sec.label+'</div>';
@@ -3648,7 +3653,7 @@ function openLoanForm(typeKey){
   inner+='<div id="loan-terms-lbl" style="font-size:10px;color:var(--primary);margin-top:4px;font-weight:600"></div></div>';
   inner+='<div class="form-group"><label class="form-label">📊 TAE (%)</label>';
   inner+='<input class="form-input" type="text" inputmode="numeric" id="loan-rate" data-numfmt="pct" placeholder="Ej: 18%" oninput="pctInput(this);calcLoan()">';
-  inner+='<div id="loan-rate-warn" style="font-size:10px;color:var(--danger);margin-top:4px;display:none">⚠️ Supera el máx. referencial de '+t.maxRate.toFixed(1)+'% EA</div></div>';
+  inner+='<div id="loan-rate-warn" style="font-size:10px;color:var(--danger);margin-top:4px;display:none">⚠️ Esta tasa supera el máximo referencial ('+t.maxRate.toFixed(1)+'% EA). Confirma bien con tu entidad.</div></div>';
   inner+='</div></div>';
   // Results
   inner+='<div id="loan-result" style="display:none">';
@@ -3916,7 +3921,7 @@ function downloadLoanTable(){
   var a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
   a.download='plan-amortizacion.csv';a.click();
-  toast('Plan descargado ✓');
+  toast('¡Plan de amortización descargado! ✓','success');
 }
 function openSimDetail(){
   var rows=window._simRows;
@@ -4028,8 +4033,8 @@ function renderSimulador(){
   return`
     <!-- Info card -->
     <div class="card" style="margin-bottom:14px;padding:14px;border-left:3px solid #00D4AA">
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">💰 ¿Para qué sirve?</div>
-      <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Proyecta cuánto crecerá tu dinero con aportes periódicos y una tasa de rendimiento. Perfecto para planificar metas de ahorro e inversión.</div>
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">💰 Proyecta cuánto crecerá tu dinero</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px">Ahorrando de forma constante. Ponle cifras a tus sueños.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <div style="background:rgba(0,212,170,.08);border-radius:var(--radius-sm);padding:8px">
           <div style="font-size:9px;font-weight:700;color:var(--primary);margin-bottom:4px;text-transform:uppercase">📈 Proyectar ahorro</div>
@@ -4099,6 +4104,11 @@ function renderSimulador(){
         <div style="font-size:11px;color:rgba(255,255,255,.8);margin-bottom:4px">APORTE MENSUAL SUGERIDO</div>
         <div style="font-size:28px;font-weight:900;color:white" id="sim-suggested-amt">—</div>
       </div>
+    </div>
+
+    <!-- Placeholder estado vacío -->
+    <div id="sim-placeholder" style="text-align:center;padding:28px 16px;color:var(--text3);font-size:13px">
+      📈 Ingresa los datos y verás la magia del interés compuesto
     </div>
 
     <!-- Métricas resumen -->
@@ -4210,9 +4220,11 @@ function calcSim(){
   const total=bal;
   const invested=initial+monthly*months;
   const gains=total-invested;
-  // Show metrics
+  // Show metrics, hide placeholder
   const metr=document.getElementById('sim-metrics');
   if(metr)metr.style.display='block';
+  const ph=document.getElementById('sim-placeholder');
+  if(ph)ph.style.display='none';
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   set('sim-total',fmt(total));
   set('sim-invested',fmt(invested));
@@ -4524,7 +4536,7 @@ function simDownloadCSV(){
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
   a.download='simulacion-ahorro.csv';a.click();
-  toast('Tabla descargada ✓');
+  toast('¡Simulación descargada! ✓','success');
 }
 
 
@@ -4750,7 +4762,7 @@ function renderCambio(){
   });
   var html=''
     +'<div class="card" style="margin-bottom:12px">'
-      +'<div class="card-title">💱 Tipo de cambio</div>'
+      +'<div class="card-title">💱 Tipo de cambio al instante</div>'
       +'<div class="form-group" style="margin-bottom:0">'
         +'<label class="form-label">Monto</label>'
         +'<input class="form-input" type="text" inputmode="decimal" id="cambio-amount" placeholder="Ej: 1.000" oninput="cambioInput(this);calcAllCambio()" value="'+(window._cambioAmount?cambioAmountFmt(window._cambioAmount):'')+'">'
@@ -4761,7 +4773,7 @@ function renderCambio(){
       +'<span style="font-size:20px;font-weight:300;line-height:1;color:var(--primary)">+</span> Agregar par de monedas'
     +'</button>'
     +'<div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:var(--radius);padding:12px;font-size:12px;color:var(--text2)">'
-      +'ℹ️ Tipos de cambio en tiempo real. Para transacciones importantes consulta tu entidad bancaria.'
+      +'ℹ️ Tasas de referencia en tiempo real. Para movimientos importantes, siempre verifica con tu banco.'
     +'</div>';
   return html;
 }
@@ -5037,7 +5049,8 @@ function renderConfiguracion(){
       <span style="color:var(--text3)">›</span>
     </div>
 <!-- CATEGORÍAS -->
-    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Categorías</div>
+    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">Categorías</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Organiza tus gastos como más te guste</div>
     <div class="config-item" onclick="openCatPanel()" style="margin-bottom:16px">
       <div class="config-item-left">
         <div class="config-icon" style="background:rgba(0,212,170,.15)">🏷️</div>
@@ -5048,7 +5061,8 @@ function renderConfiguracion(){
       </div>
       <span style="color:var(--text3)">›</span>
     </div>
-    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">${t('preferences')}</div>
+    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">${t('preferences')}</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Personaliza cómo funciona FinanzIA para ti</div>
     <div style="background:var(--surface2);border-radius:16px;overflow:hidden;border:1px solid var(--border);margin-bottom:10px">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border)">
         <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:7px">${t('language')}</label>
@@ -5074,7 +5088,8 @@ function renderConfiguracion(){
       </div>
     </div>
 
-    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 8px">${t('appearance')}</div>
+    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 2px">${t('appearance')}</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Ponla a tu gusto 🎨</div>
     <div style="background:var(--surface2);border-radius:16px;overflow:hidden;border:1px solid var(--border);margin-bottom:10px">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border)">
         <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:7px">${t('theme')}</label>
@@ -5091,7 +5106,8 @@ function renderConfiguracion(){
       </div>
     </div>
 
-    <divv style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 10px">${t('system')}</div>
+    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 2px">${t('system')}</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Exporta, importa y gestiona tus datos</div>
     <div class="config-item" onclick="openNotifPage()">
       <div class="config-item-left"><div class="config-icon" style="background:rgba(245,158,11,.15)">🔔</div><div><div style="font-size:14px;font-weight:600">${t('notifications')}</div><div style="font-size:12px;color:var(--text2)">${notifStatus}</div></div></div>
       <span style="color:var(--text3)">›</span>
@@ -5612,7 +5628,7 @@ function renderMiPerfil(){
     +'</div>';
   function infoRow(icon,label,val,last){
     var ri='<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+icon+'</div>';
-    var vHtml=val?('<span style="font-size:14px;font-weight:600;color:var(--text)">'+val+'</span>'):('<span style="font-size:14px;color:var(--text3);font-style:italic">Sin completar</span>');
+    var vHtml=val?('<span style="font-size:14px;font-weight:600;color:var(--text)">'+val+'</span>'):('<span style="font-size:14px;color:var(--text3);font-style:italic">Toca para completar</span>');
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px;'+(last?'':'border-bottom:1px solid var(--border)')+'">'
       +'<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">'+label+'</div>'+vHtml+'</div>'+ri+'</div>';
   }
@@ -5642,7 +5658,7 @@ function renderMiPerfil(){
           +'<button onclick="openProfilePage()" style="flex-shrink:0;border:none;background:transparent;padding:2px;cursor:pointer;display:flex;align-items:center;line-height:1">'+iconEdit+'</button>'
         +'</div>'
         +'<div style="font-size:12px;color:var(--text3);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+emailVal+'</div>'
-        +'<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px"><span>Perfil completo</span><span style="color:var(--primary);font-weight:700">'+pct+'%</span></div>'
+        +'<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px"><span>'+(pct>=100?'¡Perfil completo! 🎉':'Completa tu perfil')+'</span><span style="color:var(--primary);font-weight:700">'+pct+'%</span></div>'
         +'<div style="height:4px;background:var(--border);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--primary);border-radius:99px"></div></div>'
       +'</div>'
     +'</div>'
@@ -6319,7 +6335,7 @@ function saveProfile(){
   }catch(e){console.error('saveProfile currencies:',e);}
   saveState();
   try{updateDrawerProfile();}catch(e){console.error('saveProfile drawer:',e);}
-  toast('Perfil guardado ✓');
+  toast('¡Perfil actualizado! ✓');
   closeProfilePage();
 }
 
@@ -6383,7 +6399,7 @@ function closePhotoViewer(){
   if(el)el.remove();
 }
 function removeProfilePhoto(){
-  confirmDialog('\ud83d\uddd1\ufe0f','¿Eliminar foto de perfil?','Esta acción no se puede deshacer.',function(){
+  confirmDialog('\ud83d\uddd1\ufe0f','¿Quitar foto de perfil?','Volverás a ver tus iniciales. Puedes subir una nueva cuando quieras.',function(){
     if(!S.profile)S.profile={};
     S.profile.photo='';
     var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:localStorage.getItem('_lastAuthUserId')||'';
@@ -6485,19 +6501,19 @@ function toggleCurrency(c,checked){
   }
   saveState();refreshCurrencyToggle();renderPage('configuracion');
 }
-function exportData(){const d=JSON.stringify(S,null,2);const a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(d);a.download='finanzía-backup-'+todayStr()+'.json';a.click();toast('Exportado ✓');}
+function exportData(){const d=JSON.stringify(S,null,2);const a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(d);a.download='finanzia-backup-'+todayStr()+'.json';a.click();toast('¡Respaldo descargado! Guárdalo bien 🔒','success');}
 function importData(){document.getElementById('import-file')?.click();}
 function handleImportFile(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);confirmDialog('📥','¿Importar datos?','Reemplazará todos tus datos actuales.',()=>{Object.assign(S,d);saveState();renderPage(S.currentPage);toast('Importado ✓');},'Importar','btn-primary');}catch(e){toast('Error al leer archivo');}};
+  reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);confirmDialog('📥','¿Restaurar respaldo?','Esto reemplazará todos tus datos actuales con los del archivo. Asegúrate de que sea el archivo correcto.',()=>{Object.assign(S,d);saveState();renderPage(S.currentPage);toast('¡Datos restaurados! ✓');},'Restaurar','btn-primary');}catch(e){toast('No pudimos leer el archivo. ¿Es un respaldo de FinanzIA?','error');}};
   reader.readAsText(file);
 }
 function resetApp(){
-  confirmDialog('⚠️','¿Restaurar la app?','Se eliminarán TODOS tus datos. Esta acción es irreversible.',()=>{
+  confirmDialog('⚠️','¿Borrar TODO?','Esta acción borra todos tus datos y no se puede deshacer. Tómatelo en serio.',()=>{
     localStorage.removeItem('finanziaState3');_testAnswers={};
     S={currency:'',currentPage:'dashboard',theme:S.theme,language:'',weekStart:'',currencies:[],accounts:[],transactions:[],categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),subcategories:JSON.parse(JSON.stringify(DEFAULT_SUBS)),budgets:[],goals:[],scheduledPayments:[],movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},analysisPeriod:'Mensual',analysisYear:new Date().getFullYear(),exchangeRate:{PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''}};
-    saveState();refreshCurrencyToggle();navigate('dashboard');toast('App restaurada ✓');
+    saveState();refreshCurrencyToggle();navigate('dashboard');toast('App reiniciada. ¡Empecemos de nuevo! ✓');
   });
 }
 
@@ -6671,14 +6687,14 @@ function saveTx(){
       if(inst>1)tx.installments=inst;
     }
   }
-  var _txMsg=existing?'Actualizado ✓':'Registrado ✓';
+  var _txMsg=existing?'¡Movimiento actualizado! ✓':'¡Listo! Tu movimiento quedó registrado ✓';
   completeAction(function(){if(existing){var idx=S.transactions.findIndex(function(t){return t.id===id;});S.transactions[idx]=stampItem(tx);}else{S.transactions.push(stampItem(tx));}},S.currentPage||'movimientos',_txMsg);
 }
 function editTx(id){
   openModal('transaction',{id:id});
 }
 function deleteTx(id){
-  confirmDialog('🗑️','¿Eliminar movimiento?','Esta acción no se puede deshacer.',()=>{
+  confirmDialog('🗑️','¿Eliminar movimiento?','Este movimiento desaparecerá para siempre. ¿Lo eliminamos?',()=>{
     completeAction(function(){
       const tx=S.transactions.find(t=>t.id===id);
       if(tx){
@@ -6694,7 +6710,7 @@ function deleteTx(id){
         }
       }
       S.transactions=softDelete(S.transactions,id);
-    },S.currentPage,'Eliminado');
+    },S.currentPage,'Movimiento eliminado ✓');
   });
 }
 
@@ -6863,7 +6879,7 @@ function saveDebtPayment(){
   S.transactions.push(stampItem({id:uid(),type:'gasto',accountId:fromAccId,categoryId:payCat?payCat.id:'',subcategoryId:paySub?paySub.id:'',amount,currency:cur,date,description:'Pago deuda: '+debtAcc.name,paymentMethod:''}));
   // Ingreso en cuenta pasiva (reduce la deuda)
   S.transactions.push(stampItem({id:uid(),type:'ingreso',accountId:debtId,categoryId:payCat?payCat.id:'',subcategoryId:paySub?paySub.id:'',amount,currency:cur,date,description:'Abono: '+debtAcc.name,paymentMethod:''}));
-  completeAction(null,'deudas',`Pago de ${fmt(amount,cur)} registrado ✓`);
+  completeAction(null,'deudas',`¡Abono registrado! ${fmt(amount,cur)} menos de deuda 💪`);
 }
 
 // ─── SUB-ACCOUNT MODAL ───
@@ -6970,10 +6986,10 @@ function saveAccount(){
   const acc={id:existing?existing.id:uid(),name,type,subtype,currency:document.getElementById('acc-currency')?.value||S.currency,bankEntity:document.getElementById('acc-bank')?.value||'',initialBalance:parseFloat(document.getElementById('acc-balance')?.value)||0,icon:'💳',color:document.getElementById('acc-color-val')?.value||COLORS_PALETTE[0]};
   if(type==='pasivo'&&subtype==='tc'){acc.tcLimit=parseFloat(document.getElementById('acc-tc-limit')?.value)||0;acc.tae=parseFloat(document.getElementById('acc-tae')?.value)||0;acc.cutDate=parseInt(document.getElementById('acc-cut')?.value)||0;acc.paymentDate=parseInt(document.getElementById('acc-paydate')?.value)||0;}
   else if(type==='pasivo'){acc.creditTotal=parseFloat(document.getElementById('acc-credit-total')?.value)||0;acc.monthlyPayment=parseFloat(document.getElementById('acc-monthly-payment')?.value)||0;acc.paymentDate=parseInt(document.getElementById('acc-paydate')?.value)||0;acc.tae=parseFloat(document.getElementById('acc-tae')?.value)||0;}
-  var _accMsg=existing?'Cuenta actualizada ✓':'Cuenta creada ✓';
+  var _accMsg=existing?'¡Cuenta actualizada! ✓':'¡Nueva cuenta lista! ✓';
   completeAction(function(){if(existing){var idx=S.accounts.findIndex(function(a){return a.id===id;});S.accounts[idx]=stampItem(acc);}else{S.accounts.push(stampItem(acc));};},'mis-cuentas',_accMsg);
 }
-function deleteAccount(id){const acc=S.accounts.find(a=>a.id===id);if(acc&&(acc.protected||acc.subtype==='efectivo')){toast('Esta cuenta no puede eliminarse');return;}confirmDialog('🗑️','¿Eliminar cuenta?','Los movimientos asociados quedarán sin cuenta.',()=>{completeAction(function(){S.accounts=softDelete(S.accounts,id);},'cuentas','Cuenta eliminada');});}
+function deleteAccount(id){const acc=S.accounts.find(a=>a.id===id);if(acc&&(acc.protected||acc.subtype==='efectivo')){toast('Esta cuenta no puede eliminarse','info');return;}confirmDialog('🗑️','¿Eliminar esta cuenta?','Sus movimientos quedarán sin cuenta asignada. Esta acción no tiene marcha atrás.',()=>{completeAction(function(){S.accounts=softDelete(S.accounts,id);},'cuentas','Cuenta eliminada ✓');});}
 
 // ─── BUDGET MODAL ───
 function buildBudgetModal(data){
@@ -6993,10 +7009,10 @@ function saveBudget(){
   if(!catId){toast('Selecciona una categoría');return;}if(!amount||amount<=0){toast('Ingresa un monto válido');return;}
   const id=document.getElementById('bud-id')?.value;const existing=id?S.budgets.find(b=>b.id===id):null;
   const bud={id:existing?existing.id:uid(),categoryId:catId,subcategoryId:document.getElementById('bud-sub')?.value||'',amount,currency:document.getElementById('bud-currency')?.value||S.currency,color:document.getElementById('bud-color-val')?.value||COLORS_PALETTE[0]};
-  var _budMsg=existing?'Actualizado ✓':'Creado ✓';
+  var _budMsg=existing?'¡Presupuesto actualizado! ✓':'¡Presupuesto creado! Ahora a cumplirlo 💪';
   completeAction(function(){if(existing){var idx=S.budgets.findIndex(function(b){return b.id===id;});S.budgets[idx]=stampItem(bud);}else{S.budgets.push(stampItem(bud));};},'presupuestos',_budMsg);
 }
-function deleteBudget(id){confirmDialog('🗑️','¿Eliminar presupuesto?','',()=>{completeAction(function(){S.budgets=softDelete(S.budgets,id);},'presupuestos','Eliminado');});}
+function deleteBudget(id){confirmDialog('🗑️','¿Eliminar presupuesto?','Se eliminará el límite configurado. Puedes volver a crearlo cuando quieras.',()=>{completeAction(function(){S.budgets=softDelete(S.budgets,id);},'presupuestos','Presupuesto eliminado ✓');});}
 
 // ─── GOAL MODAL ───
 function goalAccountOptions(cur,selectedId){
@@ -7048,10 +7064,10 @@ function saveGoal(){
   if(!name){toast('Ingresa un nombre');return;}if(!target||target<=0){toast('Ingresa una meta válida');return;}
   const id=document.getElementById('goal-id')?.value;const existing=id?S.goals.find(g=>g.id===id):null;
   const goal={id:existing?existing.id:uid(),name,target,current:parseFloat(document.getElementById('goal-current')?.value)||0,currency:document.getElementById('goal-currency')?.value||S.currency,deadline:document.getElementById('goal-deadline')?.value||'',icon:document.getElementById('goal-icon-val')?.value||'🎯',color:document.getElementById('goal-color-val')?.value||COLORS_PALETTE[16],accountId:document.getElementById('goal-account')?.value||'',categoryId:document.getElementById('goal-cat')?.value||'',subcategoryId:document.getElementById('goal-sub')?.value||''};
-  var _goalMsg=existing?'Meta actualizada ✓':'Meta creada ✓';
+  var _goalMsg=existing?'¡Meta actualizada! ✓':'Meta creada ✓ ¡A ahorrar!';
   completeAction(function(){if(existing){var idx=S.goals.findIndex(function(g){return g.id===id;});S.goals[idx]=stampItem(goal);}else{S.goals.push(stampItem(goal));};},'metas',_goalMsg);
 }
-function deleteGoal(id){confirmDialog('🗑️','¿Eliminar meta?','',()=>{completeAction(function(){S.goals=softDelete(S.goals,id);},'metas','Meta eliminada');});}
+function deleteGoal(id){confirmDialog('🗑️','¿Eliminar esta meta?','Se perderá todo el progreso registrado. Si estás seguro/a, adelante.',()=>{completeAction(function(){S.goals=softDelete(S.goals,id);},'metas','Meta eliminada ✓');});}
 
 // ─── ADD TO GOAL MODAL ───
 function buildAddToGoalModal(data){
@@ -7109,7 +7125,7 @@ function saveAddToGoal(){
   const payMethod=document.getElementById('atg-payment')?.value||'';
   S.transactions.push(stampItem({id:uid(),type:'gasto',accountId:fromAccId,categoryId:catId,subcategoryId:subId,amount,currency:cur,date,description:'Ahorro → '+g.name,paymentMethod:payMethod}));
   S.transactions.push(stampItem({id:uid(),type:'ingreso',accountId:toAccId,categoryId:catId,subcategoryId:subId,amount,currency:cur,date,description:'Ahorro: '+g.name,paymentMethod:payMethod}));
-  completeAction(function(){g.current=(parseFloat(g.current)||0)+amount;},'metas',`+${fmt(amount,cur)} agregado a "${g.name}" ✓`);
+  completeAction(function(){g.current=(parseFloat(g.current)||0)+amount;},'metas',`¡Aporte registrado! +${fmt(amount,cur)} en "${g.name}" 💪`);
 }
 
 // ─── PAYMENT MODAL ───
@@ -7445,10 +7461,10 @@ function savePayment(){
   if(!name){toast('Ingresa un nombre');return;}if(!amount||amount<=0){toast('Ingresa un monto válido');return;}if(!nextDate){toast('Selecciona fecha');return;}
   const id=document.getElementById('pay-id')?.value;const existing=id?S.scheduledPayments.find(p=>p.id===id):null;
   const pay={id:existing?existing.id:uid(),name,amount,currency:document.getElementById('pay-currency')?.value||S.currency,categoryId:document.getElementById('pay-cat')?.value||'',subcategoryId:document.getElementById('pay-sub')?.value||'',frequency:document.getElementById('pay-freq')?.value||'Mensual',nextDate,accountId:document.getElementById('pay-account')?.value||'',isAuto:document.getElementById('pay-is-auto')?.value==='1',color:document.getElementById('pay-color-val')?.value||COLORS_PALETTE[0]};
-  var _payMsg=existing?'Actualizado ✓':'Pago programado ✓';
+  var _payMsg=existing?'¡Pago actualizado! ✓':'Pago programado ✓ — nunca más se te olvide';
   completeAction(function(){if(existing){var idx=S.scheduledPayments.findIndex(function(p){return p.id===id;});S.scheduledPayments[idx]=stampItem(pay);}else{S.scheduledPayments.push(stampItem(pay));};},'pagos',_payMsg);
 }
-function deletePayment(id){confirmDialog('🗑️','¿Eliminar pago?','',()=>{completeAction(function(){S.scheduledPayments=softDelete(S.scheduledPayments,id);},'pagos','Eliminado');});}
+function deletePayment(id){confirmDialog('🗑️','¿Eliminar pago programado?','Ya no recibirás recordatorio de este pago.',()=>{completeAction(function(){S.scheduledPayments=softDelete(S.scheduledPayments,id);},'pagos','Pago eliminado ✓');});}
 
 // ─── CATEGORY MODAL ───
 function buildCategoryModal(data){
@@ -7552,7 +7568,7 @@ function saveCategory(){
   const name=document.getElementById('cat-name')?.value?.trim();if(!name){toast('Ingresa un nombre');return;}
   const catType=document.getElementById('cat-type')?.value||'gasto';
   const cat={id:uid(),name,type:catType,nature:catType==='ingreso'?'ahorros':(document.getElementById('cat-nature')?.value||'necesidades'),incomeType:catType==='ingreso'?(document.getElementById('cat-income-type')?.value||'principal'):undefined,color:document.getElementById('cat-color-val')?.value||COLORS_PALETTE[0],icon:document.getElementById('cat-icon-val')?.value||ICONS[0]};
-  S.categories.push(stampItem(cat));saveState();closeModal();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Categoría creada ✓');
+  S.categories.push(stampItem(cat));saveState();closeModal();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('¡Categoría creada! ✓');
   setTimeout(function(){confirmDialog('🏷️','¿Agregar subcategoría?','¿Deseas crear una subcategoría para "'+cat.name+'" ahora?',function(){openModal('subcategory',{categoryId:cat.id});},'Sí, agregar','btn-primary');},300);
 }
 
@@ -7574,7 +7590,7 @@ function saveSubcategory(){
   const name=document.getElementById('sub-name')?.value?.trim();
   if(!catId){toast('Selecciona una categoría');return;}if(!name){toast('Ingresa un nombre');return;}
   S.subcategories.push(stampItem({id:uid(),categoryId:catId,name,icon:document.getElementById('sub-icon-val')?.value||ICONS[1]}));
-  saveState();closeModal();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Subcategoría creada ✓');
+  saveState();closeModal();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('¡Subcategoría agregada! ✓');
 }
 
 // ─── EDIT SUBCATEGORY MODAL ───
@@ -7640,7 +7656,7 @@ function renderListas(){
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
       <button class="btn btn-primary btn-sm" onclick="openModal('newList',{})">+ Nueva lista</button>
     </div>
-    ${!lists.length?`<div class="empty-state"><div class="empty-icon">🛒</div><div class="empty-title">Sin listas</div><div class="empty-desc">Crea tu primera lista de compras</div></div>`:
+    ${!lists.length?`<div class="empty-state"><div class="empty-icon">🛒</div><div class="empty-title">¡Crea tu primera lista!</div><div class="empty-desc">Di adiós a los olvidos en el súper 🛒</div></div>`:
     lists.map(l=>{
       const done = (l.items||[]).filter(i=>i.done).length;
       const total = (l.items||[]).length;
@@ -7755,7 +7771,7 @@ function renderListItems(l){
   var cntEl = document.getElementById('list-summary-cnt');
   if(cntEl) cntEl.textContent = done+'/'+items.length;
   if(!items.length){
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Lista vacía</div><div class="empty-desc">Agrega ítems abajo</div></div>';
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Lista vacía por ahora</div><div class="empty-desc">Empieza a agregar lo que necesitas 👇</div></div>';
     return;
   }
   var html = '';
@@ -8020,13 +8036,13 @@ function saveInvestment(){
     share: document.getElementById('inv-share')?.value||'',
   };
   if(!S.investments) S.investments=[];
-  var _invMsg=existing?'Inversión actualizada ✓':'Inversión registrada ✓';
+  var _invMsg=existing?'¡Inversión actualizada! ✓':'¡Activo registrado! Tu plata trabaja 💹';
   completeAction(function(){if(existing){var idx=S.investments.findIndex(function(x){return x.id===id;});S.investments[idx]=stampItem(inv);}else{S.investments.push(stampItem(inv));};},'inversiones',_invMsg);
 }
 
 function deleteInvestment(id){
-  confirmDialog('🗑️','¿Eliminar inversión?','',()=>{
-    completeAction(function(){S.investments=softDelete(S.investments||[],id);},'inversiones','Eliminada');
+  confirmDialog('🗑️','¿Eliminar esta inversión?','Dejará de aparecer en tu portafolio. Esto no afecta el dinero real.',()=>{
+    completeAction(function(){S.investments=softDelete(S.investments||[],id);},'inversiones','Inversión eliminada ✓');
   });
 }
 
@@ -8061,7 +8077,7 @@ function renderInversiones(){
     +'<button class="btn btn-primary btn-sm" onclick="openModal(\'newInvestment\',{})">+ Nueva inversión</button>'
     +'</div>';
   if(!invs.length){
-    html+='<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-title">Sin inversiones</div><div class="empty-desc">Registra tu primer activo</div></div>';
+    html+='<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-title">¿Dónde está trabajando tu plata?</div><div class="empty-desc">Registra tu primer activo y empieza a ver el retorno real 💰</div></div>';
     return html;
   }
   invs.forEach(function(inv){
@@ -8160,12 +8176,12 @@ function saveNewList(){
   if(exists&&type!=='custom'){toast('Ya tienes una lista de '+tipo.name);closeModal();openListDetail(exists.id);return;}
   var items=(DEFAULT_LIST_ITEMS[type]||[]).map(function(i){return {id:uid(),name:i.name,done:false,section:i.section||''};});
   var name=type==='custom'?('Lista '+(_activeLists.filter(function(l){return l.type==='custom';}).length+1)):tipo.name;
-  completeAction(function(){S.shoppingLists.push(stampItem({id:uid(),name:name,type:type,color:tipo.color,items:items,createdAt:todayStr()}));},'listas','Lista creada ✓');
+  completeAction(function(){S.shoppingLists.push(stampItem({id:uid(),name:name,type:type,color:tipo.color,items:items,createdAt:todayStr()}));},'listas','¡Lista lista! ✓');
 }
 function deleteList(id){
-  confirmDialog('🗑️','¿Eliminar lista?','',function(){
+  confirmDialog('🗑️','¿Eliminar esta lista?','No podrás recuperarla. Si estás seguro/a, adelante.',function(){
     S.shoppingLists=softDelete(S.shoppingLists||[],id);
-    saveState();closeListDetail();toast('Lista eliminada');
+    saveState();closeListDetail();toast('Lista eliminada ✓');
   });
 }
 function shareList(listId){
@@ -8174,7 +8190,7 @@ function shareList(listId){
   var text='📋 *'+l.name+'*\n\n';
   (l.items||[]).forEach(function(i){text+=(i.done?'✅':'⬜')+' '+i.name+'\n';});
   if(navigator.share){navigator.share({title:l.name,text:text});}
-  else if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('Lista copiada ✓');});}
+  else if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('¡Lista copiada al portapapeles! ✓');});}
 }
 function closeListDetail(){
   var el=document.getElementById('list-detail-overlay');
@@ -8196,7 +8212,7 @@ function invitarAmigos(){
     navigator.share({title:'FinanzIA',text:msg,url:url}).catch(function(){});
   }else{
     try{navigator.clipboard.writeText(url);}catch(e){}
-    toast('¡Link copiado al portapapeles!');
+    toast('¡Enlace copiado! Compártelo como quieras 🔗');
   }
 }
 
@@ -8322,11 +8338,11 @@ async function _enviarSoporte(){
         +'<button onclick="document.getElementById(\'soporte-modal\').remove()" style="padding:12px 32px;border-radius:50px;background:var(--primary);border:none;color:white;font-weight:700;cursor:pointer;font-family:var(--font)">Cerrar</button>'
         +'</div>';
     }else{
-      toast('Error al enviar. Intenta de nuevo.');
+      toast('No pudimos enviar tu mensaje. Intenta de nuevo.','error');
       if(btn){btn.disabled=false;btn.textContent='Enviar mensaje';}
     }
   }catch(e){
-    toast('Error de conexión. Intenta de nuevo.');
+    toast('Sin conexión. Revisa el internet e intenta de nuevo.','error');
     if(btn){btn.disabled=false;btn.textContent='Enviar mensaje';}
   }
 }
