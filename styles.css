@@ -168,13 +168,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 #modal-root{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;justify-content:flex-end}
 #modal-root.active{display:flex}
 .modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.75)}
-.modal-sheet{position:relative;background:var(--bg);border-radius:var(--radius-lg) var(--radius-lg) 0 0;max-height:92vh;overflow-y:auto;padding-bottom:max(env(safe-area-inset-bottom),16px);animation:slideUp .28s cubic-bezier(.34,1.56,.64,1)}
+.modal-sheet{position:relative;background:var(--surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;max-height:92vh;overflow-y:auto;padding-bottom:max(env(safe-area-inset-bottom),16px);animation:slideUp .28s cubic-bezier(.34,1.56,.64,1)}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-drag{width:40px;height:4px;background:var(--surface3);border-radius:99px;margin:12px auto 0}
 .modal-header{padding:8px 16px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0}
 .modal-title{font-size:17px;font-weight:800}
 .modal-close{background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;padding:4px;line-height:1}
-.modal-body{padding:16px}.modal-body .form-input,.modal-body .bs-trigger,.modal-body .form-select{background:var(--surface)}
+.modal-body{padding:16px}.modal-body .form-input,.modal-body .bs-trigger,.modal-body .form-select{background:var(--surface2)}
 #confirm-root{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
 #confirm-root.active{display:flex}
 .confirm-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.75)}

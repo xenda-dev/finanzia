@@ -263,7 +263,7 @@ var DRAWER_GROUPS={
   },
   herramientas:{
     label:'Herramientas',color:'#F59E0B',
-    headerSub:'Para decidir mejor con tu dinero',
+    headerSub:'Para decidir mejor qu\u00e9 haces con tu dinero',
     headerMsg:'<strong style="color:var(--text)">Aqu\u00ed vive lo que te da claridad.</strong> Simula, analiza y toma decisiones sin adivinar.',
     bannerBg:'rgba(116,97,239,0.06)',bannerBorder:'rgba(116,97,239,0.15)',
     items:[
@@ -3080,24 +3080,33 @@ function renderHerramientas(){
 // SIMULADORES HUB
 // ════════════════════════════════════════════════════════════
 function renderSimuladores(){
-  var sims=[
-    {icon:'💰',label:'Ahorro',sub:'Proyecta tu dinero en el tiempo',page:'simulador',color:'#00D4AA'},
-    {icon:'📐',label:'Créditos',sub:'Calcula cuotas y amortización',page:'calculadora',color:'#EF4444'},
-    {icon:'👴',label:'Jubilación',sub:'Planifica tu retiro',page:'jubilacion',color:'#7461EF'},
-    {icon:'🛡️',label:'Emergencia',sub:'Construye tu colchón financiero',page:'emergencia',color:'#10B981'},
-    {icon:'💸',label:'Inflación',sub:'Protege tu poder adquisitivo',page:'inflacion',color:'#F59E0B'},
-    {icon:'📊',label:'Rentabilidad',sub:'Mide el retorno de tus inversiones',page:'rentabilidad',color:'#3B82F6'},
+  var sections=[
+    {label:'Ahorro y futuro',items:[
+      {icon:'\uD83D\uDCB0',label:'Ahorro',sub:'Proyecta tu dinero en el tiempo',page:'simulador',color:'#00D4AA'},
+      {icon:'\uD83D\uDC74',label:'Jubilaci\u00f3n',sub:'Planifica tu retiro',page:'jubilacion',color:'#7461EF'},
+      {icon:'\uD83D\uDEE1\uFE0F',label:'Emergencia',sub:'Construye tu colch\u00f3n financiero',page:'emergencia',color:'#10B981'},
+      {icon:'\uD83D\uDCCA',label:'Rentabilidad',sub:'Mide el retorno de tus inversiones',page:'rentabilidad',color:'#3B82F6'}
+    ]},
+    {label:'Cr\u00e9dito e inflaci\u00f3n',items:[
+      {icon:'\uD83D\uDCD0',label:'Cr\u00e9ditos',sub:'Calcula cuotas y amortizaci\u00f3n',page:'calculadora',color:'#EF4444'},
+      {icon:'\uD83D\uDCB8',label:'Inflaci\u00f3n',sub:'Protege tu poder adquisitivo',page:'inflacion',color:'#F59E0B'}
+    ]}
   ];
-  var html='<div style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.5">Elige el simulador que necesitas. Cada uno te ayuda a tomar mejores decisiones financieras.</div>';
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">';
-  sims.forEach(function(s){
-    html+='<button onclick="navigate(\''+s.page+'\')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 6px 12px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--card-shadow);border-top:3px solid '+s.color+';border-radius:16px;cursor:pointer;gap:6px;font-family:var(--font);min-height:90px;width:100%">';
-    html+='<span style="font-size:26px;line-height:1">'+s.icon+'</span>';
-    html+='<span style="font-size:11px;font-weight:700;color:var(--text);text-align:center">'+s.label+'</span>';
-    // subtitulo quitado para 3 cols
-    html+='</button>';
-  });
+  var html='<div style="margin-bottom:16px;padding:12px 14px;background:rgba(0,212,170,.06);border-radius:14px;border:0.5px solid rgba(0,212,170,.2)">';
+  html+='<div style="font-size:13px;color:var(--text2);line-height:1.5"><strong style="color:var(--text)">Simula antes de decidir.</strong> Proyecta escenarios reales con tus propios datos y toma mejores decisiones.</div>';
   html+='</div>';
+  sections.forEach(function(sec,si){
+    html+='<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:'+(si===0?'0':'10px')+' 0 8px">'+sec.label+'</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">';
+    sec.items.forEach(function(s){
+      html+='<button onclick="navigate(\''+s.page+'\')" style="display:flex;flex-direction:column;align-items:flex-start;padding:16px 14px;background:var(--surface2);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:10px;font-family:var(--font);text-align:left;min-height:116px;width:100%">';
+      html+='<div style="width:42px;height:42px;border-radius:12px;background:'+s.color+'1A;display:flex;align-items:center;justify-content:center;font-size:22px">'+s.icon+'</div>';
+      html+='<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text)">'+s.label+'</div>';
+      html+='<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.3">'+s.sub+'</div></div>';
+      html+='</button>';
+    });
+    html+='</div>';
+  });
   return html;
 }
 
