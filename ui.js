@@ -146,7 +146,7 @@ function _updateHeader(page){
   hBack.style.display=isDash?'none':'flex';
   if(hSpacer)hSpacer.style.display=isDash?'none':'block';
   if(!isDash){
-    var _isGrp=(page==='grp-midinero'||page==='grp-planificacion'||page==='grp-herramientas'||page==='simuladores');
+    var _isGrp=(page==='grp-midinero'||page==='grp-planificacion'||page==='grp-herramientas'||page==='simuladores'||page==='calculadora');
     var _isChat=(page==='herramientas');
     if(_isChat){
       hTitle.style.display='flex';
@@ -3524,18 +3524,31 @@ function closeTestResult(){
 }
 function renderCalculadora(){
   var q="'";
-  var html='<div style="padding:12px 16px 20px">';
-  html+='<div style="margin-bottom:10px;padding:9px 12px;background:rgba(239,68,68,.06);border-radius:12px;border:0.5px solid rgba(239,68,68,.25)">';
-  html+='<div style="font-size:12px;color:var(--text2);line-height:1.4"><strong style="color:var(--text)">Simula tu cr\u00e9dito.</strong> Compara tasas, cuotas y amortizaci\u00f3n antes de decidir. Tasas m\u00e1x. son referenciales.</div>';
-  html+='</div>';
-  html+='<div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Selecciona el tipo de cr\u00e9dito</div>';
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px">';
+  var _csvg={
+    libre:_dico('<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>','#EF4444'),
+    personal:_dico('<circle cx="12" cy="8" r="4"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/>','#F59E0B'),
+    consumo:_dico('<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>','#F97316'),
+    hipotecario:_dico('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>','#3B82F6'),
+    vehicular:_dico('<path d="M14 16H9m10 0h2a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-1l-3-6H7L4 10H3a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h2"/><circle cx="6.5" cy="16" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>','#10B981'),
+    educativo:_dico('<path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>','#8B5CF6'),
+    rotativo:_dico('<path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/>','#EC4899'),
+    microcredito:_dico('<path d="M12 22V12"/><path d="M12 12C12 12 7 10 7 6a5 5 0 0 1 10 0c0 4-5 6-5 6z"/><path d="M9 19c-2 1-4 1-4-1s2-4 7-4 7 2 7 4-2 2-4 1"/>','#06B6D4'),
+    nanocredito:_dico('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>','#64748B')
+  };
+  var cStyle='display:flex;flex-direction:column;align-items:flex-start;padding:16px 14px;background:var(--surface2);border:1px solid var(--border);box-shadow:var(--card-shadow);border-radius:18px;cursor:pointer;transition:.15s;gap:10px;font-family:var(--font);text-align:left;min-height:116px;width:100%';
   var types=window._LOAN_TYPES||[];
+  var html='<div style="padding:12px 16px 20px">';
+  html+='<div style="margin-bottom:14px">';
+  html+='<div style="font-size:22px;font-weight:800;color:var(--text)">Cr\u00e9ditos</div>';
+  html+='<div style="font-size:12px;color:var(--text2);margin-top:2px">Simula cuotas, intereses y amortizaci\u00f3n</div>';
+  html+='</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
   types.forEach(function(t){
-    html+='<button onclick="openLoanForm('+q+t.key+q+')" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:16px;cursor:pointer;gap:6px;font-family:var(--font);border-top:3px solid '+t.color+';box-shadow:var(--card-shadow);width:100%">';
-    html+='<span style="font-size:24px;line-height:1">'+t.icon+'</span>';
-    html+='<span style="font-size:10px;font-weight:700;color:var(--text);text-align:center;line-height:1.3">'+t.label+'</span>';
-    html+='<span style="font-size:8px;color:var(--text3)">m\u00e1x. '+t.maxRate.toFixed(1)+'% EA</span>';
+    var svg=_csvg[t.key]||'';
+    html+='<button onclick="openLoanForm('+q+t.key+q+')" style="'+cStyle+'">';
+    html+='<div style="width:42px;height:42px;border-radius:12px;background:'+t.color+'1A;display:flex;align-items:center;justify-content:center">'+svg+'</div>';
+    html+='<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text)">'+t.label+'</div>';
+    html+='<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.3">m\u00e1x. '+t.maxRate.toFixed(1)+'% EA</div></div>';
     html+='</button>';
   });
   html+='</div></div>';
