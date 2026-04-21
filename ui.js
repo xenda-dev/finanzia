@@ -147,12 +147,12 @@ function _updateHeader(page){
   hBack.style.display=isDash?'none':'flex';
   hBack.style.alignItems='center';
   hBack.style.justifyContent='center';
-  // Controles (moneda) — siempre visibles
-  if(hControls)hControls.style.display='flex';
+  // Controles (moneda) — oculto en configuración y mi-perfil
+  if(hControls)hControls.style.display=(page==='configuracion'||page==='mi-perfil')?'none':'flex';
   // Spacer derecho en pantallas sin controls especiales
   if(hSpacer)hSpacer.style.display='none';
-  // Subtitle reset
-  if(hSubtitle){hSubtitle.style.display='none';hSubtitle.textContent='';}
+  var hCurve=document.getElementById('header-curve');
+  if(hCurve)hCurve.style.background=isDash?'var(--bg)':'var(--surface)';
   // Título especial Emiliano chat
   if(_isChat){
     hTitle.style.cssText='display:flex;align-items:center;gap:10px;flex:1;text-align:left;overflow:hidden';
