@@ -254,24 +254,27 @@
   <!-- ─── BIENVENIDA (con sesión + biometría) ── -->
   <div id="auth-welcome" class="auth-panel" style="display:none">
 
-    <!-- Logo + botón soporte -->
-    <div class="auth-top auth-top-logo" style="flex-shrink:0;position:relative">
-      <div class="auth-logo-row" style="justify-content:center;">
-        <img src="/icon-192.png" class="auth-logo-icon" alt="FinanzIA" style="width:48px;height:48px;">
-      </div>
-      <button onclick="openSoporteModal()" aria-label="Soporte" style="position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:50%;background:#CBD5E1;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer">
+    <!-- Botón soporte top-right -->
+    <div style="padding:max(env(safe-area-inset-top),16px) 20px 0;display:flex;justify-content:flex-end;flex-shrink:0">
+      <button onclick="openSoporteModal()" aria-label="Soporte" style="width:30px;height:30px;border-radius:50%;background:rgba(203,213,225,.5);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-width="3"/></svg>
       </button>
     </div>
 
-    <!-- Nombre + título + subtítulo -->
-    <div style="text-align:center;padding:8px 20px 0;flex-shrink:0">
+    <!-- Logo + nombre + saludo centrados -->
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px 16px;text-align:center">
+      <!-- FinanzIA icon + nombre -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:28px">
+        <img src="/icon-192.png" style="width:36px;height:36px;border-radius:10px;object-fit:cover" alt="FinanzIA">
+        <div style="font-size:22px;font-weight:900;color:#0F172A;letter-spacing:-.5px">Finanz<span style="color:#00D4AA">IA</span></div>
+      </div>
+      <!-- Saludo dinámico -->
       <h1 id="welcome-greeting" class="welcome-greeting" style="margin-bottom:12px"></h1>
-      <p style="font-size:14px;color:#64748B;text-align:center;margin:0 0 24px 0;line-height:1.6">¡Qué bueno verte!<br>¿Cómo te gustaría ingresar hoy?</p>
+      <p style="font-size:14px;color:#64748B;text-align:center;margin:0 0 0 0;line-height:1.6">¡Qué bueno verte!<br>¿Cómo te gustaría ingresar hoy?</p>
     </div>
 
     <!-- Botones tipo cápsula -->
-    <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:20px">
+    <div style="padding:0 24px max(env(safe-area-inset-bottom),32px);flex-shrink:0">
       <div class="welcome-actions">
 
         <button class="welcome-btn primary" onclick="_startBioFromWelcome()" aria-label="Ingresar con huella dactilar">
@@ -301,8 +304,6 @@
 
       </div>
     </div>
-
-    <div class="auth-footer" style="position:static;padding:max(env(safe-area-inset-bottom),16px) 20px 12px">© 2026 Xenda.co. Todos los derechos reservados.</div>
   </div>
 
   <!-- ─── SOLO CONTRASEÑA (desde welcome) ─────────── -->

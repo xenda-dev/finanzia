@@ -1154,37 +1154,51 @@ async function _showPinRecovery(){
   if(ov)ov.remove();
   ov=document.createElement('div');
   ov.id='pin-recovery-overlay';
-  ov.style.cssText='position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease;pointer-events:auto';
+  ov.style.cssText='position:fixed;inset:0;z-index:10001;background:rgba(15,23,42,.55);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease;pointer-events:auto';
   var masked=email.replace(/(.{2})[^@]+(@.+)/,function(m,a,b){return a+'*****'+b;});
-  var inputStyle='width:40px;height:48px;border-radius:10px;border:1.5px solid var(--border,#E2E8F0);background:var(--surface2,#F8FAFC);text-align:center;font-size:22px;font-weight:700;color:var(--text,#0F172A);font-family:var(--font,inherit)';
+  var inStyle='width:40px;height:50px;border-radius:12px;border:1.5px solid #E2E8F0;background:#F8FAFC;text-align:center;font-size:22px;font-weight:700;color:#0F172A;font-family:inherit;outline:none;transition:.15s';
   ov.innerHTML=''
-    +'<div id="pr-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),28px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
-      +'<div style="display:flex;justify-content:flex-end;padding:14px 16px 0">'
-        +'<button onclick="_closePinRecovery()" style="width:32px;height:32px;border-radius:50%;background:var(--surface2,#F1F5F9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2,#64748B)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+    +'<div id="pr-sheet" style="width:100%;background:#fff;border-radius:24px 24px 0 0;animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
+      // Micro gradiente teal sin línea divisoria
+      +'<div style="background:linear-gradient(180deg,rgba(0,212,170,.08) 0%,rgba(255,255,255,0) 100%);border-radius:24px 24px 0 0;padding:10px 20px 0">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
+          +'<div style="width:36px;height:4px;border-radius:2px;background:#E2E8F0;margin:0 auto"></div>'
+          +'<button onclick="_closePinRecovery()" style="width:30px;height:30px;border-radius:50%;background:rgba(241,245,249,.9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748B"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:12px;padding-bottom:14px">'
+          +'<div id="pr-icon" style="width:44px;height:44px;border-radius:50%;background:rgba(0,212,170,.1);border:1.5px solid rgba(0,212,170,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+            +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1" fill="#00D4AA"/></svg>'
+          +'</div>'
+          +'<div>'
+            +'<div style="font-size:16px;font-weight:900;color:#0F172A;letter-spacing:-.3px">Recuperar PIN</div>'
+            +'<div style="font-size:12px;color:#64748B;margin-top:1px">Código enviado a <strong style="color:#0F172A">'+masked+'</strong></div>'
+          +'</div>'
+        +'</div>'
       +'</div>'
-      +'<div style="padding:4px 28px 28px;text-align:center">'
-        +'<div id="pr-icon" style="width:56px;height:56px;border-radius:16px;background:rgba(0,212,170,.12);margin:0 auto 14px;display:flex;align-items:center;justify-content:center">'
-          +'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>'
+      // Cuerpo blanco
+      +'<div style="padding:0 24px max(env(safe-area-inset-bottom),28px);text-align:center">'
+        +'<div style="display:flex;gap:7px;justify-content:center;margin-bottom:8px">'
+          +'<input id="pr-0" maxlength="1" inputmode="numeric" style="'+inStyle+'">'
+          +'<input id="pr-1" maxlength="1" inputmode="numeric" style="'+inStyle+'">'
+          +'<input id="pr-2" maxlength="1" inputmode="numeric" style="'+inStyle+'">'
+          +'<input id="pr-3" maxlength="1" inputmode="numeric" style="'+inStyle+'">'
+          +'<input id="pr-4" maxlength="1" inputmode="numeric" style="'+inStyle+'">'
+          +'<input id="pr-5" maxlength="1" inputmode="numeric" style="'+inStyle+'">'
         +'</div>'
-        +'<div style="font-size:18px;font-weight:700;color:var(--text,#0F172A);margin-bottom:8px">Recuperar PIN</div>'
-        +'<div style="font-size:14px;color:var(--text2,#64748B);line-height:1.6;margin-bottom:20px">Hemos enviado un código de 6 dígitos a<br><strong style="color:var(--text,#0F172A)">'+masked+'</strong></div>'
-        +'<div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px" id="pr-boxes">'
-          +'<input id="pr-0" maxlength="1" inputmode="numeric" style="'+inputStyle+'">'
-          +'<input id="pr-1" maxlength="1" inputmode="numeric" style="'+inputStyle+'">'
-          +'<input id="pr-2" maxlength="1" inputmode="numeric" style="'+inputStyle+'">'
-          +'<input id="pr-3" maxlength="1" inputmode="numeric" style="'+inputStyle+'">'
-          +'<input id="pr-4" maxlength="1" inputmode="numeric" style="'+inputStyle+'">'
-          +'<input id="pr-5" maxlength="1" inputmode="numeric" style="'+inputStyle+'">'
+        +'<div style="margin:10px 0 8px">'
+          +'<div style="background:#F1F5F9;border-radius:4px;height:4px;overflow:hidden"><div id="pr-bar" style="width:100%;height:100%;background:linear-gradient(90deg,#00D4AA,#F59E0B);border-radius:4px;transition:width 1s linear"></div></div>'
+          +'<div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:11px;color:#94A3B8">Código válido por</span><span id="pr-timer" style="font-size:11px;font-weight:700;color:#F59E0B">15:00</span></div>'
         +'</div>'
-        +'<div id="pr-err" style="min-height:16px;font-size:13px;color:#DC2626;margin-bottom:10px;text-align:center"></div>'
-        +'<div style="font-size:13px;color:var(--text2,#64748B);margin-bottom:4px">¿No te ha llegado el código?</div>'
-        +'<div style="font-size:13px;color:var(--primary,#00D4AA);margin-bottom:4px">Pídelo de nuevo en</div>'
-        +'<div id="pr-timer" style="font-size:16px;font-weight:700;color:#F59E0B;margin-bottom:16px">15:00</div>'
-        +'<button id="pr-resend-btn" onclick="_resendPinRecoveryOtp()" disabled style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary,#00D4AA),var(--secondary,#7461EF));border:none;color:white;font-size:15px;font-weight:700;cursor:not-allowed;font-family:var(--font,inherit);opacity:.4;letter-spacing:.3px">Reenviar código</button>'
+        +'<div id="pr-err" style="min-height:16px;font-size:12px;color:#EF4444;margin-bottom:8px"></div>'
+        +'<div style="display:flex;align-items:center;justify-content:center;gap:6px">'
+          +'<span style="font-size:12px;color:#94A3B8">¿No llegó?</span>'
+          +'<button id="pr-resend-btn" onclick="_resendPinRecoveryOtp()" disabled style="background:none;border:none;color:#CBD5E1;font-family:inherit;font-size:12px;font-weight:700;cursor:not-allowed">Reenviar</button>'
+        +'</div>'
       +'</div>'
     +'</div>';
   document.body.appendChild(ov);
   window._pinRecoveryEmail=email;
+  window._prTotalSecs=900;
   setTimeout(function(){var f=document.getElementById('pr-0');if(f)f.focus();},200);
   _setupOtpInputs();
   _startPinRecoveryTimer(900);
@@ -1250,6 +1264,10 @@ function _startPinRecoveryTimer(secs){
       }
       el.textContent=m+':'+(s<10?'0':'')+s;
       el.style.color=remaining<=60?'#EF4444':'#F59E0B';
+      // Update progress bar
+      var total=window._prTotalSecs||900;
+      var bar=document.getElementById('pr-bar');
+      if(bar)bar.style.width=Math.max(0,Math.round(remaining/total*100))+'%';
     }else{
       clearInterval(window._prTimerInterval);
     }
@@ -1266,10 +1284,14 @@ function _setupOtpInputs(){
       inp.addEventListener('input',function(e){
         var v=e.target.value.replace(/[^0-9]/g,'');
         e.target.value=v;
-        if(v&&idx<5){var next=document.getElementById('pr-'+(idx+1));if(next)next.focus();}
+        // Highlight active input
+        for(var k=0;k<6;k++){var el=document.getElementById('pr-'+k);if(el)el.style.borderColor='';}
+        if(v&&idx<5){var next=document.getElementById('pr-'+(idx+1));if(next){next.focus();next.style.borderColor='#00D4AA';}}
         var code='';for(var j=0;j<6;j++){var el=document.getElementById('pr-'+j);code+=el?el.value:'';}
         if(code.length===6)_verifyPinRecoveryOtp();
       });
+      inp.addEventListener('focus',function(){this.style.borderColor='#00D4AA';this.style.background='#fff';});
+      inp.addEventListener('blur',function(){if(!this.value)this.style.borderColor='';});
       inp.addEventListener('keydown',function(e){
         if(e.key==='Backspace'&&!e.target.value&&idx>0){var prev=document.getElementById('pr-'+(idx-1));if(prev){prev.focus();prev.value='';}}
       });
@@ -1465,14 +1487,14 @@ function _initBioSetupScreen(){
   var infoEl = document.getElementById('bio-setup-info');
   var btnEl  = document.getElementById('bio-setup-activate-btn');
   if(!_isBioAvailable()){
-    if(infoEl) infoEl.textContent = 'La biometr\u00eda no est\u00e1 disponible en este dispositivo.';
+    if(infoEl) infoEl.textContent = 'La biometría no está disponible en este dispositivo.';
     if(btnEl)  btnEl.style.display = 'none';
   }else if(_isBioEnabled()){
-    if(infoEl) infoEl.textContent = 'La huella ya est\u00e1 activada en este dispositivo.';
+    if(infoEl) infoEl.textContent = 'La huella ya está activada en este dispositivo.';
     if(btnEl)  btnEl.style.display = 'none';
   }else{
-    if(infoEl) infoEl.textContent = 'Activa tu huella o Face ID para ingresar m\u00e1s r\u00e1pido, sin recordar contrase\u00f1as.';
-    if(btnEl){ btnEl.style.display = ''; btnEl.disabled = false; btnEl.textContent = 'Activar ahora'; }
+    if(infoEl) infoEl.textContent = 'Activa tu huella y olvídate de contraseñas para siempre';
+    if(btnEl){ btnEl.style.display = ''; btnEl.disabled = false; btnEl.textContent = 'Activar huella'; }
   }
 }
 
