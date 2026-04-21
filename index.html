@@ -235,7 +235,7 @@
     </div>
     <div id="set-pin-screen-keypad" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 20px;width:100%;max-width:360px;margin:0 auto"></div>
     <div style="padding:14px 24px max(env(safe-area-inset-bottom),28px)">
-      <button onclick="skipPinSetup()" class="auth-btn-secondary">Ahora no</button>
+      <button onclick="skipPinSetup()" style="background:none;border:none;color:#94A3B8;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;padding:10px;width:100%;text-align:center">Ahora no</button>
     </div>
   </div>
 
@@ -262,19 +262,19 @@
     </div>
 
     <!-- Logo + nombre + saludo centrados -->
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px 16px;text-align:center">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px 8px;text-align:center">
       <!-- FinanzIA icon + nombre -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:28px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px">
         <img src="/icon-192.png" style="width:36px;height:36px;border-radius:10px;object-fit:cover" alt="FinanzIA">
         <div style="font-size:22px;font-weight:900;color:#0F172A;letter-spacing:-.5px">Finanz<span style="color:#00D4AA">IA</span></div>
       </div>
       <!-- Saludo dinámico -->
-      <h1 id="welcome-greeting" class="welcome-greeting" style="margin-bottom:12px"></h1>
-      <p style="font-size:14px;color:#64748B;text-align:center;margin:0 0 0 0;line-height:1.6">¡Qué bueno verte!<br>¿Cómo te gustaría ingresar hoy?</p>
+      <h1 id="welcome-greeting" class="welcome-greeting" style="margin-bottom:10px"></h1>
+      <p style="font-size:14px;color:#64748B;text-align:center;margin:0;line-height:1.6">¡Qué bueno verte!<br>¿Cómo te gustaría ingresar hoy?</p>
     </div>
 
     <!-- Botones tipo cápsula -->
-    <div style="padding:0 24px max(env(safe-area-inset-bottom),32px);flex-shrink:0">
+    <div style="padding:0 24px 0;flex-shrink:0">
       <div class="welcome-actions">
 
         <button class="welcome-btn primary" onclick="_startBioFromWelcome()" aria-label="Ingresar con huella dactilar">
@@ -304,6 +304,7 @@
 
       </div>
     </div>
+    <div style="padding:8px 0 max(env(safe-area-inset-bottom),16px);text-align:center;font-size:12px;color:#94A3B8;flex-shrink:0">© 2026 Xenda.co. Todos los derechos reservados.</div>
   </div>
 
   <!-- ─── SOLO CONTRASEÑA (desde welcome) ─────────── -->
@@ -398,7 +399,7 @@
       <div id="set-pin-screen-keypad" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:320px"></div>
     </div>
     <div class="auth-bottom">
-      <button onclick="skipPinSetup()" class="auth-btn-secondary">Ahora no</button>
+      <button onclick="skipPinSetup()" style="background:none;border:none;color:#94A3B8;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;padding:10px;width:100%;text-align:center">Ahora no</button>
       <div class="auth-footer" style="position:static;padding:max(env(safe-area-inset-bottom),16px) 20px 12px">© 2026 Xenda.co. Todos los derechos reservados.</div>
     </div>
   </div>

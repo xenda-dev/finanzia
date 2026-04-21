@@ -865,32 +865,39 @@ var _fpSvgSm = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmln
 
 // ── Modal PIN helper: keypad con huella ──
 function _buildKeypad(handler){
-  var keys = [1,2,3,4,5,6,7,8,9,'fp',0,'⌫'];
-  var html = '';
-  keys.forEach(function(k){
-    if(k === 'fp'){
-      // Botón huella — solo si bio está habilitada, si no vacío
+  var keys=[
+    [1,''],[2,'ABC'],[3,'DEF'],
+    [4,'GHI'],[5,'JKL'],[6,'MNO'],
+    [7,'PQRS'],[8,'TUV'],[9,'WXYZ'],
+    ['fp',''],['0',''],['⌫','']
+  ];
+  var btnBase='height:62px;border:none;border-radius:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:transform .08s,opacity .08s;width:100%;';
+  var html='';
+  keys.forEach(function(pair){
+    var k=pair[0],sub=pair[1];
+    if(k==='fp'){
       if(_isBioEnabled()){
-        html += '<button onclick="_pinUseBiometric()" '
-          +'style="height:64px;border:none;background:var(--surface2,#F1F5F9);border-radius:14px;'
-          +'cursor:pointer;color:#00D4AA;display:flex;align-items:center;justify-content:center;'
-          +'-webkit-tap-highlight-color:transparent;transition:transform .08s,background .08s;width:100%" '
-          +'ontouchstart="this.style.background=\'var(--surface3,#E2E8F0)\';this.style.transform=\'scale(.94)\'" '
-          +'ontouchend="this.style.background=\'var(--surface2,#F1F5F9)\';this.style.transform=\'scale(1)\'">'
+        html+='<button onclick="_pinUseBiometric()" '
+          +'style="'+btnBase+'background:rgba(255,255,255,.85);box-shadow:0 1px 4px rgba(0,0,0,.05);color:#00D4AA"'
+          +' ontouchstart="this.style.opacity=\'.6\';this.style.transform=\'scale(.94)\'"'
+          +' ontouchend="this.style.opacity=\'1\';this.style.transform=\'scale(1)\'">'
           +_fpSvgSm+'</button>';
       }else{
-        html += '<div></div>';
+        html+='<div></div>';
       }
+    }else if(k==='⌫'){
+      html+='<button onclick="'+handler+'(\''+k+'\')" '
+        +'style="'+btnBase+'background:transparent;box-shadow:none;font-size:22px;color:var(--text2,#64748B)"'
+        +' ontouchstart="this.style.opacity=\'.5\';this.style.transform=\'scale(.94)\'"'
+        +' ontouchend="this.style.opacity=\'1\';this.style.transform=\'scale(1)\'">⌫</button>';
     }else{
-      var isBackspace = k === '⌫';
-      html += '<button onclick="'+handler+'(\''+k+'\')" '
-        +'style="height:64px;border:none;background:var(--surface2,#F1F5F9);border-radius:14px;'
-        +'font-size:'+(isBackspace?'22px':'24px')+';font-weight:'+(isBackspace?'400':'700')+';'
-        +'cursor:pointer;color:var(--text,#0F172A);font-family:var(--font,inherit);'
-        +'-webkit-tap-highlight-color:transparent;transition:transform .08s,background .08s" '
-        +'ontouchstart="this.style.background=\'var(--surface3,#E2E8F0)\';this.style.transform=\'scale(.94)\'" '
-        +'ontouchend="this.style.background=\'var(--surface2,#F1F5F9)\';this.style.transform=\'scale(1)\'">'
-        +k+'</button>';
+      html+='<button onclick="'+handler+'(\''+k+'\')" '
+        +'style="'+btnBase+'background:rgba(255,255,255,.85);box-shadow:0 1px 4px rgba(0,0,0,.05);font-family:inherit"'
+        +' ontouchstart="this.style.opacity=\'.6\';this.style.transform=\'scale(.94)\'"'
+        +' ontouchend="this.style.opacity=\'1\';this.style.transform=\'scale(1)\'">'+
+        '<span style="font-size:22px;font-weight:700;color:#0F172A;line-height:1">'+k+'</span>'+
+        (sub?'<span style="font-size:8px;font-weight:600;color:#94A3B8;letter-spacing:.5px;margin-top:2px">'+sub+'</span>':'')+
+        '</button>';
     }
   });
   return html;
@@ -1069,21 +1076,22 @@ function showPinModal(){
     var attemptsHtml = attempts > 0
       ? '<div style="font-size:12px;color:#F59E0B;margin-top:6px">'+attemptsLeft+' intento'+(attemptsLeft===1?'':'s')+' restante'+(attemptsLeft===1?'':'s')+'</div>'
       : '';
-    overlay.innerHTML =
-      '<div id="pin-sheet" style="width:100%;background:var(--surface,#fff);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
-      +'<div style="display:flex;justify-content:flex-end;padding:14px 16px 0">'
-        +'<button onclick="closePinModal()" style="width:32px;height:32px;border-radius:50%;background:var(--surface2,#F1F5F9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2,#64748B)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+  overlay.innerHTML =
+      '<div id="pin-sheet" style="width:100%;background:linear-gradient(180deg,rgba(0,212,170,.12) 0%,rgba(0,212,170,.04) 35%,#fff 55%);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
+      +'<div style="display:flex;justify-content:flex-end;padding:12px 16px 0">'
+        +'<button onclick="closePinModal()" style="width:30px;height:30px;border-radius:50%;background:rgba(241,245,249,.9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748B"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
       +'</div>'
-      +'<div style="padding:8px 28px 24px;text-align:center">'
-        +'<div style="display:flex;align-items:center;justify-content:center;margin-bottom:10px">'
-          +'<img src="/icon-192.png" style="width:40px;height:40px;border-radius:8px" alt="FinanzIA">'
+      +'<div style="padding:0 24px 20px;text-align:center">'
+        +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px">'
+          +'<img src="/icon-192.png" style="width:32px;height:32px;border-radius:8px;object-fit:cover" alt="FinanzIA">'
+          +'<div style="font-size:18px;font-weight:900;color:#0F172A;letter-spacing:-.3px">Finanz<span style="color:#00D4AA">IA</span></div>'
         +'</div>'
-        +'<div style="font-size:16px;font-weight:700;color:var(--text,#0F172A);margin-bottom:4px">Ingresa tu PIN</div>'
+        +'<div style="font-size:18px;font-weight:800;color:#0F172A;margin-bottom:4px">Ingresa tu PIN</div>'
         +attemptsHtml
-        +'<div id="pin-dots" style="display:flex;justify-content:center;gap:16px;margin:16px 0 8px"></div>'
-        +'<div id="pin-err" style="min-height:18px;font-size:13px;color:#DC2626;margin-bottom:14px;text-align:center"></div>'
-        +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">'+_buildKeypad('_pinKey')+'</div>'
-        +'<button onclick="closePinModal();_showPinRecovery()" style="margin-top:16px;background:none;border:none;color:var(--primary,#00D4AA);font-size:14px;cursor:pointer;font-family:var(--font,inherit);text-decoration:underline">¿Olvidaste tu PIN?</button>'
+        +'<div id="pin-dots" style="display:flex;justify-content:center;gap:16px;margin:14px 0 6px"></div>'
+        +'<div id="pin-err" style="min-height:18px;font-size:13px;color:#DC2626;margin-bottom:10px;text-align:center"></div>'
+        +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 4px">'+_buildKeypad('_pinKey')+'</div>'
+        +'<button onclick="closePinModal();_showPinRecovery()" style="margin-top:14px;background:none;border:none;color:#94A3B8;font-size:13px;cursor:pointer;font-family:inherit">¿Olvidaste tu PIN?</button>'
       +'</div>'
       +'</div>';
     _renderPinDots(pin, 'pin-dots');
@@ -1463,6 +1471,7 @@ function _initSetPinScreen(){
             if(typeof renderPage==='function')renderPage('mi-perfil');
           }else if(window._pinFromRecovery){
             window._pinFromRecovery=false;
+            try{ toast('¡PIN creado! Ya puedes entrar rápido ✓'); }catch(e){}
             openPinLogin();
           }else{
             try{ toast('¡PIN creado! Ya puedes entrar rápido ✓'); }catch(e){}
