@@ -171,7 +171,7 @@ function _updateHeader(page){
         hRow2.style.display='block';
         var _h=new Date().getHours();
         var _saludo=_h<12?'Buenos d\u00edas \uD83D\uDC4B':_h<19?'Buenas tardes \u2600\uFE0F':'Buenas noches \uD83C\uDF19';
-        var _nombre=_getDisplayName();
+        var _nombre=getFirstName(window._currentUser)||'tú';
         if(hGreeting)hGreeting.textContent=_saludo;
         if(hBigTitle)hBigTitle.textContent=_nombre;
       }else{
