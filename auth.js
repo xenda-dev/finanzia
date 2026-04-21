@@ -1581,7 +1581,11 @@ function _showWelcomeScreen(user){
     }catch(e){}
   }
   var greetEl = document.getElementById('welcome-greeting');
-  if(greetEl) greetEl.textContent = '\u00a1Hola, ' + firstName + '!';
+  if(greetEl){
+    var _wh=new Date().getHours();
+    var _wsaludo=_wh<12?'Buenos d\u00edas':_wh<19?'Buenas tardes':'Buenas noches';
+    greetEl.textContent=_wsaludo+', '+firstName+' \uD83D\uDC4B';
+  }
   _showScreen('welcome');
   var fpIcon = document.getElementById('welcome-fp-icon');
   if(fpIcon && typeof _fpSvgSm !== 'undefined') fpIcon.innerHTML = _fpSvgSm;

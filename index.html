@@ -223,8 +223,7 @@
     <!-- Nombre + título + subtítulo -->
     <div style="text-align:center;padding:8px 20px 0;flex-shrink:0">
       <h1 id="welcome-greeting" class="welcome-greeting" style="margin-bottom:12px"></h1>
-      <h2 style="font-size:24px;font-weight:700;color:#0F172A;text-align:center;margin:0 0 10px 0">Bienvenido</h2>
-      <p style="font-size:14px;color:#64748B;text-align:center;margin:0 0 24px 0">Nos alegra tenerte nuevamente de regreso</p>
+      <p style="font-size:14px;color:#64748B;text-align:center;margin:0 0 24px 0">Nos alegra tenerte de regreso, ¿cómo quieres ingresar hoy?</p>
     </div>
 
     <!-- Botones tipo cápsula -->
@@ -458,35 +457,27 @@
 </nav>
 <div class="header">
   <div class="header-row1">
-    <!-- Solo dashboard: menú hamburguesa -->
-    <button onclick="openDrawer()" id="header-menu" style="width:34px;height:34px;border-radius:10px;border:none;background:rgba(255,255,255,.75);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;border:0.5px solid rgba(0,0,0,.08)">
+    <button onclick="openDrawer()" id="header-menu" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,0,0,.08);background:rgba(255,255,255,.75);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
-    <!-- Demás pantallas: flecha atrás -->
     <button onclick="goBack()" id="header-back" style="display:none;width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,0,0,.08);background:rgba(255,255,255,.75);color:var(--text);align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
-    <!-- Brand siempre centrado -->
-    <div id="header-brand" style="position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap">
-      <span style="color:var(--text);font-weight:900;font-size:16px;letter-spacing:-.4px">Finanz</span><span style="color:var(--primary);font-weight:900;font-size:16px;letter-spacing:-.4px">IA</span>
-    </div>
-    <!-- Título especial (Emiliano chat) -->
     <div id="header-title" style="display:none;font-size:16px;font-weight:700;color:var(--text);flex:1;text-align:center"></div>
-    <!-- Controles solo en dashboard (sin botón tema) -->
     <div class="header-right" id="header-controls">
       <div class="currency-toggle" id="currency-toggle">
         <button class="cur-btn active" data-cur="PLN" onclick="setCurrency('PLN')">PLN</button>
         <button class="cur-btn" data-cur="COP" onclick="setCurrency('COP')">COP</button>
       </div>
     </div>
-    <!-- Espaciador derecho en demás pantallas -->
     <div id="header-spacer" style="display:none;width:34px;flex-shrink:0"></div>
   </div>
-  <!-- Row 2: greeting (dashboard) o contexto + título grande (otras pantallas) -->
   <div id="header-row2" style="display:none">
     <div id="header-greeting" style="font-size:11px;color:var(--text2);font-weight:500;margin-bottom:1px"></div>
     <div id="header-bigtitle" style="font-size:21px;font-weight:900;color:var(--text);letter-spacing:-.6px;line-height:1.1"></div>
+    <div id="header-subtitle" style="display:none;font-size:12px;font-weight:500;color:var(--text2);line-height:1.5;margin-top:4px"></div>
   </div>
+  <div id="header-curve"></div>
 </div>
 <div id="main">
   <div id="page-dashboard" class="page active"></div>

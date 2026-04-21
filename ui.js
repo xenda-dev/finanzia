@@ -131,27 +131,29 @@ function _getPageTitle(page){
 function _updateHeader(page){
   var hTitle=document.getElementById('header-title');
   var hBack=document.getElementById('header-back');
-  var hBrand=document.getElementById('header-brand');
   var hMenu=document.getElementById('header-menu');
   var hControls=document.getElementById('header-controls');
   var hSpacer=document.getElementById('header-spacer');
   var hRow2=document.getElementById('header-row2');
   var hGreeting=document.getElementById('header-greeting');
   var hBigTitle=document.getElementById('header-bigtitle');
-  if(!hTitle||!hBack||!hBrand)return;
+  var hSubtitle=document.getElementById('header-subtitle');
+  if(!hTitle||!hBack)return;
   var isDash=page==='dashboard';
   var _isGrp=(page==='grp-midinero'||page==='grp-planificacion'||page==='grp-herramientas'||page==='simuladores'||page==='calculadora');
   var _isChat=(page==='herramientas');
   // Botón izquierdo
   hMenu.style.display=isDash?'flex':'none';
   hBack.style.display=isDash?'none':'flex';
-  // Controles (moneda) solo en dashboard
-  if(hControls)hControls.style.display=isDash?'flex':'none';
-  // Spacer derecho en demás pantallas
-  if(hSpacer)hSpacer.style.display=isDash?'none':'block';
-  // Brand siempre centrado y visible
-  if(hBrand)hBrand.style.display='block';
-  // Título especial (solo Emiliano chat)
+  hBack.style.alignItems='center';
+  hBack.style.justifyContent='center';
+  // Controles (moneda) — siempre visibles
+  if(hControls)hControls.style.display='flex';
+  // Spacer derecho en pantallas sin controls especiales
+  if(hSpacer)hSpacer.style.display='none';
+  // Subtitle reset
+  if(hSubtitle){hSubtitle.style.display='none';hSubtitle.textContent='';}
+  // Título especial Emiliano chat
   if(_isChat){
     hTitle.style.cssText='display:flex;align-items:center;gap:10px;flex:1;text-align:left;overflow:hidden';
     hTitle.innerHTML='<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),var(--primary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid rgba(0,212,170,0.3);position:relative;flex-shrink:0">'
@@ -159,48 +161,40 @@ function _updateHeader(page){
       +'<img src="/emiliano-chat.png" onerror="this.style.display=\'none\'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%">'
       +'</div>'
       +'<div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:700;color:var(--text);line-height:1.2">Emiliano</div><div style="font-size:11px;color:var(--primary);line-height:1.3">Wealth Manager · FinanzIA</div></div>';
+    if(hControls)hControls.style.display='none';
     if(hRow2)hRow2.style.display='none';
-  }else{
-    hTitle.style.display='none';
-    hTitle.textContent='';
-    // Row 2: greeting en dashboard, ctx+título en demás, oculto en grp
-    if(hRow2){
-      if(_isGrp){
-        hRow2.style.display='none';
-      }else if(isDash){
-        hRow2.style.display='block';
-        var _h=new Date().getHours();
-        var _saludo=_h<12?'Buenos d\u00edas \uD83D\uDC4B':_h<19?'Buenas tardes \u2600\uFE0F':'Buenas noches \uD83C\uDF19';
-        var _nombre=getFirstName(window._currentUser)||'tú';
-        if(hGreeting)hGreeting.textContent=_saludo;
-        if(hBigTitle)hBigTitle.textContent=_nombre;
-      }else{
-        hRow2.style.display='block';
-        var _ctx='';
-        var _bigT=_getPageTitle(page);
-        if(page==='movimientos'){_ctx='Tus movimientos';}
-        else if(page==='mis-cuentas'){_ctx='Tu patrimonio';}
-        else if(page==='presupuestos'){_ctx='Control de gastos';}
-        else if(page==='metas'){_ctx='Tus objetivos';}
-        else if(page==='pagos'){_ctx='Pagos programados';}
-        else if(page==='deudas'){_ctx='Gestión de deudas';}
-        else if(page==='inversiones'){_ctx='Tu portafolio';}
-        else if(page==='analisis'){_ctx='Tus reportes';}
-        else if(page==='configuracion'){_ctx='Personaliza tu app';}
-        else if(page==='mi-perfil'){_ctx='Tu cuenta';}
-        else if(page==='categorias'){_ctx='Organiza tus gastos';}
-        else if(page==='suscripciones'){_ctx='Servicios activos';}
-        if(hGreeting)hGreeting.textContent=_ctx;
-        if(hBigTitle)hBigTitle.textContent=_bigT;
+    return;
+  }
+  hTitle.style.display='none';
+  hTitle.textContent='';
+  // Row 2
+  if(hRow2){
+    if(_isGrp){
+      hRow2.style.display='none';
+    }else if(isDash){
+      hRow2.style.display='block';
+      var _h=new Date().getHours();
+      var _saludo=_h<12?'Buenos d\u00edas \uD83D\uDC4B':_h<19?'Buenas tardes \u2600\uFE0F':'Buenas noches \uD83C\uDF19';
+      if(hGreeting)hGreeting.textContent=_saludo;
+      if(hBigTitle)hBigTitle.textContent=getFirstName(window._currentUser)||'';
+    }else{
+      hRow2.style.display='block';
+      // Sin contexto — greeting vacío mantiene el espaciado
+      if(hGreeting)hGreeting.textContent='\u00a0';
+      if(hBigTitle)hBigTitle.textContent=_getPageTitle(page);
+      // Subtitle solo en configuración
+      if(page==='configuracion'&&hSubtitle){
+        hSubtitle.textContent='Todo lo que necesitas para que la app funcione justo como t\u00fa quieres \u2699\uFE0F';
+        hSubtitle.style.display='block';
       }
     }
   }
-  hBack.style.alignItems='center';
-  hBack.style.justifyContent='center';
+  // Spacer Mi Perfil
   if(hSpacer){
     if(page==='mi-perfil'){
       hSpacer.style.display='block';
       hSpacer.innerHTML='<button onclick="navigate(\'configuracion\')" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,0,0,.08);background:rgba(255,255,255,.75);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>';
+      if(hControls)hControls.style.display='none';
     }else{
       hSpacer.innerHTML='';
     }
@@ -5045,106 +5039,87 @@ function renderConfiguracion(){
     Notification.permission==='granted'?t('notifGranted'):
     Notification.permission==='denied'?t('notifDenied'):t('notifDefault');
   const activeCurs=S.currencies||[];
-    const resCur=(()=>{const m={"Afghanistan":"AFN","Albania":"ALL","Alemania":"EUR","Andorra":"EUR","Angola":"AOA","Argentina":"ARS","Armenia":"AMD","Australia":"AUD","Austria":"EUR","Azerbaiyán":"AZN","Bahamas":"BSD","Bangladés":"BDT","Bélgica":"EUR","Belice":"BZD","Bolivia":"BOB","Bosnia y Herzegovina":"BAM","Brasil":"BRL","Bulgaria":"BGN","Camerún":"XAF","Canadá":"CAD","Chile":"CLP","China":"CNY","Chipre":"EUR","Colombia":"COP","Costa Rica":"CRC","Croacia":"EUR","Cuba":"CUP","Dinamarca":"DKK","Ecuador":"USD","Egipto":"EGP","El Salvador":"USD","Emiratos Árabes Unidos":"AED","Eslovaquia":"EUR","Eslovenia":"EUR","España":"EUR","Estados Unidos":"USD","Estonia":"EUR","Etiopía":"ETB","Filipinas":"PHP","Finlandia":"EUR","Francia":"EUR","Ghana":"GHS","Grecia":"EUR","Guatemala":"GTQ","Honduras":"HNL","Hungría":"HUF","India":"INR","Indonesia":"IDR","Irán":"IRR","Irlanda":"EUR","Israel":"ILS","Italia":"EUR","Jamaica":"JMD","Japón":"JPY","Jordania":"JOD","Kazajistán":"KZT","Kenia":"KES","México":"MXN","Marruecos":"MAD","Nepal":"NPR","Nicaragua":"NIO","Nigeria":"NGN","Noruega":"NOK","Nueva Zelanda":"NZD","Países Bajos":"EUR","Pakistán":"PKR","Panamá":"USD","Paraguay":"PYG","Perú":"PEN","Polonia":"PLN","Portugal":"EUR","Qatar":"QAR","Reino Unido":"GBP","República Checa":"CZK","República Dominicana":"DOP","Rumanía":"RON","Rusia":"RUB","Arabia Saudita":"SAR","Senegal":"XOF","Serbia":"RSD","Singapur":"SGD","Sudáfrica":"ZAR","Suecia":"SEK","Suiza":"CHF","Tailandia":"THB","Tanzania":"TZS","Turquía":"TRY","Ucrania":"UAH","Uruguay":"UYU","Venezuela":"VES","Vietnam":"VND","Zimbabue":"ZWL"};return m[S.profile&&S.profile.residence]||'';})();
-  const curList=ALL_CURRENCIES.map(c=>{const meta=getCurrencyMeta(c.code);const isLocked=c.code===resCur&&resCur!=='';return`<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:${isLocked?'default':'pointer'};background:${activeCurs.includes(c.code)?'rgba(0,212,170,.12)':'var(--surface2)'}"><input type="checkbox" ${activeCurs.includes(c.code)?'checked':''} ${isLocked?'disabled':''} onchange="toggleCurrency('${c.code}',this.checked)" style="width:16px;height:16px;accent-color:var(--primary);flex-shrink:0"><div style="flex:1"><div style="font-size:14px;font-weight:700">${c.code} <span style="color:var(--primary)">${meta.sym}</span>${isLocked?' 🔒':''}</div><div style="font-size:11px;color:var(--text3)">${c.name}${isLocked?'<span style="color:var(--primary);font-size:10px;margin-left:4px">Moneda principal</span>':''}</div></div>${activeCurs.includes(c.code)?'<span style="color:var(--primary);font-size:16px">✓</span>':''}</label>`;}).join('');
-  const curSelected=`${activeCurs.length} ${t('selected')}`;
-  const langCurrent=S.language?ALL_LANGUAGES.find(l=>l.id===S.language)||ALL_LANGUAGES[0]:null;
-  const langClear=`<div onclick="saveLanguage('')" style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;border-radius:8px;color:var(--text3);margin-bottom:2px"><span>✕</span><span style="font-size:14px">— Seleccionar —</span></div>`;
-  const langList=langClear+ALL_LANGUAGES.map(l=>`<div onclick="saveLanguage('${l.id}')" style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;border-radius:8px;background:${l.id===S.language?'rgba(0,212,170,.12)':'transparent'};margin-bottom:2px">
-    <span style="font-size:18px">${l.flag}</span>
-    <span style="font-size:14px;font-weight:${l.id===S.language?'700':'400'};color:${l.id===S.language?'var(--primary)':'var(--text)'}">${l.label}</span>
-    ${l.id===S.language?'<span style="margin-left:auto;color:var(--primary)">✓</span>':''}
-  </div>`).join('');
-  return`
-    <!-- PROFILE SECTION -->
-    <div class="config-item" onclick="navigate('mi-perfil')" style="margin-bottom:16px">
-      <div class="config-item-left" style="gap:12px">
-        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:20px;border:2px solid var(--primary);overflow:hidden;flex-shrink:0">
-          ${_getProfilePhoto()?`<img src="${_getProfilePhoto()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(S.profile&&S.profile.name?`<span style="font-size:18px;font-weight:700;color:white">${S.profile.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</span>`:'<span>👤</span>')}
-        </div>
-        <div>
-          <div style="font-size:15px;font-weight:700">${(S.profile&&S.profile.name)||'Mi Perfil'}</div>
-          <div style="font-size:12px;color:var(--text2)">${(S.profile&&S.profile.email)||'Toca para completar tu perfil'}</div>
-        </div>
-      </div>
-      <span style="color:var(--text3)">›</span>
-    </div>
-<!-- CATEGORÍAS -->
-    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Categorías</div>
-    <div class="config-item" onclick="openCatPanel()" style="margin-bottom:16px">
-      <div class="config-item-left">
-        <div class="config-icon" style="background:rgba(0,212,170,.15)">🏷️</div>
-        <div>
-          <div style="font-size:14px;font-weight:600">Categorías</div>
-          <div style="font-size:12px;color:var(--text2)">${S.categories.length} categorías · ${S.subcategories.length} subcategorías</div>
-        </div>
-      </div>
-      <span style="color:var(--text3)">›</span>
-    </div>
-    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">${t('preferences')}</div>
-    <div style="background:var(--surface2);border-radius:16px;overflow:hidden;border:1px solid var(--border);margin-bottom:10px">
-      <div style="padding:12px 14px;border-bottom:1px solid var(--border)">
-        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:7px">${t('language')}</label>
-        <div class="bs-trigger" onclick="showLangPickerScreen()" style="background:var(--surface)">
-          <span style="font-size:14px">${langCurrent?langCurrent.flag+' '+langCurrent.label:'Seleccionar idioma'}</span>
-          <span style="color:var(--text3);font-size:18px">›</span>
-        </div>
-      </div>
-      <div style="padding:12px 14px;border-bottom:1px solid var(--border)">
-        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:7px">${t('weekStart')}</label>
-        <div class="bs-trigger" onclick="showBS_week()" style="background:var(--surface)">
-          <span style="font-size:14px">📅 ${({lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'})[S.weekStart]||'Seleccionar'}</span>
-          <span style="color:var(--text3);font-size:18px">›</span>
-        </div>
-      </div>
-      <div style="padding:12px 14px">
-        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:7px">${t('activeCurrencies')}</label>
-        <div class="bs-trigger" onclick="showCurrenciesPickerScreen()" style="background:var(--surface)">
-          <span style="font-size:14px" id="cfg-cur-lbl">${(S.currencies&&S.currencies.length)?(S.currencies.join(' · ')):'Seleccionar'}</span>
-          <span style="color:var(--text3);font-size:18px">›</span>
-        </div>
-        <div style="font-size:11px;color:var(--text2);margin-top:5px">Selecciona 1 o 2 monedas.</div>
-      </div>
-    </div>
-
-    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 8px">${t('appearance')}</div>
-    <div style="background:var(--surface2);border-radius:16px;overflow:hidden;border:1px solid var(--border);margin-bottom:10px">
-      <div style="padding:12px 14px;border-bottom:1px solid var(--border)">
-        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:7px">${t('theme')}</label>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:50px;padding:3px;display:flex;gap:2px">
-          ${buildThemeCaps()}
-        </div>
-      </div>
-      <div style="padding:12px 14px">
-        <label style="font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:7px">Formato de moneda</label>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:50px;padding:3px;display:flex;gap:2px">
-          ${buildNumFormatCaps()}
-        </div>
-        <div style="font-size:11px;color:var(--text2);margin-top:5px">Ejemplo: <strong>${buildNumFormatExample()}</strong></div>
-      </div>
-    </div>
-
-    <divv style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin:16px 0 10px">${t('system')}</div>
-    <div class="config-item" onclick="openNotifPage()">
-      <div class="config-item-left"><div class="config-icon" style="background:rgba(245,158,11,.15)">🔔</div><div><div style="font-size:14px;font-weight:600">${t('notifications')}</div><div style="font-size:12px;color:var(--text2)">${notifStatus}</div></div></div>
-      <span style="color:var(--text3)">›</span>
-    </div>
-    <div class="config-item" onclick="exportData()">
-      <div class="config-item-left"><div class="config-icon" style="background:rgba(59,130,246,.15)">📤</div><div><div style="font-size:14px;font-weight:600">${t('export')}</div><div style="font-size:12px;color:var(--text2)">${t('exportDesc')}</div></div></div>
-      <span style="color:var(--text3)">›</span>
-    </div>
-    <div class="config-item" onclick="importData()">
-      <div class="config-item-left"><div class="config-icon" style="background:rgba(16,185,129,.15)">📥</div><div><div style="font-size:14px;font-weight:600">${t('import')}</div><div style="font-size:12px;color:var(--text2)">${t('importDesc')}</div></div></div>
-      <span style="color:var(--text3)">›</span>
-    </div>
-    <div class="config-item" onclick="resetApp()" style="margin-top:8px">
-      <div class="config-item-left"><div class="config-icon" style="background:rgba(239,68,68,.15)">🗑️</div><div><div style="font-size:14px;font-weight:600;color:var(--danger)">${t('reset')}</div><div style="font-size:12px;color:var(--text2)">${t('resetDesc')}</div></div></div>
-      <span style="color:var(--text3)">›</span>
-    </div>
-
-    <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-    <div style="margin-top:32px;text-align:center;color:var(--text3);font-size:11px">${t('version')}</div>
-  `;
+  const resCur=(()=>{const m={"Afghanistan":"AFN","Albania":"ALL","Alemania":"EUR","Andorra":"EUR","Angola":"AOA","Argentina":"ARS","Armenia":"AMD","Australia":"AUD","Austria":"EUR","Azerbaiyán":"AZN","Bahamas":"BSD","Bangladés":"BDT","Bélgica":"EUR","Belice":"BZD","Bolivia":"BOB","Bosnia y Herzegovina":"BAM","Brasil":"BRL","Bulgaria":"BGN","Camerún":"XAF","Canadá":"CAD","Chile":"CLP","China":"CNY","Chipre":"EUR","Colombia":"COP","Costa Rica":"CRC","Croacia":"EUR","Cuba":"CUP","Dinamarca":"DKK","Ecuador":"USD","Egipto":"EGP","El Salvador":"USD","Emiratos Árabes Unidos":"AED","Eslovaquia":"EUR","Eslovenia":"EUR","España":"EUR","Estados Unidos":"USD","Estonia":"EUR","Etiopía":"ETB","Filipinas":"PHP","Finlandia":"EUR","Francia":"EUR","Ghana":"GHS","Grecia":"EUR","Guatemala":"GTQ","Honduras":"HNL","Hungría":"HUF","India":"INR","Indonesia":"IDR","Irán":"IRR","Irlanda":"EUR","Israel":"ILS","Italia":"EUR","Jamaica":"JMD","Japón":"JPY","Jordania":"JOD","Kazajistán":"KZT","Kenia":"KES","México":"MXN","Marruecos":"MAD","Nepal":"NPR","Nicaragua":"NIO","Nigeria":"NGN","Noruega":"NOK","Nueva Zelanda":"NZD","Países Bajos":"EUR","Pakistán":"PKR","Panamá":"USD","Paraguay":"PYG","Perú":"PEN","Polonia":"PLN","Portugal":"EUR","Qatar":"QAR","Reino Unido":"GBP","República Checa":"CZK","República Dominicana":"DOP","Rumanía":"RON","Rusia":"RUB","Arabia Saudita":"SAR","Senegal":"XOF","Serbia":"RSD","Singapur":"SGD","Sudáfrica":"ZAR","Suecia":"SEK","Suiza":"CHF","Tailandia":"THB","Tanzania":"TZS","Turquía":"TRY","Ucrania":"UAH","Uruguay":"UYU","Venezuela":"VES","Vietnam":"VND","Zimbabue":"ZWL"};return m[S.profile&&S.profile.residence]||'';})();
+  const langCurrent=S.language?ALL_LANGUAGES.find(function(l){return l.id===S.language;})||ALL_LANGUAGES[0]:null;
+  function cfgCard(rows){
+    return '<div style="background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);overflow:hidden;margin-bottom:4px">'
+      +rows.join('')+'</div>';
+  }
+  function cfgRow(iconBg,iconSvg,label,value,onclick,last,danger){
+    var chevron='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+(danger?'rgba(239,68,68,.4)':'var(--border)')+'" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
+    return '<div onclick="'+onclick+'" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:'+(last?'none':'0.5px solid var(--border)')+';cursor:pointer;transition:.1s" onactive="this.style.opacity=.7">'
+      +'<div style="width:36px;height:36px;border-radius:10px;background:'+iconBg+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+iconSvg+'</div>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:13px;font-weight:700;color:'+(danger?'var(--danger)':'var(--text)')+'">'+label+'</div>'
+        +(value?'<div style="font-size:11px;color:var(--text2);margin-top:1px">'+value+'</div>':'')
+      +'</div>'+chevron+'</div>';
+  }
+  function cfgRowSeg(iconBg,iconSvg,label,seg){
+    return '<div style="padding:13px 14px;border-bottom:0.5px solid var(--border)">'
+      +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">'
+        +'<div style="width:36px;height:36px;border-radius:10px;background:'+iconBg+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+iconSvg+'</div>'
+        +'<div style="font-size:13px;font-weight:700;color:var(--text)">'+label+'</div>'
+      +'</div>'+seg+'</div>';
+  }
+  var svgLang='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
+  var svgCal='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  var svgCur='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
+  var svgTheme='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
+  var svgFmt='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
+  var svgNotif='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
+  var svgExp='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+  var svgImp='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+  var svgReset='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>';
+  var svgCat='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>';
+  var secLbl=function(txt){return '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:18px 0 8px;padding-left:2px">'+txt+'</div>';};
+  var wkLabel=({lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'})[S.weekStart]||'Seleccionar';
+  var curLabel=(S.currencies&&S.currencies.length)?(S.currencies.join(' · ')):'Seleccionar';
+  var themeSegs=buildThemeCaps();
+  var fmtSegs=buildNumFormatCaps();
+  return '<div style="padding:0 14px calc(var(--nav-h)+24px)">'
+    // Mi Perfil shortcut
+    +'<div onclick="navigate(\'mi-perfil\')" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);margin-bottom:18px;cursor:pointer">'
+      +'<div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid var(--primary);overflow:hidden;flex-shrink:0">'
+        +((_getProfilePhoto())?('<img src="'+_getProfilePhoto()+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'):((S.profile&&S.profile.name)?('<span style="font-size:16px;font-weight:700;color:white">'+S.profile.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)+'</span>'):'<span style="color:white">👤</span>'))
+      +'</div>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:14px;font-weight:700;color:var(--text)">'+(( S.profile&&S.profile.name)||'Mi Perfil')+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:1px">'+((S.profile&&S.profile.email)||'Toca para completar tu perfil')+'</div>'
+      +'</div>'
+      +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
+    +'</div>'
+    // Preferencias
+    +secLbl('Preferencias')
+    +cfgCard([
+      cfgRow('rgba(59,130,246,.12)',svgLang,'Idioma',langCurrent?langCurrent.flag+' '+langCurrent.label:'Seleccionar','showLangPickerScreen()',false,false),
+      cfgRow('rgba(245,158,11,.12)',svgCal,'Inicio de semana',wkLabel,'showBS_week()',false,false),
+      cfgRow('rgba(0,212,170,.12)',svgCur,'Monedas activas',curLabel,'showCurrenciesPickerScreen()',false,false),
+      cfgRow('rgba(0,212,170,.12)',svgCat,'Categorías',S.categories.length+' categorías','openCatPanel()',true,false)
+    ])
+    // Apariencia
+    +secLbl('Apariencia')
+    +cfgCard([
+      cfgRowSeg('rgba(116,97,239,.12)',svgTheme,'Tema','<div style="background:var(--surface2);border:1px solid var(--border);border-radius:50px;padding:3px;display:flex;gap:2px">'+themeSegs+'</div>'),
+      '<div style="padding:13px 14px">'
+        +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">'
+          +'<div style="width:36px;height:36px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+svgFmt+'</div>'
+          +'<div style="font-size:13px;font-weight:700;color:var(--text)">Formato de moneda</div>'
+        +'</div>'
+        +'<div style="background:var(--surface2);border:1px solid var(--border);border-radius:50px;padding:3px;display:flex;gap:2px">'+fmtSegs+'</div>'
+        +'<div style="font-size:11px;color:var(--text2);margin-top:6px">Ejemplo: <strong>'+buildNumFormatExample()+'</strong></div>'
+      +'</div>'
+    ])
+    // Sistema
+    +secLbl('Sistema')
+    +cfgCard([
+      cfgRow('rgba(245,158,11,.12)',svgNotif,'Notificaciones',notifStatus,'openNotifPage()',false,false),
+      cfgRow('rgba(59,130,246,.12)',svgExp,'Exportar mis datos','Descarga un respaldo','exportData()',false,false),
+      cfgRow('rgba(16,185,129,.12)',svgImp,'Importar datos','Restaura un respaldo','importData()',false,false),
+      cfgRow('rgba(239,68,68,.12)',svgReset,'Reiniciar app','Borra todos tus datos','resetApp()',true,true)
+    ])
+    +'<input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">'
+    +'<div style="margin-top:24px;text-align:center;color:var(--text3);font-size:11px">'+t('version')+'</div>'
+  +'</div>';
 }function togglePPick(id){
   var el=document.getElementById(id);var arr=document.getElementById(id+'-arrow');
   if(!el)return;
