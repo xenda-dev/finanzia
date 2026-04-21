@@ -39,7 +39,7 @@ function initSupabase(){
       var btn = document.getElementById('verify-continue-btn');
       if(u && u.email_confirmed_at && btn){
         btn.disabled = false;
-        try{ toast('\u00a1Correo confirmado! Ya puedes continuar.'); }catch(e){}
+        try{ toast('¡Listo! Correo confirmado ✓'); }catch(e){}
       }else if(btn){
         // Fallback: el evento llegó pero email_confirmed_at aún no está
         enableContinueIfVerified();
@@ -108,9 +108,9 @@ async function deleteUserAccount(){
   confirmDialog(
     '⚠️',
     'Eliminar cuenta',
-    'Se eliminarán TODOS tus datos y tu cuenta de forma permanente. Esta acción es irreversible.',
+    '¿Seguro que quieres irte? Borraremos todos tus datos para siempre. Esto no tiene marcha atrás.',
     function(){ _showDeletePasswordModal(); },
-    'Continuar',
+    'Sí, eliminar todo',
     'btn-danger'
   );
 }
@@ -357,7 +357,7 @@ async function _handleBioSheetUnlock(){
     _closeBioSheet();
     showAuthScreen();
     _showScreen('login');
-    try{ toast('Usa tu contraseña para continuar'); }catch(e){}
+    try{ toast('Hmm, no te reconocí. Intenta con tu contraseña.'); }catch(e){}
   }
 }
 
@@ -426,7 +426,7 @@ async function _activateBioFromSheet(userId, email){
     if(typeof S!=='undefined'&&S.currentPage==='mi-perfil'){
       setTimeout(function(){if(typeof renderPage==='function')renderPage('mi-perfil');},300);
     }else{
-      try{ toast('Huella activada \u2713'); }catch(e){}
+      try{ toast('¡Listo! Huella activada ✓'); }catch(e){}
     }
   }
 }
@@ -462,7 +462,7 @@ function _setBusy(id,busy,label){
 async function handleLogin(){
   var email=(document.getElementById('li-email').value||'').trim();
   var pass=(document.getElementById('li-pass').value||'').trim();
-  if(!email||!pass){_setError('li','Completa todos los campos');return;}
+  if(!email||!pass){_setError('li','Falta algo por completar 👆');return;}
   _setError('li',''); _setBusy('li-btn',true,'Iniciar sesión');
   var res=await signIn(email,pass);
   _setBusy('li-btn',false,'Iniciar sesión');
@@ -492,7 +492,7 @@ async function handleRegister(){
   var tcCheck=document.getElementById('rg-tc');
   if(!tcCheck||!tcCheck.checked){_setError('rg','Debes aceptar los Términos y Condiciones para continuar');return;}
   if(name.split(/\s+/).filter(Boolean).length<2){_setError('rg','Ingresa nombre y apellido completos');return;}
-  if(!email||!pass){_setError('rg','Completa todos los campos');return;}
+  if(!email||!pass){_setError('rg','Falta algo por completar 👆');return;}
   if(pass.length<8){_setError('rg','Mínimo 8 caracteres');return;}
   if(!/[A-Z]/.test(pass)){_setError('rg','Debe incluir al menos una mayúscula');return;}
   if(!/[0-9]/.test(pass)){_setError('rg','Debe incluir al menos un número');return;}
@@ -568,7 +568,7 @@ async function handleBioUnlock(){
       safeSync(_currentUser.id).catch(function(e){console.warn('sync error:',e);});
     }
   }else{
-    _setError('bio','No se reconoció. Intenta de nuevo.');
+    _setError('bio','Hmm, no te reconocí. Intenta de nuevo o usa tu contraseña.');
   }
 }
 function handleBioFallback(){ _showScreen('login'); }
@@ -656,11 +656,11 @@ function _authMsg(msg){
   if(!msg)return{ok:false,msg:'Error desconocido'};
   if(msg.includes('already registered'))return{ok:false,msg:'',isExists:true};
   if(msg.includes('User already registered'))return{ok:false,msg:'',isExists:true};
-  if(msg.includes('Invalid login'))return{ok:false,msg:'Correo o contraseña incorrectos'};
+  if(msg.includes('Invalid login'))return{ok:false,msg:'Hmm, algo no cuadra. ¿Revisamos el correo o la contraseña?'};
   if(msg.includes('Password should'))return{ok:false,msg:'Contraseña débil: mínimo 8 caracteres, mayúscula, número y símbolo'};
   if(msg.includes('valid email'))return{ok:false,msg:'Ingresa un correo válido'};
-  if(msg.includes('Email not confirmed'))return{ok:false,msg:'Confirma tu correo antes de entrar'};
-  if(msg.includes('rate limit'))return{ok:false,msg:'Demasiados intentos. Espera unos minutos'};
+  if(msg.includes('Email not confirmed'))return{ok:false,msg:'Primero confirma tu correo — revisa tu bandeja 📬'};
+  if(msg.includes('rate limit'))return{ok:false,msg:'Demasiados intentos seguidos. Espera un momento e intenta de nuevo.'};
   return{ok:false,msg:msg};
 }
 
@@ -875,7 +875,7 @@ async function _pinUseBiometric(){
       _currentUser = res.data.user;
     }catch(e){
       showAuthScreen(); _showScreen('login');
-      try{ toast('Sesión expirada'); }catch(ex){}
+      try{ toast('Tu sesión expiró. Ingresa de nuevo.'); }catch(ex){}
       return;
     }
     hideAuthScreen();
@@ -1402,7 +1402,7 @@ function _initSetPinScreen(){
             window._pinFromRecovery=false;
             openPinLogin();
           }else{
-            try{ toast('PIN guardado correctamente \u2713'); }catch(e){}
+            try{ toast('¡PIN creado! Ya puedes entrar rápido ✓'); }catch(e){}
             _initBioSetupScreen();
             _showScreen('bio-setup');
           }

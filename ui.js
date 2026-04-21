@@ -563,7 +563,7 @@ function renderDashboard(){
     <div class="section-header"><div class="section-title">📊 ${t('budgets')}</div><button class="btn-text" onclick="navigate('presupuestos')">Ver todos</button></div>
     <div class="card">${budgetHtml}</div>
     <div class="section-header"><div class="section-title">📋 ${t('recentMovements')}</div><button class="btn-text" onclick="navigate('movimientos')">Ver todos</button></div>
-    ${recentTxs.length?recentTxs.map(txRow).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Sin movimientos</div><div class="empty-desc">Toca + para registrar</div></div>'}
+    ${recentTxs.length?recentTxs.map(txRow).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Aquí vivirán tus movimientos</div><div class="empty-desc">¡Registra el primero con el botón ＋!</div></div>'}
   `;
 }
 
@@ -611,7 +611,7 @@ function renderMovimientos(){
       ${['todos','ingreso','gasto','transferencia'].map(tab=>`<button class="chip ${f.tab===tab?'active':''}" onclick="S.movFilter.tab='${tab}';renderPage('movimientos')">${tab==='todos'?'Todos':tab==='ingreso'?'Ingresos':tab==='gasto'?'Gastos':'Transferencias'}</button>`).join('')}
     </div>
     ${txs.length>0?`<div style="font-size:12px;color:var(--text2);margin-bottom:10px">${txs.length} movimientos · Balance: <span style="color:${total>=0?'var(--success)':'var(--danger)'};font-weight:700">${fmt(total)}</span></div>`:''}
-    ${txs.length?txs.map(txRow).join(''):'<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Sin resultados</div><div class="empty-desc">Ajusta los filtros</div></div>'}
+    ${txs.length?txs.map(txRow).join(''):'<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Nada con ese filtro</div><div class="empty-desc">Prueba cambiando la búsqueda</div></div>'}
   `;
 }
 
@@ -775,8 +775,8 @@ function renderMisCuentas(){
 
   if(activos.length===0&&pasivos.length===0){
     html+='<div class="empty-state"><div class="empty-icon">💳</div>'
-      +'<div class="empty-title">Sin cuentas</div>'
-      +'<div class="empty-desc">Toca "+ Nueva cuenta" para empezar</div></div>';
+      +'<div class="empty-title">Aún no tienes cuentas</div>'
+      +'<div class="empty-desc">Agrega la primera y empieza a ver tu patrimonio real 💳</div></div>';
     return html;
   }
 
@@ -1986,8 +1986,8 @@ function renderSuscripciones(){
 
   if(!subs.length){
     html+='<div class="empty-state"><div class="empty-icon">🔁</div>'
-      +'<div class="empty-title">Sin suscripciones</div>'
-      +'<div class="empty-desc">Registra tus servicios recurrentes</div></div>';
+      +'<div class="empty-title">Sin suscripciones activas</div>'
+      +'<div class="empty-desc">Registra tus servicios y nunca pierdas de vista lo que pagas cada mes</div></div>';
     return html;
   }
 
@@ -2392,7 +2392,7 @@ function renderPresupuestos(){
     +'<button class="btn btn-primary btn-sm" onclick="openModal(\'budget\',{})">+ '+(t('newBudget')||'Nuevo presupuesto')+'</button>'
     +'</div>';
   html+=!budgets.length
-    ?'<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Sin presupuestos</div><div class="empty-desc">Define límites por categoría</div></div>'
+    ?'<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Sin presupuestos todavía</div><div class="empty-desc">Crear uno es el primer paso para controlar tus gastos 📊</div></div>'
     :renderBudgetGroups(budgets);
   return html;
 }
@@ -2419,7 +2419,7 @@ function renderMetas(){
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
       <button class="btn btn-primary btn-sm" onclick="openModal('goal',{})">+ ${t('newGoal')||'Nueva meta'}</button>
     </div>
-    ${!goals.length?'<div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-title">Sin metas</div><div class="empty-desc">Define tus objetivos de ahorro</div></div>':
+    ${!goals.length?'<div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-title">¿A qué le estás ahorrando?</div><div class="empty-desc">Crea tu primera meta y empieza a llegar 🎯</div></div>':
     goals.map(g=>{
       const rawPct=g.target>0?Math.round(g.current/g.target*100):0;
       const barPct=Math.min(100,rawPct);
@@ -2463,7 +2463,7 @@ function renderPagos(){
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
       <button class="btn btn-primary btn-sm" onclick="openModal('payment',{})">+ ${t('newPayment')||'Nuevo pago'}</button>
     </div>
-    ${(()=>{const _sp=filterDeleted(S.scheduledPayments);if(!_sp.length)return '<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-title">Sin pagos programados</div><div class="empty-desc">Programa tus pagos recurrentes</div></div>';return _sp.map(p=>{
+    ${(()=>{const _sp=filterDeleted(S.scheduledPayments);if(!_sp.length)return '<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-title">Ningún pago programado aún</div><div class="empty-desc">Agrégalos aquí y olvídate de los vencimientos 🗓️</div></div>';return _sp.map(p=>{
       const days=daysUntil(p.nextDate);
       const cat=getCat(p.categoryId);
       const borderColor=days<0?'var(--danger)':days===0?'var(--warning)':days<=3?'#F59E0B88':(p.color||'var(--border)');
@@ -2511,7 +2511,7 @@ function renderDeudas(){
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
       <button class="btn btn-primary btn-sm" onclick="openModal('account',{defaultType:'pasivo'})">+ ${t('newDebt')||'Nueva deuda'}</button>
     </div>
-    ${!pasivos.length?'<div class="empty-state"><div class="empty-icon">💸</div><div class="empty-title">Sin deudas en '+S.currency+'</div><div class="empty-desc">Las cuentas pasivas aparecerán aquí</div></div>':
+    ${!pasivos.length?'<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">¡Sin deudas en '+S.currency+'!</div><div class="empty-desc">Eso es para celebrar 🎉 O agrega las que estás manejando.</div></div>':
     pasivos.map(a=>{
       const bal=Math.abs(getBalance(a.id));
       const b=getBank(a.bankEntity,a.currency||S.currency);
@@ -3949,7 +3949,7 @@ function downloadLoanTable(){
   var a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
   a.download='plan-amortizacion.csv';a.click();
-  toast('Plan descargado ✓');
+  toast('¡Plan de amortización descargado! ✓');
 }
 function openSimDetail(){
   var rows=window._simRows;
@@ -4557,7 +4557,7 @@ function simDownloadCSV(){
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
   a.download='simulacion-ahorro.csv';a.click();
-  toast('Tabla descargada ✓');
+  toast('¡Simulación descargada! ✓');
 }
 
 
@@ -7673,7 +7673,7 @@ function renderListas(){
     <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
       <button class="btn btn-primary btn-sm" onclick="openModal('newList',{})">+ Nueva lista</button>
     </div>
-    ${!lists.length?`<div class="empty-state"><div class="empty-icon">🛒</div><div class="empty-title">Sin listas</div><div class="empty-desc">Crea tu primera lista de compras</div></div>`:
+    ${!lists.length?`<div class="empty-state"><div class="empty-icon">🛒</div><div class="empty-title">Aquí vivirán tus listas</div><div class="empty-desc">Crea la primera y di adiós a los olvidos en el súper 🛒</div></div>`:
     lists.map(l=>{
       const done = (l.items||[]).filter(i=>i.done).length;
       const total = (l.items||[]).length;
@@ -7788,7 +7788,7 @@ function renderListItems(l){
   var cntEl = document.getElementById('list-summary-cnt');
   if(cntEl) cntEl.textContent = done+'/'+items.length;
   if(!items.length){
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Lista vacía</div><div class="empty-desc">Agrega ítems abajo</div></div>';
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Lista vacía</div><div class="empty-desc">Agrega lo que necesitas 👆</div></div>';
     return;
   }
   var html = '';
@@ -8094,7 +8094,7 @@ function renderInversiones(){
     +'<button class="btn btn-primary btn-sm" onclick="openModal(\'newInvestment\',{})">+ Nueva inversión</button>'
     +'</div>';
   if(!invs.length){
-    html+='<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-title">Sin inversiones</div><div class="empty-desc">Registra tu primer activo</div></div>';
+    html+='<div class="empty-state"><div class="empty-icon">📈</div><div class="empty-title">Sin inversiones todavía</div><div class="empty-desc">Registra tu primer activo y empieza a ver crecer tu portafolio 📈</div></div>';
     return html;
   }
   invs.forEach(function(inv){
@@ -8207,7 +8207,7 @@ function shareList(listId){
   var text='📋 *'+l.name+'*\n\n';
   (l.items||[]).forEach(function(i){text+=(i.done?'✅':'⬜')+' '+i.name+'\n';});
   if(navigator.share){navigator.share({title:l.name,text:text});}
-  else if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('Lista copiada ✓');});}
+  else if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('¡Lista copiada al portapapeles! ✓');});}
 }
 function closeListDetail(){
   var el=document.getElementById('list-detail-overlay');
@@ -8229,7 +8229,7 @@ function invitarAmigos(){
     navigator.share({title:'FinanzIA',text:msg,url:url}).catch(function(){});
   }else{
     try{navigator.clipboard.writeText(url);}catch(e){}
-    toast('¡Link copiado al portapapeles!');
+    toast('¡Enlace copiado! Compártelo como quieras 🔗');
   }
 }
 
@@ -8355,11 +8355,11 @@ async function _enviarSoporte(){
         +'<button onclick="document.getElementById(\'soporte-modal\').remove()" style="padding:12px 32px;border-radius:50px;background:var(--primary);border:none;color:white;font-weight:700;cursor:pointer;font-family:var(--font)">Cerrar</button>'
         +'</div>';
     }else{
-      toast('Error al enviar. Intenta de nuevo.');
+      toast('No pudimos enviar tu mensaje. Intenta de nuevo.');
       if(btn){btn.disabled=false;btn.textContent='Enviar mensaje';}
     }
   }catch(e){
-    toast('Error de conexión. Intenta de nuevo.');
+    toast('Sin conexión. Revisa el internet e intenta de nuevo.');
     if(btn){btn.disabled=false;btn.textContent='Enviar mensaje';}
   }
 }

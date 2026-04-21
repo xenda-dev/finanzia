@@ -258,7 +258,8 @@ function updateDrawerProfile(){
       !!(photo)
     ];
     var pct=Math.round(checks.filter(Boolean).length/checks.length*100);
-    if(pctEl)pctEl.textContent=pct+'% completado';
+    var pctText = pct>=100 ? '¡Perfil completo! ✓' : 'Perfil al '+pct+'% — complétalo para más 💚';
+    if(pctEl)pctEl.textContent=pctText;
     if(fillEl)fillEl.style.width=pct+'%';
   }catch(e){}
 }
