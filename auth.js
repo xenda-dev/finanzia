@@ -1735,62 +1735,103 @@ async function initAuth(){
 function _showOnboarding(){
   var slides=[
     {
-      accent:'#00D4AA',
-      shadow:'rgba(0,212,170,.25)',
-      btnGrad:'linear-gradient(135deg,#00D4AA,#00A884)',
-      icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
-      title:'Toma el control total<br>de tu dinero',
-      sub:'Centraliza tus cuentas, ingresos y gastos en un solo lugar. Visualiza tu salud financiera en tiempo real.'
+      emoji:'💚',
+      title:'Tus finanzas,<br>por fin en orden',
+      sub:'Registra, analiza y controla tu dinero desde un solo lugar. <strong>Sin complicaciones, sin jerga bancaria.</strong> Solo lo que necesitas saber.'
     },
     {
-      accent:'#00D4AA',
-      shadow:'rgba(0,212,170,.25)',
-      btnGrad:'linear-gradient(135deg,#00D4AA,#00A884)',
-      icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-3.16A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-3.16A2.5 2.5 0 0 0 14.5 2z"/></svg>',
-      title:'Decisiones inteligentes<br>con IA',
-      sub:'Recibe consejos personalizados para ahorrar m\u00e1s y gastar mejor. Nuestros algoritmos detectan patrones y optimizan tus presupuestos.'
+      emoji:'🎯',
+      title:'Metas que s\u00ed<br>se cumplen',
+      sub:'Crea presupuestos, define metas de ahorro y programa tus pagos. <strong>Tu dinero, con prop\u00f3sito real.</strong>'
     },
     {
-      accent:'#00D4AA',
-      shadow:'rgba(0,212,170,.25)',
-      btnGrad:'linear-gradient(135deg,#00D4AA,#00A884)',
-      icon:'<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>',
-      title:'Tu privacidad es primero',
-      sub:'Tu informaci\u00f3n viaja cifrada y protegida con acceso biom\u00e9trico. Tus datos financieros son solo tuyos.'
+      emoji:'\uD83E\uDD1D',
+      title:'Emiliano,<br>siempre contigo',
+      sub:'Tu Wealth Manager personal con IA. <strong>Analiza tus finanzas en tiempo real</strong> y te ayuda a tomar mejores decisiones con tu dinero.'
     }
   ];
   var cur=0;
+  var goingBack=false;
   var ov=document.createElement('div');
   ov.id='onboarding-screen';
-  ov.style.cssText='position:fixed;inset:0;z-index:9999;background:#F8FAFC;display:flex;flex-direction:column;overflow:hidden';
-  function render(){
+  ov.style.cssText='position:fixed;inset:0;z-index:9999;overflow:hidden;font-family:var(--font)';
+  function render(back){
     var s=slides[cur];
     var isLast=cur===slides.length-1;
     var dots=slides.map(function(_,i){
-      return '<div style="width:'+(i===cur?'20px':'8px')+';height:8px;border-radius:4px;background:'+(i===cur?s.accent:'#CBD5E1')+';transition:.3s"></div>';
+      var isPast=i<cur;
+      var isActive=i===cur;
+      return '<div data-dot="'+i+'" style="width:'+(isActive?'22px':'8px')+'px;height:8px;border-radius:4px;'
+        +'background:'+(isActive?'#00D4AA':isPast?'rgba(0,212,170,.45)':'rgba(255,255,255,.35)')
+        +';transition:.3s cubic-bezier(.4,0,.2,1);cursor:'+(isPast?'pointer':'default')+'"></div>';
     }).join('');
     ov.innerHTML=
-      '<div style="display:flex;justify-content:flex-end;padding:16px 20px;flex-shrink:0">'
-        +'<button onclick="_finishOnboarding()" style="border:none;background:transparent;color:#94A3B8;font-size:14px;cursor:pointer;font-family:var(--font);padding:8px">Saltar</button>'
-      +'</div>'
-      +'<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 32px;text-align:center">'
-        +'<div style="width:128px;height:128px;border-radius:36px;background:'+s.btnGrad+';display:flex;align-items:center;justify-content:center;margin-bottom:36px;box-shadow:0 16px 40px '+s.shadow+'">'
-          +s.icon
+      // Fondo: gradiente teal sin divisor
+      '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,212,170,.22) 0%,rgba(0,212,170,.14) 25%,rgba(0,212,170,.06) 50%,rgba(0,212,170,0) 72%);pointer-events:none;z-index:0"></div>'
+      +'<div style="position:absolute;top:-60px;right:-60px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,170,.18) 0%,transparent 70%);pointer-events:none;z-index:0"></div>'
+      // Contenido
+      +'<div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;background:transparent;'+(back?'animation:_obBack .35s cubic-bezier(.4,0,.2,1)':'animation:_obIn .35s cubic-bezier(.4,0,.2,1)')+'">'
+        // Top: saltar
+        +'<div style="display:flex;justify-content:flex-end;padding:20px 20px 0;flex-shrink:0">'
+          +(isLast?'<div style="width:50px"></div>':'<button onclick="_finishOnboarding()" style="border:none;background:none;color:#94A3B8;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);padding:6px 0">Saltar</button>')
         +'</div>'
-        +'<div style="font-size:28px;font-weight:900;color:#0F172A;line-height:1.25;margin-bottom:16px;letter-spacing:-.3px">'+s.title+'</div>'
-        +'<div style="font-size:15px;color:#64748B;line-height:1.7;max-width:300px">'+s.sub+'</div>'
-      +'</div>'
-      +'<div style="padding:24px 24px 44px;display:flex;flex-direction:column;align-items:center;gap:20px;flex-shrink:0">'
-        +'<div style="display:flex;align-items:center;gap:8px">'+dots+'</div>'
-        +'<button onclick="_onboardingNext()" style="width:100%;padding:16px;border-radius:50px;background:'+s.btnGrad+';border:none;color:white;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px;box-shadow:0 8px 24px '+s.shadow+'">'
-          +(isLast?'\u00a1Comenzar ahora!':'Siguiente')
-        +'</button>'
+        // Emoji
+        +'<div style="padding:20px 24px 0;flex-shrink:0">'
+          +'<span style="font-size:72px;line-height:1;display:block;filter:drop-shadow(0 8px 24px rgba(0,212,170,.25))">'+s.emoji+'</span>'
+        +'</div>'
+        // Texto alineado a la izquierda
+        +'<div style="padding:28px 24px 0;flex:1">'
+          +'<div style="font-size:28px;font-weight:900;color:#0F172A;letter-spacing:-.7px;line-height:1.1;margin-bottom:12px">'+s.title+'</div>'
+          +'<div style="font-size:15px;color:#475569;line-height:1.65;font-weight:500">'+s.sub+'</div>'
+        +'</div>'
+        // Footer: dots + botón
+        +'<div style="padding:0 24px 40px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'
+          +'<div id="_ob_dots" style="display:flex;align-items:center;gap:7px;cursor:pointer">'+dots+'</div>'
+          +'<button onclick="_onboardingNext()" style="padding:14px 28px;border-radius:50px;background:linear-gradient(135deg,#00D4AA,#7461EF);border:none;color:white;font-size:15px;font-weight:800;cursor:pointer;font-family:var(--font);box-shadow:0 4px 16px rgba(0,212,170,.35);letter-spacing:-.2px">'
+            +(isLast?'\u00a1Empecemos \uD83D\uDE80':'Siguiente \u2192')
+          +'</button>'
+        +'</div>'
       +'</div>';
+    // Dots click para volver
+    var dotsEl=document.getElementById('_ob_dots');
+    if(dotsEl){
+      dotsEl.addEventListener('click',function(e){
+        var dotEl=e.target.closest('[data-dot]');
+        if(!dotEl)return;
+        var idx=parseInt(dotEl.getAttribute('data-dot'));
+        if(idx<cur){goBack(idx);}
+      });
+    }
+  }
+  // Añadir keyframes de animación
+  if(!document.getElementById('_ob_style')){
+    var st=document.createElement('style');
+    st.id='_ob_style';
+    st.textContent='@keyframes _obIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}'
+      +'@keyframes _obBack{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:translateX(0)}}';
+    document.head.appendChild(st);
+  }
+  function goBack(idx){
+    cur=idx;
+    render(true);
+    addSwipe();
   }
   window._onboardingNext=function(){
-    if(cur<slides.length-1){cur++;render();}else{_finishOnboarding();}
+    if(cur<slides.length-1){cur++;render(false);addSwipe();}else{_finishOnboarding();}
   };
-  render();
+  function addSwipe(){
+    var startX=0;
+    ov.ontouchstart=function(e){startX=e.touches[0].clientX;};
+    ov.ontouchend=function(e){
+      var diff=startX-e.changedTouches[0].clientX;
+      if(Math.abs(diff)>50){
+        if(diff>0&&cur<slides.length-1){cur++;render(false);addSwipe();}
+        else if(diff<0&&cur>0){cur--;render(true);addSwipe();}
+      }
+    };
+  }
+  render(false);
+  addSwipe();
   document.body.appendChild(ov);
 }
 function _finishOnboarding(){
