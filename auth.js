@@ -1754,7 +1754,7 @@ function _showOnboarding(){
   var goingBack=false;
   var ov=document.createElement('div');
   ov.id='onboarding-screen';
-  ov.style.cssText='position:fixed;inset:0;z-index:9999;overflow:hidden;font-family:var(--font)';
+  ov.style.cssText='position:fixed;inset:0;z-index:9999;overflow:hidden;font-family:var(--font);background:#fff';
   function render(back){
     var s=slides[cur];
     var isLast=cur===slides.length-1;
