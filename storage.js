@@ -216,12 +216,6 @@ function loadState(){
   // language and weekStart stay empty until user chooses
   // currencies stay empty until user sets up profile
   if(typeof applyThemeMode==='function')applyThemeMode();
-  // Inyectar foto de perfil desde clave dedicada (nunca se sincroniza a Supabase)
-  var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:(localStorage.getItem('_lastAuthUserId')||'');
-  if(_uid){
-    var _storedPhoto=localStorage.getItem('_profilePhoto_'+_uid);
-    if(_storedPhoto){if(!S.profile)S.profile={};S.profile.photo=_storedPhoto;}
-  }
   // Update drawer profile
   updateDrawerProfile();
 }function _getProfilePhoto(){
@@ -232,32 +226,43 @@ function loadState(){
   return localStorage.getItem('_profilePhoto_'+_uid)||'';
 }
 function updateDrawerProfile(){
-  const name=S.profile&&S.profile.name?S.profile.name:'Mi Perfil';
-  const email=S.profile&&S.profile.email?S.profile.email:'Toca para configurar';
-  const photo=_getProfilePhoto();
-  const nameEl=document.getElementById('drawer-profile-name');
-  const emailEl=document.getElementById('drawer-profile-email');
-  const avatarEl=document.getElementById('drawer-avatar');
+  var name=S.profile&&S.profile.name?S.profile.name:'Mi Perfil';
+  var email=S.profile&&S.profile.email?S.profile.email:'Toca para configurar';
+  var photo=_getProfilePhoto();
+  var nameEl=document.getElementById('drawer-profile-name');
+  var emailEl=document.getElementById('drawer-profile-email');
+  var avatarEl=document.getElementById('drawer-avatar');
+  var pctEl=document.getElementById('drawer-progress-pct');
+  var fillEl=document.getElementById('drawer-progress-fill');
   if(nameEl)nameEl.textContent=name;
-  if(emailEl){
-    var pct=getProfileCompletion();
-    emailEl.textContent=pct>=100?'¡Perfil completo! ✓':('Perfil al '+pct+'% — complétalo para más 💚');
-    emailEl.style.color=pct>=100?'var(--primary)':'';
-  }
+  if(emailEl)emailEl.textContent=email;
   if(avatarEl){
-    if(photo){avatarEl.innerHTML=`<img src="${photo}" alt="foto">`;}
-    else{const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);avatarEl.innerHTML=`<span style="font-size:16px;font-weight:700;color:white">${initials!=='MI'?initials:'👤'}</span>`;}
+    if(photo){
+      avatarEl.innerHTML='<img src="'+photo+'" alt="foto">';
+    }else{
+      var initials=name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+      avatarEl.innerHTML='<span style="font-size:18px;font-weight:900;color:white;letter-spacing:-.5px">'+(initials&&initials!=='MI'?initials:'JQ')+'</span>';
+    }
   }
+  // Progress bar
+  try{
+    var p=S.profile||{};
+    var uid=window._currentUser&&window._currentUser.id;
+    var checks=[
+      !!(name&&name!=='Mi Perfil'),
+      !!(p.gender&&p.gender!==''),
+      !!(p.residence),
+      !!(p.phone&&p.phoneCode),
+      !!(p.profession),
+      !!(p.financialGoal),
+      !!(photo)
+    ];
+    var pct=Math.round(checks.filter(Boolean).length/checks.length*100);
+    if(pctEl)pctEl.textContent=pct+'% completado';
+    if(fillEl)fillEl.style.width=pct+'%';
+  }catch(e){}
 }
 
-function getProfileCompletion(){
-  var p=S.profile||{};
-  var fields=['name','email','phone','country','profession'];
-  var filled=fields.filter(function(f){return p[f]&&String(p[f]).trim().length>0;}).length;
-  var hasPhoto=!!_getProfilePhoto();
-  var total=fields.length+1;
-  return Math.round(((filled+(hasPhoto?1:0))/total)*100);
-}
 function saveState(){
   // localStorage — siempre, síncrono, nunca falla
   // La foto de perfil se guarda en clave dedicada (_profilePhoto_{uid}), no en finanziaState3
@@ -484,12 +489,6 @@ async function syncFromSupabase(userId){
     // Bloquear save a Supabase 3s — datos vienen DE allí, guardar de vuelta genera loop Realtime
     window._lastSupabaseSave=Date.now()+3000;
     console.log('✅ sync aplicado',new Date(remoteTs).toLocaleTimeString());
-    // Restaurar foto desde clave dedicada (el sync no la tiene)
-    var _syncUid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:'';
-    if(_syncUid){
-      var _sp=localStorage.getItem('_profilePhoto_'+_syncUid);
-      if(_sp){if(!S.profile)S.profile={};S.profile.photo=_sp;}
-    }
     if(typeof renderPage==='function') renderPage(S.currentPage);
     if(typeof updateDrawerProfile==='function') updateDrawerProfile();
     if(typeof refreshCurrencyToggle==='function') refreshCurrencyToggle();
