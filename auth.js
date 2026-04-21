@@ -450,6 +450,7 @@ function _showScreen(name){
   // display:flex activa flex-direction:column de .auth-panel → auth-body flex:1 empuja auth-bottom al fondo
   // auth-bio tiene estructura propia (no usa auth-panel), se muestra como block
   if(t) t.style.display = (name==='bio') ? 'block' : 'flex';
+  if(name==='login') setTimeout(_loadSavedCredentials, 50);
 }
 function _setError(id,msg){
   var el=document.getElementById('auth-err-'+id);
@@ -481,6 +482,13 @@ async function handleLogin(){
     return;
   }
   sessionStorage.removeItem('_liAttempts');
+  // Guardar credenciales si "Recordar mis datos" está activo
+  var remBox=document.getElementById('li-remember-box');
+  if(remBox&&remBox.classList.contains('ck')){
+    try{localStorage.setItem('_remEmail',email);localStorage.setItem('_remPass',pass);}catch(e){}
+  }else{
+    try{localStorage.removeItem('_remEmail');localStorage.removeItem('_remPass');}catch(e){}
+  }
   await _afterLogin(res.user);
 }
 
@@ -511,6 +519,9 @@ async function handleRegister(){
     return;
   }
   _showScreen('verify');
+  // Mostrar email en la pantalla de verificación
+  var vEd=document.getElementById('verify-email-display');
+  if(vEd)vEd.textContent=email;
   // localStorage: el enlace de confirmación puede abrir en nueva instancia de la PWA
   localStorage.setItem('pendingEmail', email);
   localStorage.setItem('pendingPassword', pass);
@@ -602,6 +613,29 @@ function goToRegister(){_setError('li','');_showScreen('register');}
 function goToRecover(){_setError('li','');_showScreen('recover');}
 function goToLoginFromRecover(){_setError('rc','');_showScreen('login');}
 
+function _toggleRemember(row){
+  var box=document.getElementById('li-remember-box');
+  if(!box)return;
+  if(box.classList.contains('ck')){
+    box.classList.remove('ck');
+    box.innerHTML='';
+  }else{
+    box.classList.add('ck');
+    box.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  }
+}
+
+function _loadSavedCredentials(){
+  try{
+    var em=localStorage.getItem('_remEmail');
+    var ps=localStorage.getItem('_remPass');
+    var elE=document.getElementById('li-email');
+    var elP=document.getElementById('li-pass');
+    if(em&&elE)elE.value=em;
+    if(ps&&elP)elP.value=ps;
+  }catch(e){}
+}
+
 async function handleRecoverPassword(){
   var email=(document.getElementById('rc-email').value||'').trim();
   if(!email){_setError('rc','Ingresa tu correo');return;}
@@ -679,8 +713,10 @@ function _authPwCheck(val){
     var n=i+1;
     var elA=document.getElementById('pw-r'+n);
     var elB=document.getElementById('rp-r'+n);
+    var elC=document.getElementById('pwc-r'+n);
     if(elA)elA.classList.toggle('ok',r.ok);
     if(elB)elB.classList.toggle('ok',r.ok);
+    if(elC)elC.classList.toggle('ok',r.ok);
   });
 }
 
@@ -1358,8 +1394,13 @@ function _initSetPinScreen(){
   var st = {step:1, first:[], current:[]};
 
   function refreshPinScreen(){
-    var title = st.step === 1 ? 'Crea tu PIN de 4 d\u00edgitos' : 'Confirma tu PIN';
-    var sub   = st.step === 1 ? 'Lo usar\u00e1s para ingresar r\u00e1pidamente' : 'Ingresa el mismo PIN de nuevo';
+    var isRecov=window._pinFromRecovery||false;
+    var title = st.step === 1
+      ? (isRecov ? 'Elige tu nuevo PIN \uD83D\uDD10' : 'Elige tu PIN secreto \uD83D\uDD10')
+      : 'Confirma tu PIN';
+    var sub   = st.step === 1
+      ? 'Nadie m\u00e1s lo sabr\u00e1'
+      : 'Repite los 4 d\u00edgitos para confirmar';
     var titleEl  = document.getElementById('set-pin-screen-title');
     var subEl    = document.getElementById('set-pin-screen-subtitle');
     var errEl    = document.getElementById('set-pin-screen-err');
@@ -1489,7 +1530,7 @@ function _bioSetupSkip(){
 // Polling de respaldo — se activa si onAuthStateChange no dispara
 function enableContinueIfVerified(){
   var btn=document.getElementById('verify-continue-btn');
-  if(!btn||!btn.disabled) return; // ya habilitado o no existe
+  if(!btn||!btn.disabled) return;
   var interval=setInterval(function(){
     _supabase.auth.getUser().then(function(rv){
       if(rv.data&&rv.data.user&&rv.data.user.email_confirmed_at){
@@ -1499,6 +1540,16 @@ function enableContinueIfVerified(){
       }
     }).catch(function(){ clearInterval(interval); });
   },2000);
+}
+
+async function handleResendVerification(){
+  var email=localStorage.getItem('pendingEmail');
+  if(!email){try{toast('No encontramos el correo pendiente. Intenta registrarte de nuevo.');}catch(e){}return;}
+  try{
+    var res=await _supabase.auth.resend({type:'signup',email:email});
+    if(res.error){try{toast('Error al reenviar. Intenta de nuevo.');}catch(e){}
+    }else{try{toast('Correo reenviado \u2713 Revisa tu bandeja.');}catch(e){}}
+  }catch(e){try{toast('Error al reenviar.');}catch(e2){}}
 }
 
 // Detecta el hash del enlace de confirmación de Supabase.
