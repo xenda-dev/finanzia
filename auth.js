@@ -1077,7 +1077,7 @@ function showPinModal(){
       ? '<div style="font-size:12px;color:#F59E0B;margin-top:6px">'+attemptsLeft+' intento'+(attemptsLeft===1?'':'s')+' restante'+(attemptsLeft===1?'':'s')+'</div>'
       : '';
   overlay.innerHTML =
-      '<div id="pin-sheet" style="width:100%;background:linear-gradient(180deg,rgba(0,212,170,.12) 0%,rgba(0,212,170,.04) 35%,#fff 55%);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
+      '<div id="pin-sheet" style="width:100%;background:#fff;border-top:3px solid rgba(0,212,170,.15);border-radius:24px 24px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px);animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
       +'<div style="display:flex;justify-content:flex-end;padding:12px 16px 0">'
         +'<button onclick="closePinModal()" style="width:30px;height:30px;border-radius:50%;background:rgba(241,245,249,.9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748B"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
       +'</div>'
@@ -1472,7 +1472,8 @@ function _initSetPinScreen(){
           }else if(window._pinFromRecovery){
             window._pinFromRecovery=false;
             try{ toast('¡PIN creado! Ya puedes entrar rápido ✓'); }catch(e){}
-            openPinLogin();
+            _showScreen('welcome');
+            setTimeout(openPinLogin, 150);
           }else{
             try{ toast('¡PIN creado! Ya puedes entrar rápido ✓'); }catch(e){}
             _initBioSetupScreen();
