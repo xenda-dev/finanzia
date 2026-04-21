@@ -28,16 +28,16 @@
 
   <!-- ─── LOGIN ─────────────────────────────────────── -->
   <div id="auth-login" class="auth-panel" style="display:flex">
-    <div class="auth-top-nav" style="justify-content:flex-end">
+    <div class="auth-top-nav" style="justify-content:flex-end;padding-top:max(env(safe-area-inset-top),16px)">
       <div class="auth-spacer"></div>
     </div>
-    <div class="auth-body" style="padding-top:16px">
-      <div class="auth-logo-row" style="margin-bottom:22px">
+    <div class="auth-body" style="padding-top:32px">
+      <div class="auth-logo-row" style="margin-bottom:32px">
         <img src="/icon-192.png" class="auth-logo-icon" alt="FinanzIA">
         <div class="auth-logo-text">Finanz<span>IA</span></div>
       </div>
-      <div style="font-size:28px;font-weight:900;color:#0F172A;letter-spacing:-.6px;line-height:1.1;margin-bottom:8px">Hey,<br>bienvenido de nuevo</div>
-      <div style="font-size:14px;color:#64748B;line-height:1.5;margin-bottom:24px">Aquí todo sigue como lo dejaste</div>
+      <div style="font-size:28px;font-weight:900;color:#0F172A;letter-spacing:-.6px;line-height:1.1;margin-bottom:10px">Hey,<br>bienvenido de nuevo</div>
+      <div style="font-size:14px;color:#64748B;line-height:1.5;margin-bottom:28px">Aquí todo sigue como lo dejaste</div>
       <div class="auth-field" style="margin-bottom:14px">
         <div class="auth-input-wrap">
           <input id="li-email" type="email" autocomplete="email" placeholder="Correo electrónico" onkeydown="authKey(event,'handleLogin')" class="auth-input" style="padding-left:42px">
@@ -77,13 +77,13 @@
       <div class="auth-back" onclick="goToLogin()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></div>
       <div class="auth-spacer"></div>
     </div>
-    <div class="auth-body" style="padding-top:12px">
-      <div class="auth-logo-row" style="margin-bottom:20px">
+    <div class="auth-body" style="padding-top:28px">
+      <div class="auth-logo-row" style="margin-bottom:28px">
         <img src="/icon-192.png" class="auth-logo-icon" alt="FinanzIA">
         <div class="auth-logo-text">Finanz<span>IA</span></div>
       </div>
       <div style="font-size:28px;font-weight:900;color:#0F172A;letter-spacing:-.6px;line-height:1.1;margin-bottom:8px">Bienvenido al<br>equipo 🎯</div>
-      <div style="font-size:14px;color:#64748B;line-height:1.5;margin-bottom:20px">Crea tu cuenta y empieza a ver<br>tu dinero de otra manera</div>
+      <div style="font-size:14px;color:#64748B;line-height:1.5;margin-bottom:24px">Crea tu cuenta y empieza a ver<br>tu dinero de otra manera</div>
       <div class="auth-field" style="margin-bottom:12px">
         <div class="auth-input-wrap">
           <input id="rg-name" type="text" autocomplete="name" placeholder="Tu Nombre" onkeydown="authKey(event,'handleRegister')" class="auth-input" style="padding-left:42px">
@@ -141,12 +141,12 @@
       <div class="auth-back" onclick="goToLoginFromRecover()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></div>
       <div class="auth-spacer"></div>
     </div>
-    <div class="auth-body" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:28px">
-      <div style="width:72px;height:72px;border-radius:50%;background:rgba(0,212,170,.1);border:2px solid rgba(0,212,170,.2);display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+    <div class="auth-body" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:0;flex:1;justify-content:center">
+      <div style="width:72px;height:72px;border-radius:50%;background:rgba(0,212,170,.1);border:2px solid rgba(0,212,170,.2);display:flex;align-items:center;justify-content:center;margin-bottom:20px">
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       </div>
-      <div style="font-size:22px;font-weight:900;color:#0F172A;letter-spacing:-.5px;margin-bottom:8px">Tranqui, a todos<br>nos pasa 😅</div>
-      <div style="font-size:13px;color:#64748B;line-height:1.6;margin-bottom:24px">Dinos tu correo y en segundos<br>tienes el enlace para entrar</div>
+      <div style="font-size:22px;font-weight:900;color:#0F172A;letter-spacing:-.5px;margin-bottom:10px">Tranqui, a todos<br>nos pasa 😅</div>
+      <div style="font-size:13px;color:#64748B;line-height:1.6;margin-bottom:28px">Dinos tu correo y en segundos<br>tienes el enlace para entrar</div>
       <div style="width:100%;margin-bottom:8px">
         <div class="auth-input-wrap">
           <input id="rc-email" type="email" autocomplete="email" placeholder="tu@correo.com" onkeydown="authKey(event,'handleRecoverPassword')" class="auth-input" style="padding-left:42px">
@@ -170,12 +170,12 @@
 
   <!-- ─── VERIFICAR CORREO ──────────────────────────────── -->
   <div id="auth-verify" class="auth-panel auth-panel-teal2" style="display:none">
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px 24px 0;text-align:center">
-      <div style="width:80px;height:80px;border-radius:50%;background:rgba(0,212,170,.1);border:2px solid rgba(0,212,170,.2);display:flex;align-items:center;justify-content:center;margin-bottom:18px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px 0;text-align:center">
+      <div style="width:80px;height:80px;border-radius:50%;background:rgba(0,212,170,.1);border:2px solid rgba(0,212,170,.2);display:flex;align-items:center;justify-content:center;margin-bottom:24px">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.8" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
       </div>
-      <div style="font-size:24px;font-weight:900;color:#0F172A;text-align:center;letter-spacing:-.5px;line-height:1.15;margin-bottom:10px">¡Ya casi! Revisa<br>tu correo 📬</div>
-      <div style="font-size:13px;color:#64748B;text-align:center;line-height:1.7;margin-bottom:20px">Le mandamos el enlace a<br><strong id="verify-email-display" style="color:#0F172A">tu correo</strong><br><span style="margin-top:4px;display:block">Ábrelo y vuelve aquí para continuar.</span></div>
+      <div style="font-size:24px;font-weight:900;color:#0F172A;text-align:center;letter-spacing:-.5px;line-height:1.15;margin-bottom:14px">¡Ya casi! Revisa<br>tu correo 📬</div>
+      <div style="font-size:13px;color:#64748B;text-align:center;line-height:1.7;margin-bottom:24px">Le mandamos el enlace a<br><strong id="verify-email-display" style="color:#0F172A">tu correo</strong><br><span style="margin-top:4px;display:block">Ábrelo y vuelve aquí para continuar.</span></div>
       <div style="background:rgba(0,212,170,.06);border:1px solid rgba(0,212,170,.2);border-radius:14px;padding:12px 16px;width:100%">
         <div style="font-size:12px;color:#475569;line-height:1.5">💡 Si no aparece en unos minutos, revisa <strong>spam</strong>. Si sigue sin llegar toca "Reenviar".</div>
       </div>
@@ -192,9 +192,9 @@
       <div class="auth-back" onclick="_showScreen('login')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></div>
       <div class="auth-spacer"></div>
     </div>
-    <div class="auth-body" style="padding-top:24px">
-      <div style="font-size:22px;font-weight:900;color:#0F172A;letter-spacing:-.5px;margin-bottom:6px">Nueva contraseña 🔐</div>
-      <div style="font-size:13px;color:#64748B;line-height:1.5;margin-bottom:22px">Elige una contraseña nueva y segura</div>
+    <div class="auth-body" style="padding-top:36px">
+      <div style="font-size:22px;font-weight:900;color:#0F172A;letter-spacing:-.5px;margin-bottom:8px">Nueva contraseña 🔐</div>
+      <div style="font-size:13px;color:#64748B;line-height:1.5;margin-bottom:28px">Elige una contraseña nueva y segura</div>
       <div class="auth-field" style="margin-bottom:14px">
         <label class="auth-label">Nueva contraseña</label>
         <div class="auth-input-wrap">
@@ -224,12 +224,12 @@
 
   <!-- ─── CREAR PIN (onboarding / recovery) ────────────── -->
   <div id="auth-set-pin" class="auth-panel auth-panel-teal3" style="display:none">
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 24px 0">
-      <div style="width:56px;height:56px;border-radius:18px;background:rgba(0,212,170,.1);border:1.5px solid rgba(0,212,170,.25);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:48px 24px 0">
+      <div style="width:56px;height:56px;border-radius:18px;background:rgba(0,212,170,.1);border:1.5px solid rgba(0,212,170,.25);display:flex;align-items:center;justify-content:center;margin-bottom:18px">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1" fill="#00D4AA"/></svg>
       </div>
-      <div id="set-pin-screen-title" style="font-size:22px;font-weight:900;color:#0F172A;letter-spacing:-.5px;text-align:center;margin-bottom:6px">Elige tu PIN secreto 🔐</div>
-      <div id="set-pin-screen-subtitle" style="font-size:13px;color:#64748B;text-align:center;margin-bottom:0">Nadie más lo sabrá</div>
+      <div id="set-pin-screen-title" style="font-size:22px;font-weight:900;color:#0F172A;letter-spacing:-.5px;text-align:center;margin-bottom:8px">Elige tu PIN secreto 🔐</div>
+      <div id="set-pin-screen-subtitle" style="font-size:13px;color:#64748B;text-align:center;margin-bottom:4px">Nadie más lo sabrá</div>
       <div id="set-pin-screen-dots" style="display:flex;justify-content:center;gap:16px;margin:14px 0 6px"></div>
       <div id="set-pin-screen-err" style="min-height:18px;font-size:13px;color:#DC2626;margin-bottom:8px;text-align:center"></div>
     </div>
@@ -404,9 +404,9 @@
 
   <!-- ─── ACTIVAR BIOMETRÍA (onboarding post-PIN) ─── -->
   <div id="auth-bio-setup" class="auth-panel" style="display:none;background:linear-gradient(160deg,rgba(0,212,170,.12) 0%,rgba(0,212,170,.04) 40%,#fff 70%)">
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:52px 24px 0;text-align:center">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 24px 0;text-align:center">
       <!-- Glassmorphism circle con huella real -->
-      <div style="width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.85);border:1.5px solid rgba(0,212,170,.25);display:flex;align-items:center;justify-content:center;margin-bottom:24px;box-shadow:0 8px 32px rgba(0,212,170,.15)">
+      <div style="width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.85);border:1.5px solid rgba(0,212,170,.25);display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 8px 32px rgba(0,212,170,.15)">
         <svg width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="1.3" stroke-linecap="round">
           <path d="M12 10c-1.1 0-2 .9-2 2v5c0 .6.4 1 1 1"/>
           <path d="M12 10c1.1 0 2 .9 2 2v2"/>
@@ -417,7 +417,7 @@
           <path d="M14.5 18c.3-.8.5-1.6.5-2.5v-1"/>
         </svg>
       </div>
-      <div style="font-size:22px;font-weight:900;color:#0F172A;letter-spacing:-.5px;margin-bottom:8px">Un toque y<br>estás dentro 🫆</div>
+      <div style="font-size:22px;font-weight:900;color:#0F172A;letter-spacing:-.5px;margin-bottom:10px">Un toque y<br>estás dentro 🫆</div>
       <div id="bio-setup-info" style="font-size:13px;color:#64748B;line-height:1.6">Activa tu huella y olvídate<br>de contraseñas para siempre</div>
     </div>
     <div style="padding:0 24px max(env(safe-area-inset-bottom),40px);display:flex;flex-direction:column;gap:10px">
