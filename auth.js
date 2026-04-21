@@ -1761,8 +1761,8 @@ function _showOnboarding(){
     var dots=slides.map(function(_,i){
       var isPast=i<cur;
       var isActive=i===cur;
-      return '<div data-dot="'+i+'" style="width:'+(isActive?'22px':'8px')+'px;height:8px;border-radius:4px;'
-        +'background:'+(isActive?'#00D4AA':isPast?'rgba(0,212,170,.45)':'rgba(255,255,255,.35)')
+      return '<div data-dot="'+i+'" style="width:'+(isActive?'22':'8')+'px;height:8px;border-radius:4px;'
+        +'background:'+(isActive?'#00D4AA':isPast?'rgba(0,212,170,.5)':'#CBD5E1')
         +';transition:.3s cubic-bezier(.4,0,.2,1);cursor:'+(isPast?'pointer':'default')+'"></div>';
     }).join('');
     ov.innerHTML=
