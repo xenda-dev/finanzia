@@ -1940,7 +1940,7 @@ function _showOnboarding(){
   var goingBack=false;
   var ov=document.createElement('div');
   ov.id='onboarding-screen';
-  ov.style.cssText='position:fixed;inset:0;z-index:9999;overflow:hidden;font-family:var(--font);background:#fff';
+  ov.style.cssText='position:fixed;inset:0;z-index:9999;overflow:hidden;font-family:var(--font);background:linear-gradient(160deg,rgba(0,212,170,.12) 0%,rgba(116,97,239,.06) 50%,#fff 70%)';
   function render(back){
     var s=slides[cur];
     var isLast=cur===slides.length-1;
@@ -1953,7 +1953,7 @@ function _showOnboarding(){
     }).join('');
     ov.innerHTML=
       // Fondo: gradiente teal sin divisor
-      '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,212,170,.22) 0%,rgba(0,212,170,.14) 25%,rgba(0,212,170,.06) 50%,rgba(0,212,170,0) 72%);pointer-events:none;z-index:0"></div>'
+      '<div style="position:absolute;inset:0;background:linear-gradient(160deg,rgba(0,212,170,.18) 0%,rgba(116,97,239,.08) 45%,rgba(0,0,0,0) 70%);pointer-events:none;z-index:0"></div>'
       +'<div style="position:absolute;top:-60px;right:-60px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,170,.18) 0%,transparent 70%);pointer-events:none;z-index:0"></div>'
       // Contenido
       +'<div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;background:transparent;'+(back?'animation:_obBack .35s cubic-bezier(.4,0,.2,1)':'animation:_obIn .35s cubic-bezier(.4,0,.2,1)')+'">'
