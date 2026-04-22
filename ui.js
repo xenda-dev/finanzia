@@ -138,6 +138,8 @@ function _updateHeader(page){
   var hGreeting=document.getElementById('header-greeting');
   var hBigTitle=document.getElementById('header-bigtitle');
   var hSubtitle=document.getElementById('header-subtitle');
+  var hHero=document.getElementById('header-profile-hero');
+  var hHeaderEl=document.querySelector('.header');
   if(!hTitle||!hBack)return;
   var isDash=page==='dashboard';
   var _isGrp=(page==='grp-midinero'||page==='grp-planificacion'||page==='grp-herramientas'||page==='simuladores'||page==='calculadora');
@@ -152,7 +154,14 @@ function _updateHeader(page){
   // Spacer derecho en pantallas sin controls especiales
   if(hSpacer)hSpacer.style.display='none';
   var hCurve=document.getElementById('header-curve');
-  if(hCurve)hCurve.style.background=isDash?'var(--bg)':'var(--surface)';
+  if(page==='mi-perfil'){
+    if(hHeaderEl)hHeaderEl.style.background='rgba(0,212,170,.07)';
+    if(hCurve)hCurve.style.background='var(--bg)';
+  }else{
+    if(hHeaderEl)hHeaderEl.style.background='';
+    if(hCurve)hCurve.style.background=isDash?'var(--bg)':'var(--surface)';
+    if(hHero){hHero.style.display='none';hHero.innerHTML='';}
+  }
   // Título especial Emiliano chat
   if(_isChat){
     hTitle.style.cssText='display:flex;align-items:center;gap:10px;flex:1;text-align:left;overflow:hidden';
@@ -169,9 +178,47 @@ function _updateHeader(page){
   hTitle.textContent='';
   // Row 2
   if(hRow2){
-    if(_isGrp||page==='mi-perfil'){
+    if(_isGrp){
       hRow2.style.display='none';
       if(hSubtitle){hSubtitle.style.display='none';hSubtitle.textContent='';}
+    }else if(page==='mi-perfil'){
+      hRow2.style.display='none';
+      if(hHero){
+        hHero.style.display='block';
+        var _p=(typeof S!=='undefined'&&S.profile)||{};
+        var _uid=window._currentUser&&window._currentUser.id;
+        var _dn=_p.name||(window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)||'';
+        var _ev=_p.email||(window._currentUser&&window._currentUser.email?window._currentUser.email:'');
+        var _ini=_dn?_dn.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'?';
+        var _ph=(typeof _getProfilePhoto==='function')?_getProfilePhoto():null;
+        var _ai=_ph?('<img src="'+_ph+'" style="width:52px;height:52px;object-fit:cover;border-radius:50%;display:block;">')
+          :('<span style="font-size:16px;font-weight:700;color:white">'+_ini+'</span>');
+        var _pct=(typeof _calcProfileProgress==='function')?_calcProfileProgress():0;
+        var _ac=_ph?'onclick="viewProfilePhoto()" style="cursor:zoom-in"':'';
+        hHero.innerHTML=
+          '<div style="font-size:22px;font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:4px">Mi perfil</div>'
+          +'<div style="font-size:13px;color:var(--text2);margin-bottom:16px">Tu espacio personal en FinanzIA</div>'
+          +'<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">'
+            +'<div style="position:relative;flex-shrink:0">'
+              +'<div '+_ac+' style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2.5px solid rgba(255,255,255,.7);box-sizing:border-box">'+_ai+'</div>'
+              +'<div onclick="showPhotoOptions()" style="position:absolute;bottom:1px;right:1px;width:20px;height:20px;border-radius:50%;background:#7461EF;border:2px solid rgba(0,212,170,.07);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1">'
+                +'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
+              +'</div>'
+            +'</div>'
+            +'<div style="flex:1;min-width:0">'
+              +'<div style="font-size:16px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">'+(_dn||'Tu nombre')+'</div>'
+              +'<div style="font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px">'+_ev+'</div>'
+              +'<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--text3)">Perfil completo</span><span style="color:var(--primary);font-weight:700">'+_pct+'%</span></div>'
+              +'<div style="height:4px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+_pct+'%;background:var(--primary);border-radius:99px"></div></div>'
+            +'</div>'
+          +'</div>'
+          +'<div style="text-align:center">'
+            +'<button onclick="openProfilePage()" style="display:inline-flex;align-items:center;gap:6px;background:var(--primary);border:none;border-radius:50px;padding:9px 22px;color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">'
+              +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
+              +'Editar datos'
+            +'</button>'
+          +'</div>';
+      }
     }else if(isDash){
       hRow2.style.display='block';
       var _h=new Date().getHours();
@@ -5641,32 +5688,9 @@ function renderMiPerfil(){
 
   return (
     '<div style="height:100%;display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch">'
+    +'<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:8px">'
 
-    // Hero teal
-    +'<div style="background:rgba(0,212,170,.07);padding:12px 16px 20px">'
-      +'<div style="font-size:22px;font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:4px">Mi perfil</div>'
-      +'<div style="font-size:13px;color:var(--text2);margin-bottom:18px">Tu espacio personal en FinanzIA</div>'
-      +'<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">'
-        +'<div style="position:relative;flex-shrink:0">'
-          +'<div '+avatarClick+' style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2.5px solid rgba(255,255,255,.7);box-sizing:border-box">'
-            +avatarInner
-          +'</div>'
-          +camBadge
-        +'</div>'
-        +'<div style="flex:1;min-width:0">'
-          +'<div style="font-size:16px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">'+(displayName||'Tu nombre')+'</div>'
-          +'<div style="font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px">'+emailVal+'</div>'
-          +'<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--text3)">Perfil completo</span><span style="color:var(--primary);font-weight:700">'+pct+'%</span></div>'
-          +'<div style="height:4px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--primary);border-radius:99px"></div></div>'
-        +'</div>'
-      +'</div>'
-      +'<button onclick="openProfilePage()" style="display:inline-flex;align-items:center;gap:6px;background:var(--primary);border:none;border-radius:50px;padding:9px 18px;color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">'
-        +iconEdit+'Editar datos'
-      +'</button>'
-    +'</div>'
-
-    // Content
+    // Content sections only (hero is in the app header)
     +sl.replace('%L%','Informaci\u00f3n personal')
     +'<div style="background:var(--surface2);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
       +infoRow(iconGlobe,'Pa\u00eds de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'',false)
@@ -5685,7 +5709,6 @@ function renderMiPerfil(){
     +'<div style="height:16px"></div>'
 
     +'</div>'
-    // Delete button — sticky, no position:fixed
     +'<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface);border-top:1px solid var(--border)">'
       +'<button onclick="deleteUserAccount()" style="width:100%;padding:14px;border-radius:50px;background:var(--danger,#EF4444);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar mi cuenta</button>'
     +'</div>'
