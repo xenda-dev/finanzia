@@ -169,23 +169,26 @@ function _updateHeader(page){
   hTitle.textContent='';
   // Row 2
   if(hRow2){
-    if(_isGrp){
+    if(_isGrp||page==='mi-perfil'){
       hRow2.style.display='none';
+      if(hSubtitle){hSubtitle.style.display='none';hSubtitle.textContent='';}
     }else if(isDash){
       hRow2.style.display='block';
       var _h=new Date().getHours();
       var _saludo=_h<12?'Buenos d\u00edas \uD83D\uDC4B':_h<19?'Buenas tardes \u2600\uFE0F':'Buenas noches \uD83C\uDF19';
       if(hGreeting)hGreeting.textContent=_saludo;
       if(hBigTitle)hBigTitle.textContent=getFirstName(window._currentUser)||'';
+      if(hSubtitle){hSubtitle.style.display='none';hSubtitle.textContent='';}
     }else{
       hRow2.style.display='block';
-      // Sin contexto — greeting vacío mantiene el espaciado
       if(hGreeting)hGreeting.textContent='\u00a0';
       if(hBigTitle)hBigTitle.textContent=_getPageTitle(page);
-      // Subtitle solo en configuración
       if(page==='configuracion'&&hSubtitle){
         hSubtitle.textContent='Todo lo que necesitas para que la app funcione justo como t\u00fa quieres \u2699\uFE0F';
         hSubtitle.style.display='block';
+      }else if(hSubtitle){
+        hSubtitle.style.display='none';
+        hSubtitle.textContent='';
       }
     }
   }
@@ -5596,8 +5599,8 @@ function renderMiPerfil(){
   var initials=displayName?displayName.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'?';
   var _photo=_getProfilePhoto();
   var avatarInner=_photo
-    ?('<img src="'+_photo+'" style="width:72px;height:72px;object-fit:cover;border-radius:50%;display:block;flex-shrink:0;">')
-    :('<span style="font-size:22px;font-weight:700;color:white">'+initials+'</span>');
+    ?('<img src="'+_photo+'" style="width:52px;height:52px;object-fit:cover;border-radius:50%;display:block;flex-shrink:0;">')
+    :('<span style="font-size:16px;font-weight:700;color:white">'+initials+'</span>');
   var pct=_calcProfileProgress();
   var pinActive=uid&&localStorage.getItem('_pinEnabled_'+uid)==='1'&&!!localStorage.getItem('_userPin_'+uid);
   var bioActive=uid&&localStorage.getItem('_bioEnabled_'+uid)==='1'&&!!localStorage.getItem('_bioCredId_'+uid);
@@ -5613,10 +5616,9 @@ function renderMiPerfil(){
   var iconTarget=svgIcon('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>');
   var iconLock=svgIcon('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>');
   var iconShield=svgIcon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>');
-  var iconEdit='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-  var iconTrash='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
-  var camBadge='<div onclick="showPhotoOptions()" style="position:absolute;bottom:1px;right:1px;width:24px;height:24px;border-radius:50%;background:#7461EF;border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1">'
-    +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
+  var iconEdit='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  var camBadge='<div onclick="showPhotoOptions()" style="position:absolute;bottom:1px;right:1px;width:20px;height:20px;border-radius:50%;background:#7461EF;border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1">'
+    +'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
     +'</div>';
   function infoRow(icon,label,val,last){
     var ri='<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+icon+'</div>';
@@ -5635,31 +5637,41 @@ function renderMiPerfil(){
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;'+(last?'':'border-bottom:1px solid var(--border)')+'">'
       +'<div style="display:flex;align-items:center;gap:12px">'+ri+'<div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">'+label+'</div>'+badge+'</div></div>'+tgl+'</div>';
   }
-  var sl='<div style="font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--text3);padding:14px 16px 6px">%L%</div>';
-  return '<div style="padding-top:16px">'+'<div style="background:var(--surface2);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
-    +'<div style="display:flex;align-items:center;gap:16px;padding:16px 14px;">'
-      +'<div style="position:relative;flex-shrink:0;width:72px;height:72px">'
-        +'<div '+avatarClick+' style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid var(--primary);box-sizing:border-box">'
-          +avatarInner
+  var sl='<div style="font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text3);padding:12px 16px 6px">%L%</div>';
+
+  return (
+    '<div style="height:100%;display:flex;flex-direction:column;overflow:hidden">'
+    +'<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch">'
+
+    // Hero teal
+    +'<div style="background:rgba(0,212,170,.07);padding:12px 16px 20px">'
+      +'<div style="font-size:22px;font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:4px">Mi perfil</div>'
+      +'<div style="font-size:13px;color:var(--text2);margin-bottom:18px">Tu espacio personal en FinanzIA</div>'
+      +'<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">'
+        +'<div style="position:relative;flex-shrink:0">'
+          +'<div '+avatarClick+' style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2.5px solid rgba(255,255,255,.7);box-sizing:border-box">'
+            +avatarInner
+          +'</div>'
+          +camBadge
         +'</div>'
-        +camBadge
-      +'</div>'
-      +'<div style="flex:1;min-width:0">'
-        +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'
-          +'<span style="font-size:17px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(displayName||'Mi Perfil')+'</span>'
-          +'<button onclick="openProfilePage()" style="flex-shrink:0;border:none;background:transparent;padding:2px;cursor:pointer;display:flex;align-items:center;line-height:1">'+iconEdit+'</button>'
+        +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:16px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">'+(displayName||'Tu nombre')+'</div>'
+          +'<div style="font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px">'+emailVal+'</div>'
+          +'<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--text3)">Perfil completo</span><span style="color:var(--primary);font-weight:700">'+pct+'%</span></div>'
+          +'<div style="height:4px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--primary);border-radius:99px"></div></div>'
         +'</div>'
-        +'<div style="font-size:12px;color:var(--text3);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+emailVal+'</div>'
-        +'<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px"><span>Perfil completo</span><span style="color:var(--primary);font-weight:700">'+pct+'%</span></div>'
-        +'<div style="height:4px;background:var(--border);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--primary);border-radius:99px"></div></div>'
       +'</div>'
+      +'<button onclick="openProfilePage()" style="display:inline-flex;align-items:center;gap:6px;background:var(--primary);border:none;border-radius:50px;padding:9px 18px;color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">'
+        +iconEdit+'Editar datos'
+      +'</button>'
     +'</div>'
-    +'</div>'
+
+    // Content
     +sl.replace('%L%','Informaci\u00f3n personal')
     +'<div style="background:var(--surface2);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
       +infoRow(iconGlobe,'Pa\u00eds de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'',false)
       +infoRow(iconPhone,'Tel\u00e9fono',phone.trim()||'',false)
-      +infoRow(iconOccup,'Ocupación',p.occupation||'',false)
+      +infoRow(iconOccup,'Ocupaci\u00f3n',p.occupation||'',false)
       +infoRow(iconWork,'Profesi\u00f3n',p.profession||'',false)
       +infoRow(iconTarget,'Meta financiera',p.financialGoal||'',true)
     +'</div>'
@@ -5668,13 +5680,17 @@ function renderMiPerfil(){
       +toggleRow(iconLock,'PIN de acceso',pinActive,'_togglePin',false)
       +toggleRow(iconShield,'Biometr\u00eda (huella)',bioActive,'_toggleBio',true)
     +'</div>'
-
     +'<input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">'
     +'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
-  +'</div>'
-  +'<div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface);border-top:1px solid var(--border);z-index:50">'
-    +'<button onclick="deleteUserAccount()" style="width:100%;padding:14px;border-radius:50px;background:var(--danger,#EF4444);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar mi cuenta</button>'
-  +'</div>';
+    +'<div style="height:16px"></div>'
+
+    +'</div>'
+    // Delete button — sticky, no position:fixed
+    +'<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface);border-top:1px solid var(--border)">'
+      +'<button onclick="deleteUserAccount()" style="width:100%;padding:14px;border-radius:50px;background:var(--danger,#EF4444);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar mi cuenta</button>'
+    +'</div>'
+    +'</div>'
+  );
 }
 
 // ── Picker screens ────────────────────────────────────────
@@ -5935,14 +5951,20 @@ function openProfilePage(){
   var overlay=document.createElement('div');
   overlay.id='profile-page-overlay';
   overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
-  var header='<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'
-    +'<button onclick="closeProfilePage()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
-    +'<span style="font-size:17px;font-weight:800">Datos Generales</span>'
-    +'<div style="width:40px"></div>'
+  var header=
+    '<div style="background:rgba(0,212,170,.07);padding:10px 14px 0;flex-shrink:0">'
+    +'<button onclick="closeProfilePage()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">'
+    +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'
+    +'</button>'
+    +'<div style="padding:10px 0 18px">'
+    +'<div style="font-size:22px;font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:4px">Datos generales</div>'
+    +'<div style="font-size:13px;color:var(--text2)">Actualiza tu informaci\u00f3n personal</div>'
+    +'</div>'
     +'</div>';
-  var body='<div style="flex:1;overflow-y:auto;padding:16px">'+buildProfileFormHTML()+'</div>';
-  var footer='<div style="flex-shrink:0;padding:12px 16px;background:var(--surface);border-top:1px solid var(--border)">'
-    +'<button onclick="saveProfile()" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px">Guardar</button>'
+  var body='<div style="flex:1;overflow-y:auto;padding:10px 16px 16px">'+buildProfileFormHTML()+'</div>';
+  var footer=
+    '<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface);border-top:1px solid var(--border)">'
+    +'<button onclick="saveProfile()" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px">Guardar cambios</button>'
     +'</div>';
   overlay.innerHTML=header+body+footer;
   document.body.appendChild(overlay);
@@ -6011,60 +6033,87 @@ function buildProfileFormHTML(){
       +'<span style="font-size:14px;font-weight:600;color:var(--text)">'+g+'</span>'
     +'</div>';
   }).join('');
-  var html=''
-    +'<div class="form-group"><label class="form-label">Nombre y apellido</label>'
-      +'<input class="form-input" type="text" id="cfg-name" value="'+nameVal+'" readonly style="opacity:.65;cursor:not-allowed"></div>'
-    +'<div class="form-group"><label class="form-label">Email</label>'
-      +'<input class="form-input" type="email" id="cfg-email" value="'+emailVal+'" readonly style="opacity:.65;cursor:not-allowed"></div>'
-    +'<div class="form-group"><label class="form-label">Fecha de nacimiento</label>'
-      +'<input class="form-input" type="date" id="cfg-birthdate" value="'+(p.birthdate||'')+'" max="'+new Date().toISOString().slice(0,10)+'"></div>'
-    +'<div class="form-group"><label class="form-label">Teléfono</label>'
+
+  function sLbl(t){return '<div style="font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text3);padding:14px 0 6px">'+t+'</div>';}
+  function sCard(c){return '<div style="border-radius:16px;border:0.5px solid var(--border);background:var(--surface2);overflow:hidden;border-left:2.5px solid var(--primary)">'+c+'</div>';}
+  function fg(c,last){return '<div class="form-group" style="margin:0;padding:12px 14px;'+(last?'':'border-bottom:0.5px solid var(--border)')+'">'+c+'</div>';}
+
+  var html='';
+
+  // IDENTIDAD
+  html+=sLbl('Identidad');
+  html+=sCard(
+    fg('<label class="form-label">Nombre y apellido</label>'
+      +'<input class="form-input" type="text" id="cfg-name" value="'+nameVal+'" readonly style="opacity:.65;cursor:not-allowed">',false)
+    +fg('<label class="form-label">Fecha de nacimiento</label>'
+      +'<input class="form-input" type="date" id="cfg-birthdate" value="'+(p.birthdate||'')+'" max="'+new Date().toISOString().slice(0,10)+'">',false)
+    +fg('<label class="form-label">G\u00e9nero</label>'
+      +'<div style="display:flex;gap:10px">'+genderCaps+'</div>'
+      +'<input type="hidden" id="cfg-gender" value="'+(_genderVal)+'">',true)
+  );
+
+  // CONTACTO
+  html+=sLbl('Contacto');
+  html+=sCard(
+    fg('<label class="form-label">Correo electr\u00f3nico</label>'
+      +'<input class="form-input" type="email" id="cfg-email" value="'+emailVal+'" readonly style="opacity:.65;cursor:not-allowed">',false)
+    +fg('<label class="form-label">Tel\u00e9fono</label>'
       +'<div style="display:flex;gap:6px">'
         +'<div class="bs-trigger" onclick="showPhoneCodePickerScreen()" style="width:130px;flex-shrink:0;padding:10px 12px">'
           +'<span id="cfg-phone-code-lbl" style="font-size:13px;color:'+(defPhone?'var(--text)':'var(--text3)')+'">'+defPhoneDisplay+'</span>'
-          +'<span style="color:var(--text3);font-size:18px">›</span>'
+          +'<span style="color:var(--text3);font-size:18px">\u203a</span>'
         +'</div>'
-        +'<input type="hidden" id="cfg-phone-code" value="'+(defPhone||'')+'">'+'<input class="form-input" type="tel" id="cfg-phone" value="'+(p.phone||'')+'" placeholder="Número" style="flex:1;font-size:15px" maxlength="15">'
-      +'</div></div>'
-    +'<div class="form-group"><label class="form-label">Género</label>'
-      +'<div style="display:flex;gap:10px">'+genderCaps+'</div>'
-      +'<input type="hidden" id="cfg-gender" value="'+(_genderVal)+'"></div>'
-    +'<div class="form-group"><label class="form-label">País de origen</label>'
-      +'<div class="bs-trigger" onclick="showCountryPickerScreen(\'cfg-country\',\'País de origen\',\'cfg-country-lbl\')" id="cpick-trigger">'
-        +'<span style="font-size:14px;color:'+(p.country?'var(--text)':'var(--text3)')+'" id="cfg-country-lbl">'+(p.country?(countryFlagGlobal(p.country)+' '+p.country):'Seleccionar país de origen')+'</span>'
-        +'<span style="color:var(--text3);font-size:18px">›</span>'
+        +'<input type="hidden" id="cfg-phone-code" value="'+(defPhone||'')+'">'
+        +'<input class="form-input" type="tel" id="cfg-phone" value="'+(p.phone||'')+'" placeholder="N\u00famero" style="flex:1;font-size:15px" maxlength="15">'
+      +'</div>',true)
+  );
+
+  // UBICACIÓN
+  html+=sLbl('Ubicaci\u00f3n');
+  html+=sCard(
+    fg('<label class="form-label">Pa\u00eds de origen</label>'
+      +'<div class="bs-trigger" onclick="showCountryPickerScreen(\'cfg-country\',\'Pa\u00eds de origen\',\'cfg-country-lbl\')" id="cpick-trigger">'
+        +'<span style="font-size:14px;color:'+(p.country?'var(--text)':'var(--text3)')+'" id="cfg-country-lbl">'+(p.country?(countryFlagGlobal(p.country)+' '+p.country):'Seleccionar pa\u00eds de origen')+'</span>'
+        +'<span style="color:var(--text3);font-size:18px">\u203a</span>'
       +'</div>'
-      +'<input type="hidden" id="cfg-country" value="'+(p.country||'')+'"></div>'
-    +'<div class="form-group"><label class="form-label">País de residencia <span style="font-size:10px;color:var(--primary);font-weight:400">🏠 moneda principal</span></label>'
-      +'<div class="bs-trigger" onclick="showCountryPickerScreen(\'cfg-residence\',\'País de residencia\',\'cfg-residence-lbl\')" id="rpick-trigger">'
-        +'<span style="font-size:14px;color:'+(p.residence?'var(--text)':'var(--text3)')+'" id="cfg-residence-lbl">'+(p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'Seleccionar país de residencia')+'</span>'
-        +'<span style="color:var(--text3);font-size:18px">›</span>'
+      +'<input type="hidden" id="cfg-country" value="'+(p.country||'')+'">',false)
+    +fg('<label class="form-label">Pa\u00eds de residencia <span style="font-size:10px;color:var(--primary);font-weight:400">\uD83C\uDFE0 moneda principal</span></label>'
+      +'<div class="bs-trigger" onclick="showCountryPickerScreen(\'cfg-residence\',\'Pa\u00eds de residencia\',\'cfg-residence-lbl\')" id="rpick-trigger">'
+        +'<span style="font-size:14px;color:'+(p.residence?'var(--text)':'var(--text3)')+'" id="cfg-residence-lbl">'+(p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'Seleccionar pa\u00eds de residencia')+'</span>'
+        +'<span style="color:var(--text3);font-size:18px">\u203a</span>'
       +'</div>'
-      +'<input type="hidden" id="cfg-residence" value="'+(p.residence||'')+'"></div>'
-    +'<div class="form-group"><label class="form-label">Ocupación</label>'
-      +'<div class="bs-trigger" onclick="showBS_simple(\'cfg-occupation\',\'-lbl\',\'Ocupación\',[\'Empleado\',\'Independiente / Freelancer\',\'Empresario\',\'Estudiante\',\'Ama/Amo de casa\',\'Jubilado\',\'Desempleado\',\'Otro\'],\'Seleccionar ocupación\',true)">'
-        +'<span style="font-size:14px;color:'+(p.occupation?'var(--text)':'var(--text3)')+'" id="cfg-occupation-lbl">'+(p.occupation||'Seleccionar ocupación')+'</span>'
-        +'<span style="color:var(--text3);font-size:18px">›</span>'
+      +'<input type="hidden" id="cfg-residence" value="'+(p.residence||'')+'">',true)
+  );
+
+  // PERFIL PROFESIONAL
+  html+=sLbl('Perfil profesional');
+  html+=sCard(
+    fg('<label class="form-label">Ocupaci\u00f3n</label>'
+      +'<div class="bs-trigger" onclick="showBS_simple(\'cfg-occupation\',\'-lbl\',\'Ocupaci\u00f3n\',[\'Empleado\',\'Independiente / Freelancer\',\'Empresario\',\'Estudiante\',\'Ama/Amo de casa\',\'Jubilado\',\'Desempleado\',\'Otro\'],\'Seleccionar ocupaci\u00f3n\',true)">'
+        +'<span style="font-size:14px;color:'+(p.occupation?'var(--text)':'var(--text3)')+'" id="cfg-occupation-lbl">'+(p.occupation||'Seleccionar ocupaci\u00f3n')+'</span>'
+        +'<span style="color:var(--text3);font-size:18px">\u203a</span>'
       +'</div>'
-      +'<input type="hidden" id="cfg-occupation" value="'+(p.occupation||'')+'"></div>'
-    +'<div class="form-group"><label class="form-label">Profesión</label>'
+      +'<input type="hidden" id="cfg-occupation" value="'+(p.occupation||'')+'">',false)
+    +fg('<label class="form-label">Profesi\u00f3n</label>'
       +'<div class="bs-trigger" onclick="showProfessionPickerScreen()">'
-        +'<span id="cfg-profession-lbl" style="font-size:14px;color:'+(p.profession?'var(--text)':'var(--text3)')+'">'+(p.profession||'Seleccionar profesión u oficio')+'</span>'
-        +'<span style="color:var(--text3);font-size:18px">›</span>'
+        +'<span id="cfg-profession-lbl" style="font-size:14px;color:'+(p.profession?'var(--text)':'var(--text3)')+'">'+(p.profession||'Seleccionar profesi\u00f3n u oficio')+'</span>'
+        +'<span style="color:var(--text3);font-size:18px">\u203a</span>'
       +'</div>'
-      +'<input type="hidden" id="cfg-profession" value="'+(p.profession||'')+'"></div>'
-    +'<div class="form-group"><label class="form-label">Estado civil</label>'
-      +'<div class="bs-trigger" onclick="showBS_simple(\'cfg-marital\',\'-lbl\',\'Estado civil\',[\'Soltero/a\',\'Casado/a\',\'Unión libre\',\'Divorciado/a\',\'Viudo/a\'],\'Seleccionar estado civil\',true)">'
+      +'<input type="hidden" id="cfg-profession" value="'+(p.profession||'')+'">',false)
+    +fg('<label class="form-label">Estado civil</label>'
+      +'<div class="bs-trigger" onclick="showBS_simple(\'cfg-marital\',\'-lbl\',\'Estado civil\',[\'Soltero/a\',\'Casado/a\',\'Uni\u00f3n libre\',\'Divorciado/a\',\'Viudo/a\'],\'Seleccionar estado civil\',true)">'
         +'<span style="font-size:14px;color:'+(p.marital?'var(--text)':'var(--text3)')+'" id="cfg-marital-lbl">'+(p.marital||'Seleccionar estado civil')+'</span>'
-        +'<span style="color:var(--text3);font-size:18px">›</span>'
+        +'<span style="color:var(--text3);font-size:18px">\u203a</span>'
       +'</div>'
-      +'<input type="hidden" id="cfg-marital" value="'+(p.marital||'')+'"></div>'
-    +'<div class="form-group"><label class="form-label">Objetivo financiero principal <span style="color:var(--danger)">*</span></label>'
-      +'<div class="bs-trigger" onclick="showBS_simple(\'cfg-goal\',\'-lbl\',\'Objetivo financiero\',[\'Ahorrar para emergencias\',\'Control de gastos\',\'Pagar deudas\',\'Comprar vivienda\',\'Viajar\',\'Independencia financiera\',\'Emprender\',\'Jubilación\',\'Educación\',\'Otro\'],\'Seleccionar objetivo\')">'
+      +'<input type="hidden" id="cfg-marital" value="'+(p.marital||'')+'">',false)
+    +fg('<label class="form-label">Objetivo financiero <span style="color:var(--danger)">*</span></label>'
+      +'<div class="bs-trigger" onclick="showBS_simple(\'cfg-goal\',\'-lbl\',\'Objetivo financiero\',[\'Ahorrar para emergencias\',\'Control de gastos\',\'Pagar deudas\',\'Comprar vivienda\',\'Viajar\',\'Independencia financiera\',\'Emprender\',\'Jubilaci\u00f3n\',\'Educaci\u00f3n\',\'Otro\'],\'Seleccionar objetivo\')">'
         +'<span style="font-size:14px;color:'+(p.financialGoal?'var(--text)':'var(--text3)')+'" id="cfg-goal-lbl">'+(p.financialGoal||'Seleccionar objetivo')+'</span>'
-        +'<span style="color:var(--text3);font-size:18px">›</span>'
+        +'<span style="color:var(--text3);font-size:18px">\u203a</span>'
       +'</div>'
-      +'<input type="hidden" id="cfg-goal" value="'+(p.financialGoal||'')+'"></div>';
+      +'<input type="hidden" id="cfg-goal" value="'+(p.financialGoal||'')+'">',true)
+  );
+
   return html;
 }
 
