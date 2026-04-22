@@ -1440,6 +1440,8 @@ function _initSetPinScreen(){
     if(errEl)    errEl.textContent   = '';
     if(keypadEl) keypadEl.innerHTML  = _buildKeypad('_setPinScreenKey');
     _renderPinDots(st.current, 'set-pin-screen-dots');
+    var skipBtn = document.getElementById('set-pin-skip-btn');
+    if(skipBtn) skipBtn.style.display = isRecov ? 'none' : '';
   }
 
   refreshPinScreen();
@@ -1471,7 +1473,7 @@ function _initSetPinScreen(){
             if(typeof renderPage==='function')renderPage('mi-perfil');
           }else if(window._pinFromRecovery){
             window._pinFromRecovery=false;
-            try{ toast('¡PIN creado! Ya puedes entrar rápido ✓'); }catch(e){}
+            try{ toast('\u00a1PIN restablecido! Ya puedes entrar \u2713'); }catch(e){}
             _showScreen('welcome');
             setTimeout(openPinLogin, 150);
           }else{

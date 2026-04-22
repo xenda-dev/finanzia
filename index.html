@@ -235,7 +235,7 @@
     </div>
     <div id="set-pin-screen-keypad" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 20px;width:100%;max-width:360px;margin:0 auto"></div>
     <div style="padding:14px 24px max(env(safe-area-inset-bottom),28px)">
-      <button onclick="skipPinSetup()" style="background:none;border:none;color:#94A3B8;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;padding:10px;width:100%;text-align:center">Ahora no</button>
+      <button id="set-pin-skip-btn" onclick="skipPinSetup()" style="background:none;border:none;color:#94A3B8;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;padding:10px;width:100%;text-align:center">Ahora no</button>
     </div>
   </div>
 
@@ -336,70 +336,6 @@
     </div>
     <div class="auth-bottom">
       <button id="po-btn" onclick="handlePasswordOnlyLogin()" class="auth-btn-primary">Ingresar</button>
-      <div class="auth-footer" style="position:static;padding:max(env(safe-area-inset-bottom),16px) 20px 12px">© 2026 Xenda.co. Todos los derechos reservados.</div>
-    </div>
-  </div>
-
-  <!-- ─── RESTABLECER CONTRASEÑA ────────────────── -->
-  <div id="auth-reset-password" class="auth-panel" style="display:none">
-    <div class="auth-top auth-top-nav">
-      <button onclick="_showScreen('login')" class="auth-back">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <div style="width:36px"></div>
-    </div>
-    <div class="auth-body">
-      <div class="auth-logo-row" style="justify-content:center;">
-        <img src="/icon-192.png" class="auth-logo-icon" alt="FinanzIA" style="width:48px;height:48px;">
-      </div>
-      <h2 class="auth-title">Restablecer contraseña</h2>
-      <p class="auth-subtitle">Elige una contraseña nueva y segura para tu cuenta.</p>
-      <div class="auth-field">
-        <label class="auth-label">Nueva contraseña</label>
-        <div class="auth-input-wrap">
-          <input id="rp-pass" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres"
-            oninput="_authPwCheck(this.value)" onkeydown="authKey(event,'handleResetPassword')" class="auth-input auth-input-with-icon">
-          <button id="rp-eye" onclick="togglePass('rp-pass','rp-eye')" class="auth-eye">👁️</button>
-        </div>
-        <div class="pw-rules">
-          <div class="pw-rule" id="rp-r1"><span class="pw-icon"></span>Mínimo 8 caracteres</div>
-          <div class="pw-rule" id="rp-r2"><span class="pw-icon"></span>Una mayúscula</div>
-          <div class="pw-rule" id="rp-r3"><span class="pw-icon"></span>Un número</div>
-          <div class="pw-rule" id="rp-r4"><span class="pw-icon"></span>Un carácter especial (!@#$...)</div>
-        </div>
-      </div>
-      <div class="auth-field">
-        <label class="auth-label">Confirmar contraseña</label>
-        <div class="auth-input-wrap">
-          <input id="rp-pass-confirm" type="password" autocomplete="new-password" placeholder="Repite tu contraseña"
-            onkeydown="authKey(event,'handleResetPassword')" class="auth-input auth-input-with-icon">
-          <button id="rp-eye2" onclick="togglePass('rp-pass-confirm','rp-eye2')" class="auth-eye">👁️</button>
-        </div>
-      </div>
-      <div id="auth-err-rp" class="auth-err" style="display:none"></div>
-    </div>
-    <div class="auth-bottom">
-      <button id="rp-btn" onclick="handleResetPassword()" class="auth-btn-primary">Guardar nueva contraseña</button>
-      <div class="auth-footer" style="position:static;padding:max(env(safe-area-inset-bottom),16px) 20px 12px">© 2026 Xenda.co. Todos los derechos reservados.</div>
-    </div>
-  </div>
-
-  <!-- ─── CREAR PIN (onboarding post-registro) ────── -->
-  <div id="auth-set-pin" class="auth-panel" style="display:none">
-    <div class="auth-top auth-top-logo" style="flex-shrink:0">
-      <div class="auth-logo-row" style="justify-content:center;">
-        <img src="/icon-192.png" class="auth-logo-icon" alt="FinanzIA" style="width:48px;height:48px;">
-      </div>
-    </div>
-    <div class="auth-body" style="text-align:center;display:flex;flex-direction:column;align-items:center">
-      <div id="set-pin-screen-title" style="font-size:20px;font-weight:700;color:#0F172A;margin-bottom:6px">Crea tu PIN de 4 dígitos</div>
-      <div id="set-pin-screen-subtitle" style="font-size:14px;color:#64748B;margin-bottom:28px">Lo usarás para ingresar rápidamente</div>
-      <div id="set-pin-screen-dots" style="display:flex;justify-content:center;gap:16px;margin-bottom:8px"></div>
-      <div id="set-pin-screen-err" style="min-height:20px;font-size:13px;color:#DC2626;margin-bottom:16px;text-align:center"></div>
-      <div id="set-pin-screen-keypad" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:320px"></div>
-    </div>
-    <div class="auth-bottom">
-      <button onclick="skipPinSetup()" style="background:none;border:none;color:#94A3B8;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;padding:10px;width:100%;text-align:center">Ahora no</button>
       <div class="auth-footer" style="position:static;padding:max(env(safe-area-inset-bottom),16px) 20px 12px">© 2026 Xenda.co. Todos los derechos reservados.</div>
     </div>
   </div>
