@@ -197,12 +197,13 @@ function _updateHeader(page){
         var _pLabel=_pct>=100?'Perfil completo':_pct>=80?'Casi completo':_pct>=50?'Va por buen camino':_pct>0?'En progreso':'Comienza tu perfil';
         var _ac=_ph?'onclick="viewProfilePhoto()" style="cursor:zoom-in"':'';
         hHero.innerHTML=
-          '<div style="font-size:22px;font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:4px">Mi perfil</div>'
+          '<div style="padding-top:12px">'
+          +'<div style="font-size:22px;font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:4px">Mi perfil</div>'
           +'<div style="font-size:13px;color:var(--text2);margin-bottom:16px">Tu espacio personal en FinanzIA</div>'
-          +'<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">'
+          +'<div style="display:flex;align-items:center;gap:14px">'
             +'<div style="position:relative;flex-shrink:0">'
               +'<div '+_ac+' style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2.5px solid rgba(255,255,255,.7);box-sizing:border-box">'+_ai+'</div>'
-              +'<div onclick="showPhotoOptions()" style="position:absolute;bottom:1px;right:1px;width:20px;height:20px;border-radius:50%;background:#7461EF;border:2px solid rgba(0,212,170,.07);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1">'
+              +'<div onclick="showPhotoOptions()" style="position:absolute;bottom:1px;right:1px;width:20px;height:20px;border-radius:50%;background:#7461EF;border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1">'
                 +'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
               +'</div>'
             +'</div>'
@@ -213,11 +214,6 @@ function _updateHeader(page){
               +'<div style="height:4px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+_pct+'%;background:var(--primary);border-radius:99px"></div></div>'
             +'</div>'
           +'</div>'
-          +'<div style="text-align:center">'
-            +'<button onclick="openProfilePage()" style="display:inline-flex;align-items:center;gap:6px;background:var(--primary);border:none;border-radius:50px;padding:9px 22px;color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">'
-              +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
-              +'Editar datos'
-            +'</button>'
           +'</div>';
       }
     }else if(isDash){
@@ -244,7 +240,7 @@ function _updateHeader(page){
   if(hSpacer){
     if(page==='mi-perfil'){
       hSpacer.style.display='block';
-      hSpacer.innerHTML='<button onclick="navigate(\'configuracion\')" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,0,0,.08);background:rgba(255,255,255,.75);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>';
+      hSpacer.innerHTML='<button onclick="openProfilePage()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,0,0,.08);background:rgba(255,255,255,.75);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>';
       if(hControls)hControls.style.display='none';
     }else{
       hSpacer.innerHTML='';
@@ -5710,7 +5706,7 @@ function renderMiPerfil(){
     +'<div style="height:16px"></div>'
 
     +'</div>'
-    +'<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface);border-top:1px solid var(--border)">'
+    +'<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface)">'
       +'<button onclick="deleteUserAccount()" style="width:100%;padding:14px;border-radius:50px;background:var(--danger,#EF4444);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar mi cuenta</button>'
     +'</div>'
     +'</div>'
@@ -5980,14 +5976,15 @@ function openProfilePage(){
     +'<button onclick="closeProfilePage()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">'
     +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'
     +'</button>'
-    +'<div style="padding:10px 0 18px">'
+    +'<div style="padding:10px 0 0">'
     +'<div style="font-size:22px;font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:4px">Datos generales</div>'
     +'<div style="font-size:13px;color:var(--text2)">Actualiza tu informaci\u00f3n personal</div>'
     +'</div>'
-    +'</div>';
-  var body='<div style="flex:1;overflow-y:auto;padding:10px 16px 16px">'+buildProfileFormHTML()+'</div>';
+    +'</div>'
+    +'<div style="background:var(--surface);height:26px;margin:-2px -0px 0;width:100%;border-radius:24px 24px 0 0;flex-shrink:0"></div>';
+  var body='<div style="flex:1;overflow-y:auto;padding:0 16px 16px">'+buildProfileFormHTML()+'</div>';
   var footer=
-    '<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface);border-top:1px solid var(--border)">'
+    '<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface)">'
     +'<button onclick="saveProfile()" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:.3px">Guardar cambios</button>'
     +'</div>';
   overlay.innerHTML=header+body+footer;
