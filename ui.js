@@ -197,8 +197,8 @@ function _updateHeader(page){
         var _pLabel=_pct>=100?'Perfil completo':_pct>=80?'Casi completo':_pct>=50?'Va por buen camino':_pct>0?'En progreso':'Comienza tu perfil';
         var _ac=_ph?'onclick="viewProfilePhoto()" style="cursor:zoom-in"':'';
         hHero.innerHTML=
-          '<div style="padding-top:12px">'
-          +'<div style="font-size:22px;font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:4px">Mi perfil</div>'
+          '<div style="font-size:11px;color:var(--text2);font-weight:500;margin-bottom:1px">\u00a0</div>'
+          +'<div style="font-size:21px;font-weight:900;color:var(--text);letter-spacing:-.6px;line-height:1.1;margin-bottom:4px">Mi perfil</div>'
           +'<div style="font-size:13px;color:var(--text2);margin-bottom:16px">Tu espacio personal en FinanzIA</div>'
           +'<div style="display:flex;align-items:center;gap:14px">'
             +'<div style="position:relative;flex-shrink:0">'
@@ -213,7 +213,6 @@ function _updateHeader(page){
               +'<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--text3)">'+_pLabel+'</span><span style="color:var(--primary);font-weight:700">'+_pct+'%</span></div>'
               +'<div style="height:4px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+_pct+'%;background:var(--primary);border-radius:99px"></div></div>'
             +'</div>'
-          +'</div>'
           +'</div>';
       }
     }else if(isDash){
@@ -5638,79 +5637,58 @@ function _toggleBio(isChecked){
 function renderMiPerfil(){
   var p=S.profile||{};
   var uid=window._currentUser&&window._currentUser.id;
-  var displayName=p.name||(window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)||'';
-  var emailVal=p.email||(window._currentUser&&window._currentUser.email?window._currentUser.email:'');
-  var initials=displayName?displayName.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'?';
-  var _photo=_getProfilePhoto();
-  var avatarInner=_photo
-    ?('<img src="'+_photo+'" style="width:52px;height:52px;object-fit:cover;border-radius:50%;display:block;flex-shrink:0;">')
-    :('<span style="font-size:16px;font-weight:700;color:white">'+initials+'</span>');
-  var pct=_calcProfileProgress();
+  var phone=(p.phoneCode?p.phoneCode+' ':'')+(p.phone||'');
   var pinActive=uid&&localStorage.getItem('_pinEnabled_'+uid)==='1'&&!!localStorage.getItem('_userPin_'+uid);
   var bioActive=uid&&localStorage.getItem('_bioEnabled_'+uid)==='1'&&!!localStorage.getItem('_bioCredId_'+uid);
-  var phone=(p.phoneCode?p.phoneCode+' ':'')+(p.phone||'');
-  var avatarClick=_photo?'onclick="viewProfilePhoto()" style="cursor:zoom-in"':'';
-  function svgIcon(path,extra){
-    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(extra||'')+path+'</svg>';
+  var chev='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
+  function mpCard(rows){
+    return '<div style="background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);overflow:hidden;margin-bottom:4px">'+rows.join('')+'</div>';
   }
-  var iconGlobe=svgIcon('<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>');
-  var iconPhone=svgIcon('<path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.63A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>');
-  var iconWork=svgIcon('<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>');
-  var iconOccup=svgIcon('<path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>');
-  var iconTarget=svgIcon('<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>');
-  var iconLock=svgIcon('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>');
-  var iconShield=svgIcon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>');
-  var iconEdit='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-  var camBadge='<div onclick="showPhotoOptions()" style="position:absolute;bottom:1px;right:1px;width:20px;height:20px;border-radius:50%;background:#7461EF;border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1">'
-    +'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
-    +'</div>';
-  function infoRow(icon,label,val,last){
-    var ri='<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+icon+'</div>';
-    var vHtml=val?('<span style="font-size:14px;font-weight:600;color:var(--text)">'+val+'</span>'):('<span style="font-size:14px;color:var(--text3);font-style:italic">Sin completar</span>');
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px;'+(last?'':'border-bottom:1px solid var(--border)')+'">'
-      +'<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">'+label+'</div>'+vHtml+'</div>'+ri+'</div>';
+  function mpRow(bg,svg,label,val,last){
+    var v=val||'<span style="color:var(--text3);font-style:italic">Sin completar</span>';
+    return '<div onclick="openProfilePage()" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:'+(last?'none':'0.5px solid var(--border)')+';cursor:pointer">'
+      +'<div style="width:36px;height:36px;border-radius:10px;background:'+bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+svg+'</div>'
+      +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--text)">'+label+'</div>'
+      +'<div style="font-size:11px;color:var(--text2);margin-top:1px">'+v+'</div></div>'+chev+'</div>';
   }
-  function toggleRow(icon,label,active,fn,last){
+  function mpTgl(bg,svg,label,active,fn,last){
     var badge=active
-      ?('<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;background:rgba(0,212,170,.12);color:#0F766E;font-size:11px;font-weight:600"><span style="width:5px;height:5px;border-radius:50%;background:#00D4AA;display:inline-block"></span>Activo</span>')
-      :('<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--text3);font-size:11px;font-weight:600"><span style="width:5px;height:5px;border-radius:50%;background:var(--text3);display:inline-block"></span>Inactivo</span>');
+      ?'<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;background:rgba(0,212,170,.12);color:#0F766E;font-size:11px;font-weight:600"><span style="width:5px;height:5px;border-radius:50%;background:#00D4AA;display:inline-block"></span>Activo</span>'
+      :'<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--text3);font-size:11px;font-weight:600"><span style="width:5px;height:5px;border-radius:50%;background:var(--text3);display:inline-block"></span>Inactivo</span>';
     var track='<span style="position:absolute;inset:0;border-radius:99px;background:'+(active?'var(--primary)':'var(--border)')+'"></span>';
     var thumb='<span style="position:absolute;top:3px;'+(active?'right:3px':'left:3px')+';width:20px;height:20px;border-radius:50%;background:white"></span>';
     var tgl='<label style="position:relative;width:44px;height:26px;cursor:pointer;display:inline-block;flex-shrink:0"><input type="checkbox" '+(active?'checked':'')+' onchange="'+fn+'(this.checked)" style="opacity:0;width:0;height:0;position:absolute">'+track+thumb+'</label>';
-    var ri='<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+icon+'</div>';
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;'+(last?'':'border-bottom:1px solid var(--border)')+'">'
-      +'<div style="display:flex;align-items:center;gap:12px">'+ri+'<div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">'+label+'</div>'+badge+'</div></div>'+tgl+'</div>';
+    return '<div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:'+(last?'none':'0.5px solid var(--border)')+'">'
+      +'<div style="width:36px;height:36px;border-radius:10px;background:'+bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+svg+'</div>'
+      +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">'+label+'</div>'+badge+'</div>'+tgl+'</div>';
   }
-  var sl='<div style="font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text3);padding:12px 16px 6px">%L%</div>';
-
-  return (
-    '<div style="height:100%;display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:8px">'
-
-    // Content sections only (hero is in the app header)
-    +sl.replace('%L%','Informaci\u00f3n personal')
-    +'<div style="background:var(--surface2);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
-      +infoRow(iconGlobe,'Pa\u00eds de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'',false)
-      +infoRow(iconPhone,'Tel\u00e9fono',phone.trim()||'',false)
-      +infoRow(iconOccup,'Ocupaci\u00f3n',p.occupation||'',false)
-      +infoRow(iconWork,'Profesi\u00f3n',p.profession||'',false)
-      +infoRow(iconTarget,'Meta financiera',p.financialGoal||'',true)
-    +'</div>'
-    +sl.replace('%L%','Seguridad')
-    +'<div style="background:var(--surface2);border-radius:16px;margin:0 16px;overflow:hidden;border:1px solid var(--border)">'
-      +toggleRow(iconLock,'PIN de acceso',pinActive,'_togglePin',false)
-      +toggleRow(iconShield,'Biometr\u00eda (huella)',bioActive,'_toggleBio',true)
-    +'</div>'
+  function mpSec(t){return '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:18px 0 8px;padding-left:2px">'+t+'</div>';}
+  var sGlobe='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>';
+  var sPhone='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.63A2 2 0 012 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>';
+  var sWork='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>';
+  var sTarget='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
+  var sLock='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
+  var sShield='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>';
+  return '<div style="padding:0 14px calc(16px)">'
+    +mpSec('Informaci\u00f3n personal')
+    +mpCard([
+      mpRow('rgba(59,130,246,.12)',sGlobe,'Pa\u00eds de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'',false),
+      mpRow('rgba(16,185,129,.12)',sPhone,'Tel\u00e9fono',phone.trim()||'',false),
+      mpRow('rgba(245,158,11,.12)',sWork,'Ocupaci\u00f3n',p.occupation||'',false),
+      mpRow('rgba(116,97,239,.12)',sTarget,'Meta financiera',p.financialGoal||'',true)
+    ])
+    +mpSec('Seguridad')
+    +mpCard([
+      mpTgl('rgba(0,212,170,.12)',sLock,'PIN de acceso',pinActive,'_togglePin',false),
+      mpTgl('rgba(116,97,239,.12)',sShield,'Biometr\u00eda (huella)',bioActive,'_toggleBio',true)
+    ])
     +'<input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">'
     +'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
-    +'<div style="height:16px"></div>'
-
+    +'<div style="margin-top:24px">'
+    +'<button onclick="deleteUserAccount()" style="width:100%;padding:14px;border-radius:50px;border:none;background:rgba(239,68,68,.08);color:var(--danger,#EF4444);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar mi cuenta</button>'
     +'</div>'
-    +'<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface)">'
-      +'<button onclick="deleteUserAccount()" style="width:100%;padding:14px;border-radius:50px;background:var(--danger,#EF4444);border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar mi cuenta</button>'
-    +'</div>'
-    +'</div>'
-  );
+    +'<div style="height:max(env(safe-area-inset-bottom),16px)"></div>'
+  +'</div>';
 }
 
 // ── Picker screens ────────────────────────────────────────
@@ -5976,12 +5954,13 @@ function openProfilePage(){
     +'<button onclick="closeProfilePage()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">'
     +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'
     +'</button>'
-    +'<div style="padding:10px 0 0">'
-    +'<div style="font-size:22px;font-weight:900;color:var(--text);letter-spacing:-.5px;margin-bottom:4px">Datos generales</div>'
-    +'<div style="font-size:13px;color:var(--text2)">Actualiza tu informaci\u00f3n personal</div>'
+    +'<div style="padding-top:12px">'
+    +'<div style="font-size:11px;color:var(--text2);font-weight:500;margin-bottom:1px">\u00a0</div>'
+    +'<div style="font-size:21px;font-weight:900;color:var(--text);letter-spacing:-.6px;line-height:1.1;margin-bottom:4px">Datos generales</div>'
+    +'<div style="font-size:12px;font-weight:500;color:var(--text2);line-height:1.5;margin-top:4px">Actualiza tu informaci\u00f3n personal</div>'
     +'</div>'
     +'</div>'
-    +'<div style="background:var(--surface);height:26px;margin:-2px -0px 0;width:100%;border-radius:24px 24px 0 0;flex-shrink:0"></div>';
+    +'<div style="background:var(--surface);height:26px;margin-top:-13px;width:100%;border-radius:24px 24px 0 0;flex-shrink:0;position:relative;z-index:1"></div>';
   var body='<div style="flex:1;overflow-y:auto;padding:0 16px 16px">'+buildProfileFormHTML()+'</div>';
   var footer=
     '<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface)">'
@@ -6055,9 +6034,9 @@ function buildProfileFormHTML(){
     +'</div>';
   }).join('');
 
-  function sLbl(t){return '<div style="font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text3);padding:14px 0 6px">'+t+'</div>';}
-  function sCard(c){return '<div style="border-radius:16px;border:0.5px solid var(--border);background:var(--surface2);overflow:hidden;border-left:2.5px solid var(--primary)">'+c+'</div>';}
-  function fg(c,last){return '<div class="form-group" style="margin:0;padding:12px 14px;'+(last?'':'border-bottom:0.5px solid var(--border)')+'">'+c+'</div>';}
+  function sLbl(t){return '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:18px 0 8px;padding-left:2px">'+t+'</div>';}
+  function sCard(c){return '<div style="background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);overflow:hidden;margin-bottom:4px">'+c+'</div>';}
+  function fg(c,last){return '<div class="form-group" style="margin:0;padding:13px 14px;'+(last?'':'border-bottom:0.5px solid var(--border)')+'">'+c+'</div>';}
 
   var html='';
 
