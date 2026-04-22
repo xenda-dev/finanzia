@@ -184,6 +184,7 @@ function _updateHeader(page){
     }else if(page==='mi-perfil'){
       hRow2.style.display='none';
       if(hHero){
+        hHero.style.paddingTop='12px';
         hHero.style.display='block';
         var _p=(typeof S!=='undefined'&&S.profile)||{};
         var _uid=window._currentUser&&window._currentUser.id;
@@ -198,7 +199,7 @@ function _updateHeader(page){
         var _ac=_ph?'onclick="viewProfilePhoto()" style="cursor:zoom-in"':'';
         hHero.innerHTML=
           '<div style="font-size:11px;color:var(--text2);font-weight:500;margin-bottom:1px">\u00a0</div>'
-          +'<div style="font-size:21px;font-weight:900;color:var(--text);letter-spacing:-.6px;line-height:1.1;margin-bottom:4px">Mi perfil</div>'
+          +'<div style="font-size:21px;font-weight:900;color:var(--text);letter-spacing:-.6px;line-height:1.1;margin-bottom:12px">Mi perfil</div>'
           +'<div style="font-size:13px;color:var(--text2);margin-bottom:16px">Tu espacio personal en FinanzIA</div>'
           +'<div style="display:flex;align-items:center;gap:14px">'
             +'<div style="position:relative;flex-shrink:0">'
@@ -5669,7 +5670,8 @@ function renderMiPerfil(){
   var sTarget='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
   var sLock='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
   var sShield='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>';
-  return '<div style="padding:0 14px calc(16px)">'
+  return '<div style="height:100%;display:flex;flex-direction:column;overflow:hidden">'
+    +'<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 14px 16px">'
     +mpSec('Informaci\u00f3n personal')
     +mpCard([
       mpRow('rgba(59,130,246,.12)',sGlobe,'Pa\u00eds de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'',false),
@@ -5688,6 +5690,7 @@ function renderMiPerfil(){
     +'<button onclick="deleteUserAccount()" style="width:100%;padding:14px;border-radius:50px;border:none;background:rgba(239,68,68,.08);color:var(--danger,#EF4444);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar mi cuenta</button>'
     +'</div>'
     +'<div style="height:max(env(safe-area-inset-bottom),16px)"></div>'
+    +'</div>'
   +'</div>';
 }
 
