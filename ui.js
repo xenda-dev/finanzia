@@ -187,7 +187,11 @@ function _updateHeader(page){
       if(hTitle){hTitle.style.display='block';hTitle.textContent='Mi perfil';}
       if(hSubtitle){hSubtitle.style.display='none';}
       if(hHeaderEl)hHeaderEl.style.background='';
+      var _mpEl=document.getElementById('page-mi-perfil');
+      if(_mpEl){_mpEl.style.height='100%';_mpEl.style.overflowY='auto';}
     }else if(isDash){
+      var _mpEl2=document.getElementById('page-mi-perfil');
+      if(_mpEl2){_mpEl2.style.height='';_mpEl2.style.overflowY='';}
       hRow2.style.display='block';
       var _h=new Date().getHours();
       var _saludo=_h<12?'Buenos d\u00edas \uD83D\uDC4B':_h<19?'Buenas tardes \u2600\uFE0F':'Buenas noches \uD83C\uDF19';
@@ -195,6 +199,8 @@ function _updateHeader(page){
       if(hBigTitle)hBigTitle.textContent=getFirstName(window._currentUser)||'';
       if(hSubtitle){hSubtitle.style.display='none';hSubtitle.textContent='';}
     }else{
+      var _mpEl3=document.getElementById('page-mi-perfil');
+      if(_mpEl3){_mpEl3.style.height='';_mpEl3.style.overflowY='';}
       hRow2.style.display='block';
       if(hGreeting)hGreeting.textContent='\u00a0';
       if(hBigTitle)hBigTitle.textContent=_getPageTitle(page);

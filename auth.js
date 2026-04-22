@@ -1940,7 +1940,7 @@ function _showOnboarding(){
   var goingBack=false;
   var ov=document.createElement('div');
   ov.id='onboarding-screen';
-  ov.style.cssText='position:fixed;inset:0;z-index:9999;overflow:hidden;font-family:var(--font);background:linear-gradient(160deg,rgba(0,212,170,.12) 0%,rgba(116,97,239,.06) 50%,#fff 70%)';
+  ov.style.cssText='position:fixed;inset:0;z-index:9999;overflow:hidden;font-family:var(--font);background:var(--bg,#F8FAFC)';
   function render(back){
     var s=slides[cur];
     var isLast=cur===slides.length-1;
@@ -2018,9 +2018,13 @@ function _showOnboarding(){
   }
   render(false);
   addSwipe();
+  var _obHdr=document.querySelector('#app .header');
+  if(_obHdr)_obHdr.style.display='none';
   document.body.appendChild(ov);
 }
 function _finishOnboarding(){
+  var _obHdr=document.querySelector('#app .header');
+  if(_obHdr)_obHdr.style.display='';
   localStorage.setItem('_finanzia_onboarded','1');
   var el=document.getElementById('onboarding-screen');
   if(el)el.remove();
