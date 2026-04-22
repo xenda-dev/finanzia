@@ -5956,7 +5956,7 @@ function openProfilePage(){
     +'<button onclick="closeProfilePage()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">'
     +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'
     +'</button>'
-    +'<div style="padding-top:12px">'
+    +'<div style="padding-top:12px;padding-bottom:18px">'
     +'<div style="font-size:11px;color:var(--text2);font-weight:500;margin-bottom:1px">\u00a0</div>'
     +'<div style="font-size:21px;font-weight:900;color:var(--text);letter-spacing:-.6px;line-height:1.1;margin-bottom:4px">Datos generales</div>'
     +'<div style="font-size:12px;font-weight:500;color:var(--text2);line-height:1.5;margin-top:4px">Actualiza tu informaci\u00f3n personal</div>'
