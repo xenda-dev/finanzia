@@ -200,7 +200,6 @@ function _updateHeader(page){
         hHero.innerHTML=
           '<div style="font-size:11px;color:var(--text2);font-weight:500;margin-bottom:1px">\u00a0</div>'
           +'<div style="font-size:21px;font-weight:900;color:var(--text);letter-spacing:-.6px;line-height:1.1;margin-bottom:12px">Mi perfil</div>'
-          +'<div style="font-size:13px;color:var(--text2);margin-bottom:16px">Tu espacio personal en FinanzIA</div>'
           +'<div style="display:flex;align-items:center;gap:14px">'
             +'<div style="position:relative;flex-shrink:0">'
               +'<div '+_ac+' style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2.5px solid rgba(255,255,255,.7);box-sizing:border-box">'+_ai+'</div>'
