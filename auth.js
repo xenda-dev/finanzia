@@ -443,7 +443,7 @@ function hideAuthScreen(){
   var app=document.getElementById('app'); if(app)app.style.display='flex';
 }
 function _showScreen(name){
-  ['login','register','bio','verify','recover','welcome','password-only','reset-password','set-pin','bio-setup'].forEach(function(id){
+  ['login','register','bio','verify','recover','welcome','password-only','reset-password','set-pin','bio-setup','pin-login-recovery'].forEach(function(id){
     var el=document.getElementById('auth-'+id); if(el)el.style.display='none';
   });
   var t=document.getElementById('auth-'+name);
@@ -1340,6 +1340,44 @@ async function _verifyPinRecoveryOtp(){
   }
 }
 
+
+// ════════════════════════════════════════════════════════════
+// PASO 4 RECOVERY — Pantalla full-screen para ingresar PIN nuevo
+// ════════════════════════════════════════════════════════════
+function _showPinLoginRecovery(){
+  _showScreen('pin-login-recovery');
+  var pin=[];
+  var keypadEl=document.getElementById('plr-keypad');
+  if(keypadEl) keypadEl.innerHTML=_buildKeypad('_plrKey');
+  _renderPinDots([],'plr-dots');
+
+  window._plrKey=async function(k){
+    if(k==='\u232b'){ pin.pop(); }
+    else if(pin.length<4){ pin.push(k); try{ if(navigator.vibrate)navigator.vibrate(10); }catch(e){} }
+    _renderPinDots(pin,'plr-dots');
+
+    if(pin.length===4){
+      var ok=await validateUserPin(pin.join(''));
+      if(ok){
+        await _enterWithPinSuccess();
+      }else{
+        try{ if(navigator.vibrate)navigator.vibrate([60,40,60]); }catch(e){}
+        var errEl=document.getElementById('plr-err');
+        if(errEl) errEl.textContent='PIN incorrecto. Int\u00e9ntalo de nuevo.';
+        pin=[];
+        _renderPinDots([],'plr-dots');
+        var dotsEl=document.getElementById('plr-dots');
+        if(dotsEl){
+          dotsEl.style.transition='transform .1s';
+          dotsEl.style.transform='translateX(8px)';
+          setTimeout(function(){dotsEl.style.transform='translateX(-8px)';},100);
+          setTimeout(function(){dotsEl.style.transform='translateX(0)';},200);
+        }
+      }
+    }
+  };
+}
+
 function closePinModal(){
   var el = document.getElementById('pin-modal-overlay');
   if(!el) return;
@@ -1473,9 +1511,7 @@ function _initSetPinScreen(){
             if(typeof renderPage==='function')renderPage('mi-perfil');
           }else if(window._pinFromRecovery){
             window._pinFromRecovery=false;
-            try{ toast('\u00a1PIN restablecido! Ya puedes entrar \u2713'); }catch(e){}
-            _showScreen('welcome');
-            setTimeout(openPinLogin, 150);
+            _showPinLoginRecovery();
           }else{
             try{ toast('¡PIN creado! Ya puedes entrar rápido ✓'); }catch(e){}
             _initBioSetupScreen();
