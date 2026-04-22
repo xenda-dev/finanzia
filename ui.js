@@ -183,38 +183,10 @@ function _updateHeader(page){
       if(hSubtitle){hSubtitle.style.display='none';hSubtitle.textContent='';}
     }else if(page==='mi-perfil'){
       hRow2.style.display='none';
-      if(hHero){
-        hHero.style.paddingTop='12px';
-        hHero.style.display='block';
-        var _p=(typeof S!=='undefined'&&S.profile)||{};
-        var _uid=window._currentUser&&window._currentUser.id;
-        var _dn=_p.name||(window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)||'';
-        var _ev=_p.email||(window._currentUser&&window._currentUser.email?window._currentUser.email:'');
-        var _ini=_dn?_dn.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'?';
-        var _ph=(typeof _getProfilePhoto==='function')?_getProfilePhoto():null;
-        var _ai=_ph?('<img src="'+_ph+'" style="width:52px;height:52px;object-fit:cover;border-radius:50%;display:block;">')
-          :('<span style="font-size:16px;font-weight:700;color:white">'+_ini+'</span>');
-        var _pct=(typeof _calcProfileProgress==='function')?_calcProfileProgress():0;
-        var _pLabel=_pct>=100?'Perfil completo':_pct>=80?'Casi completo':_pct>=50?'Va por buen camino':_pct>0?'En progreso':'Comienza tu perfil';
-        var _ac=_ph?'onclick="viewProfilePhoto()" style="cursor:zoom-in"':'';
-        hHero.innerHTML=
-          '<div style="font-size:11px;color:var(--text2);font-weight:500;margin-bottom:1px">\u00a0</div>'
-          +'<div style="font-size:21px;font-weight:900;color:var(--text);letter-spacing:-.6px;line-height:1.1;margin-bottom:12px">Mi perfil</div>'
-          +'<div style="display:flex;align-items:center;gap:14px">'
-            +'<div style="position:relative;flex-shrink:0">'
-              +'<div '+_ac+' style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2.5px solid rgba(255,255,255,.7);box-sizing:border-box">'+_ai+'</div>'
-              +'<div onclick="showPhotoOptions()" style="position:absolute;bottom:1px;right:1px;width:20px;height:20px;border-radius:50%;background:#7461EF;border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1">'
-                +'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
-              +'</div>'
-            +'</div>'
-            +'<div style="flex:1;min-width:0">'
-              +'<div style="font-size:16px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">'+(_dn||'Tu nombre')+'</div>'
-              +'<div style="font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px">'+_ev+'</div>'
-              +'<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--text3)">'+_pLabel+'</span><span style="color:var(--primary);font-weight:700">'+_pct+'%</span></div>'
-              +'<div style="height:4px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+_pct+'%;background:var(--primary);border-radius:99px"></div></div>'
-            +'</div>'
-          +'</div>';
-      }
+      if(hHero){hHero.style.display='none';hHero.innerHTML='';}
+      if(hTitle){hTitle.style.display='block';hTitle.textContent='Mi perfil';}
+      if(hSubtitle){hSubtitle.style.display='none';}
+      if(hHeaderEl)hHeaderEl.style.background='';
     }else if(isDash){
       hRow2.style.display='block';
       var _h=new Date().getHours();
@@ -5637,6 +5609,15 @@ function _toggleBio(isChecked){
 function renderMiPerfil(){
   var p=S.profile||{};
   var uid=window._currentUser&&window._currentUser.id;
+  var dn=p.name||(window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)||'';
+  var ev=p.email||(window._currentUser&&window._currentUser.email?window._currentUser.email:'');
+  var ini=dn?dn.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'?';
+  var ph=_getProfilePhoto();
+  var pct=(typeof _calcProfileProgress==='function')?_calcProfileProgress():0;
+  var pLabel=pct>=100?'Perfil completo':pct>=80?'Casi completo':pct>=50?'Va por buen camino':pct>0?'En progreso':'Comienza tu perfil';
+  var avatarHtml=ph
+    ?('<img src="'+ph+'" style="width:52px;height:52px;object-fit:cover;border-radius:50%;display:block;">')
+    :('<span style="font-size:16px;font-weight:700;color:white">'+ini+'</span>');
   var phone=(p.phoneCode?p.phoneCode+' ':'')+(p.phone||'');
   var pinActive=uid&&localStorage.getItem('_pinEnabled_'+uid)==='1'&&!!localStorage.getItem('_userPin_'+uid);
   var bioActive=uid&&localStorage.getItem('_bioEnabled_'+uid)==='1'&&!!localStorage.getItem('_bioCredId_'+uid);
@@ -5671,6 +5652,23 @@ function renderMiPerfil(){
   var sShield='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>';
   return '<div style="height:100%;display:flex;flex-direction:column;overflow:hidden">'
     +'<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 14px 16px">'
+    // Tarjeta resumen perfil
+    +'<div style="background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);padding:14px;margin-top:16px;margin-bottom:4px;display:flex;align-items:center;gap:14px">'
+      +'<div style="position:relative;flex-shrink:0">'
+        +'<div onclick="'+(ph?'viewProfilePhoto()':'showPhotoOptions()')+'" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2.5px solid rgba(0,212,170,.2);box-sizing:border-box;cursor:pointer">'+avatarHtml+'</div>'
+        +'<div onclick="showPhotoOptions()" style="position:absolute;bottom:1px;right:1px;width:20px;height:20px;border-radius:50%;background:#7461EF;border:2px solid var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1">'
+          +'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
+        +'</div>'
+      +'</div>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">'+(dn||'Tu nombre')+'</div>'
+        +'<div style="font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">'+ev+'</div>'
+        +'<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px"><span style="color:var(--text3)">'+pLabel+'</span><span style="color:var(--primary);font-weight:700">'+pct+'%</span></div>'
+        +'<div style="height:3px;background:rgba(0,0,0,.06);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,var(--primary),var(--secondary));border-radius:99px"></div></div>'
+      +'</div>'
+    +'</div>'
+    +'<input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">'
+    +'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
     +mpSec('Informaci\u00f3n personal')
     +mpCard([
       mpRow('rgba(59,130,246,.12)',sGlobe,'Pa\u00eds de residencia',p.residence?(countryFlagGlobal(p.residence)+' '+p.residence):'',false),
@@ -5683,8 +5681,6 @@ function renderMiPerfil(){
       mpTgl('rgba(0,212,170,.12)',sLock,'PIN de acceso',pinActive,'_togglePin',false),
       mpTgl('rgba(116,97,239,.12)',sShield,'Biometr\u00eda (huella)',bioActive,'_toggleBio',true)
     ])
-    +'<input type="file" id="profile-cam-input" accept="image/*" capture="user" style="display:none" onchange="handleProfilePhoto(event)">'
-    +'<input type="file" id="profile-gal-input" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)">'
     +'<div style="margin-top:24px">'
     +'<button onclick="deleteUserAccount()" style="width:100%;padding:14px;border-radius:50px;border:none;background:rgba(239,68,68,.08);color:var(--danger,#EF4444);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar mi cuenta</button>'
     +'</div>'
