@@ -443,7 +443,7 @@ function hideAuthScreen(){
   var app=document.getElementById('app'); if(app)app.style.display='flex';
 }
 function _showScreen(name){
-  ['login','register','bio','verify','recover','welcome','password-only','reset-password','set-pin','bio-setup','pin-login-recovery'].forEach(function(id){
+  ['login','register','bio','verify','recover','welcome','password-only','reset-password','set-pin','bio-setup','pin-login-recovery','pin-login'].forEach(function(id){
     var el=document.getElementById('auth-'+id); if(el)el.style.display='none';
   });
   var t=document.getElementById('auth-'+name);
@@ -930,10 +930,10 @@ async function _pinUseBiometric(){
       }
     }
   }else if(result === 'cancelled'){
-    showPinModal();
+    _showFullPinLogin();
   }else{
     try{ toast('No se pudo verificar'); }catch(e){}
-    showPinModal();
+    _showFullPinLogin();
   }
 }
 
@@ -1033,7 +1033,7 @@ function openPinLogin(){
     try{ toast('El PIN no est\u00e1 configurado en este dispositivo.'); }catch(e){}
     return;
   }
-  showPinModal();
+  _showFullPinLogin();
 }
 
 // FIX 1 — Validación real de sesión al entrar con PIN
@@ -1340,6 +1340,71 @@ async function _verifyPinRecoveryOtp(){
   }
 }
 
+
+
+// ════════════════════════════════════════════════════════════
+// PIN LOGIN FULL SCREEN (desde welcome — opción B aprobada)
+// ════════════════════════════════════════════════════════════
+function _showFullPinLogin(){
+  if(_isPinLocked()){
+    var secs=_getPinLockSecondsLeft();
+    try{ toast('PIN bloqueado. Espera '+secs+'s'); }catch(e){}
+    return;
+  }
+  _showScreen('pin-login');
+  var pin=[];
+  var keypadEl=document.getElementById('pli-keypad');
+  if(keypadEl) keypadEl.innerHTML=_buildKeypad('_pliKey');
+  _renderPinDots([],'pli-dots');
+  var errEl=document.getElementById('pli-err');
+  if(errEl) errEl.textContent='';
+  var initAttempts=_getPinAttempts();
+  if(initAttempts>0){
+    var initLeft=5-initAttempts;
+    if(errEl) errEl.textContent=initLeft+' intento'+(initLeft===1?'':'s')+' restante'+(initLeft===1?'':'s');
+  }
+
+  window._pliKey=async function(k){
+    if(_isPinLocked()){
+      var secs=_getPinLockSecondsLeft();
+      try{ toast('PIN bloqueado. Espera '+secs+'s'); }catch(e){}
+      return;
+    }
+    if(k==='\u232b'){ pin.pop(); }
+    else if(pin.length<4){ pin.push(k); try{ if(navigator.vibrate)navigator.vibrate(10); }catch(e){} }
+    _renderPinDots(pin,'pli-dots');
+
+    if(pin.length===4){
+      var ok=await validateUserPin(pin.join(''));
+      if(ok){
+        await _enterWithPinSuccess();
+      }else{
+        try{ if(navigator.vibrate)navigator.vibrate([60,40,60]); }catch(e){}
+        var failAttempts=_getPinAttempts()+1;
+        localStorage.setItem('_pinAttempts',failAttempts);
+        if(failAttempts>=5){
+          localStorage.setItem('_pinLockUntil',Date.now()+30000);
+          localStorage.removeItem('_pinAttempts');
+          _showScreen('welcome');
+          try{ toast('Demasiados intentos. Espera 30 segundos.'); }catch(e){}
+        }else{
+          var failLeft=5-failAttempts;
+          var pliErr=document.getElementById('pli-err');
+          if(pliErr) pliErr.textContent='PIN incorrecto. Te quedan '+failLeft+' intento'+(failLeft===1?'':'s')+'.';
+          pin=[];
+          _renderPinDots([],'pli-dots');
+          var dotsEl=document.getElementById('pli-dots');
+          if(dotsEl){
+            dotsEl.style.transition='transform .1s';
+            dotsEl.style.transform='translateX(8px)';
+            setTimeout(function(){dotsEl.style.transform='translateX(-8px)';},100);
+            setTimeout(function(){dotsEl.style.transform='translateX(0)';},200);
+          }
+        }
+      }
+    }
+  };
+}
 
 // ════════════════════════════════════════════════════════════
 // PASO 4 RECOVERY — Pantalla full-screen para ingresar PIN nuevo
