@@ -68,7 +68,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .drawer-progress-label strong{font-size:10px;color:var(--primary);font-weight:700}
 .drawer-nav{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:4px}
 .drawer-nav::-webkit-scrollbar{display:none}
-.drawer-footer{padding:10px 14px 16px;border-top:0.5px solid var(--border);text-align:center;flex-shrink:0}
+.drawer-footer{padding:10px 14px 16px;text-align:center;flex-shrink:0}
 .drawer-footer-brand{font-size:14px;font-weight:800;color:var(--primary)}
 .drawer-footer-brand span{color:var(--primary)}
 .drawer-footer-version{font-size:10px;color:var(--text3);margin-top:2px}

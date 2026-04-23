@@ -201,7 +201,13 @@
           <input id="rp-pass" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres" oninput="_authPwCheck(this.value)" onkeydown="authKey(event,'handleResetPassword')" class="auth-input auth-input-with-icon">
           <button id="rp-eye" onclick="togglePass('rp-pass','rp-eye')" class="auth-eye">👁️</button>
         </div>
-        <div style="padding:8px 10px;background:rgba(248,250,252,.9);border-radius:10px;margin-top:7px">
+        <div class="pw-rules-chips">
+          <div class="pw-chip" id="pwc-rp1"><div class="pw-chip-dot"></div>8+</div>
+          <div class="pw-chip" id="pwc-rp2"><div class="pw-chip-dot"></div>May.</div>
+          <div class="pw-chip" id="pwc-rp3"><div class="pw-chip-dot"></div>Núm.</div>
+          <div class="pw-chip" id="pwc-rp4"><div class="pw-chip-dot"></div>Símbolo</div>
+        </div>
+        <div class="pw-rules" id="rp-rules">
           <div class="pw-rule" id="rp-r1"><span class="pw-icon"></span>Mínimo 8 caracteres</div>
           <div class="pw-rule" id="rp-r2"><span class="pw-icon"></span>Una mayúscula</div>
           <div class="pw-rule" id="rp-r3"><span class="pw-icon"></span>Un número</div>

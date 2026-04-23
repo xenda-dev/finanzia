@@ -590,7 +590,7 @@ function _injectLogoutBtn(){
   var container = document.createElement('div');
   container.id = 'drawer-logout-btn';
   container.setAttribute('onclick', 'signOut()');
-  container.style.cssText = 'padding:10px 14px 18px;border-top:0.5px solid var(--border);flex-shrink:0;cursor:pointer';
+  container.style.cssText = 'padding:10px 14px 18px;flex-shrink:0;cursor:pointer';
   container.innerHTML =
     '<div class="drawer-logout-btn">'
     +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;color:var(--danger)">'
@@ -714,9 +714,11 @@ function _authPwCheck(val){
     var elA=document.getElementById('pw-r'+n);
     var elB=document.getElementById('rp-r'+n);
     var elC=document.getElementById('pwc-r'+n);
+    var elD=document.getElementById('pwc-rp'+n);
     if(elA)elA.classList.toggle('ok',r.ok);
     if(elB)elB.classList.toggle('ok',r.ok);
     if(elC)elC.classList.toggle('ok',r.ok);
+    if(elD)elD.classList.toggle('ok',r.ok);
   });
 }
 

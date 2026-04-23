@@ -424,43 +424,75 @@ function closeModal(){
 // NOTIFICATIONS
 // ════════════════════════════════════════════════════════════
 async function openNotifPage(){
-  const overlay=document.createElement('div');
+  var overlay=document.createElement('div');
   overlay.id='notif-page-overlay';
   overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   overlay.innerHTML=
-    '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'+
-    '<button onclick="document.getElementById(\'notif-page-overlay\').remove()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>'+
-    '<span style="font-size:17px;font-weight:800">Notificaciones</span>'+
-    '<button onclick="requestNotifPerm()" style="background:var(--primary);border:none;color:white;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-family:var(--font)">Activar</button>'+
-    '</div>'+
-    '<div style="flex:1;overflow-y:auto;padding:16px">'+
-    '<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--text2)">'+
-    '🔔 Activa las notificaciones del sistema para recibir alertas. Luego personaliza cuáles deseas recibir abajo.'+
-    '</div>'+
-    buildNotifToggles()+
-    '</div>';
+    _pickerHdr('Notificaciones',null,'document.getElementById(\'notif-page-overlay\').remove()')
+    +'<div style="flex:1;overflow-y:auto;padding:10px 16px 16px">'
+    +_buildNotifContent()
+    +'</div>';
   document.body.appendChild(overlay);
 }
-function buildNotifToggles(){
-  var keys=['notifPayments','notifBudget','notifGoal','notifWeekly','notifMonthly','notifDebt'];
-  var labels={'notifPayments':'💳 Pagos próximos','notifBudget':'📊 Presupuesto al límite','notifGoal':'🎯 Meta de ahorro alcanzada','notifWeekly':'📅 Resumen semanal','notifMonthly':'📈 Resumen mensual','notifDebt':'💸 Alerta de deuda alta'};
-  var descs={'notifPayments':'Recordatorio antes de que venza un pago','notifBudget':'Cuando llegues al 80% o 100% del presupuesto','notifGoal':'Celebración al completar una meta de ahorro','notifWeekly':'Resumen de gastos cada lunes','notifMonthly':'Balance de ingresos vs gastos al cierre del mes','notifDebt':'Cuando una deuda supere el 40% de tus ingresos'};
-  return keys.map(function(key){
+function _buildNotifContent(){
+  var perm=!('Notification'in window)?'denied':(Notification.permission||'default');
+  var granted=perm==='granted';
+  var masterOn=!!(S.notifPrefs&&S.notifPrefs._master!==false);
+  // Banner
+  var banner='<div style="background:linear-gradient(135deg,rgba(0,212,170,.12),rgba(116,97,239,.08));border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;border:0.5px solid rgba(0,212,170,.2);margin-bottom:14px">'
+    +'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00D4AA,#7461EF);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔔</div>'
+    +'<div style="flex:1"><div style="font-size:14px;font-weight:700;color:'+(granted?'var(--text)':'#94A3B8')+'">'+(granted?'Notificaciones activas':'Notificaciones desactivadas')+'</div>'
+    +'<div style="font-size:11px;color:var(--text3);margin-top:1px">'+(granted?'Permiso del sistema concedido':'Toca para solicitar permiso al sistema')+'</div></div>'
+    +'<div style="width:8px;height:8px;border-radius:50%;background:'+(granted?'#00D4AA':'#CBD5E1')+';flex-shrink:0"></div>'
+    +'</div>';
+  // Master toggle
+  var mt='<div onclick="_toggleNotifMaster()" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1.5px solid var(--border);margin-bottom:4px;cursor:pointer">'
+    +'<div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,rgba(0,212,170,.15),rgba(116,97,239,.10));display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">🔔</div>'
+    +'<div style="flex:1"><div style="font-size:14px;font-weight:800;color:var(--text)">'+(masterOn?'Desactivar todas':'Activar todas')+'</div>'
+    +'<div style="font-size:11px;color:var(--text3)">Controla todas las alertas</div></div>'
+    +'<div id="notif-master-tgl" style="width:36px;height:20px;border-radius:99px;background:'+(masterOn?'var(--primary)':'#CBD5E1')+';display:flex;align-items:center;padding:3px;transition:.2s;flex-shrink:0">'
+    +'<div style="width:14px;height:14px;border-radius:50%;background:white;box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:'+(masterOn?'auto':'0')+'"></div></div>'
+    +'</div>';
+  // Items
+  var keys=['notifPayments','notifBudget','notifGoal','notifWeekly','notifTips'];
+  var meta={
+    notifPayments:{icon:'💳',bg:'#FEF3C7',label:'Pagos programados',desc:'Día del vencimiento'},
+    notifBudget:{icon:'📊',bg:'#DBEAFE',label:'Límite de presupuesto',desc:'Al llegar al 80%'},
+    notifGoal:{icon:'🎯',bg:'#FCE7F3',label:'Progreso de metas',desc:'Al alcanzar hitos'},
+    notifWeekly:{icon:'📅',bg:'#D1FAE5',label:'Resumen semanal',desc:'Cada lunes'},
+    notifTips:{icon:'💡',bg:'#EDE9FE',label:'Consejos financieros',desc:'Tips personalizados'}
+  };
+  var list='<div id="notif-items-list" style="opacity:'+(masterOn?'1':'.3')+';pointer-events:'+(masterOn?'all':'none')+'">'+keys.map(function(key,idx){
     var isOn=!!(S.notifPrefs&&S.notifPrefs[key]);
-    return '<div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px">'
-      +'<div style="flex:1"><div style="font-size:14px;font-weight:600">'+labels[key]+'</div><div style="font-size:12px;color:var(--text2);margin-top:2px">'+descs[key]+'</div></div>'
-      +'<div onclick="toggleNotifPref(\''+key+'\')" style="width:44px;height:24px;border-radius:12px;background:'+(isOn?'var(--primary)':'var(--border)')+';cursor:pointer;position:relative;flex-shrink:0">'
-      +'<div style="width:20px;height:20px;border-radius:50%;background:white;position:absolute;top:2px;'+(isOn?'right:2px':'left:2px')+';box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>'
-      +'</div></div>';
-  }).join('');
+    var m=meta[key];
+    var last=idx===keys.length-1;
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:'+(last?'none':'0.5px solid rgba(0,0,0,.05)')+';">'
+      +'<div style="width:26px;height:26px;border-radius:8px;background:'+m.bg+';display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">'+m.icon+'</div>'
+      +'<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">'+m.label+'</div>'
+      +'<div style="font-size:11px;color:var(--text3);margin-top:1px">'+m.desc+'</div></div>'
+      +'<div onclick="_toggleNotifItem(\''+key+'\')" style="width:36px;height:20px;border-radius:99px;background:'+(isOn?'var(--primary)':'#CBD5E1')+';display:flex;align-items:center;padding:3px;transition:.2s;cursor:pointer;flex-shrink:0">'
+      +'<div style="width:14px;height:14px;border-radius:50%;background:white;box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:'+(isOn?'auto':'0')+'"></div></div>'
+      +'</div>';
+  }).join('')+'</div>';
+  return banner+mt+list;
 }
-function toggleNotifPref(key){
+function _toggleNotifMaster(){
+  if(!S.notifPrefs)S.notifPrefs={};
+  var currentOn=S.notifPrefs._master!==false;
+  S.notifPrefs._master=!currentOn;
+  saveState();
+  var wrap=document.querySelector('#notif-page-overlay [style*="overflow-y:auto"]');
+  if(wrap)wrap.innerHTML=_buildNotifContent();
+}
+function _toggleNotifItem(key){
   if(!S.notifPrefs)S.notifPrefs={};
   S.notifPrefs[key]=!S.notifPrefs[key];
   saveState();
-  var list=document.querySelector('#notif-page-overlay [style*="overflow-y:auto"]');
-  if(list)list.innerHTML='<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--text2)">🔔 Activa las notificaciones del sistema para recibir alertas. Luego personaliza cuáles deseas recibir abajo.</div>'+buildNotifToggles();
+  var wrap=document.querySelector('#notif-page-overlay [style*="overflow-y:auto"]');
+  if(wrap)wrap.innerHTML=_buildNotifContent();
 }
+function buildNotifToggles(){return '';}
+function toggleNotifPref(key){_toggleNotifItem(key);}
 function requestNotifPerm(){
   if(!('Notification'in window)){toast('Notificaciones no disponibles en este navegador');return;}
   if(Notification.permission==='granted'){toast('✅ Notificaciones ya están activas');return;}
@@ -2675,33 +2707,36 @@ function openCatPanel(){
   overlay.id='cat-panel-overlay';
   overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   var tab=S._catTab||'gasto';
-  var btnStyle=function(active){return'flex:1;padding:8px 6px;border-radius:50px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);transition:.15s;background:'+(active?'var(--primary)':'transparent')+';color:'+(active?'white':'var(--text2)');};
+  var tabColors={gasto:'background:#FEE2E2;color:#DC2626',ingreso:'background:#DCFCE7;color:#16A34A',transferencia:'background:#EDE9FE;color:#7461EF'};
+  var tabBaseStyle='flex:1;text-align:center;font-size:12px;font-weight:700;padding:7px 4px;border-radius:50px;border:none;cursor:pointer;font-family:var(--font);transition:.2s;';
+  function tabStyle(t){
+    return tabBaseStyle+(t===tab?tabColors[t]:'background:transparent;color:var(--text2)');
+  }
+  var plusBtn='<button onclick="openModal(\'category\',{defaultType:S._catTab||\'gasto\',lockedType:true})" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:300;flex-shrink:0">+</button>';
   overlay.innerHTML=
-    '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'+
-      '<button onclick="closeCatPanel()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>'+
-      '<span style="font-size:17px;font-weight:800">Categorías</span>'+
-      '<button class="btn btn-primary btn-sm" onclick="openModal(\'category\',{defaultType:S._catTab||\'gasto\',lockedType:true})">+ Nueva</button>'+
-    '</div>'+
-    '<div style="padding:12px 16px 8px;flex-shrink:0">'+
-      '<div style="background:var(--surface2);border-radius:50px;padding:3px;display:flex;gap:2px">'+
-        '<button id="catpnl-gasto" onclick="setCatTab(\'gasto\')" style="'+btnStyle(tab==='gasto')+'">GASTOS</button>'+
-        '<button id="catpnl-ingreso" onclick="setCatTab(\'ingreso\')" style="'+btnStyle(tab==='ingreso')+'">INGRESOS</button>'+
-        '<button id="catpnl-transferencia" onclick="setCatTab(\'transferencia\')" style="'+btnStyle(tab==='transferencia')+'">TRANSF.</button>'+
-      '</div>'+
-    '</div>'+
-    '<div id="cat-panel-list" style="flex:1;overflow-y:auto;padding:0 16px 16px">'+renderCatList(tab)+'</div>';
+    '<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 12px 22px;flex-shrink:0">'
+    +'<div style="display:flex;align-items:center;gap:8px">'
+    +'<button onclick="closeCatPanel()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
+    +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">Categorías</div>'
+    +plusBtn+'</div>'
+    +'<div style="background:rgba(255,255,255,.85);border-radius:50px;border:0.5px solid rgba(0,0,0,.06);padding:3px;display:flex;gap:2px;margin-top:8px">'
+    +'<button id="catpnl-gasto" onclick="setCatTab(\'gasto\')" style="'+tabStyle('gasto')+'">GASTOS</button>'
+    +'<button id="catpnl-ingreso" onclick="setCatTab(\'ingreso\')" style="'+tabStyle('ingreso')+'">INGRESOS</button>'
+    +'<button id="catpnl-transferencia" onclick="setCatTab(\'transferencia\')" style="'+tabStyle('transferencia')+'">TRANSF.</button>'
+    +'</div>'
+    +'</div>'
+    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
+    +'<div id="cat-panel-list" style="flex:1;overflow-y:auto;padding:8px 16px 16px">'+renderCatList(tab)+'</div>';
   document.body.appendChild(overlay);
 }
 function setCatTab(tab){
   S._catTab=tab;saveState();
-  var tabs=['gasto','ingreso','transferencia'];
-  var ids=['catpnl-gasto','catpnl-ingreso','catpnl-transferencia'];
-  ids.forEach(function(id,idx){
-    var btn=document.getElementById(id);
+  var tabColors={gasto:'background:#FEE2E2;color:#DC2626',ingreso:'background:#DCFCE7;color:#16A34A',transferencia:'background:#EDE9FE;color:#7461EF'};
+  var base='flex:1;text-align:center;font-size:12px;font-weight:700;padding:7px 4px;border-radius:50px;border:none;cursor:pointer;font-family:var(--font);transition:.2s;';
+  ['gasto','ingreso','transferencia'].forEach(function(t){
+    var btn=document.getElementById('catpnl-'+t);
     if(!btn)return;
-    var active=tabs[idx]===tab;
-    btn.style.background=active?'var(--primary)':'transparent';
-    btn.style.color=active?'white':'var(--text2)';
+    btn.style.cssText=base+(t===tab?tabColors[t]:'background:transparent;color:var(--text2)');
   });
   var list=document.getElementById('cat-panel-list');
   if(list)list.innerHTML=renderCatList(tab);
@@ -5301,15 +5336,12 @@ function showBS_country(inputId){
 function showBS_simple(inputId,lblSuffix,title,items,placeholder,allowDesel){
   var current=document.getElementById(inputId)?document.getElementById(inputId).value:'';
   var bsItems=items.map(function(o){return {val:o,label:o};});
-  showBottomSheet({
-    title:title,items:bsItems,selected:current,searchable:false,allowDeselect:!!allowDesel,
-    onSelect:function(val){
-      var inp=document.getElementById(inputId);
-      var lbl=document.getElementById(inputId+lblSuffix);
-      if(inp)inp.value=val;
-      if(lbl){lbl.textContent=val||placeholder;lbl.style.color=val?'var(--text)':'var(--text3)';}
-    }
-  });
+  _showGradBS(title,bsItems,current,function(val){
+    var inp=document.getElementById(inputId);
+    var lbl=document.getElementById(inputId+lblSuffix);
+    if(inp)inp.value=val;
+    if(lbl){lbl.textContent=val||placeholder;lbl.style.color=val?'var(--text)':'var(--text3)';}
+  },!!allowDesel);
 }
 
 function showBS_catType(){
@@ -5385,15 +5417,12 @@ function showBS_lang(){
 }
 function showBS_week(){
   var items=[
-    {val:'lunes',label:'📅 Lunes'},{val:'martes',label:'📅 Martes'},
-    {val:'miercoles',label:'📅 Miércoles'},{val:'jueves',label:'📅 Jueves'},
-    {val:'viernes',label:'📅 Viernes'},{val:'sabado',label:'📅 Sábado'},
-    {val:'domingo',label:'📅 Domingo'}
+    {val:'lunes',label:'Lunes'},{val:'martes',label:'Martes'},
+    {val:'miercoles',label:'Miércoles'},{val:'jueves',label:'Jueves'},
+    {val:'viernes',label:'Viernes'},{val:'sabado',label:'Sábado'},
+    {val:'domingo',label:'Domingo'}
   ];
-  showBottomSheet({
-    title:'📅 Inicio de semana',items:items,selected:S.weekStart||'',searchable:false,allowDeselect:true,
-    onSelect:function(val){saveWeekStart(val);}
-  });
+  _showGradBS('Inicio de semana',items,S.weekStart||'',function(val){saveWeekStart(val);},true);
 }
 function showBS_theme(){
   var items=[
@@ -5697,22 +5726,60 @@ function renderMiPerfil(){
 
 // ── Picker screens ────────────────────────────────────────
 var _pickerCtx={};
+// ── Helper: header gradiente para pickers y overlays ─────────────────────────
+function _pickerHdr(title,searchPlh,closeFunc,rightHtml){
+  var searchSvg='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+  var srch=searchPlh
+    ?'<div style="background:rgba(255,255,255,.92);border-radius:12px;border:0.5px solid rgba(0,0,0,.07);padding:8px 12px;display:flex;align-items:center;gap:8px;margin-top:8px">'+searchSvg+'<input id="picker-search" placeholder="'+searchPlh+'" oninput="_filterPickerList(this.value)" style="border:none;outline:none;flex:1;font-size:14px;background:transparent;color:var(--text);font-family:var(--font)"></div>'
+    :'';
+  var bk='<button onclick="'+closeFunc+'" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
+  return '<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 12px 22px;flex-shrink:0">'
+    +'<div style="display:flex;align-items:center;gap:8px">'+bk
+    +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">'+title+'</div>'
+    +(rightHtml||'<div style="width:34px;flex-shrink:0"></div>')
+    +'</div>'+srch
+    +'</div>'
+    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>';
+}
+// ── Helper: Bottom Sheet con header gradiente ─────────────────────────────────
+function _showGradBS(title,items,selectedVal,onSelect,allowDesel){
+  closeBottomSheet();
+  _bsCfg={title:title,items:items,selected:selectedVal,onSelect:onSelect,allowDeselect:!!allowDesel};
+  _bsAllItems=items;
+  var overlay=document.createElement('div');
+  overlay.id='bs-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
+  overlay.onclick=function(e){if(e.target===overlay)closeBottomSheet();};
+  var sheet=document.createElement('div');
+  sheet.id='bs-sheet';
+  sheet.style.cssText='width:100%;max-height:80vh;display:flex;flex-direction:column;animation:bsSlideUp .22s ease';
+  var bk='<button onclick="closeBottomSheet()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
+  var listHtml=items.map(function(item){
+    var sel=item.val===selectedVal;
+    return '<div onclick="_selectBS(\''+item.val.replace(/'/g,"\\'")+'\' )" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:0.5px solid rgba(0,0,0,.04);cursor:pointer;background:'+(sel?'rgba(0,212,170,.05)':'')+'">'
+      +'<span style="font-size:14px;font-weight:'+(sel?'700':'500')+';color:'+(sel?'var(--primary)':'var(--text)')+'">'+item.label+'</span>'
+      +'<div style="width:18px;height:18px;border-radius:50%;'+(sel?'background:var(--primary);display:flex;align-items:center;justify-content:center;':'border:1.5px solid #CBD5E1;')+'">'
+        +(sel?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'')
+      +'</div></div>';
+  }).join('');
+  sheet.innerHTML=
+    '<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;border-radius:16px 16px 0 0">'
+    +'<div style="display:flex;align-items:center;gap:8px">'+bk
+    +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">'+title+'</div>'
+    +'<div style="width:34px;flex-shrink:0"></div></div>'
+    +'</div>'
+    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
+    +'<div style="background:var(--surface);overflow-y:auto;flex:1;padding-bottom:max(env(safe-area-inset-bottom),16px)">'+listHtml+'</div>';
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+}
 function _openPickerScreen(title,searchPlaceholder){
   closePickerScreen();
-  var backSvg='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
   var ov=document.createElement('div');
   ov.id='picker-screen-overlay';
   ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
-  ov.innerHTML=
-    '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0;position:relative">'
-    +'<button onclick="closePickerScreen()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;z-index:1">'+backSvg+'</button>'
-    +'<span style="position:absolute;left:0;right:0;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">'+title+'</span>'
-    +'<div style="width:36px;flex-shrink:0;margin-left:auto"></div>'
-    +'</div>'
-    +'<div style="padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">'
-    +'<input id="picker-search" class="form-input" placeholder="'+searchPlaceholder+'" oninput="_filterPickerList(this.value)" style="font-size:14px;padding:10px 14px">'
-    +'</div>'
-    +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:12px 16px"></div>';
+  ov.innerHTML=_pickerHdr(title,searchPlaceholder,'closePickerScreen()')
+    +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:8px 16px 16px"></div>';
   document.body.appendChild(ov);
 }
 function closePickerScreen(){
@@ -5855,18 +5922,18 @@ function showLangPickerScreen(){
       if(!list)return;
       var langs=ALL_LANGUAGES;
       if(q)langs=langs.filter(function(l){return l.label.toLowerCase().indexOf(q.toLowerCase())!==-1;});
-      var _rows=langs.map(function(l,i){
-        var sel=l.id===S.language;var last=i===langs.length-1;
-        return '<div onclick="_selectLang(\''+l.id+'\')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;'+(sel?'background:rgba(0,212,170,.06);':'')+(last?'':'border-bottom:1px solid var(--border);')+'">' 
-          +'<span style="font-size:15px">'+l.flag+'</span>'
-          +'<span style="font-size:14px;flex:1;color:var(--text);font-weight:'+(sel?'700':'400')+'">'+l.label+'</span>'
-          +(sel?'<svg style="flex-shrink:0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'')
-          +'</div>';
-      });
-      list.innerHTML='<div style="background:var(--surface2);border-radius:16px;overflow:hidden;border:1px solid var(--border)">'+_rows.join('')+'</div>';
+      list.innerHTML=langs.map(function(l,i){
+        var sel=l.id===S.language;
+        var last=i===langs.length-1;
+        return '<div onclick="_selectLang(\''+l.id+'\')" style="display:flex;align-items:center;gap:12px;padding:13px 4px;cursor:pointer;border-bottom:'+(last?'none':'0.5px solid rgba(0,0,0,.04)')+';background:'+(sel?'rgba(0,212,170,.04)':'')+'">'+
+          '<span style="font-size:20px">'+l.flag+'</span>'+
+          '<span style="flex:1;font-size:14px;font-weight:'+(sel?'700':'500')+';color:'+(sel?'var(--primary)':'var(--text)')+'">'+l.label+'</span>'+
+          (sel?'<div style="width:18px;height:18px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>':'<div style="width:18px;height:18px;border-radius:50%;border:1.5px solid #CBD5E1;flex-shrink:0"></div>')+
+          '</div>';
+      }).join('');
     }
   };
-  _openPickerScreen('Idioma','Buscar idioma...');
+  _openPickerScreen('Idioma',null);
   _pickerCtx.render('');
 }
 function _selectLang(id){
@@ -5905,21 +5972,13 @@ function showCurrenciesPickerScreen(){
     }
   };
   closePickerScreen();
-  var backSvg='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>';
+  var cntHtml='<span id="picker-cur-count" style="font-size:12px;color:var(--primary);font-weight:700;background:rgba(0,212,170,.12);padding:3px 10px;border-radius:50px;white-space:nowrap">'+sel.length+'/2</span>';
   var ov=document.createElement('div');
   ov.id='picker-screen-overlay';
   ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
-  ov.innerHTML=
-    '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:4px;flex-shrink:0;position:relative">'
-    +'<button onclick="closePickerScreen()" style="width:36px;height:36px;border-radius:50%;border:none;background:transparent;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;z-index:1">'+backSvg+'</button>'
-    +'<span style="position:absolute;left:0;right:0;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">Monedas activas</span>'
-    +'<span id="picker-cur-count" style="font-size:12px;color:var(--primary);font-weight:700;background:rgba(0,212,170,.12);padding:3px 10px;border-radius:50px;position:absolute;right:16px">'+sel.length+'/2</span>'
-    +'</div>'
-    +'<div style="padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0">'
-    +'<input id="picker-search" class="form-input" placeholder="Buscar moneda..." oninput="_filterPickerList(this.value)" style="font-size:14px;padding:10px 14px">'
-    +'</div>'
-    +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:12px 16px"></div>'
-    +'<div style="flex-shrink:0;padding:12px 16px;background:var(--surface);border-top:1px solid var(--border)">'
+  ov.innerHTML=_pickerHdr('Monedas activas','Buscar moneda...','closePickerScreen()',cntHtml)
+    +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:8px 16px 16px"></div>'
+    +'<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface)">'
       +'<button onclick="_savePickerCurrencies()" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Guardar</button>'
     +'</div>';
   document.body.appendChild(ov);
