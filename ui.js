@@ -5742,13 +5742,14 @@ function _pickerHdr(title,searchPlh,closeFunc,rightHtml){
     +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>';
 }
 // ── Helper: Bottom Sheet con header gradiente ─────────────────────────────────
-function _showGradBS(title,items,selectedVal,onSelect,allowDesel){
+function _showGradBS(title,items,selectedVal,onSelect,allowDesel,zIdx){
   closeBottomSheet();
   _bsCfg={title:title,items:items,selected:selectedVal,onSelect:onSelect,allowDeselect:!!allowDesel};
   _bsAllItems=items;
+  var z=zIdx||9999;
   var overlay=document.createElement('div');
   overlay.id='bs-overlay';
-  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
+  overlay.style.cssText='position:fixed;inset:0;z-index:'+z+';background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
   overlay.onclick=function(e){if(e.target===overlay)closeBottomSheet();};
   var sheet=document.createElement('div');
   sheet.id='bs-sheet';
@@ -5763,7 +5764,7 @@ function _showGradBS(title,items,selectedVal,onSelect,allowDesel){
       +'</div></div>';
   }).join('');
   sheet.innerHTML=
-    '<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;border-radius:16px 16px 0 0">'
+    '<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;flex-shrink:0">'
     +'<div style="display:flex;align-items:center;gap:8px">'+bk
     +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">'+title+'</div>'
     +'<div style="width:34px;flex-shrink:0"></div></div>'
@@ -8349,7 +8350,7 @@ function openSiguenos(){
       +'</a>';
   }).join('');
   ov.innerHTML='<div onclick="document.getElementById(\'siguenos-sheet\').remove()" style="flex:1;background:rgba(0,0,0,.5)"></div>'
-    +'<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));border-radius:20px 20px 0 0;padding:10px 14px 22px">'
+    +'<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));border-radius:20px 20px 0 0;padding:10px 14px 22px">'
       +'<div style="display:flex;align-items:center;gap:8px">'
         +'<button onclick="document.getElementById(\'siguenos-sheet\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
         +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text)">Síguenos</div>'
@@ -8371,7 +8372,7 @@ function _showSoporteAsuntoBS(){
     var lbl=document.getElementById('sop-asunto-lbl');
     if(inp)inp.value=val;
     if(lbl){lbl.textContent=val;lbl.style.color='var(--text)';}
-  },false);
+  },false,10003);
 }
 function openSoporteModal(){
   var name='';
@@ -8392,7 +8393,7 @@ function openSoporteModal(){
   ov.id='soporte-modal';
   ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;overflow-y:auto';
   ov.innerHTML='<div style="width:100%;max-height:92vh;display:flex;flex-direction:column;border-radius:20px 20px 0 0;overflow:hidden">'
-    +'<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;flex-shrink:0">'
+    +'<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;flex-shrink:0">'
       +'<div style="display:flex;align-items:center;gap:8px">'
         +'<button onclick="document.getElementById(\'soporte-modal\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
         +'<div style="flex:1;text-align:center">'
@@ -8466,7 +8467,7 @@ function openAcercaDeModal(){
   ov.id='acercade-modal';
   ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.6);display:flex;align-items:flex-end';
   ov.innerHTML='<div style="width:100%;border-radius:20px 20px 0 0;overflow:hidden">'
-    +'<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px">'
+    +'<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px">'
       +'<div style="display:flex;align-items:center;gap:8px">'
         +'<button onclick="document.getElementById(\'acercade-modal\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
         +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text)">Acerca de</div>'
@@ -8658,7 +8659,7 @@ function openTerminosModal(){
     +'</div>';
 
   ov.innerHTML='<div style="width:100%;max-height:90vh;display:flex;flex-direction:column;border-radius:20px 20px 0 0;overflow:hidden">'
-    +'<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;flex-shrink:0">'
+    +'<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;flex-shrink:0">'
       +'<div style="display:flex;align-items:center;gap:8px">'
         +'<button onclick="document.getElementById(\'terminos-modal\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
         +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text)">Legal</div>'
