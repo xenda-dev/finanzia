@@ -5752,7 +5752,7 @@ function _showGradBS(title,items,selectedVal,onSelect,allowDesel){
   overlay.onclick=function(e){if(e.target===overlay)closeBottomSheet();};
   var sheet=document.createElement('div');
   sheet.id='bs-sheet';
-  sheet.style.cssText='width:100%;max-height:80vh;display:flex;flex-direction:column;animation:bsSlideUp .22s ease';
+  sheet.style.cssText='width:100%;max-height:80vh;display:flex;flex-direction:column;animation:bsSlideUp .22s ease;background:var(--surface);border-radius:16px 16px 0 0;overflow:hidden';
   var bk='<button onclick="closeBottomSheet()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
   var listHtml=items.map(function(item){
     var sel=item.val===selectedVal;
@@ -5948,27 +5948,37 @@ function _selectLang(id){
 function showCurrenciesPickerScreen(){
   var sel=(S.currencies||[]).slice();
   window._pickerCurSel=sel;
+  function _renderCurRow(c,checked){
+    var meta=getCurrencyMeta(c.code);var sym=meta?meta.sym:c.code;
+    return '<div onclick="_togglePickerCur(\''+c.code+'\')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;border-bottom:0.5px solid var(--border);background:'+(checked?'rgba(0,212,170,.04)':'')+'">'+
+      '<div style="width:36px;height:36px;border-radius:10px;background:'+(checked?'rgba(0,212,170,.12)':'var(--surface2)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:13px;font-weight:800;color:'+(checked?'var(--primary)':'var(--text2)')+'">'+sym+'</span></div>'+
+      '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:'+(checked?'var(--primary)':'var(--text)')+'">'+c.code+'</div>'+
+      '<div style="font-size:12px;color:var(--text3);margin-top:1px">'+c.name+'</div></div>'+
+      '<div style="width:20px;height:20px;border-radius:50%;flex-shrink:0;'+(checked?'background:var(--primary);display:flex;align-items:center;justify-content:center':'border:1.5px solid #CBD5E1')+'">'+
+      (checked?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'')+
+      '</div></div>';
+  }
+  function _secLbl(t){return '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:12px 0 6px 2px">'+t+'</div>';}
+  function _card(rows){return '<div style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);overflow:hidden;box-shadow:var(--card-shadow);margin-bottom:4px">'+rows+'</div>';}
   _pickerCtx={
     render:function(q){
       var list=document.getElementById('picker-list');
       if(!list)return;
-      var items=ALL_CURRENCIES;
-      if(q)items=items.filter(function(c){return(c.code+' '+c.name).toLowerCase().indexOf(q.toLowerCase())!==-1;});
-      var _crows=items.map(function(c,i){
-        var checked=window._pickerCurSel.indexOf(c.code)!==-1;
-        var meta=getCurrencyMeta(c.code);var sym=meta?meta.sym:c.code;
-        var last=i===items.length-1;
-        return '<div onclick="_togglePickerCur(\''+c.code+'\')" style="display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;'+(checked?'background:rgba(0,212,170,.06);':'')+(last?'':'border-bottom:1px solid var(--border);')+'">' 
-          +'<div style="width:22px;height:22px;border-radius:6px;border:2px solid '+(checked?'var(--primary)':'var(--border)')+';background:'+(checked?'var(--primary)':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.1s">'
-            +(checked?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'')
-          +'</div>'
-          +'<div style="flex:1;min-width:0">'
-            +'<div style="font-size:14px;font-weight:700">'+c.code+' <span style="color:var(--primary)">'+sym+'</span></div>'
-            +'<div style="font-size:12px;color:var(--text3)">'+c.name+'</div>'
-          +'</div>'
-          +'</div>';
-      });
-      list.innerHTML='<div style="background:var(--surface2);border-radius:16px;overflow:hidden;border:1px solid var(--border)">'+_crows.join('')+'</div>';
+      var allItems=ALL_CURRENCIES;
+      if(q)allItems=allItems.filter(function(c){return(c.code+' '+c.name).toLowerCase().indexOf(q.toLowerCase())!==-1;});
+      var selSet=window._pickerCurSel||[];
+      var selItems=allItems.filter(function(c){return selSet.indexOf(c.code)!==-1;});
+      var restItems=allItems.filter(function(c){return selSet.indexOf(c.code)===-1;});
+      var html='';
+      if(selItems.length&&!q){
+        html+=_secLbl('Seleccionadas');
+        html+=_card(selItems.map(function(c){return _renderCurRow(c,true);}).join(''));
+      }
+      if(restItems.length){
+        html+=_secLbl(q?'Resultados':'Todas las monedas');
+        html+=_card(restItems.map(function(c){return _renderCurRow(c,false);}).join(''));
+      }
+      list.innerHTML=html||'<div style="text-align:center;color:var(--text3);padding:32px">Sin resultados</div>';
     }
   };
   closePickerScreen();
