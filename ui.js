@@ -8349,13 +8349,16 @@ function openSiguenos(){
       +'</a>';
   }).join('');
   ov.innerHTML='<div onclick="document.getElementById(\'siguenos-sheet\').remove()" style="flex:1;background:rgba(0,0,0,.5)"></div>'
-    +'<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 32px">'
-      +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
-      +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px">'
-        +'<div style="font-size:17px;font-weight:800">Síguenos</div>'
-        +'<button onclick="document.getElementById(\'siguenos-sheet\').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px">✕</button>'
+    +'<div style="background:var(--surface);border-radius:20px 20px 0 0;overflow:hidden">'
+      +'<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;border-radius:16px 16px 0 0">'
+        +'<div style="display:flex;align-items:center;gap:8px">'
+          +'<button onclick="document.getElementById(\'siguenos-sheet\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
+          +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text)">Síguenos</div>'
+          +'<div style="width:34px;flex-shrink:0"></div>'
+        +'</div>'
       +'</div>'
-      +'<div style="padding:0 8px">'+rows+'</div>'
+      +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1"></div>'
+      +'<div style="padding:4px 8px max(env(safe-area-inset-bottom),24px)">'+rows+'</div>'
     +'</div>';
   document.body.appendChild(ov);
 }
@@ -8398,11 +8401,17 @@ function openSoporteModal(){
   ov.id='soporte-modal';
   ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;overflow-y:auto';
   ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:92vh;display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="display:flex;justify-content:center;padding:12px 0 4px;flex-shrink:0"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 14px;flex-shrink:0">'
-      +'<div><div style="font-size:17px;font-weight:800">Soporte</div><div style="font-size:12px;color:var(--text3);margin-top:2px">Te respondemos a la brevedad</div></div>'
-      +'<button onclick="document.getElementById(\'soporte-modal\').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px">✕</button>'
+    +'<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;flex-shrink:0">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<button onclick="document.getElementById(\'soporte-modal\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
+        +'<div style="flex:1;text-align:center">'
+          +'<div style="font-size:17px;font-weight:800;color:var(--text)">Soporte</div>'
+          +'<div style="font-size:12px;color:var(--text3);margin-top:2px">Te respondemos a la brevedad</div>'
+        +'</div>'
+        +'<div style="width:34px;flex-shrink:0"></div>'
+      +'</div>'
     +'</div>'
+    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
     +'<div id="soporte-form-wrap" style="flex:1;overflow-y:auto;padding:0 16px 24px">'
       +'<div class="form-group"><label class="form-label">Nombre</label>'
         +'<input class="form-input" type="text" id="sop-nombre" value="'+name+'" placeholder="Tu nombre" readonly style="opacity:.65;cursor:not-allowed"></div>'
@@ -8465,12 +8474,16 @@ function openAcercaDeModal(){
   var ov=document.createElement('div');
   ov.id='acercade-modal';
   ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.6);display:flex;align-items:flex-end';
-  ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 40px">'
-    +'<div style="display:flex;justify-content:center;padding:12px 0 4px"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
-    +'<div style="display:flex;justify-content:flex-end;padding:4px 16px 0">'
-      +'<button onclick="document.getElementById(\'acercade-modal\').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px">✕</button>'
+  ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;overflow:hidden">'
+    +'<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<button onclick="document.getElementById(\'acercade-modal\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
+        +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text)">Acerca de</div>'
+        +'<div style="width:34px;flex-shrink:0"></div>'
+      +'</div>'
     +'</div>'
-    +'<div style="display:flex;flex-direction:column;align-items:center;padding:12px 24px 24px;text-align:center">'
+    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1"></div>'
+    +'<div style="display:flex;flex-direction:column;align-items:center;padding:4px 24px max(env(safe-area-inset-bottom),32px);text-align:center">'
       +'<div style="width:80px;height:80px;border-radius:20px;overflow:hidden;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,212,170,.25)">'
         +'<img src="/icon-192.png" style="width:100%;height:100%;object-fit:cover">'
       +'</div>'
@@ -8654,15 +8667,18 @@ function openTerminosModal(){
     +'</div>';
 
   ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:90vh;display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="display:flex;justify-content:center;padding:12px 0 4px;flex-shrink:0"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px;flex-shrink:0">'
-      +'<div style="font-size:17px;font-weight:800">Legal</div>'
-      +'<button onclick="document.getElementById(\'terminos-modal\').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:16px">✕</button>'
+    +'<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;flex-shrink:0">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<button onclick="document.getElementById(\'terminos-modal\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
+        +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text)">Legal</div>'
+        +'<div style="width:34px;flex-shrink:0"></div>'
+      +'</div>'
+      +'<div style="background:rgba(255,255,255,.85);border-radius:50px;border:0.5px solid rgba(0,0,0,.06);padding:3px;display:flex;gap:2px;margin-top:8px">'
+        +'<button id="tab-tc" onclick="_switchTerminosTab(\'tc\')" style="flex:1;padding:7px 6px;border-radius:50px;border:none;background:#DCFCE7;color:#16A34A;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">Términos</button>'
+        +'<button id="tab-pp" onclick="_switchTerminosTab(\'pp\')" style="flex:1;padding:7px 6px;border-radius:50px;border:none;background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">Privacidad</button>'
+      +'</div>'
     +'</div>'
-    +'<div style="display:flex;gap:6px;padding:0 16px 12px;flex-shrink:0">'
-      +'<button id="tab-tc" onclick="_switchTerminosTab(\'tc\')" style="flex:1;padding:9px 6px;border-radius:50px;border:none;background:var(--primary);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">Términos y Condiciones</button>'
-      +'<button id="tab-pp" onclick="_switchTerminosTab(\'pp\')" style="flex:1;padding:9px 6px;border-radius:50px;border:none;background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">Política de Privacidad</button>'
-    +'</div>'
+    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
     +'<div id="terminos-content" style="flex:1;overflow-y:auto;padding:0 20px 32px">'
       +tcContent
     +'</div>'
@@ -8680,6 +8696,6 @@ function _switchTerminosTab(tab){
   var isTc=tab==='tc';
   con.innerHTML=isTc?ov._tcContent:ov._ppContent;
   con.scrollTop=0;
-  if(btnTc){btnTc.style.background=isTc?'var(--primary)':'var(--surface2)';btnTc.style.color=isTc?'white':'var(--text2)';btnTc.style.fontWeight=isTc?'700':'600';}
-  if(btnPp){btnPp.style.background=isTc?'var(--surface2)':'var(--primary)';btnPp.style.color=isTc?'var(--text2)':'white';btnPp.style.fontWeight=isTc?'600':'700';}
+  if(btnTc){btnTc.style.background=isTc?'#DCFCE7':'transparent';btnTc.style.color=isTc?'#16A34A':'var(--text2)';btnTc.style.fontWeight=isTc?'700':'600';}
+  if(btnPp){btnPp.style.background=isTc?'transparent':'#DBEAFE';btnPp.style.color=isTc?'var(--text2)':'#1D4ED8';btnPp.style.fontWeight=isTc?'600':'700';}
 }
