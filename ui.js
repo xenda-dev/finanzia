@@ -8349,17 +8349,15 @@ function openSiguenos(){
       +'</a>';
   }).join('');
   ov.innerHTML='<div onclick="document.getElementById(\'siguenos-sheet\').remove()" style="flex:1;background:rgba(0,0,0,.5)"></div>'
-    +'<div style="background:var(--surface);border-radius:20px 20px 0 0;overflow:hidden">'
-      +'<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;border-radius:16px 16px 0 0">'
-        +'<div style="display:flex;align-items:center;gap:8px">'
-          +'<button onclick="document.getElementById(\'siguenos-sheet\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
-          +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text)">Síguenos</div>'
-          +'<div style="width:34px;flex-shrink:0"></div>'
-        +'</div>'
+    +'<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));border-radius:20px 20px 0 0;padding:10px 14px 22px">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<button onclick="document.getElementById(\'siguenos-sheet\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
+        +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text)">Síguenos</div>'
+        +'<div style="width:34px;flex-shrink:0"></div>'
       +'</div>'
-      +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1"></div>'
-      +'<div style="padding:4px 8px max(env(safe-area-inset-bottom),24px)">'+rows+'</div>'
-    +'</div>';
+    +'</div>'
+    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1"></div>'
+    +'<div style="background:var(--surface);padding:4px 8px max(env(safe-area-inset-bottom),24px)">'+rows+'</div>';
   document.body.appendChild(ov);
 }
 
@@ -8368,19 +8366,12 @@ function _showSoporteAsuntoBS(){
   var cur=document.getElementById('sop-asunto')?document.getElementById('sop-asunto').value:'';
   var mr=document.getElementById('modal-root');
   if(mr)mr.style.zIndex='10003';
-  showBottomSheet({
-    title:'Asunto',
-    items:_SOPORTE_ASUNTOS.map(function(a){return{val:a,label:a};}),
-    selected:cur,
-    searchable:false,
-    zIndex:10003,
-    onSelect:function(val){
-      var inp=document.getElementById('sop-asunto');
-      var lbl=document.getElementById('sop-asunto-lbl');
-      if(inp)inp.value=val;
-      if(lbl){lbl.textContent=val;lbl.style.color='var(--text)';}
-    }
-  });
+  _showGradBS('Asunto',_SOPORTE_ASUNTOS.map(function(a){return{val:a,label:a};}),cur,function(val){
+    var inp=document.getElementById('sop-asunto');
+    var lbl=document.getElementById('sop-asunto-lbl');
+    if(inp)inp.value=val;
+    if(lbl){lbl.textContent=val;lbl.style.color='var(--text)';}
+  },false);
 }
 function openSoporteModal(){
   var name='';
@@ -8400,7 +8391,7 @@ function openSoporteModal(){
   var ov=document.createElement('div');
   ov.id='soporte-modal';
   ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;overflow-y:auto';
-  ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:92vh;display:flex;flex-direction:column;overflow:hidden">'
+  ov.innerHTML='<div style="width:100%;max-height:92vh;display:flex;flex-direction:column;border-radius:20px 20px 0 0;overflow:hidden">'
     +'<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;flex-shrink:0">'
       +'<div style="display:flex;align-items:center;gap:8px">'
         +'<button onclick="document.getElementById(\'soporte-modal\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
@@ -8412,7 +8403,7 @@ function openSoporteModal(){
       +'</div>'
     +'</div>'
     +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
-    +'<div id="soporte-form-wrap" style="flex:1;overflow-y:auto;padding:0 16px 24px">'
+    +'<div id="soporte-form-wrap" style="flex:1;overflow-y:auto;background:var(--surface);padding:0 16px 24px">'
       +'<div class="form-group"><label class="form-label">Nombre</label>'
         +'<input class="form-input" type="text" id="sop-nombre" value="'+name+'" placeholder="Tu nombre" readonly style="opacity:.65;cursor:not-allowed"></div>'
       +'<div class="form-group"><label class="form-label">Email</label>'
@@ -8474,7 +8465,7 @@ function openAcercaDeModal(){
   var ov=document.createElement('div');
   ov.id='acercade-modal';
   ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.6);display:flex;align-items:flex-end';
-  ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;overflow:hidden">'
+  ov.innerHTML='<div style="width:100%;border-radius:20px 20px 0 0;overflow:hidden">'
     +'<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px">'
       +'<div style="display:flex;align-items:center;gap:8px">'
         +'<button onclick="document.getElementById(\'acercade-modal\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
@@ -8483,7 +8474,7 @@ function openAcercaDeModal(){
       +'</div>'
     +'</div>'
     +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1"></div>'
-    +'<div style="display:flex;flex-direction:column;align-items:center;padding:4px 24px max(env(safe-area-inset-bottom),32px);text-align:center">'
+    +'<div style="background:var(--surface);display:flex;flex-direction:column;align-items:center;padding:4px 24px max(env(safe-area-inset-bottom),32px);text-align:center">'
       +'<div style="width:80px;height:80px;border-radius:20px;overflow:hidden;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,212,170,.25)">'
         +'<img src="/icon-192.png" style="width:100%;height:100%;object-fit:cover">'
       +'</div>'
@@ -8666,7 +8657,7 @@ function openTerminosModal(){
     +'<span style="font-size:12px;color:var(--text3)">Xenda.co · Colombia</span></p>'
     +'</div>';
 
-  ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:90vh;display:flex;flex-direction:column;overflow:hidden">'
+  ov.innerHTML='<div style="width:100%;max-height:90vh;display:flex;flex-direction:column;border-radius:20px 20px 0 0;overflow:hidden">'
     +'<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;flex-shrink:0">'
       +'<div style="display:flex;align-items:center;gap:8px">'
         +'<button onclick="document.getElementById(\'terminos-modal\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
