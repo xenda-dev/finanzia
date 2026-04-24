@@ -2930,7 +2930,7 @@ function renderCatItemInSheet(cat){
   h+='<div id="'+domId+'" class="hidden" style="padding:0 12px 10px 12px">';
   if(subs.length){
     subs.forEach(function(s){
-      h+='<div style="display:flex;align-items:center;gap:10px;padding:9px 10px;background:var(--surface2);border-radius:10px;margin-bottom:4px">';
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:9px 10px;background:var(--surface);border-radius:10px;margin-bottom:4px;border:0.5px solid var(--border)">';
       h+='<span style="font-size:16px">'+s.icon+'</span>';
       h+='<span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">'+s.name+'</span>';
       h+='<button onclick="_nsOpenEditSub('+q+s.id+q+','+q+cat.id+q+')" style="width:28px;height:28px;border-radius:8px;border:none;background:var(--surface);color:var(--text2);cursor:pointer;font-size:12px;flex-shrink:0">✏️</button>';
@@ -5539,7 +5539,7 @@ function renderConfiguracion(){
       cfgRow('rgba(59,130,246,.12)',svgLang,'Idioma',langCurrent?langCurrent.flag+' '+langCurrent.label:'Seleccionar','showLangPickerScreen()',false,false),
       cfgRow('rgba(245,158,11,.12)',svgCal,'Inicio de semana',wkLabel,'showBS_week()',false,false),
       cfgRow('rgba(0,212,170,.12)',svgCur,'Monedas activas',curLabel,'showCurrenciesPickerScreen()',false,false),
-      cfgRow('rgba(0,212,170,.12)',svgCat,'Categorías',S.categories.length+' categorías','openCatPanel()',true,false)
+      cfgRow('rgba(0,212,170,.12)',svgCat,'Categorías',filterDeleted(S.categories).length+' categorías','openCatPanel()',true,false)
     ])
     // Apariencia
     +secLbl('Apariencia')
