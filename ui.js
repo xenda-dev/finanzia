@@ -6345,27 +6345,36 @@ function showCurrenciesPickerScreen(){
       (checked?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'')+
       '</div></div>';
   }
-  function _secLbl(t){return '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:12px 0 6px 2px">'+t+'</div>';}
-  function _card(rows){return '<div style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);overflow:hidden;box-shadow:var(--card-shadow);margin-bottom:4px">'+rows+'</div>';}
+  function _card(rows){return '<div style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);overflow:hidden;box-shadow:var(--card-shadow)">'+rows+'</div>';}
+  function _secLbl(t){return '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:0 0 6px 2px">'+t+'</div>';}
+
+  function _renderSelected(){
+    var panel=document.getElementById('picker-cur-selected');if(!panel)return;
+    var selSet=window._pickerCurSel||[];
+    var selItems=ALL_CURRENCIES.filter(function(c){return selSet.indexOf(c.code)!==-1;});
+    if(selItems.length){
+      panel.style.display='block';
+      panel.innerHTML=_secLbl('Seleccionadas')+_card(selItems.map(function(c){return _renderCurRow(c,true);}).join(''));
+    }else{
+      panel.style.display='none';
+    }
+  }
+  function _renderAll(q){
+    var list=document.getElementById('picker-list');if(!list)return;
+    var allItems=ALL_CURRENCIES;
+    if(q)allItems=allItems.filter(function(c){return(c.code+' '+c.name).toLowerCase().indexOf(q.toLowerCase())!==-1;});
+    var selSet=window._pickerCurSel||[];
+    var restItems=q?allItems:allItems.filter(function(c){return selSet.indexOf(c.code)===-1;});
+    if(restItems.length){
+      list.innerHTML=_secLbl(q?'Resultados':'Todas las monedas')+_card(restItems.map(function(c){return _renderCurRow(c,false);}).join(''));
+    }else{
+      list.innerHTML='<div style="text-align:center;color:var(--text3);padding:32px">Sin resultados</div>';
+    }
+  }
   _pickerCtx={
     render:function(q){
-      var list=document.getElementById('picker-list');
-      if(!list)return;
-      var allItems=ALL_CURRENCIES;
-      if(q)allItems=allItems.filter(function(c){return(c.code+' '+c.name).toLowerCase().indexOf(q.toLowerCase())!==-1;});
-      var selSet=window._pickerCurSel||[];
-      var selItems=allItems.filter(function(c){return selSet.indexOf(c.code)!==-1;});
-      var restItems=allItems.filter(function(c){return selSet.indexOf(c.code)===-1;});
-      var html='';
-      if(selItems.length&&!q){
-        html+=_secLbl('Seleccionadas');
-        html+=_card(selItems.map(function(c){return _renderCurRow(c,true);}).join(''));
-      }
-      if(restItems.length){
-        html+=_secLbl(q?'Resultados':'Todas las monedas');
-        html+=_card(restItems.map(function(c){return _renderCurRow(c,false);}).join(''));
-      }
-      list.innerHTML=html||'<div style="text-align:center;color:var(--text3);padding:32px">Sin resultados</div>';
+      _renderSelected();
+      _renderAll(q);
     }
   };
   closePickerScreen();
@@ -6374,6 +6383,9 @@ function showCurrenciesPickerScreen(){
   ov.id='picker-screen-overlay';
   ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   ov.innerHTML=_pickerHdr('Monedas activas','Buscar moneda...','closePickerScreen()',cntHtml)
+    // Sección SELECCIONADAS — fija, no scrollea
+    +'<div id="picker-cur-selected" style="flex-shrink:0;padding:8px 16px 0;background:var(--surface)"></div>'
+    // Sección TODAS — scrollea
     +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:8px 16px 16px"></div>'
     +'<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface)">'
       +'<button onclick="_savePickerCurrencies()" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Guardar</button>'
@@ -6393,7 +6405,7 @@ function _togglePickerCur(code){
   var cnt=document.getElementById('picker-cur-count');
   if(cnt)cnt.textContent=sel.length+'/2';
   var q=document.getElementById('picker-search')?document.getElementById('picker-search').value:'';
-  _pickerCtx.render(q);
+  if(_pickerCtx&&_pickerCtx.render)_pickerCtx.render(q);
 }
 function _savePickerCurrencies(){
   S.currencies=(window._pickerCurSel||[]).slice();
