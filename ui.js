@@ -2924,6 +2924,7 @@ function renderCatItemInSheet(cat){
   h+='<button onclick="event.stopPropagation();deleteCat('+q+cat.id+q+')" style="width:30px;height:30px;border-radius:8px;border:none;background:rgba(239,68,68,.08);color:#EF4444;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px">🗑</button>';
   // Arrow — only if has subs
   if(subs.length)h+='<span class="cat-arrow" style="color:var(--text3);margin-left:4px;flex-shrink:0;display:flex;align-items:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>';
+  else h+='<span class="cat-arrow" style="color:var(--text3);margin-left:4px;flex-shrink:0;display:flex;align-items:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>';
   h+='</div>';
   // Subs + "+ Nueva subcategoría" — hidden by default
   h+='<div id="'+domId+'" class="hidden" style="padding:0 12px 10px 12px">';
@@ -3011,32 +3012,33 @@ var _CAT_SYNONYMS={
 };
 function _checkCatDuplicate(name){
   if(!name||name.length<3)return null;
-  var v=name.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  var v=name.toLowerCase().trim().normalize('NFD').replace(/[̀-ͯ]/g,'');
   var existing=filterDeleted(S.categories);
-  // Dynamic threshold: short words need closer match
-  function levMatch(a,b){
-    var maxLen=Math.max(a.length,b.length);
-    if(maxLen<=4)return a===b; // exact only for ≤4 chars
-    if(maxLen<=6)return _catLev(a,b)<=1;
-    return _catLev(a,b)<=2;
+  if(!existing.length)return null;
+  // Synonym groups — any word in the group matches any other
+  var GROUPS=[
+    ['comida','alimentacion','alimento','comer','gastronomia','restaurante','mercado','supermercado','verdura','fruta','desayuno','almuerzo','cena','snack','pizza','hamburguesa','cafe'],
+    ['transporte','carro','auto','vehiculo','coche','taxi','bus','metro','gasolina','combustible','avion','tren','moto','bicicleta'],
+    ['arriendo','alquiler','renta','vivienda','apartamento','casa','habitacion','hipoteca'],
+    ['salud','medicina','medico','farmacia','hospital','clinica','doctor'],
+    ['ropa','vestimenta','zapato','calzado','moda','vestido'],
+    ['salario','sueldo','ingreso','nomina','quincena','mensualidad'],
+    ['entretenimiento','ocio','cine','musica','juego','streaming'],
+    ['educacion','estudio','libro','curso','escuela','universidad'],
+    ['servicios','luz','agua','gas','internet','telefono','cable'],
+  ];
+  function norm(s){return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+  // Expand: find group containing v
+  var vGroup=null;
+  for(var g=0;g<GROUPS.length;g++){
+    if(GROUPS[g].some(function(s){return s===v||s.includes(v)||v.includes(s);})){vGroup=GROUPS[g];break;}
   }
-  // 1. check synonym map
-  for(var key in _CAT_SYNONYMS){
-    var syns=_CAT_SYNONYMS[key];
-    if(v===key||syns.some(function(s){return v===s||(v.length>4&&s.length>4&&levMatch(v,s));})){
-      var m=existing.find(function(c){
-        var n=c.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-        return n===key||key===n||n.includes(key)||key.includes(n);
-      });
-      if(m)return m;
-    }
-  }
-  // 2. direct match against existing cat names
-  return existing.find(function(c){
-    var n=c.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    if(n===v)return true; // exact
-    if(v.length>5&&n.length>5&&(n.includes(v)||v.includes(n)))return true; // substring (only long words)
-    if(v.length>5&&n.length>5&&_catLev(n,v)<=2)return true; // typo (only long words)
+  return existing.find(function(cat){
+    var n=norm(cat.name);
+    if(n===v)return true;
+    if(v.length>=4&&(n.includes(v)||v.includes(n)))return true;
+    if(vGroup&&vGroup.some(function(s){return n.includes(s)||s.includes(n);}))return true;
+    if(v.length>5&&n.length>4&&_catLev(n,v)<=2)return true;
     return false;
   })||null;
 }
@@ -3048,8 +3050,8 @@ function _catLev(a,b){
 }
 
 // ── Icon picker (pantalla completa sobre cat screen) ──────
-var _ICON_LABELS=['hamburguesa comida','compras mercado carrito','cafe bebida','pizza comida','cerveza bebida alcohol','carne asado','sushi comida japones','fideos pasta sopa','tacos comida mexicana','ensalada verdura','refresco bebida','jugo bebida','manzana fruta','pan croissant','cupcake pastel postre','carro auto transporte','gasolina combustible','bus transporte publico','taxi transporte','avion viaje vuelo','barco crucero viaje','tren metro viaje','casa hogar vivienda','electricidad luz energia','agua servicio','herramienta reparacion','llave hogar','casa hogar vivienda2','sofa mueble hogar','celular telefono movil','computador laptop trabajo','monitor computador pantalla','videojuego consola entretenimiento','camara foto','television tv entretenimiento','audifonos musica sonido','hospital clinica salud','medicina pastilla farmacia','estetoscopio salud medico','ejercicio gym deporte','yoga meditacion bienestar','compras tienda ropa','vestido ropa moda','zapatos calzado moda','maquillaje belleza cosmetica','anillo joya accesorio','mochila bolso viaje','cartera bolso accesorio','regalo presente celebracion','mascota animal huella','perro mascota animal','gato mascota animal','maletín trabajo negocios oficina','edificio oficina empresa','idea bombilla energia creativo','buscar lupa investigacion','dinero plata billete finanzas','inversion bolsa acciones','grafico bolsa perdida inversion','banco finanzas edificio','tarjeta credito pago','ahorro cerdo hucha dinero','meta objetivo diana','fiesta celebracion evento','amor corazon relacion','bebe hijo familia','educacion universidad grado','futbol deporte','natacion deporte piscina','guitarra musica instrumento','trofeo premio ganador','arte pintura cultura','libros lectura educacion','libro lectura','lapiz escritura educacion','nota apunte texto','pin ubicacion lugar','gasto dinero salida','billete efectivo dinero','cajero banco atm','grafico estadistica datos','alerta campana notificacion','configuracion ajuste engranaje','herramienta llave reparacion','sol clima calor verano','lluvia clima agua','nieve frio invierno clima','arcoiris naturaleza clima','mar oceano agua naturaleza','montana naturaleza senderismo','playa arena vacaciones'];
-
+var _ICON_MAP={
+'🍔':'hamburguesa burger comida','🛒':'compras mercado carrito supermercado','☕':'cafe bebida cafeteria','🍕':'pizza comida','🍺':'cerveza alcohol bebida','🥩':'carne asado','🍣':'sushi comida japones','🍜':'fideos pasta sopa noodles','🌮':'tacos comida mexicana','🥗':'ensalada verdura dieta','🥤':'refresco bebida gaseosa','🧃':'jugo zumo bebida','🍎':'manzana fruta','🥐':'pan croissant panaderia','🧁':'cupcake pastel postre dulce','🎂':'torta pastel cumpleanos celebracion','🍰':'torta postre dulce','🍦':'helado postre dulce','🛺':'tuk tuk transporte','🚗':'carro auto vehiculo coche automovil transporte','⛽':'gasolina combustible nafta bencina','🚌':'bus autobus transporte publico colectivo','🚕':'taxi transporte uber','✈️':'avion aereo vuelo viaje vacaciones','🚢':'barco crucero viaje mar','🚂':'tren metro ferroviario','🛵':'moto scooter transporte','🚲':'bicicleta bici transporte deporte','🛴':'patineta scooter transporte','🏍️':'moto motocicleta transporte','🏠':'casa hogar vivienda habitacion hogar2','⚡':'electricidad luz energia servicio publico','💧':'agua servicio publico acueducto','🔧':'herramienta reparacion mantenimiento','🔑':'llave hogar entrada','🏡':'casa hogar vivienda propiedad','🛋️':'sofa mueble hogar sala','🪴':'planta hogar decoracion','🏗️':'construccion obra proyecto','🔨':'martillo herramienta','📱':'celular telefono movil smartphone','💻':'computador laptop portatil','🖥️':'monitor computador pantalla pc','⌨️':'teclado computador','🎮':'videojuego consola entretenimiento juego','📷':'camara foto fotografia','📺':'television tv pantalla entretenimiento','🎧':'audifonos musica sonido','🖨️':'impresora papel','💾':'disco almacenamiento','🏥':'hospital clinica salud edificio','💊':'medicina pastilla farmacia tratamiento','🩺':'doctor medico salud estetoscopio','💪':'ejercicio gym fitness fuerza deporte','🧬':'biologia genetica ciencia salud','🩻':'radiografia salud medico','🩹':'curita herida vendaje','😷':'mascarilla salud enfermedad','🏋️':'pesas gym ejercicio deporte fitness','🧘':'yoga meditacion bienestar relajacion','🛍️':'compras tienda shopping bolsa','👗':'vestido ropa moda mujer','👠':'zapatos tacon calzado moda','💄':'maquillaje belleza cosmetica lipstick','💍':'anillo joya accesorio matrimonio','🕶️':'gafas lentes sol accesorio','👒':'sombrero accesorio moda','🎒':'mochila bolso viaje escuela','👜':'cartera bolso accesorio moda','🎁':'regalo presente celebracion sorpresa','🐾':'mascota animal huella','🐶':'perro mascota can','🐱':'gato felino mascota','🐠':'pez acuario mascota','🌿':'planta naturaleza jardin','🌸':'flor naturaleza primavera','🌺':'flor naturaleza tropical','💼':'maletin trabajo negocios oficina','🏢':'edificio oficina empresa trabajo','💡':'idea bombilla energia luz creativo','🔍':'buscar lupa investigacion busqueda','💰':'dinero plata billete finanzas efectivo','📈':'inversion bolsa acciones sube','📉':'inversion bolsa perdida baja','🏦':'banco finanzas edificio','💳':'tarjeta credito debito pago','🐷':'ahorro cerdo hucha cerdito','🎯':'meta objetivo diana proposito','🎉':'fiesta celebracion evento party','❤️':'amor corazon relacion pareja','👨‍👩‍👧':'familia hogar hijos','👶':'bebe hijo nino familia','🎓':'educacion universidad grado diploma','⚽':'futbol deporte pelota','🏊':'natacion deporte piscina nadar','🎸':'guitarra musica instrumento rock','🏆':'trofeo premio ganador logro','🎨':'arte pintura cultura creativo','🎭':'teatro arte cultura obra','🎪':'circo evento entretenimiento','🎠':'carrusel entretenimiento diversión','🌍':'mundo planeta tierra viaje','🌙':'luna noche descanso','⭐':'estrella premium favorito','🗺️':'mapa viaje turismo','🧳':'maleta viaje turismo equipaje','🎿':'ski nieve deporte invierno','⛷️':'esqui nieve deporte','🏄':'surf playa deporte','🚴':'ciclismo bicicleta deporte','🥊':'boxeo deporte combate','🎻':'violin musica instrumento clasico','🎹':'piano musica instrumento teclado','📚':'libros lectura educacion biblioteca','📖':'libro lectura estudio','✏️':'lapiz escritura educacion dibujo','🖊️':'boligrafo pluma escritura','📝':'nota apunte texto escrito','📌':'pin ubicacion lugar tarea','📎':'clip papel oficina adjunto','🗂️':'carpeta archivos organizacion','💸':'gasto dinero salida pago','🤑':'dinero rico finanzas','💵':'billete efectivo dolar dinero','🏧':'cajero banco atm efectivo','🧾':'recibo factura ticket comprobante','📊':'grafico estadistica datos analisis','📋':'lista clipboard tarea nota','🔔':'alerta campana notificacion aviso','⚙️':'configuracion ajuste engranaje sistema','🛠️':'herramienta reparacion mantenimiento','🔩':'tornillo herramienta','🧲':'iman fisica','⚗️':'ciencia quimica laboratorio','🔭':'telescopio ciencia astronomia','🌡️':'temperatura termometro salud clima','🧺':'canasta lavanderia hogar','🧴':'locion crema higiene','🪥':'cepillo higiene aseo','🧼':'jabon higiene aseo limpieza','🏪':'tienda local comercio negocio','🏬':'centro comercial tienda shopping','🏫':'colegio escuela educacion','🏨':'hotel alojamiento viaje','🌃':'ciudad noche paisaje','🌆':'ciudad paisaje atardecer','🌇':'ciudad paisaje puesta sol','☀️':'sol clima calor verano','🌤️':'nublado clima parcial','⛅':'nublado parcial clima','🌧️':'lluvia clima agua','❄️':'nieve frio invierno clima','🌈':'arcoiris naturaleza clima lluvia','🌊':'mar oceano agua naturaleza ola','🏔️':'montana naturaleza senderismo','🌋':'volcan naturaleza','🏖️':'playa arena vacaciones mar','🏕️':'camping naturaleza aventura'};
 function _catIconPickerOpen(targetId){
   var existing=document.getElementById('cat-icon-picker-ov');
   if(existing)existing.remove();
@@ -3084,8 +3086,8 @@ function _catIconFilter(q,targetId,curIcon){
   var list;
   if(q&&q.trim()){
     var qn=q.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    list=ICONS.filter(function(ic,i){
-      var lbl=(_ICON_LABELS[i]||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    list=ICONS.filter(function(ic){
+      var lbl=(_ICON_MAP[ic]||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
       return lbl.includes(qn);
     });
     if(!list.length)list=ICONS;
@@ -3219,7 +3221,7 @@ function _catSelectNat(val,field){
     var el=document.getElementById('cno-'+k);if(!el)return;
     var sel=k===val;
     el.style.borderColor=sel?'var(--primary)':'var(--border)';
-    el.style.background=sel?'rgba(0,212,170,.05)':'var(--surface2)';
+    el.style.background=sel?'rgba(0,212,170,.05)':'var(--surface)';
     var circle=el.lastElementChild;if(!circle)return;
     circle.style.borderColor=sel?'var(--primary)':'var(--border)';
     circle.style.background=sel?'var(--primary)':'transparent';
