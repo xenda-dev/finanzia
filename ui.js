@@ -6361,13 +6361,16 @@ function showCurrenciesPickerScreen(){
   }
   function _renderAll(q){
     var list=document.getElementById('picker-list');if(!list)return;
+    var lbl=document.getElementById('picker-all-lbl');
     var allItems=ALL_CURRENCIES;
     if(q)allItems=allItems.filter(function(c){return(c.code+' '+c.name).toLowerCase().indexOf(q.toLowerCase())!==-1;});
     var selSet=window._pickerCurSel||[];
     var restItems=q?allItems:allItems.filter(function(c){return selSet.indexOf(c.code)===-1;});
     if(restItems.length){
-      list.innerHTML=_secLbl(q?'Resultados':'Todas las monedas')+_card(restItems.map(function(c){return _renderCurRow(c,false);}).join(''));
+      if(lbl)lbl.innerHTML=_secLbl(q?'Resultados':'Todas las monedas');
+      list.innerHTML=_card(restItems.map(function(c){return _renderCurRow(c,false);}).join(''));
     }else{
+      if(lbl)lbl.innerHTML='';
       list.innerHTML='<div style="text-align:center;color:var(--text3);padding:32px">Sin resultados</div>';
     }
   }
@@ -6383,10 +6386,12 @@ function showCurrenciesPickerScreen(){
   ov.id='picker-screen-overlay';
   ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   ov.innerHTML=_pickerHdr('Monedas activas','Buscar moneda...','closePickerScreen()',cntHtml)
-    // Sección SELECCIONADAS — fija, no scrollea
+    // Sección SELECCIONADAS — fija
     +'<div id="picker-cur-selected" style="flex-shrink:0;padding:8px 16px 0;background:var(--surface)"></div>'
-    // Sección TODAS — scrollea
-    +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:8px 16px 16px"></div>'
+    // Label TODAS — fijo
+    +'<div id="picker-all-lbl" style="flex-shrink:0;padding:8px 16px 0;background:var(--surface)"></div>'
+    // Lista de monedas — scrollea
+    +'<div id="picker-list" style="flex:1;overflow-y:auto;padding:0 16px 16px"></div>'
     +'<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface)">'
       +'<button onclick="_savePickerCurrencies()" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Guardar</button>'
     +'</div>';
