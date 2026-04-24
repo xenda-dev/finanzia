@@ -1164,53 +1164,52 @@ async function _showPinRecovery(){
   if(ov)ov.remove();
   ov=document.createElement('div');
   ov.id='pin-recovery-overlay';
-  ov.style.cssText='position:fixed;inset:0;z-index:10001;background:rgba(15,23,42,.55);display:flex;align-items:flex-end;animation:bsFadeIn .2s ease;pointer-events:auto';
+  ov.style.cssText='position:fixed;inset:0;z-index:10001;display:flex;flex-direction:column;overflow:hidden;pointer-events:auto;background:linear-gradient(160deg,rgba(0,212,170,.12) 0%,rgba(116,97,239,.06) 45%,#fff 65%)';
   var masked=email.replace(/(.{2})[^@]+(@.+)/,function(m,a,b){return a+'*****'+b;});
-  var inStyle='width:40px;height:50px;border-radius:12px;border:1.5px solid #E2E8F0;background:#F8FAFC;text-align:center;font-size:22px;font-weight:700;color:#0F172A;font-family:inherit;outline:none;transition:.15s';
-  ov.innerHTML=''
-    +'<div id="pr-sheet" style="width:100%;background:#fff;border-radius:24px 24px 0 0;animation:bsSlideUp .28s cubic-bezier(.32,1,.42,1)">'
-      // Micro gradiente teal sin línea divisoria
-      +'<div style="background:linear-gradient(180deg,rgba(0,212,170,.08) 0%,rgba(255,255,255,0) 100%);border-radius:24px 24px 0 0;padding:10px 20px 0">'
-        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
-          +'<div style="width:36px;height:4px;border-radius:2px;background:#E2E8F0;margin:0 auto"></div>'
-          +'<button onclick="_closePinRecovery()" style="width:30px;height:30px;border-radius:50%;background:rgba(241,245,249,.9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748B"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
-        +'</div>'
-        +'<div style="display:flex;align-items:center;gap:12px;padding-bottom:14px">'
-          +'<div id="pr-icon" style="width:44px;height:44px;border-radius:50%;background:rgba(0,212,170,.1);border:1.5px solid rgba(0,212,170,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">'
-            +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1" fill="#00D4AA"/></svg>'
-          +'</div>'
-          +'<div>'
-            +'<div style="font-size:16px;font-weight:900;color:#0F172A;letter-spacing:-.3px">Recuperar PIN</div>'
-            +'<div style="font-size:12px;color:#64748B;margin-top:1px">Código enviado a <strong style="color:#0F172A">'+masked+'</strong></div>'
-          +'</div>'
-        +'</div>'
+  var inStyle='width:100%;height:50px;border-radius:12px;border:1.5px solid #E2E8F0;background:rgba(255,255,255,.9);text-align:center;font-size:22px;font-weight:700;color:#0F172A;font-family:inherit;outline:none;transition:.15s;caret-color:transparent;cursor:default';
+  ov.innerHTML=
+    // Nav: back button
+    '<div style="display:flex;align-items:center;padding:max(env(safe-area-inset-top),14px) 16px 0;flex-shrink:0">'
+      +'<button onclick="_closePinRecovery()" style="width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.75);border:0.5px solid rgba(0,0,0,.07);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
+    +'</div>'
+    // Icono + título + email (centrados)
+    +'<div style="text-align:center;padding:18px 24px 0;flex-shrink:0">'
+      +'<div id="pr-icon" style="width:52px;height:52px;border-radius:50%;background:rgba(0,212,170,.1);border:1.5px solid rgba(0,212,170,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 12px">'
+        +'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1" fill="#00D4AA"/></svg>'
       +'</div>'
-      // Cuerpo blanco
-      +'<div style="padding:0 24px max(env(safe-area-inset-bottom),28px);text-align:center">'
-        +'<div style="display:flex;gap:7px;justify-content:center;margin-bottom:8px">'
-          +'<input id="pr-0" maxlength="1" inputmode="numeric" style="'+inStyle+'">'
-          +'<input id="pr-1" maxlength="1" inputmode="numeric" style="'+inStyle+'">'
-          +'<input id="pr-2" maxlength="1" inputmode="numeric" style="'+inStyle+'">'
-          +'<input id="pr-3" maxlength="1" inputmode="numeric" style="'+inStyle+'">'
-          +'<input id="pr-4" maxlength="1" inputmode="numeric" style="'+inStyle+'">'
-          +'<input id="pr-5" maxlength="1" inputmode="numeric" style="'+inStyle+'">'
-        +'</div>'
-        +'<div style="margin:10px 0 8px">'
-          +'<div style="background:#F1F5F9;border-radius:4px;height:4px;overflow:hidden"><div id="pr-bar" style="width:100%;height:100%;background:linear-gradient(90deg,#00D4AA,#F59E0B);border-radius:4px;transition:width 1s linear"></div></div>'
-          +'<div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:11px;color:#94A3B8">Código válido por</span><span id="pr-timer" style="font-size:11px;font-weight:700;color:#F59E0B">15:00</span></div>'
-        +'</div>'
-        +'<div id="pr-err" style="min-height:16px;font-size:12px;color:#EF4444;margin-bottom:8px"></div>'
-        +'<div style="display:flex;align-items:center;justify-content:center;gap:6px">'
-          +'<span style="font-size:12px;color:#94A3B8">¿No llegó?</span>'
-          +'<button id="pr-resend-btn" onclick="_resendPinRecoveryOtp()" disabled style="background:none;border:none;color:#CBD5E1;font-family:inherit;font-size:12px;font-weight:700;cursor:not-allowed">Reenviar</button>'
-        +'</div>'
+      +'<div style="font-size:20px;font-weight:900;color:#0F172A;letter-spacing:-.4px;margin-bottom:4px">Recuperar PIN</div>'
+      +'<div style="font-size:13px;color:#64748B">Código enviado a <strong style="color:#0F172A">'+masked+'</strong></div>'
+    +'</div>'
+    // 6 inputs con padding lateral
+    +'<div style="display:flex;gap:8px;margin:18px 16px 0;flex-shrink:0">'
+      +'<input id="pr-0" maxlength="1" inputmode="none" readonly style="'+inStyle+'">'
+      +'<input id="pr-1" maxlength="1" inputmode="none" readonly style="'+inStyle+'">'
+      +'<input id="pr-2" maxlength="1" inputmode="none" readonly style="'+inStyle+'">'
+      +'<input id="pr-3" maxlength="1" inputmode="none" readonly style="'+inStyle+'">'
+      +'<input id="pr-4" maxlength="1" inputmode="none" readonly style="'+inStyle+'">'
+      +'<input id="pr-5" maxlength="1" inputmode="none" readonly style="'+inStyle+'">'
+    +'</div>'
+    // Barra + timer + error + reenviar
+    +'<div style="padding:10px 16px 0;flex-shrink:0">'
+      +'<div style="background:#F1F5F9;border-radius:4px;height:4px;overflow:hidden;margin-bottom:4px"><div id="pr-bar" style="width:100%;height:100%;background:linear-gradient(90deg,#00D4AA,#F59E0B);border-radius:4px;transition:width 1s linear"></div></div>'
+      +'<div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:#94A3B8">Código válido por</span><span id="pr-timer" style="font-size:11px;font-weight:700;color:#F59E0B">15:00</span></div>'
+      +'<div id="pr-err" style="min-height:16px;font-size:12px;color:#EF4444;margin-top:4px;text-align:center"></div>'
+      +'<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px">'
+        +'<span style="font-size:12px;color:#94A3B8">¿No llegó?</span>'
+        +'<button id="pr-resend-btn" onclick="_resendPinRecoveryOtp()" disabled style="background:none;border:none;color:#CBD5E1;font-family:inherit;font-size:12px;font-weight:700;cursor:not-allowed">Reenviar</button>'
+      +'</div>'
+    +'</div>'
+    // Keypad (mismo que PIN)
+    +'<div style="flex:1;display:flex;align-items:flex-end;padding-bottom:max(env(safe-area-inset-bottom),8px)">'
+      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px 8px;width:100%">'
+        +_buildKeypad('_prKey')
       +'</div>'
     +'</div>';
   document.body.appendChild(ov);
   window._pinRecoveryEmail=email;
   window._prTotalSecs=900;
-  setTimeout(function(){var f=document.getElementById('pr-0');if(f)f.focus();},200);
-  _setupOtpInputs();
+  window._prInputIdx=0;
+  _highlightPrInput(0);
   _startPinRecoveryTimer(900);
   _sendPinRecoveryOtpSilent(email);
 }
@@ -1218,10 +1217,37 @@ function _closePinRecovery(){
   if(window._prTimerInterval){clearInterval(window._prTimerInterval);window._prTimerInterval=null;}
   var ov=document.getElementById('pin-recovery-overlay');
   if(!ov)return;
-  var sh=document.getElementById('pr-sheet');
-  if(sh)sh.style.animation='bsSlideDown .22s ease forwards';
   ov.style.opacity='0';ov.style.transition='opacity .22s';
   setTimeout(function(){if(ov.parentNode)ov.remove();},240);
+}
+function _highlightPrInput(idx){
+  for(var k=0;k<6;k++){
+    var el=document.getElementById('pr-'+k);
+    if(!el)continue;
+    el.style.borderColor=k===idx?'#00D4AA':'#E2E8F0';
+    el.style.background=k===idx?'rgba(0,212,170,.06)':'rgba(255,255,255,.9)';
+  }
+}
+function _prKey(k){
+  var idx=window._prInputIdx||0;
+  if(k==='⌫'){
+    // backspace
+    var cur=document.getElementById('pr-'+idx);
+    if(cur&&cur.value){cur.value='';}
+    else if(idx>0){idx--;window._prInputIdx=idx;var prev=document.getElementById('pr-'+idx);if(prev)prev.value='';}
+    _highlightPrInput(idx);
+    return;
+  }
+  if(k==='fp'||isNaN(parseInt(k)))return;
+  var inp=document.getElementById('pr-'+idx);
+  if(!inp||inp.disabled)return;
+  inp.value=k;
+  _highlightPrInput(idx);
+  if(idx<5){idx++;window._prInputIdx=idx;_highlightPrInput(idx);}
+  // check complete
+  var code='';
+  for(var j=0;j<6;j++){var el=document.getElementById('pr-'+j);code+=el?el.value:'';}
+  if(code.length===6)_verifyPinRecoveryOtp();
 }
 async function _sendPinRecoveryOtpSilent(email){
   try{
@@ -1245,9 +1271,9 @@ async function _resendPinRecoveryOtp(){
     for(var i=0;i<6;i++){var inp=document.getElementById('pr-'+i);if(inp){inp.value='';inp.style.opacity='1';inp.disabled=false;}}
     var err=document.getElementById('pr-err');if(err)err.textContent='';
     var icon=document.getElementById('pr-icon');
-    if(icon){icon.style.background='rgba(0,212,170,.12)';icon.querySelector('svg').style.stroke='#00D4AA';}
+    if(icon){icon.style.background='rgba(0,212,170,.12)';var sv=icon.querySelector('svg');if(sv)sv.style.stroke='#00D4AA';}
+    window._prInputIdx=0;_highlightPrInput(0);
     _startPinRecoveryTimer(900);
-    setTimeout(function(){var f=document.getElementById('pr-0');if(f)f.focus();},100);
     try{toast('Código reenviado ✓');}catch(e){}
   }catch(e){
     if(rbtn){rbtn.disabled=false;rbtn.textContent='Enviar nuevo código';}
@@ -1266,6 +1292,7 @@ function _startPinRecoveryTimer(secs){
         el.style.color='#EF4444';
         clearInterval(window._prTimerInterval);
         for(var i=0;i<6;i++){var inp=document.getElementById('pr-'+i);if(inp){inp.disabled=true;inp.style.opacity='.4';}}
+        window._prInputIdx=0;
         var rbtn=document.getElementById('pr-resend-btn');
         if(rbtn){rbtn.disabled=false;rbtn.style.opacity='1';rbtn.style.cursor='pointer';}
         var icon=document.getElementById('pr-icon');
@@ -1323,7 +1350,7 @@ async function _verifyPinRecoveryOtp(){
       var err=document.getElementById('pr-err');
       if(err)err.textContent='Código incorrecto o expirado';
       for(var i=0;i<6;i++){var b=document.getElementById('pr-'+i);if(b)b.value='';}
-      setTimeout(function(){var f=document.getElementById('pr-0');if(f)f.focus();},50);
+      window._prInputIdx=0;_highlightPrInput(0);
       return;
     }
     if(res.data&&res.data.user){

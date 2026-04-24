@@ -2712,7 +2712,7 @@ function openCatPanel(){
   function tabStyle(t){
     return tabBaseStyle+(t===tab?tabColors[t]:'background:transparent;color:var(--text2)');
   }
-  var plusBtn='<button onclick="openModal(\'category\',{defaultType:S._catTab||\'gasto\',lockedType:true})" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:300;flex-shrink:0">+</button>';
+  var plusBtn='<button onclick="openCategoryScreen({defaultType:S._catTab||\'gasto\',lockedType:true})" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:300;flex-shrink:0">+</button>';
   overlay.innerHTML=
     '<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 12px 22px;flex-shrink:0">'
     +'<div style="display:flex;align-items:center;gap:8px">'
@@ -2819,7 +2819,7 @@ function renderCatItem(cat){
     (subs.length?'<span style="font-size:10px;color:var(--text3);margin-left:4px">'+subs.length+' subcats</span>':'')+
     '</div></div>'+
     '<div style="display:flex;gap:6px;align-items:center">'+
-    '<button class="btn-text" style="font-size:12px" onclick="event.stopPropagation();openModal('+q+'subcategory'+q+',{categoryId:'+q+cat.id+q+'})">+ Sub</button>'+
+    '<button class="btn-text" style="font-size:12px" onclick="event.stopPropagation();openSubcategoryScreen({categoryId:'+q+cat.id+q+'})">+ Sub</button>'+
     '<button class="btn-del" onclick="event.stopPropagation();deleteCat('+q+cat.id+q+')">🗑</button>'+
     '<span class="cat-arrow" style="color:var(--text3);font-size:12px">▶</span>'+
     '</div></div>'+
@@ -2829,7 +2829,7 @@ function renderCatItem(cat){
     subs.forEach(function(s){
       h+='<div class="subcat-item"><span>'+s.icon+' '+s.name+'</span>'+
         '<div style="display:flex;gap:4px">'+
-        '<button class="btn-text" style="font-size:11px" onclick="openModal('+q+'editSubcategory'+q+',{id:'+q+s.id+q+'})">✏️</button>'+
+        '<button class="btn-text" style="font-size:11px" onclick="openEditSubcategoryScreen({id:'+q+s.id+q+'})">✏️</button>'+
         '<button class="btn-del" onclick="deleteSub('+q+s.id+q+')">✕</button>'+
         '</div></div>';
     });
@@ -2840,7 +2840,7 @@ function renderCatItem(cat){
 }
 function renderCategorias(){
   var btn='<div style="display:flex;justify-content:flex-end;margin-bottom:12px">'+
-    '<button class="btn btn-primary btn-sm" onclick="openModal(\'category\',{})">+ '+(t('newCategory')||'Nueva categoría')+'</button></div>';
+    '<button class="btn btn-primary btn-sm" onclick="openCategoryScreen({})">+ '+(t('newCategory')||'Nueva categoría')+'</button></div>';
   if(!S.categories.length)return btn+'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
   return btn+S.categories.map(function(cat){return renderCatItem(cat);}).join('');
 }function toggleCatGroup(id,header){
@@ -2866,25 +2866,31 @@ function openNatureSheet(groupKey,label,color){
   overlay.onclick=function(e){if(e.target===overlay)closeNatureSheet();};
   var sheet=document.createElement('div');
   sheet.id='ns-sheet';
-  sheet.style.cssText='width:100%;background:var(--surface);border-radius:20px 20px 0 0;max-height:82vh;display:flex;flex-direction:column;animation:bsSlideUp .22s ease';
+  sheet.style.cssText='width:100%;border-radius:20px 20px 0 0;overflow:hidden;max-height:82vh;display:flex;flex-direction:column;animation:bsSlideUp .22s ease';
   sheet.innerHTML=
-    '<div style="display:flex;justify-content:center;padding:10px 0 2px"><div style="width:36px;height:4px;background:var(--border);border-radius:2px"></div></div>'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px 12px;border-bottom:1px solid var(--border)">'+
-      '<div style="display:flex;align-items:center;gap:10px">'+
-        '<div style="width:34px;height:34px;border-radius:10px;background:'+color+'22;display:flex;align-items:center;justify-content:center;font-size:18px">'+emoji+'</div>'+
-        '<div>'+
-          '<div style="font-size:15px;font-weight:800;color:var(--text)">'+name+'</div>'+
-          '<div id="ns-count-lbl" style="font-size:11px;color:var(--text3)">'+cats.length+' categor'+(cats.length===1?'ía':'ías')+'</div>'+
-        '</div>'+
-      '</div>'+
-      '<button onclick="closeNatureSheet()" style="width:28px;height:28px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:13px;line-height:1">✕</button>'+
-    '</div>'+
-    '<div id="ns-cat-list" style="overflow-y:auto;flex:1;padding:10px 12px 8px">'+renderNsItems(cats)+'</div>'+
-    '<div style="padding:12px 16px 20px;border-top:1px solid var(--border)">'+
-      '<button class="btn btn-primary" style="width:100%;padding:13px" onclick="closeNatureSheet();setTimeout(function(){openModal(\'category\',{defaultType:\''+catType+'\',lockedType:true,lockedNature:\''+groupKey+'\'})},100)">+ Nueva categoría en este grupo</button>'+
-    '</div>';
+    '<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;flex-shrink:0">'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+        +'<button onclick="closeNatureSheet()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
+        +'<div style="width:34px;height:34px;border-radius:10px;background:'+color+'33;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+emoji+'</div>'
+        +'<div style="flex:1">'
+          +'<div style="font-size:16px;font-weight:800;color:var(--text)">'+name+'</div>'
+          +'<div id="ns-count-lbl" style="font-size:12px;color:var(--text3)">'+cats.length+' categor'+(cats.length===1?'ía':'ías')+'</div>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
+    +'<div id="ns-cat-list" style="overflow-y:auto;flex:1;padding:8px 0;background:var(--surface)">'+renderNsItems(cats)+'</div>'
+    +'<div style="padding:12px 16px max(env(safe-area-inset-bottom),16px);background:var(--surface)">'
+      +'<button onclick="_nsNewCatDialog(\''+catType+'\',\''+groupKey+'\')" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Nueva categoría</button>'
+    +'</div>';
   overlay.appendChild(sheet);
   document.body.appendChild(overlay);
+}
+function _nsNewCatDialog(catType,groupKey){
+  confirmDialog('🔍','¿Ya revisaste las existentes?','Muchas acciones ya están cubiertas. Te recomendamos revisar primero antes de crear una nueva.',function(){
+    closeNatureSheet();
+    setTimeout(function(){openCategoryScreen({defaultType:catType,lockedType:true,lockedNature:groupKey});},270);
+  },'Sí, crear nueva','btn-primary');
 }
 function _getNsCats(groupKey){
   if(groupKey==='transferencia')return S.categories.filter(function(c){return c.type==='transferencia';});
@@ -2914,36 +2920,52 @@ function renderNsItems(cats){
   return cats.map(function(cat){return renderCatItemInSheet(cat);}).join('');
 }
 function renderCatItemInSheet(cat){
-  var subs=S.subcategories.filter(function(s){return s.categoryId===cat.id;});
+  var subs=filterDeleted(S.subcategories).filter(function(s){return s.categoryId===cat.id;});
   var domId='ns-catg-'+cat.id;
   var q="'";
-  var h='';
-  h+='<div class="cat-group" style="border-left:4px solid '+(cat.color||'var(--border)')+';">';
-  h+='<div class="cat-group-header" onclick="toggleNsGroup('+q+domId+q+',this)" style="cursor:pointer">';
-  h+='<div class="cat-group-left">';
-  h+='<div style="width:38px;height:38px;border-radius:10px;background:'+(cat.color||'#64748B')+'22;display:flex;align-items:center;justify-content:center;font-size:18px">'+cat.icon+'</div>';
-  h+='<div><div style="font-size:13px;font-weight:700">'+cat.name+'</div>';
-  if(subs.length)h+='<span style="font-size:10px;color:var(--text3)">'+subs.length+' subcat'+(subs.length===1?'':'s')+'</span>';
-  h+='</div></div>';
-  h+='<div style="display:flex;gap:6px;align-items:center">';
-  h+='<button class="btn-text" style="font-size:12px" onclick="event.stopPropagation();openModal('+q+'subcategory'+q+',{categoryId:'+q+cat.id+q+'})">+ Sub</button>';
-  h+='<button class="btn-del" onclick="event.stopPropagation();deleteCat('+q+cat.id+q+')">🗑</button>';
-  if(subs.length)h+='<span class="cat-arrow" style="color:var(--text3);font-size:12px">▶</span>';
-  h+='</div></div>';
-  h+='<div id="'+domId+'" class="hidden">';
+  var h='<div style="border-left:4px solid '+(cat.color||'var(--border)')+';margin-bottom:2px">';
+  // Header row — collapsed by default
+  h+='<div style="display:flex;align-items:center;gap:10px;padding:14px 14px 14px 12px;cursor:pointer" onclick="toggleNsGroup('+q+domId+q+',this)">';
+  h+='<div style="width:38px;height:38px;border-radius:10px;background:'+(cat.color||'#64748B')+'22;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+cat.icon+'</div>';
+  h+='<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:var(--text)">'+cat.name+'</div>';
+  if(subs.length)h+='<div style="font-size:12px;color:var(--text3);margin-top:1px">'+subs.length+' subcat'+(subs.length===1?'':'s')+'</div>';
+  h+='</div>';
+  // Edit cat button
+  h+='<button onclick="event.stopPropagation();_nsOpenEditCat('+q+cat.id+q+')" style="width:30px;height:30px;border-radius:8px;border:none;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0">✏️</button>';
+  // Delete cat button
+  h+='<button onclick="event.stopPropagation();deleteCat('+q+cat.id+q+')" style="width:30px;height:30px;border-radius:8px;border:none;background:rgba(239,68,68,.08);color:#EF4444;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:4px">🗑</button>';
+  // Arrow — only if has subs
+  if(subs.length)h+='<span class="cat-arrow" style="color:var(--text3);font-size:14px;margin-left:4px;flex-shrink:0">▶</span>';
+  h+='</div>';
+  // Subs + "+ Nueva subcategoría" — hidden by default
+  h+='<div id="'+domId+'" class="hidden" style="padding:0 12px 10px 12px">';
   if(subs.length){
-    h+='<div class="subcat-list">';
     subs.forEach(function(s){
-      h+='<div class="subcat-item"><span>'+s.icon+' '+s.name+'</span>';
-      h+='<div style="display:flex;gap:4px">';
-      h+='<button class="btn-text" style="font-size:11px" onclick="openModal('+q+'editSubcategory'+q+',{id:'+q+s.id+q+'})">✏️</button>';
-      h+='<button class="btn-del" onclick="deleteSub('+q+s.id+q+')">✕</button>';
-      h+='</div></div>';
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:9px 10px;background:var(--surface2);border-radius:10px;margin-bottom:4px">';
+      h+='<span style="font-size:16px">'+s.icon+'</span>';
+      h+='<span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">'+s.name+'</span>';
+      h+='<button onclick="_nsOpenEditSub('+q+s.id+q+','+q+cat.id+q+')" style="width:28px;height:28px;border-radius:8px;border:none;background:var(--surface);color:var(--text2);cursor:pointer;font-size:12px;flex-shrink:0">✏️</button>';
+      h+='<button onclick="deleteSub('+q+s.id+q+')" style="width:28px;height:28px;border-radius:8px;border:none;background:rgba(239,68,68,.08);color:#EF4444;cursor:pointer;font-size:12px;flex-shrink:0;margin-left:4px">✕</button>';
+      h+='</div>';
     });
-    h+='</div>';
   }
-  h+='</div></div>';
+  h+='<div onclick="_nsOpenNewSub('+q+cat.id+q+')" style="display:flex;align-items:center;justify-content:center;padding:10px;border:1.5px dashed var(--border);border-radius:10px;cursor:pointer;font-size:13px;color:var(--text3);margin-top:2px">+ Nueva subcategoría</div>';
+  h+='</div>';
+  h+='</div>';
   return h;
+}
+// Helpers that close the BS before opening a screen (270ms)
+function _nsOpenNewSub(catId){
+  closeNatureSheet();
+  setTimeout(function(){openSubcategoryScreen({categoryId:catId});},270);
+}
+function _nsOpenEditSub(subId,catId){
+  closeNatureSheet();
+  setTimeout(function(){openEditSubcategoryScreen({id:subId});},270);
+}
+function _nsOpenEditCat(catId){
+  closeNatureSheet();
+  setTimeout(function(){openCategoryScreen({editId:catId});},270);
 }
 function toggleNsGroup(id,header){
   var el=document.getElementById(id);
@@ -2954,6 +2976,351 @@ function toggleNsGroup(id,header){
 }
 function deleteCat(id){confirmDialog('🗑️','¿Eliminar categoría?','Se eliminarán sus subcategorías y los movimientos perderán la categoría.',function(){S.categories=softDelete(S.categories,id);S.subcategories=S.subcategories.map(function(s){return s.categoryId===id?Object.assign({},s,{deleted:true,updated_at:new Date().toISOString()}):s;});saveState();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Eliminada');});}
 function deleteSub(id){confirmDialog('🗑️','¿Eliminar subcategoría?','',function(){S.subcategories=softDelete(S.subcategories,id);saveState();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Eliminada');});}
+
+// ══════════════════════════════════════════════════════════
+// CATEGORY SCREENS — pantallas completas (reemplazan modals)
+// ══════════════════════════════════════════════════════════
+
+function _catScreenClose(){
+  var ov=document.getElementById('cat-screen-overlay');
+  if(ov){ov.style.opacity='0';ov.style.transition='opacity .22s';setTimeout(function(){if(ov.parentNode)ov.remove();},240);}
+  refreshNatureSheet();
+  var cpnl=document.getElementById('cat-panel-list');
+  if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');
+  if(S.currentPage==='configuracion')renderPage('configuracion');
+  else renderPage('categorias');
+}
+
+function _catGetAutoColor(type){
+  var used=filterDeleted(S.categories).filter(function(c){return c.type===type;}).map(function(c){return c.color;});
+  return COLORS_PALETTE.find(function(c){return used.indexOf(c)===-1;})||COLORS_PALETTE[filterDeleted(S.categories).length%COLORS_PALETTE.length];
+}
+
+// Mapa sinónimos para validación duplicados
+var _CAT_SYNONYMS={
+  'comida':['alimentacion','alimento','comer','gastronomia','restaurante','mercado','supermercado','cocina','desayuno','almuerzo','cena','pizza','hamburguesa','snack','bebida','cafe','fruta','verdura','carne','pescado','pollo'],
+  'transporte':['movilidad','vehiculo','auto','carro','taxi','bus','metro','gasolina','combustible','viaje','pasaje','tren','bicicleta','moto'],
+  'arriendo':['alquiler','renta','vivienda','apartamento','casa','habitacion','cuarto','piso','hipoteca'],
+  'salud':['medicina','medico','farmacia','doctor','hospital','clinica','consulta','tratamiento','seguro medico'],
+  'ropa':['vestimenta','vestido','camisa','pantalon','zapato','calzado','moda','tela','accesorio','ropa interior'],
+  'salario':['sueldo','ingreso','pago','remuneracion','nomina','mensualidad','quincena','trabajo'],
+  'entretenimiento':['ocio','diversion','cine','teatro','concierto','juego','pelicula','series','streaming','netflix','spotify'],
+  'educacion':['estudio','curso','libro','colegio','universidad','escuela','formacion','capacitacion'],
+  'servicios':['luz','agua','gas','internet','telefono','cable','factura','servicio publico']
+};
+function _checkCatDuplicate(name){
+  if(!name||name.length<3)return null;
+  var v=name.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  var existing=filterDeleted(S.categories);
+  // Dynamic threshold: short words need closer match
+  function levMatch(a,b){
+    var maxLen=Math.max(a.length,b.length);
+    if(maxLen<=4)return a===b; // exact only for ≤4 chars
+    if(maxLen<=6)return _catLev(a,b)<=1;
+    return _catLev(a,b)<=2;
+  }
+  // 1. check synonym map
+  for(var key in _CAT_SYNONYMS){
+    var syns=_CAT_SYNONYMS[key];
+    if(v===key||syns.some(function(s){return v===s||(v.length>4&&s.length>4&&levMatch(v,s));})){
+      var m=existing.find(function(c){
+        var n=c.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+        return n===key||key===n||n.includes(key)||key.includes(n);
+      });
+      if(m)return m;
+    }
+  }
+  // 2. direct match against existing cat names
+  return existing.find(function(c){
+    var n=c.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if(n===v)return true; // exact
+    if(v.length>5&&n.length>5&&(n.includes(v)||v.includes(n)))return true; // substring (only long words)
+    if(v.length>5&&n.length>5&&_catLev(n,v)<=2)return true; // typo (only long words)
+    return false;
+  })||null;
+}
+function _catLev(a,b){
+  if(!a.length)return b.length;if(!b.length)return a.length;
+  var m=[];for(var i=0;i<=b.length;i++)m[i]=[i];for(var j=0;j<=a.length;j++)m[0][j]=j;
+  for(var i=1;i<=b.length;i++)for(var j=1;j<=a.length;j++){m[i][j]=b[i-1]===a[j-1]?m[i-1][j-1]:1+Math.min(m[i-1][j-1],m[i][j-1],m[i-1][j]);}
+  return m[b.length][a.length];
+}
+
+// ── Icon picker (pantalla completa sobre cat screen) ──────
+function _catIconPickerOpen(targetId){
+  var existing=document.getElementById('cat-icon-picker-ov');
+  if(existing)existing.remove();
+  var curIcon=document.getElementById(targetId)?document.getElementById(targetId).value:ICONS[0];
+  var ov=document.createElement('div');
+  ov.id='cat-icon-picker-ov';
+  ov.style.cssText='position:fixed;inset:0;z-index:260;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
+  var bk='<button onclick="_catIconPickerClose()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
+  ov.innerHTML=
+    '<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 12px 22px;flex-shrink:0">'
+      +'<div style="display:flex;align-items:center;gap:8px">'+bk+'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text)">Seleccionar ícono</div><div style="width:34px"></div></div>'
+      +'<div style="background:rgba(255,255,255,.92);border-radius:12px;border:0.5px solid rgba(0,0,0,.07);padding:8px 12px;display:flex;align-items:center;gap:8px;margin-top:8px">'
+        +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+        +'<input id="cat-icon-search" placeholder="Buscar..." oninput="_catIconFilter(this.value,\''+targetId+'\')" style="border:none;outline:none;font-size:14px;font-family:var(--font);background:transparent;flex:1;color:var(--text)">'
+      +'</div>'
+    +'</div>'
+    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
+    +'<div id="cat-icon-grid" style="flex:1;overflow-y:auto;display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;align-content:flex-start"></div>';
+  document.body.appendChild(ov);
+  window._catIconTarget=targetId;
+  _catIconFilter('',targetId);
+}
+function _catIconFilter(q,targetId){
+  var tgt=targetId||window._catIconTarget;
+  var cur=document.getElementById(tgt)?document.getElementById(tgt).value:'';
+  var grid=document.getElementById('cat-icon-grid');if(!grid)return;
+  var list=q?ICONS.filter(function(ic){return ic.includes(q);}):ICONS;
+  if(!list.length)list=ICONS;
+  grid.innerHTML=list.map(function(ic){
+    var sel=ic===cur;
+    return '<div onclick="_catIconPickerSelect(\''+ic+'\',\''+tgt+'\')" style="width:48px;height:48px;border-radius:12px;background:'+(sel?'rgba(0,212,170,.1)':'var(--surface2)')+';border:1.5px solid '+(sel?'var(--primary)':'var(--border)')+';display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;flex-shrink:0;transition:.1s">'+ic+'</div>';
+  }).join('');
+}
+function _catIconPickerClose(){
+  var ov=document.getElementById('cat-icon-picker-ov');if(ov)ov.remove();
+}
+function _catIconPickerSelect(icon,targetId){
+  var inp=document.getElementById(targetId);if(inp)inp.value=icon;
+  // update preview in category/subcat screens
+  var prev=document.getElementById(targetId+'-preview');if(prev)prev.textContent=icon;
+  _catIconPickerClose();
+}
+
+// ── Pantalla: Nueva / Editar Categoría ───────────────────
+function openCategoryScreen(data){
+  var existing=document.getElementById('cat-screen-overlay');if(existing)existing.remove();
+  data=data||{};
+  var defType=data.defaultType||'gasto';
+  var locked=!!data.lockedType;
+  var lockedGroup=!!data.lockedNature;
+  var defNature=data.lockedNature||'necesidades';
+  var isEdit=!!data.editId;
+  var editCat=isEdit?filterDeleted(S.categories).find(function(c){return c.id===data.editId;}):null;
+
+  if(isEdit&&editCat){defType=editCat.type;defNature=editCat.nature||defNature;}
+
+  var NATURES_MAP={
+    necesidades:{emoji:'🏠',label:'Necesidades',color:'#EF4444'},
+    deseos:{emoji:'🎯',label:'Deseos',color:'#F59E0B'},
+    ahorros:{emoji:'💰',label:'Ahorros',color:'#00D4AA'},
+    principal:{emoji:'⭐',label:'Principal',color:'#00D4AA'},
+    secundario:{emoji:'➕',label:'Secundario',color:'#8B5CF6'},
+    transferencia:{emoji:'↔️',label:'Transferencias',color:'#6366F1'}
+  };
+  var INCOME_MAP={principal:{emoji:'⭐',label:'Principal'},secundario:{emoji:'➕',label:'Secundario'}};
+  var isIngreso=defType==='ingreso',isTransf=defType==='transferencia';
+  var autoColor=isEdit&&editCat?editCat.color:_catGetAutoColor(defType);
+  var curIcon=isEdit&&editCat?editCat.icon:ICONS[0];
+  var curName=isEdit&&editCat?editCat.name:'';
+  var defIncome=(isEdit&&editCat)?editCat.incomeType||'principal':'principal';
+
+  // Build nature/income selector section
+  var natHtml='';
+  if(lockedGroup){
+    var nm=NATURES_MAP[defNature]||{emoji:'🏷️',label:defNature};
+    natHtml='<div class="sl" style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:14px 0 8px 2px">NATURALEZA</div>'
+      +'<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--surface2);border-radius:12px;border:0.5px solid var(--border);margin-bottom:4px">'
+        +'<div style="width:32px;height:32px;border-radius:9px;background:'+(nm.color||'#94A3B8')+'33;display:flex;align-items:center;justify-content:center;font-size:16px">'+nm.emoji+'</div>'
+        +'<span style="font-size:14px;font-weight:600;color:var(--text);flex:1">'+nm.label+'</span>'
+        +'<span style="font-size:11px;color:var(--text3);background:var(--surface2);padding:3px 8px;border-radius:99px;border:0.5px solid var(--border)">Definida por el grupo</span>'
+      +'</div>'
+      +'<input type="hidden" id="cat-nature" value="'+defNature+'">'
+      +'<input type="hidden" id="cat-income-type" value="'+defIncome+'">';
+  } else if(!locked){
+    // free type+nature
+    natHtml=''; // type selector handled in old BS modal — leave as is in free mode
+  } else if(isIngreso){
+    var items=[{val:'principal',emoji:'⭐',label:'Principal',c:'#00D4AA'},{val:'secundario',emoji:'➕',label:'Secundario',c:'#8B5CF6'}];
+    natHtml='<div class="sl" style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:14px 0 8px 2px">TIPO DE INGRESO</div>'
+      +items.map(function(n){var sel=(defIncome===n.val);return '<div class="cat-nat-opt'+(sel?' sel':'')+'" id="cno-'+n.val+'" onclick="_catSelectNat(\''+n.val+'\',\'income\')" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:1.5px solid '+(sel?'var(--primary)':'var(--border)')+';background:'+(sel?'rgba(0,212,170,.05)':'var(--surface2)')+';cursor:pointer;margin-bottom:6px">'
+        +'<div style="width:32px;height:32px;border-radius:9px;background:'+n.c+'33;display:flex;align-items:center;justify-content:center;font-size:16px">'+n.emoji+'</div>'
+        +'<span style="font-size:14px;font-weight:600;color:var(--text);flex:1">'+n.label+'</span>'
+        +'<div style="width:18px;height:18px;border-radius:50%;border:1.5px solid '+(sel?'var(--primary)':'var(--border)')+';background:'+(sel?'var(--primary)':'transparent')+';display:flex;align-items:center;justify-content:center">'+(sel?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'')+'</div>'
+      +'</div>';}).join('')
+      +'<input type="hidden" id="cat-income-type" value="'+defIncome+'">'
+      +'<input type="hidden" id="cat-nature" value="ahorros">';
+  } else if(!isTransf){
+    var nats=[{val:'necesidades',emoji:'🏠',label:'Necesidades',c:'#EF4444'},{val:'deseos',emoji:'🎯',label:'Deseos',c:'#F59E0B'},{val:'ahorros',emoji:'💰',label:'Ahorros',c:'#00D4AA'}];
+    natHtml='<div class="sl" style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:14px 0 8px 2px">NATURALEZA</div>'
+      +nats.map(function(n){var sel=(defNature===n.val);return '<div class="cat-nat-opt'+(sel?' sel':'')+'" id="cno-'+n.val+'" onclick="_catSelectNat(\''+n.val+'\',\'nature\')" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:1.5px solid '+(sel?'var(--primary)':'var(--border)')+';background:'+(sel?'rgba(0,212,170,.05)':'var(--surface2)')+';cursor:pointer;margin-bottom:6px">'
+        +'<div style="width:32px;height:32px;border-radius:9px;background:'+n.c+'33;display:flex;align-items:center;justify-content:center;font-size:16px">'+n.emoji+'</div>'
+        +'<span style="font-size:14px;font-weight:600;color:var(--text);flex:1">'+n.label+'</span>'
+        +'<div style="width:18px;height:18px;border-radius:50%;border:1.5px solid '+(sel?'var(--primary)':'var(--border)')+';background:'+(sel?'var(--primary)':'transparent')+';display:flex;align-items:center;justify-content:center">'+(sel?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'')+'</div>'
+      +'</div>';}).join('')
+      +'<input type="hidden" id="cat-nature" value="'+defNature+'">'
+      +'<input type="hidden" id="cat-income-type" value="principal">';
+  } else {
+    natHtml='<input type="hidden" id="cat-nature" value="transferencia"><input type="hidden" id="cat-income-type" value="principal">';
+  }
+
+  var bk='<button onclick="_catScreenClose()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
+  var title=isEdit?'Editar categoría':'Nueva categoría';
+  var ov=document.createElement('div');
+  ov.id='cat-screen-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:250;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
+  ov.innerHTML=
+    '<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 12px 22px;flex-shrink:0">'
+      +'<div style="display:flex;align-items:center;gap:8px">'+bk
+        +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text)">'+title+'</div>'
+        +'<div style="width:34px"></div>'
+      +'</div>'
+    +'</div>'
+    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
+    +'<div style="flex:1;overflow-y:auto;padding:0 16px 16px">'
+      +'<input type="hidden" id="cat-type" value="'+defType+'">'
+      +natHtml
+      +'<div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:14px 0 8px 2px">NOMBRE</div>'
+      +'<input class="form-input" type="text" id="cat-name" placeholder="Ej: Mascotas" value="'+curName+'" oninput="_catDupCheck(this.value)" style="margin-bottom:4px">'
+      +'<div id="cat-dup-warn" style="display:none;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:12px 14px;font-size:13px;color:#92400E;line-height:1.5;margin-top:6px"></div>'
+      +'<div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:14px 0 8px 2px">ÍCONO</div>'
+      +'<div style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);overflow:hidden;margin-bottom:4px;box-shadow:var(--card-shadow)">'
+        +'<div onclick="_catIconPickerOpen(\'cat-icon-val\')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer">'
+          +'<div style="width:40px;height:40px;border-radius:12px;background:'+autoColor+';display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0" id="cat-icon-val-preview">'+curIcon+'</div>'
+          +'<div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--text)">Ícono seleccionado</div><div style="font-size:12px;color:var(--text3)">Toca para cambiar</div></div>'
+          +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
+        +'</div>'
+      +'</div>'
+      +'<input type="hidden" id="cat-icon-val" value="'+curIcon+'">'
+      +'<input type="hidden" id="cat-color-val" value="'+autoColor+'">'
+      +(isEdit?'<div style="margin-top:16px"><button onclick="_deleteCatFromScreen(\''+editCat.id+'\')" style="width:100%;padding:14px;border-radius:50px;border:none;background:rgba(239,68,68,.08);color:#EF4444;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar categoría</button></div>':'')
+    +'</div>'
+    +'<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface)">'
+      +'<button onclick="saveCategory()" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">'+(isEdit?'Guardar cambios':'Crear categoría')+'</button>'
+    +'</div>';
+  document.body.appendChild(ov);
+  if(isEdit&&editCat){document.getElementById('cat-type').value=editCat.type;}
+}
+function _catSelectNat(val,field){
+  var fieldId=field==='income'?'cat-income-type':'cat-nature';
+  var inp=document.getElementById(fieldId);if(inp)inp.value=val;
+  var prefix=field==='income'?'principal|secundario':'necesidades|deseos|ahorros';
+  var allKeys=prefix.split('|');
+  allKeys.forEach(function(k){
+    var el=document.getElementById('cno-'+k);if(!el)return;
+    var sel=k===val;
+    el.style.borderColor=sel?'var(--primary)':'var(--border)';
+    el.style.background=sel?'rgba(0,212,170,.05)':'var(--surface2)';
+    var circle=el.lastElementChild;if(!circle)return;
+    circle.style.borderColor=sel?'var(--primary)':'var(--border)';
+    circle.style.background=sel?'var(--primary)':'transparent';
+    circle.innerHTML=sel?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'';
+  });
+}
+function _catDupCheck(val){
+  var warn=document.getElementById('cat-dup-warn');if(!warn)return;
+  var match=_checkCatDuplicate(val);
+  if(match){warn.style.display='block';warn.innerHTML='💡 Ya existe <b>'+match.icon+' '+match.name+'</b> que podría cubrir esto. ¿Seguro que necesitas crear una nueva?';}
+  else{warn.style.display='none';}
+}
+function _deleteCatFromScreen(id){
+  confirmDialog('🗑️','¿Eliminar categoría?','Se eliminarán sus subcategorías y los movimientos perderán la categoría.',function(){
+    S.categories=softDelete(S.categories,id);
+    S.subcategories=S.subcategories.map(function(s){return s.categoryId===id?Object.assign({},s,{deleted:true,updated_at:new Date().toISOString()}):s;});
+    saveState();_catScreenClose();toast('Eliminada');
+  });
+}
+
+// ── Pantalla: Nueva Subcategoría ──────────────────────────
+function openSubcategoryScreen(data){
+  var existing=document.getElementById('cat-screen-overlay');if(existing)existing.remove();
+  data=data||{};
+  var cat=getCat(data.categoryId);
+  var bk='<button onclick="_catScreenClose()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
+  var ov=document.createElement('div');
+  ov.id='cat-screen-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:250;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
+  var TC={gasto:{bg:'#FEE2E2',c:'#DC2626',lbl:'Gasto'},ingreso:{bg:'#DCFCE7',c:'#16A34A',lbl:'Ingreso'},transferencia:{bg:'#EDE9FE',c:'#7461EF',lbl:'Transf.'}};
+  var tc=cat?(TC[cat.type]||TC['gasto']):{bg:'#FEE2E2',c:'#DC2626',lbl:'Gasto'};
+  var parentBadge=cat
+    ?'<div style="background:rgba(0,212,170,.06);border-radius:14px;border:0.5px solid rgba(0,212,170,.25);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:4px">'
+      +'<div style="width:36px;height:36px;border-radius:10px;background:'+cat.color+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+cat.icon+'</div>'
+      +'<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text)">'+cat.name+'</div>'
+        +'<span style="font-size:11px;background:'+tc.bg+';color:'+tc.c+';padding:2px 8px;border-radius:99px;font-weight:600;display:inline-block;margin-top:2px">'+tc.lbl+'</span>'
+      +'</div></div>'
+    :'';
+  var catSelectHtml=!cat
+    ?'<div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:14px 0 8px 2px">CATEGORÍA</div>'
+      +'<select class="form-select" id="sub-parent-cat" onchange="document.getElementById(\'sub-catid\').value=this.value" style="margin-bottom:4px"><option value="">Seleccionar</option>'+filterDeleted(S.categories).map(function(c){return'<option value="'+c.id+'">'+c.icon+' '+c.name+'</option>';}).join('')+'</select>'
+    :'';
+  ov.innerHTML=
+    '<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 12px 22px;flex-shrink:0">'
+      +'<div style="display:flex;align-items:center;gap:8px">'+bk
+        +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text)">Nueva subcategoría</div>'
+        +'<div style="width:34px"></div>'
+      +'</div>'
+    +'</div>'
+    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
+    +'<div style="flex:1;overflow-y:auto;padding:0 16px 16px">'
+      +'<input type="hidden" id="sub-catid" value="'+(data.categoryId||'')+'">'
+      +parentBadge+catSelectHtml
+      +'<div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:14px 0 8px 2px">NOMBRE</div>'
+      +'<input class="form-input" type="text" id="sub-name" placeholder="Ej: Supermercado" style="margin-bottom:4px">'
+      +'<div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:14px 0 8px 2px">ÍCONO</div>'
+      +'<div style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);overflow:hidden;margin-bottom:4px;box-shadow:var(--card-shadow)">'
+        +'<div onclick="_catIconPickerOpen(\'sub-icon-val\')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer">'
+          +'<div style="width:40px;height:40px;border-radius:12px;background:'+(cat?cat.color:'#FEE2E2')+';display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0" id="sub-icon-val-preview">'+ICONS[1]+'</div>'
+          +'<div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--text)">Ícono seleccionado</div><div style="font-size:12px;color:var(--text3)">Toca para cambiar</div></div>'
+          +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
+        +'</div>'
+      +'</div>'
+      +'<input type="hidden" id="sub-icon-val" value="'+ICONS[1]+'">'
+      +'<div style="background:rgba(0,212,170,.06);border-radius:12px;border:0.5px solid rgba(0,212,170,.2);padding:12px 14px;font-size:13px;color:#0F766E;line-height:1.5;margin-top:8px">💡 Hereda el tipo y color de la categoría padre</div>'
+    +'</div>'
+    +'<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface)">'
+      +'<button onclick="saveSubcategory()" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Crear subcategoría</button>'
+    +'</div>';
+  document.body.appendChild(ov);
+}
+
+// ── Pantalla: Editar Subcategoría ─────────────────────────
+function openEditSubcategoryScreen(data){
+  var existing=document.getElementById('cat-screen-overlay');if(existing)existing.remove();
+  data=data||{};
+  var sub=S.subcategories.find(function(s){return s.id===data.id;});
+  if(!sub)return;
+  var cat=getCat(sub.categoryId);
+  var bk='<button onclick="_catScreenClose()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
+  var ov=document.createElement('div');
+  ov.id='cat-screen-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:250;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
+  var parentBadge=cat
+    ?'<div style="background:rgba(0,212,170,.06);border-radius:14px;border:0.5px solid rgba(0,212,170,.25);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:4px">'
+      +'<div style="width:36px;height:36px;border-radius:10px;background:'+cat.color+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+cat.icon+'</div>'
+      +'<div style="font-size:13px;font-weight:700;color:var(--text)">'+cat.name+'</div></div>'
+    :'';
+  ov.innerHTML=
+    '<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 12px 22px;flex-shrink:0">'
+      +'<div style="display:flex;align-items:center;gap:8px">'+bk
+        +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text)">Editar subcategoría</div>'
+        +'<div style="width:34px"></div>'
+      +'</div>'
+    +'</div>'
+    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
+    +'<div style="flex:1;overflow-y:auto;padding:0 16px 16px">'
+      +'<input type="hidden" id="esub-id" value="'+sub.id+'">'
+      +parentBadge
+      +'<div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:14px 0 8px 2px">NOMBRE</div>'
+      +'<input class="form-input" type="text" id="esub-name" value="'+sub.name+'" placeholder="Nombre" style="margin-bottom:4px">'
+      +'<div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin:14px 0 8px 2px">ÍCONO</div>'
+      +'<div style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);overflow:hidden;margin-bottom:4px;box-shadow:var(--card-shadow)">'
+        +'<div onclick="_catIconPickerOpen(\'esub-icon-val\')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer">'
+          +'<div style="width:40px;height:40px;border-radius:12px;background:'+(cat?cat.color:'#FEE2E2')+';display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0" id="esub-icon-val-preview">'+sub.icon+'</div>'
+          +'<div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--text)">Ícono seleccionado</div><div style="font-size:12px;color:var(--text3)">Toca para cambiar</div></div>'
+          +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
+        +'</div>'
+      +'</div>'
+      +'<input type="hidden" id="esub-icon-val" value="'+sub.icon+'">'
+    +'</div>'
+    +'<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface);display:flex;flex-direction:column;gap:8px">'
+      +'<button onclick="saveEditSubcategory()" style="width:100%;padding:14px;border-radius:50px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Guardar cambios</button>'
+      +'<button onclick="deleteSub(\''+sub.id+'\')" style="width:100%;padding:14px;border-radius:50px;border:none;background:rgba(239,68,68,.08);color:#EF4444;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font)">Eliminar subcategoría</button>'
+    +'</div>';
+  document.body.appendChild(ov);
+}
 
 // ════════════════════════════════════════════════════════════
 // I18N — Translations
@@ -7684,8 +8051,8 @@ function saveCategory(){
   const name=document.getElementById('cat-name')?.value?.trim();if(!name){toast('Ingresa un nombre');return;}
   const catType=document.getElementById('cat-type')?.value||'gasto';
   const cat={id:uid(),name,type:catType,nature:catType==='ingreso'?'ahorros':(document.getElementById('cat-nature')?.value||'necesidades'),incomeType:catType==='ingreso'?(document.getElementById('cat-income-type')?.value||'principal'):undefined,color:document.getElementById('cat-color-val')?.value||COLORS_PALETTE[0],icon:document.getElementById('cat-icon-val')?.value||ICONS[0]};
-  S.categories.push(stampItem(cat));saveState();closeModal();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Categoría creada ✓');
-  setTimeout(function(){confirmDialog('🏷️','¿Agregar subcategoría?','¿Deseas crear una subcategoría para "'+cat.name+'" ahora?',function(){openModal('subcategory',{categoryId:cat.id});},'Sí, agregar','btn-primary');},300);
+  S.categories.push(stampItem(cat));saveState();_catScreenClose();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Categoría creada ✓');
+  setTimeout(function(){confirmDialog('🏷️','¿Agregar subcategoría?','¿Deseas crear una subcategoría para "'+cat.name+'" ahora?',function(){openSubcategoryScreen({categoryId:cat.id});},'Sí, agregar','btn-primary');},300);
 }
 
 // ─── SUBCATEGORY MODAL ───
@@ -7706,7 +8073,7 @@ function saveSubcategory(){
   const name=document.getElementById('sub-name')?.value?.trim();
   if(!catId){toast('Selecciona una categoría');return;}if(!name){toast('Ingresa un nombre');return;}
   S.subcategories.push(stampItem({id:uid(),categoryId:catId,name,icon:document.getElementById('sub-icon-val')?.value||ICONS[1]}));
-  saveState();closeModal();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Subcategoría creada ✓');
+  saveState();_catScreenClose();refreshNatureSheet();var cpnl=document.getElementById('cat-panel-list');if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');if(S.currentPage==='configuracion')renderPage('configuracion');else renderPage('categorias');toast('Subcategoría creada ✓');
 }
 
 // ─── EDIT SUBCATEGORY MODAL ───
@@ -7731,7 +8098,7 @@ function saveEditSubcategory(){
   if(!sub)return;
   sub.name=name;
   sub.icon=document.getElementById('esub-icon-val')?.value||sub.icon;
-  saveState();closeModal();
+  saveState();_catScreenClose();
   refreshNatureSheet();
   const cpnl=document.getElementById('cat-panel-list');
   if(cpnl)cpnl.innerHTML=renderCatList(S._catTab||'gasto');
