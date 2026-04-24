@@ -1164,16 +1164,18 @@ async function _showPinRecovery(){
   if(ov)ov.remove();
   ov=document.createElement('div');
   ov.id='pin-recovery-overlay';
-  ov.style.cssText='position:fixed;inset:0;z-index:10001;display:flex;flex-direction:column;overflow:hidden;pointer-events:auto;background:linear-gradient(160deg,rgba(0,212,170,.12) 0%,rgba(116,97,239,.06) 45%,#fff 65%)';
+  ov.style.cssText='position:fixed;inset:0;z-index:10001;display:flex;flex-direction:column;overflow:hidden;pointer-events:auto;background:#F8FAFC';
   var masked=email.replace(/(.{2})[^@]+(@.+)/,function(m,a,b){return a+'*****'+b;});
   var inStyle='width:100%;height:50px;border-radius:12px;border:1.5px solid #E2E8F0;background:rgba(255,255,255,.9);text-align:center;font-size:22px;font-weight:700;color:#0F172A;font-family:inherit;outline:none;transition:.15s;caret-color:transparent;cursor:default';
   ov.innerHTML=
+    // Gradient overlay (same as auth-panel-teal3)
+    '<div style="position:absolute;inset:0;background:linear-gradient(160deg,rgba(0,212,170,.12) 0%,rgba(116,97,239,.06) 45%,transparent 65%);pointer-events:none;z-index:0"></div>'
     // Nav: back button
-    '<div style="display:flex;align-items:center;padding:max(env(safe-area-inset-top),14px) 16px 0;flex-shrink:0">'
+    +'<div style="display:flex;align-items:center;padding:max(env(safe-area-inset-top),14px) 16px 0;flex-shrink:0;position:relative;z-index:1">'
       +'<button onclick="_closePinRecovery()" style="width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.75);border:0.5px solid rgba(0,0,0,.07);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
     +'</div>'
     // Icono + título + email (centrados)
-    +'<div style="text-align:center;padding:18px 24px 0;flex-shrink:0">'
+    +'<div style="text-align:center;padding:18px 24px 0;flex-shrink:0;position:relative;z-index:1">'
       +'<div id="pr-icon" style="width:52px;height:52px;border-radius:50%;background:rgba(0,212,170,.1);border:1.5px solid rgba(0,212,170,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 12px">'
         +'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1" fill="#00D4AA"/></svg>'
       +'</div>'
@@ -1181,7 +1183,7 @@ async function _showPinRecovery(){
       +'<div style="font-size:13px;color:#64748B">Código enviado a <strong style="color:#0F172A">'+masked+'</strong></div>'
     +'</div>'
     // 6 inputs con padding lateral
-    +'<div style="display:flex;gap:8px;margin:18px 16px 0;flex-shrink:0">'
+    +'<div style="display:flex;gap:8px;margin:18px 16px 0;flex-shrink:0;position:relative;z-index:1">'
       +'<input id="pr-0" maxlength="1" inputmode="none" readonly style="'+inStyle+'">'
       +'<input id="pr-1" maxlength="1" inputmode="none" readonly style="'+inStyle+'">'
       +'<input id="pr-2" maxlength="1" inputmode="none" readonly style="'+inStyle+'">'
@@ -1190,7 +1192,7 @@ async function _showPinRecovery(){
       +'<input id="pr-5" maxlength="1" inputmode="none" readonly style="'+inStyle+'">'
     +'</div>'
     // Barra + timer + error + reenviar
-    +'<div style="padding:10px 16px 0;flex-shrink:0">'
+    +'<div style="padding:10px 16px 0;flex-shrink:0;position:relative;z-index:1">'
       +'<div style="background:#F1F5F9;border-radius:4px;height:4px;overflow:hidden;margin-bottom:4px"><div id="pr-bar" style="width:100%;height:100%;background:linear-gradient(90deg,#00D4AA,#F59E0B);border-radius:4px;transition:width 1s linear"></div></div>'
       +'<div style="display:flex;justify-content:space-between"><span style="font-size:11px;color:#94A3B8">Código válido por</span><span id="pr-timer" style="font-size:11px;font-weight:700;color:#F59E0B">15:00</span></div>'
       +'<div id="pr-err" style="min-height:16px;font-size:12px;color:#EF4444;margin-top:4px;text-align:center"></div>'
@@ -1200,7 +1202,7 @@ async function _showPinRecovery(){
       +'</div>'
     +'</div>'
     // Keypad (mismo que PIN)
-    +'<div style="flex:1;display:flex;align-items:flex-end;padding-bottom:max(env(safe-area-inset-bottom),8px)">'
+    +'<div style="flex:1;display:flex;align-items:flex-end;padding-bottom:max(env(safe-area-inset-bottom),8px);position:relative;z-index:1">'
       +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px 8px;width:100%">'
         +_buildKeypad('_prKey')
       +'</div>'
