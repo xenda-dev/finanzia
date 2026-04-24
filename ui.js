@@ -8350,15 +8350,17 @@ function openSiguenos(){
       +'</a>';
   }).join('');
   ov.innerHTML='<div onclick="document.getElementById(\'siguenos-sheet\').remove()" style="flex:1;background:rgba(0,0,0,.5)"></div>'
-    +'<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));border-radius:20px 20px 0 0;padding:10px 14px 22px">'
-      +'<div style="display:flex;align-items:center;gap:8px">'
-        +'<button onclick="document.getElementById(\'siguenos-sheet\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
-        +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text)">Síguenos</div>'
-        +'<div style="width:34px;flex-shrink:0"></div>'
+    +'<div style="border-radius:20px 20px 0 0;overflow:hidden">'
+      +'<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px">'
+        +'<div style="display:flex;align-items:center;gap:8px">'
+          +'<button onclick="document.getElementById(\'siguenos-sheet\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
+          +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text)">Síguenos</div>'
+          +'<div style="width:34px;flex-shrink:0"></div>'
+        +'</div>'
       +'</div>'
-    +'</div>'
-    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1"></div>'
-    +'<div style="background:var(--surface);padding:4px 8px max(env(safe-area-inset-bottom),24px)">'+rows+'</div>';
+      +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1"></div>'
+      +'<div style="background:var(--surface);padding:4px 8px max(env(safe-area-inset-bottom),24px)">'+rows+'</div>'
+    +'</div>';
   document.body.appendChild(ov);
 }
 
