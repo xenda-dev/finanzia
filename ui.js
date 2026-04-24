@@ -6868,14 +6868,19 @@ function showPhotoOptions(){
       +'</div>';
   }
   sheet.innerHTML='<div onclick="closePhotoSheet()" style="flex:1;background:rgba(0,0,0,.5)"></div>'
-    +'<div style="background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 max(env(safe-area-inset-bottom),24px)">'
-      +'<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px">'
-        +'<div><div style="font-size:15px;font-weight:700">Foto de perfil</div>'
-        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">'+subtitle+'</div></div>'
-        +xBtn
+    +'<div style="border-radius:20px 20px 0 0;overflow:hidden">'
+      +'<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px">'
+        +'<div style="display:flex;align-items:center;gap:8px">'
+          +'<button onclick="closePhotoSheet()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
+          +'<div style="flex:1;text-align:center">'
+            +'<div style="font-size:17px;font-weight:800;color:var(--text)">Foto de perfil</div>'
+            +'<div style="font-size:12px;color:var(--text3);margin-top:2px">'+subtitle+'</div>'
+          +'</div>'
+          +'<div style="width:34px;flex-shrink:0"></div>'
+        +'</div>'
       +'</div>'
-      +'<div style="height:1px;background:var(--border);margin:0 20px 16px"></div>'
-      +'<div style="padding:0 20px">'+btnsHtml+'</div>'
+      +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1"></div>'
+      +'<div style="background:var(--surface);padding:4px 20px max(env(safe-area-inset-bottom),24px)">'+btnsHtml+'</div>'
     +'</div>';
   document.body.appendChild(sheet);
 }
