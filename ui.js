@@ -6845,7 +6845,8 @@ function showPhotoOptions(){
   var hasPhoto=!!_getProfilePhoto();
   var sheet=document.createElement('div');
   sheet.id='photo-options-sheet';
-  sheet.style.cssText='position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;justify-content:flex-end';
+  sheet.style.cssText='position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,.5)';
+  sheet.onclick=function(e){if(e.target===sheet)closePhotoSheet();};
   var xBtn='<button onclick="closePhotoSheet()" style="width:32px;height:32px;border-radius:50%;background:var(--surface2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);flex-shrink:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
   var camSvg='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>';
   var galSvg='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
@@ -6867,8 +6868,7 @@ function showPhotoOptions(){
         +'<button onclick="closePhotoSheet();document.getElementById('+q+'profile-gal-input'+q+').click()" style="flex:1;padding:14px 8px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">'+galSvg+' Galería</button>'
       +'</div>';
   }
-  sheet.innerHTML='<div onclick="closePhotoSheet()" style="flex:1;background:rgba(0,0,0,.5)"></div>'
-    +'<div style="border-radius:20px 20px 0 0;overflow:hidden">'
+  sheet.innerHTML='<div style="border-radius:20px 20px 0 0;overflow:hidden">'
       +'<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px">'
         +'<div style="display:flex;align-items:center;gap:8px">'
           +'<button onclick="closePhotoSheet()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
