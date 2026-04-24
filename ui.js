@@ -5136,7 +5136,8 @@ function renderConfiguracion(){
   var themeSegs=buildThemeCaps();
   var fmtSegs=buildNumFormatCaps();
   return '<div style="padding:0 14px calc(var(--nav-h)+24px)">'
-    // Mi Perfil shortcut
+    // Perfil
+    +secLbl('Perfil')
     +'<div onclick="navigate(\'mi-perfil\')" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);margin-bottom:18px;cursor:pointer">'
       +'<div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid var(--primary);overflow:hidden;flex-shrink:0">'
         +((_getProfilePhoto())?('<img src="'+_getProfilePhoto()+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'):((S.profile&&S.profile.name)?('<span style="font-size:16px;font-weight:700;color:white">'+S.profile.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)+'</span>'):'<span style="color:white">👤</span>'))
@@ -8673,7 +8674,7 @@ function openTerminosModal(){
       +'</div>'
     +'</div>'
     +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
-    +'<div id="terminos-content" style="flex:1;overflow-y:auto;padding:0 20px 32px">'
+    +'<div id="terminos-content" style="flex:1;overflow-y:auto;padding:0 20px 32px;background:var(--surface)">'
       +tcContent
     +'</div>'
   +'</div>';
