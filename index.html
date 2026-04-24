@@ -157,14 +157,13 @@
       <div id="auth-rc-ok" style="display:none;background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.25);border-radius:14px;padding:14px 16px;font-size:13px;color:#0F766E;margin-top:8px;text-align:left;line-height:1.55;width:100%">
         <div style="display:flex;gap:10px;align-items:flex-start">
           <span style="font-size:18px;flex-shrink:0">✅</span>
-          <div><div style="font-weight:700;color:#0F172A;margin-bottom:3px">¡Listo! Revisa tu correo 📬</div><div style="font-size:12px;color:#64748B;line-height:1.5">Enviamos el enlace a tu correo. Si no aparece, revisa spam.</div>
-          <button onclick="goToLoginFromRecover()" style="margin-top:8px;display:block;background:none;border:none;color:#00D4AA;font-size:12px;font-weight:700;cursor:pointer;pointer-events:all">← Volver al inicio de sesión</button></div>
+          <div><div style="font-weight:700;color:#0F172A;margin-bottom:3px">¡Listo! Revisa tu correo 📬</div><div style="font-size:12px;color:#64748B;line-height:1.5">Enviamos el enlace a tu correo. Si no aparece, revisa spam.</div></div>
         </div>
       </div>
     </div>
     <div class="auth-bottom">
       <button id="rc-btn" onclick="handleRecoverPassword()" class="auth-btn-primary">Enviar enlace 📬</button>
-      <div class="auth-footer"><button onclick="goToLoginFromRecover()" class="auth-link" style="color:#94A3B8;font-weight:600;font-size:13px">← Volver al inicio de sesión</button></div>
+      <div class="auth-footer"><button id="rc-back-btn" onclick="goToLoginFromRecover()" class="auth-link" disabled style="color:#CBD5E1;font-weight:600;font-size:13px;cursor:not-allowed;pointer-events:none">← Volver al inicio de sesión</button></div>
     </div>
   </div>
 

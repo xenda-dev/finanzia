@@ -49,6 +49,9 @@ function initSupabase(){
 
     if(event === 'PASSWORD_RECOVERY'){
       if(session && session.user) _currentUser = session.user;
+      // Activar el botón de volver (igual que verify-continue-btn)
+      var rcBack=document.getElementById('rc-back-btn');
+      if(rcBack){rcBack.disabled=false;rcBack.style.color='#00D4AA';rcBack.style.cursor='pointer';rcBack.style.pointerEvents='auto';}
       showAuthScreen(); _showScreen('reset-password');
       try{ window.history.replaceState({}, document.title, window.location.pathname); }catch(e){}
     }
@@ -1753,6 +1756,11 @@ async function handleResetPassword(){
     var rv=await _supabase.auth.updateUser({password:pass});
     _setBusy('rp-btn',false,'Guardar nueva contraseña');
     if(rv.error){_setError('rp',rv.error.message||'No se pudo actualizar la contraseña');return;}
+    // Actualizar _remPass con la nueva contraseña para que el login precargue la correcta
+    try{
+      var remEmail=localStorage.getItem('_remEmail');
+      if(remEmail)localStorage.setItem('_remPass',pass);
+    }catch(e){}
     // Limpiar hash de la URL para que no quede el token expuesto
     try{window.history.replaceState({},document.title,window.location.pathname);}catch(e){}
     // Cerrar sesión activa de recuperación y pedir login limpio
