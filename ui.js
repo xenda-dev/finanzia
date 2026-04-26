@@ -1836,10 +1836,12 @@ function handleFotoAcreedor(e){
     if(hidden)hidden.value=src;
     var wrap=document.getElementById('fc-acreedor-photo-wrap');
     if(wrap){
-      wrap.innerHTML='<img src="'+src+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" id="fc-acreedor-img">'
-        +'<div style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;border:2px solid var(--surface)">'
-          +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
-        +'</div>';
+      var _img=document.createElement('img');
+      _img.src=src;
+      _img.id='fc-acreedor-img';
+      _img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%';
+      wrap.innerHTML='<div style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;border:2px solid var(--surface)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>';
+      wrap.insertBefore(_img,wrap.firstChild);
     }
   };
   reader.readAsDataURL(file);
