@@ -443,12 +443,14 @@ function _buildNotifContent(){
   var perm=!('Notification'in window)?'denied':(Notification.permission||'default');
   var granted=perm==='granted';
   var masterOn=!!(S.notifPrefs&&S.notifPrefs._master!==false);
+  var active=granted&&masterOn;
+  var bannerSub=active?'Toca para desactivar':(granted?'Toca para activar':'Toca para solicitar permiso al sistema');
   // Banner
-  var banner='<div onclick="requestNotifPerm()" style="background:linear-gradient(135deg,rgba(0,212,170,.12),rgba(116,97,239,.08));border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;border:0.5px solid rgba(0,212,170,.2);margin-bottom:14px;cursor:pointer">'
+  var banner='<div onclick="_toggleNotifBanner()" style="background:linear-gradient(135deg,rgba(0,212,170,.12),rgba(116,97,239,.08));border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;border:0.5px solid rgba(0,212,170,.2);margin-bottom:14px;cursor:pointer">'
     +'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00D4AA,#7461EF);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔔</div>'
-    +'<div style="flex:1"><div style="font-size:14px;font-weight:700;color:'+(granted?'var(--text)':'#94A3B8')+'">'+(granted?'Notificaciones activas':'Notificaciones desactivadas')+'</div>'
-    +'<div style="font-size:11px;color:var(--text3);margin-top:1px">'+(granted?'Permiso del sistema concedido':'Toca para solicitar permiso al sistema')+'</div></div>'
-    +'<div style="width:8px;height:8px;border-radius:50%;background:'+(granted?'#00D4AA':'#CBD5E1')+';flex-shrink:0"></div>'
+    +'<div style="flex:1"><div style="font-size:14px;font-weight:700;color:'+(active?'var(--text)':'#94A3B8')+'">'+(active?'Notificaciones activas':'Notificaciones desactivadas')+'</div>'
+    +'<div style="font-size:11px;color:var(--text3);margin-top:1px">'+bannerSub+'</div></div>'
+    +'<div style="width:8px;height:8px;border-radius:50%;background:'+(active?'#00D4AA':'#CBD5E1')+';flex-shrink:0"></div>'
     +'</div>';
   // Master toggle
   var mt='<div onclick="_toggleNotifMaster()" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1.5px solid var(--border);margin-bottom:4px;cursor:pointer">'
@@ -498,21 +500,56 @@ function _toggleNotifItem(key){
 }
 function buildNotifToggles(){return '';}
 function toggleNotifPref(key){_toggleNotifItem(key);}
-function requestNotifPerm(){
-  if(!('Notification'in window)){toast('Notificaciones no disponibles en este navegador');return;}
-  if(Notification.permission==='granted'){toast('✅ Notificaciones ya están activas');return;}
-  if(Notification.permission==='denied'){
-    // Show instructions to unblock
-    confirmDialog('🔔','Notificaciones bloqueadas',
-      'Para activarlas: en Chrome toca el ícono 🔒 en la barra de dirección → Configuración del sitio → Notificaciones → Permitir. Luego vuelve aquí y toca de nuevo.',
-      ()=>{},'Entendido','btn-primary');
+function _refreshNotifOverlay(){
+  var wrap=document.querySelector('#notif-page-overlay [style*="overflow-y:auto"]');
+  if(wrap)wrap.innerHTML=_buildNotifContent();
+}
+function _toggleNotifBanner(){
+  var perm=!('Notification'in window)?'denied':(Notification.permission||'default');
+  var granted=perm==='granted';
+  var masterOn=!!(S.notifPrefs&&S.notifPrefs._master!==false);
+  if(!granted){requestNotifPerm();return;}
+  if(!masterOn){
+    if(!S.notifPrefs)S.notifPrefs={};
+    S.notifPrefs._master=true;
+    saveState();
+    _refreshNotifOverlay();
     return;
   }
-  // 'default' - request permission
-  Notification.requestPermission().then(result=>{
-    if(result==='granted'){toast('🔔 Notificaciones activadas ✓');}
-    else if(result==='denied'){toast('Notificaciones bloqueadas en el navegador');}
-    renderPage('configuracion');
+  confirmDialog('🔔','¿Desactivar notificaciones?',
+    'No recibirás alertas de FinanzIA.',
+    function(){
+      if(!S.notifPrefs)S.notifPrefs={};
+      S.notifPrefs._master=false;
+      saveState();
+      _refreshNotifOverlay();
+    },'Desactivar','btn-danger','Cancelar');
+}
+function requestNotifPerm(){
+  if(!('Notification'in window)){toast('Notificaciones no disponibles en este navegador');return;}
+  if(Notification.permission==='denied'){
+    confirmDialog('🔔','Notificaciones bloqueadas',
+      'Para activarlas: en Chrome toca el ícono 🔒 en la barra de dirección → Configuración del sitio → Notificaciones → Permitir. Luego vuelve aquí y toca de nuevo.',
+      function(){},'Entendido','btn-primary');
+    return;
+  }
+  if(Notification.permission==='granted'){
+    if(!S.notifPrefs)S.notifPrefs={};
+    S.notifPrefs._master=true;
+    saveState();
+    _refreshNotifOverlay();
+    return;
+  }
+  Notification.requestPermission().then(function(result){
+    if(result==='granted'){
+      if(!S.notifPrefs)S.notifPrefs={};
+      S.notifPrefs._master=true;
+      saveState();
+      toast('🔔 Notificaciones activadas ✓');
+    }else if(result==='denied'){
+      toast('Notificaciones bloqueadas en el navegador');
+    }
+    _refreshNotifOverlay();
   });
 }
 function sendNotif(title,body){
