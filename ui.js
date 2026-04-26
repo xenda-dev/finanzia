@@ -552,10 +552,12 @@ function requestNotifPerm(){
     _refreshNotifOverlay();
   });
 }
-function sendNotif(title,body){
-  if('Notification'in window&&Notification.permission==='granted'){
-    try{new Notification(title,{body,icon:'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E💰%3C/text%3E%3C/svg%3E'});}catch(e){}
-  }
+function sendNotif(title,body,prefKey){
+  if(!('Notification'in window))return;
+  if(Notification.permission!=='granted')return;
+  if(!S.notifPrefs||S.notifPrefs._master===false)return;
+  if(prefKey&&!S.notifPrefs[prefKey])return;
+  try{new Notification(title,{body,icon:'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E💰%3C/text%3E%3C/svg%3E'});}catch(e){}
 }
 function checkAutoPayments(){
   const today=todayStr();
@@ -565,13 +567,13 @@ function checkAutoPayments(){
       if(!alreadyDone){
         const tx=stampItem({id:uid(),type:'gasto',accountId:p.accountId||'',categoryId:p.categoryId||'',subcategoryId:p.subcategoryId||'',amount:p.amount,currency:p.currency||S.currency,date:today,description:'AUTO:'+p.id,paymentMethod:''});
         S.transactions.push(tx);
-        sendNotif('💳 Pago automático',`${p.name} — ${fmt(p.amount,p.currency||S.currency)}`);
+        sendNotif('💳 Pago automático',`${p.name} — ${fmt(p.amount,p.currency||S.currency)}`,'notifPayments');
         advancePayment(p);
         toast('Auto-pago: '+p.name);
       }
     }
     if(p.nextDate<=today&&!p.isAuto){
-      sendNotif('⚠️ Pago pendiente',`${p.name} venció el ${p.nextDate}`);
+      sendNotif('⚠️ Pago pendiente',`${p.name} venció el ${p.nextDate}`,'notifPayments');
     }
   });
   saveState();
