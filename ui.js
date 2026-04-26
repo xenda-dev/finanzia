@@ -444,7 +444,7 @@ function _buildNotifContent(){
   var granted=perm==='granted';
   var masterOn=!!(S.notifPrefs&&S.notifPrefs._master!==false);
   // Banner
-  var banner='<div style="background:linear-gradient(135deg,rgba(0,212,170,.12),rgba(116,97,239,.08));border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;border:0.5px solid rgba(0,212,170,.2);margin-bottom:14px">'
+  var banner='<div onclick="requestNotifPerm()" style="background:linear-gradient(135deg,rgba(0,212,170,.12),rgba(116,97,239,.08));border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;border:0.5px solid rgba(0,212,170,.2);margin-bottom:14px;cursor:pointer">'
     +'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00D4AA,#7461EF);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔔</div>'
     +'<div style="flex:1"><div style="font-size:14px;font-weight:700;color:'+(granted?'var(--text)':'#94A3B8')+'">'+(granted?'Notificaciones activas':'Notificaciones desactivadas')+'</div>'
     +'<div style="font-size:11px;color:var(--text3);margin-top:1px">'+(granted?'Permiso del sistema concedido':'Toca para solicitar permiso al sistema')+'</div></div>'
