@@ -1,6 +1,6 @@
 <html lang="es" data-theme="auto">
 <head>
-<script>(function(){try{var s=JSON.parse(localStorage.getItem("finanziaState3")||"{}");var t=s.theme||"auto";var e=t==="auto"?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):t;document.documentElement.setAttribute("data-theme",e);}catch(e){document.documentElement.setAttribute("data-theme","dark");}})();</script>
+<script>(function(){try{var s=JSON.parse(localStorage.getItem("finanziaState3")||"{}");var uid=localStorage.getItem("_lastAuthUserId")||"default";var themeSet=localStorage.getItem("_themeSet_"+uid);var t=themeSet?(s.theme||"light"):"light";if(t==="auto")t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-theme",t);}catch(ex){document.documentElement.setAttribute("data-theme","light");}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">

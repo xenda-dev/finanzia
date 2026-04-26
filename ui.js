@@ -42,6 +42,8 @@ function buildThemeCaps(){
 }
 function setThemeInline(val){
   S.theme=val;
+  var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:(localStorage.getItem('_lastAuthUserId')||'default');
+  try{localStorage.setItem('_themeSet_'+_uid,'1');}catch(e){}
   applyThemeMode();
   saveState();
   var _m=document.getElementById('main');var _sy=_m?_m.scrollTop:0;
