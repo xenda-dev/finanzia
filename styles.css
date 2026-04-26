@@ -478,3 +478,25 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   font-size:14px;color:var(--text);transition:.1s;
 }
 .picker-item:active{background:var(--surface2);}
+
+/* ════════════════════════════════════════════════════════════
+   DARK MODE — Component overrides
+   Corrige colores hardcodeados en módulos congelados que no pueden
+   recibir var(--) directamente porque usan inline styles o literales.
+   ════════════════════════════════════════════════════════════ */
+
+/* 1. Drawer — nombre y email del perfil (hardcodeados en light) */
+[data-theme="dark"] .drawer-profile-name{color:var(--text);}
+[data-theme="dark"] .drawer-profile-email{color:var(--text2);}
+
+/* 2. Radio-style buttons de género en Datos Generales (Mi Perfil)
+   Los id="gcap-*" tienen background:'white' inline en estado no-seleccionado.
+   El estado seleccionado mantiene su distinción por borde var(--primary)
+   y el indicador circular interior. */
+[data-theme="dark"] [id^="gcap-"]{background:var(--surface3)!important;}
+
+/* 3. Toggles inactivos en página Notificaciones (background:#CBD5E1 inline)
+   Solo apunta a los que tienen el literal #CBD5E1 — los activos usan
+   var(--primary) y no se ven afectados. */
+[data-theme="dark"] #notif-master-tgl[style*="#CBD5E1"]{background:var(--surface3)!important;outline:1.5px solid var(--border-strong);}
+[data-theme="dark"] #notif-items-list [style*="#CBD5E1"]{background:var(--surface3)!important;outline:1.5px solid var(--border-strong);}
