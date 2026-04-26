@@ -322,6 +322,13 @@ function resolveAccId(id){
 const getCat=id=>S.categories.find(c=>c.id===id);
 const getSub=id=>S.subcategories.find(s=>s.id===id);
 function getTEM(annualRate){return Math.pow(1+(annualRate||0)/100,1/12)-1;}
+function isInternalTransaction(t){
+  if(!t||!t.description)return false;
+  var d=t.description;
+  if(t.type==='ingreso')return d.startsWith('Ahorro:')||d.startsWith('AUTO:')||d.startsWith('Abono:');
+  if(t.type==='gasto')return d.startsWith('Pago deuda:')||d.startsWith('AUTO:');
+  return false;
+}
 const getBank=(bankId,cur)=>{const l=cur==='PLN'?BANKS_PLN:BANKS_COP;return l.find(b=>b.id===bankId)||null;}
 
 function bankBadge(bankId,cur,size=44,acc){
@@ -422,23 +429,8 @@ function getMonthTotals(period){
     const d=new Date(t.date);
     return t.currency===S.currency&&d>=from&&d<=to;
   });
-  // Exclude internal transfers: transactions whose description starts with 'Ahorro →'/'Ahorro:' or are paired transfers
-  // Exclude internal movements from INCOME (keep goal savings as EXPENSE - user is correct)
-  const isInternalIncome=(t)=>{
-    if(!t.description)return false;
-    const d=t.description;
-    // These are internal credits that don't represent real new money coming in
-    return d.startsWith('Ahorro:')||d.startsWith('AUTO:')||d.startsWith('Abono:');
-  };
-  // Exclude from expense: only the paying side of debt payments (the income to the debt account)
-  // Goal savings expenses (Ahorro →) ARE real expenses - user is correct
-  const isInternalExpense=(t)=>{
-    if(!t.description)return false;
-    const d=t.description;
-    return d.startsWith('Pago deuda:')||d.startsWith('AUTO:');
-  };
-  const inc=txs.filter(t=>t.type==='ingreso'&&!isInternalIncome(t)).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
-  const exp=txs.filter(t=>t.type==='gasto'&&!isInternalExpense(t)).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+  const inc=txs.filter(t=>t.type==='ingreso'&&!isInternalTransaction(t)).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+  const exp=txs.filter(t=>t.type==='gasto'&&!isInternalTransaction(t)).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
   return{inc,exp};
 }
 
