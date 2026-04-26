@@ -321,6 +321,14 @@ function resolveAccId(id){
 }
 const getCat=id=>S.categories.find(c=>c.id===id);
 const getSub=id=>S.subcategories.find(s=>s.id===id);
+// Variantes filtradas: solo devuelven ítems no eliminados (para pickers y selects)
+const getAccActive=id=>{
+  if(!id)return null;
+  if(id.includes('|')){const[pid]=id.split('|');return filterDeleted(S.accounts).find(a=>a.id===pid)||null;}
+  return filterDeleted(S.accounts).find(a=>a.id===id)||null;
+};
+const getCatActive=id=>filterDeleted(S.categories).find(c=>c.id===id)||null;
+const getSubActive=id=>filterDeleted(S.subcategories).find(s=>s.id===id)||null;
 function getTEM(annualRate){return Math.pow(1+(annualRate||0)/100,1/12)-1;}
 function isInternalTransaction(t){
   if(!t||!t.description)return false;
