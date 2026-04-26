@@ -1054,7 +1054,7 @@ function setEstrategiaMetodo(m){
   if(pg)pg.innerHTML=renderEstrategia();
 }
 function renderEstrategia(){
-  const debts=S.accounts.filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency);
+  const debts=filterDeleted(S.accounts).filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency);
   if(!debts.length)return '<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">¡Sin deudas registradas!</div><div class="empty-desc">Eso es una buena noticia 🙌 Agrega tus deudas en la sección Deudas para usar este simulador.</div></div>';
 
   const metodo=window._estrategiaMetodo||'';

@@ -603,12 +603,12 @@ function renderDashboard(){
       </div>
       <div class="kpi-card" style="cursor:pointer" onclick="navigate('deudas')">
         <div class="kpi-label">💸 Total deudas</div>
-        <div class="kpi-val" style="font-size:13px;color:var(--danger)">${fmt(S.accounts.filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency).reduce((s,a)=>s+Math.abs(getBalance(a.id)),0))}</div>
+        <div class="kpi-val" style="font-size:13px;color:var(--danger)">${fmt(filterDeleted(S.accounts).filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency).reduce((s,a)=>s+Math.abs(getBalance(a.id)),0))}</div>
         <div style="font-size:10px;color:var(--text3);margin-top:2px">👆 ver deudas</div>
       </div>
       <div class="kpi-card" style="cursor:pointer" onclick="navigate('cuentas')">
         <div class="kpi-label">💳 Cuentas activas</div>
-        <div class="kpi-val">${S.accounts.filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency).length}</div>
+        <div class="kpi-val">${filterDeleted(S.accounts).filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency).length}</div>
         <div style="font-size:10px;color:var(--text3);margin-top:2px">👆 ver cuentas</div>
       </div>
     </div>
@@ -1950,11 +1950,11 @@ function pickFotoAcreedor(){showPhotoSheetAcreedor();}function saveAccountFC(){
 
 function deleteAccountFC(){
   var accId=(document.getElementById('fc-id')||{}).value||'';
-  var acc=accId?S.accounts.find(function(a){return a.id===accId;}):null;
+  var acc=accId?filterDeleted(S.accounts).find(function(a){return a.id===accId;}):null;
   if(!acc){toast('Cuenta no encontrada');return;}
   var cur=acc.currency||S.currency;
   // Verificar si es la última cuenta en esa moneda
-  var otherAccounts=S.accounts.filter(function(a){return a.id!==accId&&(a.currency||S.currency)===cur;});
+  var otherAccounts=filterDeleted(S.accounts).filter(function(a){return a.id!==accId&&(a.currency||S.currency)===cur;});
   if(acc.subtype==='efectivo'&&otherAccounts.length===0){
     confirmDialog('⚠️','No se puede eliminar','Esta cuenta no puede ser eliminada. Debes tener mínimo una cuenta creada.',function(){});
     return;
@@ -2601,7 +2601,7 @@ function renderDeudas(){
 // ════════════════════════════════════════════════════════════
 function renderAnalisis(){
   const{from,to}=getAnalysisPeriodRange();
-  const afTxs=S.transactions.filter(t=>{const d=new Date(t.date);return t.currency===S.currency&&d>=from&&d<=to;});
+  const afTxs=filterDeleted(S.transactions).filter(t=>{const d=new Date(t.date);return t.currency===S.currency&&d>=from&&d<=to;});
   const inc=afTxs.filter(t=>t.type==='ingreso').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
   const exp=afTxs.filter(t=>t.type==='gasto').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
   const savings=inc-exp;
@@ -2619,8 +2619,8 @@ function renderAnalisis(){
     const d=new Date();
     d.setMonth(d.getMonth()-i);
     const m=d.getMonth();const y=d.getFullYear();
-    const mInc=S.transactions.filter(t=>t.type==='ingreso'&&t.currency===S.currency&&new Date(t.date).getMonth()===m&&new Date(t.date).getFullYear()===y).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
-    const mExp=S.transactions.filter(t=>t.type==='gasto'&&t.currency===S.currency&&new Date(t.date).getMonth()===m&&new Date(t.date).getFullYear()===y).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+    const mInc=filterDeleted(S.transactions).filter(t=>t.type==='ingreso'&&t.currency===S.currency&&new Date(t.date).getMonth()===m&&new Date(t.date).getFullYear()===y).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+    const mExp=filterDeleted(S.transactions).filter(t=>t.type==='gasto'&&t.currency===S.currency&&new Date(t.date).getMonth()===m&&new Date(t.date).getFullYear()===y).reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
     bars.push({label:d.toLocaleString('es',{month:'short'}),inc:mInc,exp:mExp});
   }
   const maxVal=Math.max(...bars.map(b=>Math.max(b.inc,b.exp)),1);
@@ -2687,7 +2687,7 @@ function renderAnalisis(){
       <div class="kpi-row" style="margin:0">
         <div class="kpi-card"><div class="kpi-label">Ingresos</div><div class="kpi-val" style="font-size:13px;color:var(--success)">${fmt(inc)}</div></div>
         <div class="kpi-card"><div class="kpi-label">Gastos</div><div class="kpi-val" style="font-size:13px;color:var(--danger)">${fmt(exp)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">💸 Deudas</div><div class="kpi-val" style="font-size:13px;color:var(--danger)">${fmt(S.accounts.filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency).reduce((s,a)=>s+Math.abs(getBalance(a.id)),0))}</div></div>
+        <div class="kpi-card"><div class="kpi-label">💸 Deudas</div><div class="kpi-val" style="font-size:13px;color:var(--danger)">${fmt(filterDeleted(S.accounts).filter(a=>a.type==='pasivo'&&(a.currency||S.currency)===S.currency).reduce((s,a)=>s+Math.abs(getBalance(a.id)),0))}</div></div>
         <div class="kpi-card"><div class="kpi-label">💰 Ahorro</div><div class="kpi-val" style="font-size:12px;color:${savingsRate<=0?'var(--text2)':savingsRate>=20?'var(--success)':savingsRate>=10?'var(--warning)':'var(--danger)'}">${fmt(savings)}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${savingsRate<=0?'0%':savingsRate+'%'} del ingreso</div></div>
       </div>
     </div>
@@ -2794,7 +2794,7 @@ function renderCatList(tab){
   return'<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Sin categorías</div></div>';
 }
 function renderCatItem(cat){
-  var subs=S.subcategories.filter(function(s){return s.categoryId===cat.id;});
+  var subs=filterDeleted(S.subcategories).filter(function(s){return s.categoryId===cat.id;});
   var typeBadge=cat.type==='ingreso'?'badge-success':cat.type==='gasto'?'badge-danger':'badge-info';
   var catDomId='catg-'+cat.id;
   var q="'";
@@ -3663,7 +3663,7 @@ function _calcTestData(){
   var cur=S.currency||'';
 
   // Last 3 months transactions for averages
-  var recentTxs=S.transactions.filter(function(t){
+  var recentTxs=filterDeleted(S.transactions).filter(function(t){
     if(t.currency!==cur)return false;
     var d=new Date(t.date);
     var monthsAgo=(curYear-d.getFullYear())*12+(curMonth-d.getMonth());
@@ -3671,7 +3671,7 @@ function _calcTestData(){
   });
 
   // This month
-  var thisMonthTxs=S.transactions.filter(function(t){
+  var thisMonthTxs=filterDeleted(S.transactions).filter(function(t){
     var d=new Date(t.date);
     return t.currency===cur&&d.getMonth()===curMonth&&d.getFullYear()===curYear;
   });
@@ -3686,7 +3686,7 @@ function _calcTestData(){
   var savingsRate=monthInc>0?((monthInc-monthExp)/monthInc*100):null;
 
   // Total liquid assets (activos)
-  var totalAssets=S.accounts.filter(function(a){return a.type==='activo'&&(a.currency||cur)===cur;}).reduce(function(s,a){return s+getBalance(a.id);},0);
+  var totalAssets=filterDeleted(S.accounts).filter(function(a){return a.type==='activo'&&(a.currency||cur)===cur;}).reduce(function(s,a){return s+getBalance(a.id);},0);
 
   // Monthly debt payments from debts
   var debtPayments=S.debts?S.debts.filter(function(d){return(d.currency||cur)===cur;}).reduce(function(s,d){return s+(parseFloat(d.monthlyPayment)||0);},0):0;
@@ -3699,7 +3699,7 @@ function _calcTestData(){
   var hasBudget=S.budgets&&S.budgets.length>0;
 
   // Savings transactions (categoria ahorro)
-  var savingsCats=S.categories?S.categories.filter(function(c){return c.nature==='ahorros';}).map(function(c){return c.id;}):[];
+  var savingsCats=S.categories?filterDeleted(S.categories).filter(function(c){return c.nature==='ahorros';}).map(function(c){return c.id;}):[];
   var savingsTxs=thisMonthTxs.filter(function(t){return savingsCats.indexOf(t.categoryId)!==-1;});
   var monthlySavings=savingsTxs.reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
   var actualSavingsRate=monthInc>0?(monthlySavings/monthInc*100):null;
@@ -3749,7 +3749,7 @@ function _autoSelectTest(d){
   }
 
   // Q5: Can cover emergency — only if user has registered accounts
-  var hasAccounts=S.accounts&&S.accounts.filter(function(a){
+  var hasAccounts=S.accounts&&filterDeleted(S.accounts).filter(function(a){
     return a.type==='activo'&&(a.currency||S.currency)===S.currency;
   }).length>0;
   if(hasAccounts){
@@ -3775,7 +3775,7 @@ function _autoSelectTest(d){
 
   // Q10 & Q11: Emergency fund / months without income
   // Only if: accounts registered + enough expense transactions to trust avgExp
-  var recentExpTxs=S.transactions.filter(function(t){
+  var recentExpTxs=filterDeleted(S.transactions).filter(function(t){
     var now=new Date();
     var d2=new Date(t.date);
     var mo=(now.getFullYear()-d2.getFullYear())*12+(now.getMonth()-d2.getMonth());
@@ -5080,10 +5080,10 @@ async function callAI(userMsg){
   const cur=S.currency;
   const{inc,exp}=getMonthTotals();
   const bal=getTotalBalance();
-  const debts=S.accounts.filter(a=>a.type==='pasivo'&&(a.currency||cur)===cur).reduce((s,a)=>s+Math.abs(getBalance(a.id)),0);
-  const goals=S.goals.filter(g=>(g.currency||cur)===cur);
-  const topCats=Object.entries(S.transactions.filter(t=>t.type==='gasto'&&t.currency===cur).reduce((acc,t)=>{const cat=getCat(t.categoryId);const n=cat?cat.name:'Otros';acc[n]=(acc[n]||0)+(parseFloat(t.amount)||0);return acc;},{})).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,v])=>n+': '+fmt(v)).join(', ');
-  const context='Eres un Wealth Manager experto con 20 años de experiencia. Analiza estos datos financieros reales del usuario y responde de forma clara, concisa y personalizada en español.\n\nDATOS FINANCIEROS ACTUALES ('+cur+'):\n- Balance total: '+fmt(bal)+'\n- Ingresos este mes: '+fmt(inc)+'\n- Gastos este mes: '+fmt(exp)+'\n- Total deudas: '+fmt(debts)+'\n- Cuentas activas: '+S.accounts.filter(function(a){return a.type==="activo";}).length+'\n- Metas de ahorro: '+goals.length+' metas, total ahorrado: '+fmt(goals.reduce((s,g)=>s+(parseFloat(g.current)||0),0))+'\n- Top gastos por categoría este mes: '+(topCats||'Sin datos')+'\n- Tasa de ahorro: '+(inc>0?Math.round((inc-exp)/inc*100):0)+'%\n\nResponde de forma directa y útil. Máximo 3-4 párrafos. Usa datos concretos del usuario.'
+  const debts=filterDeleted(S.accounts).filter(a=>a.type==='pasivo'&&(a.currency||cur)===cur).reduce((s,a)=>s+Math.abs(getBalance(a.id)),0);
+  const goals=filterDeleted(S.goals).filter(g=>(g.currency||cur)===cur);
+  const topCats=Object.entries(filterDeleted(S.transactions).filter(t=>t.type==='gasto'&&t.currency===cur).reduce((acc,t)=>{const cat=getCat(t.categoryId);const n=cat?cat.name:'Otros';acc[n]=(acc[n]||0)+(parseFloat(t.amount)||0);return acc;},{})).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([n,v])=>n+': '+fmt(v)).join(', ');
+  const context='Eres un Wealth Manager experto con 20 años de experiencia. Analiza estos datos financieros reales del usuario y responde de forma clara, concisa y personalizada en español.\n\nDATOS FINANCIEROS ACTUALES ('+cur+'):\n- Balance total: '+fmt(bal)+'\n- Ingresos este mes: '+fmt(inc)+'\n- Gastos este mes: '+fmt(exp)+'\n- Total deudas: '+fmt(debts)+'\n- Cuentas activas: '+filterDeleted(S.accounts).filter(function(a){return a.type==="activo";}).length+'\n- Metas de ahorro: '+goals.length+' metas, total ahorrado: '+fmt(goals.reduce((s,g)=>s+(parseFloat(g.current)||0),0))+'\n- Top gastos por categoría este mes: '+(topCats||'Sin datos')+'\n- Tasa de ahorro: '+(inc>0?Math.round((inc-exp)/inc*100):0)+'%\n\nResponde de forma directa y útil. Máximo 3-4 párrafos. Usa datos concretos del usuario.'
 
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
@@ -7270,9 +7270,9 @@ function buildViewTxModal(data){
 // ─── BALANCE DISTRIBUTION MODAL ───
 function buildBalanceDistModal(){
   const cur=S.currency;
-  const accs=S.accounts.filter(a=>a.type==='activo'&&(a.currency||cur)===cur);
+  const accs=filterDeleted(S.accounts).filter(a=>a.type==='activo'&&(a.currency||cur)===cur);
   // Total disponible = balance total - lo ahorrado en metas
-  const totalGoalSaved=S.goals.filter(g=>(g.currency||cur)===cur).reduce((s,g)=>s+(parseFloat(g.current)||0),0);
+  const totalGoalSaved=filterDeleted(S.goals).filter(g=>(g.currency||cur)===cur).reduce((s,g)=>s+(parseFloat(g.current)||0),0);
   const totalBal=accs.reduce((s,a)=>s+Math.max(0,getBalance(a.id)),0);
   const totalDisp=Math.max(0,totalBal-totalGoalSaved);
 
@@ -7539,7 +7539,7 @@ function deleteBudget(id){confirmDialog('🗑️','¿Eliminar presupuesto?','',(
 
 // ─── GOAL MODAL ───
 function goalAccountOptions(cur,selectedId){
-  const accs=S.accounts.filter(a=>(a.currency||S.currency)===cur);
+  const accs=filterDeleted(S.accounts).filter(a=>(a.currency||S.currency)===cur);
   let opts='<option value="">Sin cuenta</option>';
   accs.forEach(a=>{
     opts+=`<option value="${a.id}" ${a.id===selectedId?'selected':''}>${a.icon||'💳'} ${a.name} (principal)</option>`;
@@ -7656,7 +7656,7 @@ function buildPaymentModal(data){
   const p=data.id?S.scheduledPayments.find(x=>x.id===data.id):null;const isEdit=!!p;
   const catId=p?p.categoryId:'';
   const pCur=p?p.currency:S.currency;
-  const catOptsPrefilled=S.categories.filter(c=>c.type!=='ingreso').map(c=>`<option value="${c.id}" ${p&&p.categoryId===c.id?'selected':''}>${c.icon} ${c.name}</option>`).join('');
+  const catOptsPrefilled=filterDeleted(S.categories).filter(c=>c.type!=='ingreso').map(c=>`<option value="${c.id}" ${p&&p.categoryId===c.id?'selected':''}>${c.icon} ${c.name}</option>`).join('');
   const accOptsFilled=accountOptionsByCur(pCur,p?p.accountId:'');
   return`<div class="modal-header"><div class="modal-title">${isEdit?'Editar':'Nuevo'} pago programado</div><button class="modal-close" onclick="closeModal()">×</button></div>
   <div class="modal-body">
@@ -7715,7 +7715,7 @@ function renderCuentaDetalle(){
   var avail=isTc?Math.max(0,acc.tcLimit-used):0;
 
   // Movimientos de esta cuenta
-  var movs=S.transactions.filter(function(t){
+  var movs=filterDeleted(S.transactions).filter(function(t){
     return t.accountId===acc.id||t.toAccountId===acc.id;
   }).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
 
@@ -7958,7 +7958,7 @@ function quickTx(type,accId){
   return '💸';
 }
 function accountOptionsByCur(cur,selectedId){
-  const accs=S.accounts.filter(a=>(a.currency||S.currency)===cur);
+  const accs=filterDeleted(S.accounts).filter(a=>(a.currency||S.currency)===cur);
   let opts='<option value="">Seleccionar cuenta</option>';
   accs.forEach(a=>{
     const icon=getAccIcon(a);
