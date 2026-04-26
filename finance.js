@@ -321,6 +321,7 @@ function resolveAccId(id){
 }
 const getCat=id=>S.categories.find(c=>c.id===id);
 const getSub=id=>S.subcategories.find(s=>s.id===id);
+function getTEM(annualRate){return Math.pow(1+(annualRate||0)/100,1/12)-1;}
 const getBank=(bankId,cur)=>{const l=cur==='PLN'?BANKS_PLN:BANKS_COP;return l.find(b=>b.id===bankId)||null;}
 
 function bankBadge(bankId,cur,size=44,acc){
@@ -669,7 +670,7 @@ function calcJubilacion(){
   var n=years*12; // total months saving
 
   // TEM correcta desde TAE efectiva anual
-  var tem=Math.pow(1+tae/100,1/12)-1;
+  var tem=getTEM(tae);
 
   // FV capital inicial + FV aportes mensuales (compuesto mensual)
   var fvLump=current*Math.pow(1+tem,n);
@@ -1073,7 +1074,7 @@ function renderEstrategia(){
     var bal=Math.abs(getBalance(a.id));
     var rate=parseFloat(a.tae)||0;
     var monthly=parseFloat(a.monthlyPayment)||(bal*0.03);
-    var r=Math.pow(1+rate/100,1/12)-1;
+    var r=getTEM(rate);
     var cuotas=0;
     if(r>0&&monthly>r*bal&&bal>0){cuotas=Math.ceil(-Math.log(1-r*bal/monthly)/Math.log(1+r));}
     else if(monthly>0&&bal>0){cuotas=Math.ceil(bal/monthly);}
@@ -1099,7 +1100,7 @@ function renderEstrategia(){
       var freed=xAmt;
       ds.forEach(function(d){
         if(d.bal<=0)return;
-        var intAmt=d.bal*(Math.pow(1+d.rate/100,1/12)-1);
+        var intAmt=d.bal*getTEM(d.rate);
         var minPay=Math.min(d.bal+intAmt,d.monthly);
         var capital=Math.max(0,minPay-intAmt);
         totalInt+=intAmt;
@@ -1139,7 +1140,7 @@ function renderEstrategia(){
       var freed=extra;var rowTotalPay=0;var rowTotalInt=0;var cells=[];
       tDs.forEach(function(d){
         if(d.bal<=0){cells.push({pay:0,int:0,bal:0,done:true});return;}
-        var intAmt=d.bal*(Math.pow(1+d.rate/100,1/12)-1);
+        var intAmt=d.bal*getTEM(d.rate);
         var minPay=Math.min(d.bal+intAmt,d.monthly);
         var capital=Math.max(0,minPay-intAmt);
         var actualPay=Math.min(minPay,d.bal+intAmt);
