@@ -191,6 +191,14 @@ function _updateHeader(page){
       if(hHeaderEl)hHeaderEl.style.background='';
       var _mpEl=document.getElementById('page-mi-perfil');
       if(_mpEl){_mpEl.style.height='100%';_mpEl.style.overflowY='auto';}
+    }else if(page==='configuracion'){
+      var _mpElCfg=document.getElementById('page-mi-perfil');
+      if(_mpElCfg){_mpElCfg.style.height='';_mpElCfg.style.overflowY='';}
+      hRow2.style.display='none';
+      if(hHero){hHero.style.display='none';hHero.innerHTML='';}
+      if(hTitle){hTitle.style.display='block';hTitle.textContent='Configuración';}
+      if(hSubtitle){hSubtitle.style.display='none';}
+      if(hHeaderEl)hHeaderEl.style.background='';
     }else if(isDash){
       var _mpEl2=document.getElementById('page-mi-perfil');
       if(_mpEl2){_mpEl2.style.height='';_mpEl2.style.overflowY='';}
@@ -206,13 +214,7 @@ function _updateHeader(page){
       hRow2.style.display='block';
       if(hGreeting)hGreeting.textContent='\u00a0';
       if(hBigTitle)hBigTitle.textContent=_getPageTitle(page);
-      if(page==='configuracion'&&hSubtitle){
-        hSubtitle.textContent='Todo lo que necesitas para que la app funcione justo como t\u00fa quieres \u2699\uFE0F';
-        hSubtitle.style.display='block';
-      }else if(hSubtitle){
-        hSubtitle.style.display='none';
-        hSubtitle.textContent='';
-      }
+      if(hSubtitle){hSubtitle.style.display='none';hSubtitle.textContent='';}
     }
   }
   // Spacer Mi Perfil
