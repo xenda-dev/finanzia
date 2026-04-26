@@ -5523,8 +5523,9 @@ const ALL_LANGUAGES=[
 ];
 function renderConfiguracion(){
   const notifStatus=!('Notification'in window)?t('notifNA'):
-    Notification.permission==='granted'?t('notifGranted'):
-    Notification.permission==='denied'?t('notifDenied'):t('notifDefault');
+    Notification.permission==='denied'?t('notifDenied'):
+    Notification.permission!=='granted'?t('notifDefault'):
+    (S.notifPrefs&&S.notifPrefs._master===false)?t('notifDenied'):t('notifGranted');
   const activeCurs=S.currencies||[];
   const resCur=(()=>{const m={"Afghanistan":"AFN","Albania":"ALL","Alemania":"EUR","Andorra":"EUR","Angola":"AOA","Argentina":"ARS","Armenia":"AMD","Australia":"AUD","Austria":"EUR","Azerbaiyán":"AZN","Bahamas":"BSD","Bangladés":"BDT","Bélgica":"EUR","Belice":"BZD","Bolivia":"BOB","Bosnia y Herzegovina":"BAM","Brasil":"BRL","Bulgaria":"BGN","Camerún":"XAF","Canadá":"CAD","Chile":"CLP","China":"CNY","Chipre":"EUR","Colombia":"COP","Costa Rica":"CRC","Croacia":"EUR","Cuba":"CUP","Dinamarca":"DKK","Ecuador":"USD","Egipto":"EGP","El Salvador":"USD","Emiratos Árabes Unidos":"AED","Eslovaquia":"EUR","Eslovenia":"EUR","España":"EUR","Estados Unidos":"USD","Estonia":"EUR","Etiopía":"ETB","Filipinas":"PHP","Finlandia":"EUR","Francia":"EUR","Ghana":"GHS","Grecia":"EUR","Guatemala":"GTQ","Honduras":"HNL","Hungría":"HUF","India":"INR","Indonesia":"IDR","Irán":"IRR","Irlanda":"EUR","Israel":"ILS","Italia":"EUR","Jamaica":"JMD","Japón":"JPY","Jordania":"JOD","Kazajistán":"KZT","Kenia":"KES","México":"MXN","Marruecos":"MAD","Nepal":"NPR","Nicaragua":"NIO","Nigeria":"NGN","Noruega":"NOK","Nueva Zelanda":"NZD","Países Bajos":"EUR","Pakistán":"PKR","Panamá":"USD","Paraguay":"PYG","Perú":"PEN","Polonia":"PLN","Portugal":"EUR","Qatar":"QAR","Reino Unido":"GBP","República Checa":"CZK","República Dominicana":"DOP","Rumanía":"RON","Rusia":"RUB","Arabia Saudita":"SAR","Senegal":"XOF","Serbia":"RSD","Singapur":"SGD","Sudáfrica":"ZAR","Suecia":"SEK","Suiza":"CHF","Tailandia":"THB","Tanzania":"TZS","Turquía":"TRY","Ucrania":"UAH","Uruguay":"UYU","Venezuela":"VES","Vietnam":"VND","Zimbabue":"ZWL"};return m[S.profile&&S.profile.residence]||'';})();
   const langCurrent=S.language?ALL_LANGUAGES.find(function(l){return l.id===S.language;})||ALL_LANGUAGES[0]:null;
