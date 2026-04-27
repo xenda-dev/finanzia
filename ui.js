@@ -6484,7 +6484,7 @@ function openProfilePage(){
       +'<div style="width:34px;flex-shrink:0"></div>'
     +'</div>'
     +'</div>'
-    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>';
+    +'<div style="background:var(--surface);height:26px;border-radius:24px 24px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>';
   var body='<div style="flex:1;overflow-y:auto;padding:0 16px 16px">'+buildProfileFormHTML()+'</div>';
   var footer=
     '<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface)">'
