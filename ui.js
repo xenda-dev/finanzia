@@ -5564,14 +5564,12 @@ function renderConfiguracion(){
   var svgImp='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
   var svgReset='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>';
   var svgCat='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>';
-  var secLbl=function(txt){return '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:18px 0 8px;padding-left:2px">'+txt+'</div>';};
+  var secLbl=function(txt){return '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:24px 0 10px;padding-left:2px">'+txt+'</div>';};
   var wkLabel=({lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'})[S.weekStart]||'Seleccionar';
   var curLabel=(S.currencies&&S.currencies.length)?(S.currencies.join(' · ')):'Seleccionar';
   var themeSegs=buildThemeCaps();
   var fmtSegs=buildNumFormatCaps();
-  return '<div style="padding:0 14px calc(var(--nav-h)+24px)">'
-    // Perfil
-    +secLbl('Perfil')
+  return '<div style="padding:18px 14px calc(var(--nav-h)+24px)">'
     +'<div onclick="navigate(\'mi-perfil\')" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);margin-bottom:18px;cursor:pointer">'
       +'<div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid var(--primary);overflow:hidden;flex-shrink:0">'
         +((_getProfilePhoto())?('<img src="'+_getProfilePhoto()+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'):((S.profile&&S.profile.name)?('<span style="font-size:16px;font-weight:700;color:white">'+S.profile.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)+'</span>'):'<span style="color:white">👤</span>'))
@@ -6476,17 +6474,16 @@ function openProfilePage(){
   overlay.id='profile-page-overlay';
   overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   var header=
-    '<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 0;flex-shrink:0">'
-    +'<button onclick="closeProfilePage()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">'
-    +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'
-    +'</button>'
-    +'<div style="padding-top:12px;padding-bottom:18px">'
-    +'<div style="font-size:11px;color:var(--text2);font-weight:500;margin-bottom:1px">\u00a0</div>'
-    +'<div style="font-size:21px;font-weight:900;color:var(--text);letter-spacing:-.6px;line-height:1.1;margin-bottom:4px">Datos generales</div>'
-    +'<div style="font-size:12px;font-weight:500;color:var(--text2);line-height:1.5;margin-top:4px">Actualiza tu informaci\u00f3n personal</div>'
+    '<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 12px 22px;flex-shrink:0">'
+    +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<button onclick="closeProfilePage()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">'
+      +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'
+      +'</button>'
+      +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">Datos generales</div>'
+      +'<div style="width:34px;flex-shrink:0"></div>'
     +'</div>'
     +'</div>'
-    +'<div style="background:var(--surface);height:26px;margin-top:-13px;width:100%;border-radius:24px 24px 0 0;flex-shrink:0;position:relative;z-index:1"></div>';
+    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>';
   var body='<div style="flex:1;overflow-y:auto;padding:0 16px 16px">'+buildProfileFormHTML()+'</div>';
   var footer=
     '<div style="flex-shrink:0;padding:12px 16px max(env(safe-area-inset-bottom),12px);background:var(--surface)">'
@@ -6560,7 +6557,7 @@ function buildProfileFormHTML(){
     +'</div>';
   }).join('');
 
-  function sLbl(t){return '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:18px 0 8px;padding-left:2px">'+t+'</div>';}
+  function sLbl(t){return '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:14px 0 10px;padding-left:2px">'+t+'</div>';}
   function sCard(c){return '<div style="background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);overflow:hidden;margin-bottom:4px">'+c+'</div>';}
   function fg(c,last){return '<div class="form-group" style="margin:0;padding:13px 14px;'+(last?'':'border-bottom:0.5px solid var(--border)')+'">'+c+'</div>';}
 
@@ -8832,6 +8829,42 @@ function _showSoporteAsuntoBS(){
     if(inp)inp.value=val;
     if(lbl){lbl.textContent=val;lbl.style.color='var(--text)';}
   },false,10003);
+}
+function openContactSheet(){
+  closeBottomSheet();
+  var ov=document.createElement('div');
+  ov.id='contact-hub-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  function row(bg,svg,label,sub,onclick){
+    return '<div onclick="'+onclick+'" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:0.5px solid var(--border);cursor:pointer">'
+      +'<div style="width:42px;height:42px;border-radius:12px;background:'+bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+svg+'</div>'
+      +'<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:var(--text)">'+label+'</div><div style="font-size:11px;color:var(--text2);margin-top:2px">'+sub+'</div></div>'
+      +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
+    +'</div>';
+  }
+  var svgMail='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
+  var svgTg='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><path d="M21.5 4.5L2.5 12.5l5.5 1.5 2 6 3-3.5 5 4 3.5-16z"/></svg>';
+  var svgForm='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
+  ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;overflow:hidden;animation:bsSlideUp .22s ease">'
+    +'<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<button onclick="document.getElementById(\'contact-hub-overlay\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button>'
+        +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">Contacta con Xenda</div>'
+        +'<div style="width:34px;flex-shrink:0"></div>'
+      +'</div>'
+    +'</div>'
+    +'<div style="background:var(--surface);height:18px;border-radius:18px 18px 0 0;margin-top:-12px;position:relative;z-index:1"></div>'
+    +'<div style="padding:4px 14px max(env(safe-area-inset-bottom),20px)">'
+      +'<div style="background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);overflow:hidden">'
+        +row('rgba(59,130,246,.12)',svgMail,'Correo electrónico','soporte@xenda.co','document.getElementById(\'contact-hub-overlay\').remove();window.location.href=\'mailto:soporte@xenda.co?subject=FinanzIA - Consulta\'')
+        +row('rgba(0,212,170,.12)',svgTg,'Telegram','Habla con nuestro bot 24/7','document.getElementById(\'contact-hub-overlay\').remove();window.open(\'https://t.me/xenda_soporte_bot\',\'_blank\')')
+        +row('rgba(116,97,239,.12)',svgForm,'Formulario','Abre un ticket de soporte','document.getElementById(\'contact-hub-overlay\').remove();openSoporteModal()')
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:14px;line-height:1.5">Te respondemos en menos de 24 h hábiles.</div>'
+    +'</div>'
+  +'</div>';
+  document.body.appendChild(ov);
 }
 function openSoporteModal(){
   var name='';
