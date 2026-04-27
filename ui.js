@@ -489,24 +489,33 @@ function _buildNotifContent(){
 function _toggleNotifMaster(){
   if(!S.notifPrefs)S.notifPrefs={};
   var currentOn=S.notifPrefs._master!==false;
-  S.notifPrefs._master=!currentOn;
-  saveState();
-  var wrap=document.querySelector('#notif-page-overlay [style*="overflow-y:auto"]');
-  if(wrap)wrap.innerHTML=_buildNotifContent();
+  if(currentOn){
+    confirmDialog('🔔','¿Desactivar notificaciones?',
+      'No recibirás alertas de FinanzIA.',
+      function(){
+        S.notifPrefs._master=false;
+        saveState();
+        _refreshNotifOverlay();
+      },'Desactivar','btn-danger','Cancelar');
+  }else{
+    S.notifPrefs._master=true;
+    saveState();
+    _refreshNotifOverlay();
+  }
 }
 function _toggleNotifItem(key){
   if(!S.notifPrefs)S.notifPrefs={};
   S.notifPrefs[key]=!S.notifPrefs[key];
   saveState();
-  var wrap=document.querySelector('#notif-page-overlay [style*="overflow-y:auto"]');
-  if(wrap)wrap.innerHTML=_buildNotifContent();
+  _refreshNotifOverlay();
 }
 function buildNotifToggles(){return '';}
 function toggleNotifPref(key){_toggleNotifItem(key);}
 function _refreshNotifOverlay(){
   var wrap=document.querySelector('#notif-page-overlay [style*="overflow-y:auto"]');
   if(wrap)wrap.innerHTML=_buildNotifContent();
-  if(S.currentPage==='configuracion')renderPage('configuracion');
+  var cfgEl=document.getElementById('page-configuracion');
+  if(cfgEl&&cfgEl.classList.contains('active'))renderPage('configuracion');
 }
 function requestNotifPerm(){
   if(!('Notification'in window)){toast('Notificaciones no disponibles en este navegador');return;}
