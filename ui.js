@@ -5591,13 +5591,13 @@ function renderConfiguracion(){
     // Apariencia
     +secLbl('Apariencia')
     +cfgCard([
-      cfgRowSeg('rgba(116,97,239,.12)',svgTheme,'Tema','<div style="background:var(--surface2);border:1px solid var(--border);border-radius:50px;padding:3px;display:flex;gap:2px">'+themeSegs+'</div>'),
+      cfgRowSeg('rgba(116,97,239,.12)',svgTheme,'Tema','<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:50px;padding:3px;display:flex;gap:2px">'+themeSegs+'</div>'),
       '<div style="padding:13px 14px">'
         +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">'
           +'<div style="width:36px;height:36px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+svgFmt+'</div>'
           +'<div style="font-size:13px;font-weight:700;color:var(--text)">Formato de moneda</div>'
         +'</div>'
-        +'<div style="background:var(--surface2);border:1px solid var(--border);border-radius:50px;padding:3px;display:flex;gap:2px">'+fmtSegs+'</div>'
+        +'<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:50px;padding:3px;display:flex;gap:2px">'+fmtSegs+'</div>'
         +'<div style="font-size:11px;color:var(--text2);margin-top:6px">Ejemplo: <strong>'+buildNumFormatExample()+'</strong></div>'
       +'</div>'
     ])
