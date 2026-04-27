@@ -499,6 +499,7 @@ function _toggleNotifMaster(){
       },'Desactivar','btn-danger','Cancelar');
   }else{
     S.notifPrefs._master=true;
+    _notifActivateAll();
     saveState();
     _refreshNotifOverlay();
   }
@@ -508,6 +509,16 @@ function _toggleNotifItem(key){
   S.notifPrefs[key]=!S.notifPrefs[key];
   saveState();
   _refreshNotifOverlay();
+}
+function _notifActivateAll(){
+  // Primera vez que el master se activa: enciende todos los individuales.
+  // Las siguientes veces respeta el estado previo de cada toggle.
+  if(!S.notifPrefs._everActivated){
+    S.notifPrefs._everActivated=true;
+    ['notifPayments','notifBudget','notifGoal','notifWeekly','notifTips'].forEach(function(k){
+      S.notifPrefs[k]=true;
+    });
+  }
 }
 function buildNotifToggles(){return '';}
 function toggleNotifPref(key){_toggleNotifItem(key);}
@@ -528,6 +539,7 @@ function requestNotifPerm(){
   if(Notification.permission==='granted'){
     if(!S.notifPrefs)S.notifPrefs={};
     S.notifPrefs._master=true;
+    _notifActivateAll();
     saveState();
     _refreshNotifOverlay();
     return;
@@ -536,6 +548,7 @@ function requestNotifPerm(){
     if(result==='granted'){
       if(!S.notifPrefs)S.notifPrefs={};
       S.notifPrefs._master=true;
+      _notifActivateAll();
       saveState();
       toast('🔔 Notificaciones activadas ✓');
     }else if(result==='denied'){
