@@ -198,6 +198,7 @@ function _updateHeader(page){
       if(hHero){hHero.style.display='none';hHero.innerHTML='';}
       if(hTitle){hTitle.style.display='block';hTitle.textContent='Configuración';}
       if(hSubtitle){hSubtitle.style.display='none';}
+      if(hSpacer){hSpacer.style.display='block';hSpacer.innerHTML='';}
       if(hHeaderEl)hHeaderEl.style.background='';
     }else if(isDash){
       var _mpEl2=document.getElementById('page-mi-perfil');
