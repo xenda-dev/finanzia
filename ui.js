@@ -5564,13 +5564,13 @@ function renderConfiguracion(){
   var svgImp='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
   var svgReset='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>';
   var svgCat='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>';
-  var secLbl=function(txt){return '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:24px 0 10px;padding-left:2px">'+txt+'</div>';};
+  var secLbl=function(txt,first){return '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:'+(first?'10px':'22px')+' 0 8px;padding-left:2px">'+txt+'</div>';};
   var wkLabel=({lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'})[S.weekStart]||'Seleccionar';
   var curLabel=(S.currencies&&S.currencies.length)?(S.currencies.join(' · ')):'Seleccionar';
   var themeSegs=buildThemeCaps();
   var fmtSegs=buildNumFormatCaps();
   return '<div style="padding:0 14px calc(var(--nav-h)+24px)">'
-    +secLbl('Perfil')
+    +secLbl('Perfil',true)
     +'<div onclick="navigate(\'mi-perfil\')" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);margin-bottom:18px;cursor:pointer">'
       +'<div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid var(--primary);overflow:hidden;flex-shrink:0">'
         +((_getProfilePhoto())?('<img src="'+_getProfilePhoto()+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'):((S.profile&&S.profile.name)?('<span style="font-size:16px;font-weight:700;color:white">'+S.profile.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)+'</span>'):'<span style="color:white">👤</span>'))
