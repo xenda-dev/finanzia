@@ -449,7 +449,7 @@ function _buildNotifContent(){
   var active=granted&&masterOn;
   var bannerSub=active?'Toca para desactivar':(granted?'Toca para activar':'Toca para solicitar permiso al sistema');
   // Banner
-  var banner='<div onclick="_toggleNotifBanner()" style="background:linear-gradient(135deg,rgba(0,212,170,.12),rgba(116,97,239,.08));border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;border:0.5px solid rgba(0,212,170,.2);margin-bottom:14px;cursor:pointer">'
+  var banner='<div style="background:linear-gradient(135deg,rgba(0,212,170,.12),rgba(116,97,239,.08));border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;border:0.5px solid rgba(0,212,170,.2);margin-bottom:14px">'
     +'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00D4AA,#7461EF);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔔</div>'
     +'<div style="flex:1"><div style="font-size:14px;font-weight:700;color:'+(active?'var(--text)':'#94A3B8')+'">'+(active?'Notificaciones activas':'Notificaciones desactivadas')+'</div>'
     +'<div style="font-size:11px;color:var(--text3);margin-top:1px">'+bannerSub+'</div></div>'
@@ -506,27 +506,7 @@ function toggleNotifPref(key){_toggleNotifItem(key);}
 function _refreshNotifOverlay(){
   var wrap=document.querySelector('#notif-page-overlay [style*="overflow-y:auto"]');
   if(wrap)wrap.innerHTML=_buildNotifContent();
-}
-function _toggleNotifBanner(){
-  var perm=!('Notification'in window)?'denied':(Notification.permission||'default');
-  var granted=perm==='granted';
-  var masterOn=!!(S.notifPrefs&&S.notifPrefs._master!==false);
-  if(!granted){requestNotifPerm();return;}
-  if(!masterOn){
-    if(!S.notifPrefs)S.notifPrefs={};
-    S.notifPrefs._master=true;
-    saveState();
-    _refreshNotifOverlay();
-    return;
-  }
-  confirmDialog('🔔','¿Desactivar notificaciones?',
-    'No recibirás alertas de FinanzIA.',
-    function(){
-      if(!S.notifPrefs)S.notifPrefs={};
-      S.notifPrefs._master=false;
-      saveState();
-      _refreshNotifOverlay();
-    },'Desactivar','btn-danger','Cancelar');
+  if(S.currentPage==='configuracion')renderPage('configuracion');
 }
 function requestNotifPerm(){
   if(!('Notification'in window)){toast('Notificaciones no disponibles en este navegador');return;}
