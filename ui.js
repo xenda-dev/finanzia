@@ -6475,7 +6475,7 @@ function openProfilePage(){
   overlay.id='profile-page-overlay';
   overlay.style.cssText='position:fixed;inset:0;z-index:200;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
   var header=
-    '<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;flex-shrink:0">'
+    '<div style="background:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 20px;flex-shrink:0">'
     +'<div style="display:flex;align-items:center;gap:8px">'
       +'<button onclick="closeProfilePage()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">'
       +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'
