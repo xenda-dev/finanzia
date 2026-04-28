@@ -229,7 +229,10 @@ function _updateHeader(page){
     }
   }
   var _bottomNav=document.querySelector('nav.bottom-nav');
-  if(_bottomNav)_bottomNav.style.display=(page==='mi-perfil')?'none':'';
+  if(_bottomNav){
+    _bottomNav.style.display=(page==='mi-perfil')?'none':'';
+    _bottomNav.style.background=(page==='dashboard')?'var(--bg)':'var(--surface)';
+  }
   var _navDel=document.getElementById('nav-delete-account-btn');
   if(_navDel)_navDel.style.display='none';
 }
