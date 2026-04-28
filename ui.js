@@ -501,10 +501,7 @@ function _toggleNotifMaster(){
         _refreshNotifOverlay();
       },'Desactivar','btn-danger','Cancelar');
   }else{
-    S.notifPrefs._master=true;
-    _notifActivateAll();
-    saveState();
-    _refreshNotifOverlay();
+    requestNotifPerm();
   }
 }
 function _toggleNotifItem(key){
