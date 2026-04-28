@@ -40,7 +40,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 #page-grp-midinero,#page-grp-planificacion,#page-grp-herramientas,#page-configuracion,#page-mi-perfil,#page-categorias,#page-simulador,#page-calculadora,#page-jubilacion,#page-emergencia,#page-inflacion,#page-rentabilidad,#page-test,#page-estrategia,#page-cambio,#page-listas{background:var(--surface)}
 .page.active{display:block}
 .bottom-nav{height:var(--nav-h);background:var(--surface);border-top:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:50;padding:0 12px max(env(safe-area-inset-bottom),14px)}
-.nav-card{background:var(--surface);border-radius:26px;display:flex;align-items:center;justify-content:space-around;padding:8px 6px;width:100%}
+.nav-card{background:var(--surface);border-radius:26px;border:0.5px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-around;padding:8px 6px;width:100%}
 .nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 8px;border:none;background:none;color:var(--text3);cursor:pointer;transition:.2s;flex:1}
 .nav-item .ni-dot{width:4px;height:4px;border-radius:50%;background:transparent;transition:.2s}
 .nav-item.active{color:var(--primary)}
