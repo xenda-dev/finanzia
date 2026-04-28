@@ -600,6 +600,102 @@ function advancePayment(p){
   p.nextDate=d.toISOString().split('T')[0];
 }
 
+function checkBudgetNotifs(){
+  var uid=window._currentUser&&window._currentUser.id;
+  if(!uid)return;
+  var ym=todayStr().substring(0,7);
+  filterDeleted(S.budgets).forEach(function(b){
+    var spent=getBudgetSpent(b);
+    if(!b.amount||b.amount<=0)return;
+    var pct=spent/b.amount;
+    if(pct<0.8)return;
+    var key='_notifBudget_'+uid+'_'+b.id+'_'+ym;
+    if(localStorage.getItem(key))return;
+    var cat=filterDeleted(S.categories).find(function(c){return c.id===b.categoryId;});
+    var catName=cat?cat.name:'Presupuesto';
+    if(pct>=1.0){
+      sendNotif('🚨 Presupuesto superado',catName+' superó el límite este mes','notifBudget');
+    }else{
+      sendNotif('📊 Presupuesto al límite',catName+' — '+Math.round(pct*100)+'% usado','notifBudget');
+    }
+    localStorage.setItem(key,'1');
+  });
+}
+function checkGoalNotifs(){
+  var uid=window._currentUser&&window._currentUser.id;
+  if(!uid)return;
+  var milestones=[25,50,75,100];
+  var msgs={
+    25:{title:'🎯 Meta en marcha',body:' — ¡Ya llevas el 25%!'},
+    50:{title:'🎯 ¡Vas a la mitad!',body:' — Sigue así.'},
+    75:{title:'🎯 ¡Casi llegas!',body:' — 75% completado.'},
+    100:{title:'🎉 ¡Meta alcanzada!',body:' — ¡Felicitaciones!'}
+  };
+  filterDeleted(S.goals).forEach(function(g){
+    if(!g.target||g.target<=0)return;
+    var pct=Math.round((g.saved/g.target)*100);
+    milestones.forEach(function(m){
+      if(pct<m)return;
+      var key='_notifGoal_'+uid+'_'+g.id+'_'+m;
+      if(localStorage.getItem(key))return;
+      sendNotif(msgs[m].title,g.name+msgs[m].body,'notifGoal');
+      localStorage.setItem(key,'1');
+    });
+  });
+}
+function checkWeeklyNotif(){
+  if(new Date().getDay()!==1)return;
+  var uid=window._currentUser&&window._currentUser.id;
+  if(!uid)return;
+  function _getISOWeek(d){
+    var date=new Date(d.getTime());
+    date.setHours(0,0,0,0);
+    date.setDate(date.getDate()+3-(date.getDay()+6)%7);
+    var week1=new Date(date.getFullYear(),0,4);
+    var wk=1+Math.round(((date.getTime()-week1.getTime())/86400000-3+(week1.getDay()+6)%7)/7);
+    return date.getFullYear()+'W'+(wk<10?'0':'')+wk;
+  }
+  var isoWeek=_getISOWeek(new Date());
+  var key='_notifWeekly_'+uid+'_'+isoWeek;
+  if(localStorage.getItem(key))return;
+  var cutoff=new Date();
+  cutoff.setDate(cutoff.getDate()-7);
+  var inc=0,exp=0;
+  filterDeleted(S.transactions).forEach(function(t){
+    if(new Date(t.date)<cutoff)return;
+    if(t.currency!==S.currency)return;
+    if(t.type==='ingreso')inc+=parseFloat(t.amount)||0;
+    else if(t.type==='gasto')exp+=parseFloat(t.amount)||0;
+  });
+  sendNotif('📅 Resumen semanal','Ingresos: '+fmt(inc,S.currency)+'  ·  Gastos: '+fmt(exp,S.currency),'notifWeekly');
+  localStorage.setItem(key,'1');
+}
+function checkTipsNotif(){
+  var uid=window._currentUser&&window._currentUser.id;
+  if(!uid)return;
+  var tips=[
+    'Registra cada gasto, por pequeño que sea. Los pequeños suman.',
+    'Aplica la regla 50/30/20: necesidades, deseos y ahorro.',
+    'Revisa tus suscripciones activas cada 3 meses.',
+    'Un fondo de emergencia equivale a 3-6 meses de gastos fijos.',
+    'Automatiza tus ahorros: págate a ti mismo primero.',
+    'Compara precios antes de cualquier compra mayor.',
+    'Liquida primero las deudas con mayor tasa de interés.',
+    'Visualiza tus metas financieras: escríbelas y ponles fecha.'
+  ];
+  var lastDayKey='_notifTips_'+uid+'_lastDay';
+  var idxKey='_notifTips_'+uid+'_idx';
+  var lastDay=localStorage.getItem(lastDayKey);
+  if(lastDay){
+    var diff=(new Date(todayStr()).getTime()-new Date(lastDay).getTime())/86400000;
+    if(diff<3)return;
+  }
+  var idx=parseInt(localStorage.getItem(idxKey)||'0',10);
+  if(isNaN(idx)||idx<0||idx>=tips.length)idx=0;
+  sendNotif('💡 Consejo financiero',tips[idx],'notifTips');
+  localStorage.setItem(idxKey,String((idx+1)%tips.length));
+  localStorage.setItem(lastDayKey,todayStr());
+}
 // ════════════════════════════════════════════════════════════
 // DASHBOARD
 // ════════════════════════════════════════════════════════════

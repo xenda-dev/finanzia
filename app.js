@@ -22,6 +22,10 @@ function initApp(){
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){if(S.theme==='auto')applyThemeMode();});
   navigate((S.currentPage&&S.currentPage!=='configuracion')?S.currentPage:'dashboard');
   checkAutoPayments();
+  checkBudgetNotifs();
+  checkGoalNotifs();
+  checkWeeklyNotif();
+  checkTipsNotif();
   fetchExchangeRate();
   let touchStartX=0;
   document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;},{passive:true});
