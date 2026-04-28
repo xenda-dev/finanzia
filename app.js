@@ -10,6 +10,11 @@ window.onerror=function(msg,src,line){
 // INIT APP — llamado por auth.js tras login exitoso
 // ════════════════════════════════════════════════════════════
 function initApp(){
+  if('serviceWorker'in navigator){
+    navigator.serviceWorker.register('/sw.js').catch(function(e){
+      console.warn('SW registro fallido:',e);
+    });
+  }
   loadState();
 
   // ── Quitar monedas hardcodeadas si son las de prueba ──────

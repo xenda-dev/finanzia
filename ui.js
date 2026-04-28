@@ -565,7 +565,16 @@ function sendNotif(title,body,prefKey){
   if(Notification.permission!=='granted')return;
   if(!S.notifPrefs||S.notifPrefs._master===false)return;
   if(prefKey&&!S.notifPrefs[prefKey])return;
-  try{new Notification(title,{body,icon:'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E💰%3C/text%3E%3C/svg%3E'});}catch(e){}
+  var opts={body:body,icon:'/icon-192.png',badge:'/icon-192.png'};
+  if('serviceWorker'in navigator&&navigator.serviceWorker.controller){
+    navigator.serviceWorker.ready.then(function(reg){
+      reg.showNotification(title,opts);
+    }).catch(function(){
+      try{new Notification(title,opts);}catch(e){}
+    });
+  }else{
+    try{new Notification(title,opts);}catch(e){}
+  }
 }
 function checkAutoPayments(){
   const today=todayStr();
