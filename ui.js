@@ -5570,14 +5570,19 @@ function renderConfiguracion(){
   var themeSegs=buildThemeCaps();
   var fmtSegs=buildNumFormatCaps();
   return '<div style="padding:0 14px calc(var(--nav-h)+24px)">'
-    +secLbl('Perfil',true)
-    +'<div onclick="navigate(\'mi-perfil\')" style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);margin-bottom:18px;cursor:pointer">'
-      +'<div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid var(--primary);overflow:hidden;flex-shrink:0">'
-        +((_getProfilePhoto())?('<img src="'+_getProfilePhoto()+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'):((S.profile&&S.profile.name)?('<span style="font-size:16px;font-weight:700;color:white">'+S.profile.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)+'</span>'):'<span style="color:white">👤</span>'))
+    +'<div onclick="navigate(\'mi-perfil\')" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);margin-bottom:4px;cursor:pointer">'
+      +'<div style="position:relative;flex-shrink:0">'
+        +'<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;border:2.5px solid rgba(0,212,170,.2);box-sizing:border-box;overflow:hidden">'
+          +((_getProfilePhoto())?('<img src="'+_getProfilePhoto()+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'):((S.profile&&S.profile.name)?('<span style="font-size:16px;font-weight:700;color:white">'+S.profile.name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)+'</span>'):'<span style="font-size:16px;font-weight:700;color:white">?</span>'))
+        +'</div>'
       +'</div>'
       +'<div style="flex:1;min-width:0">'
-        +'<div style="font-size:14px;font-weight:700;color:var(--text)">'+(( S.profile&&S.profile.name)||'Mi Perfil')+'</div>'
-        +'<div style="font-size:12px;color:var(--text2);margin-top:1px">'+((S.profile&&S.profile.email)||'Toca para completar tu perfil')+'</div>'
+        +'<div style="font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">'+((S.profile&&S.profile.name)||'Mi Perfil')+'</div>'
+        +'<div style="font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">'+((S.profile&&S.profile.email)||'Toca para completar tu perfil')+'</div>'
+        +'<div style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:99px;background:rgba(0,212,170,.1);color:#0F766E;font-size:10px;font-weight:600">'
+          +'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2.5" stroke-linecap="round" style="pointer-events:none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
+          +'Revisar mi perfil'
+        +'</div>'
       +'</div>'
       +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
     +'</div>'
