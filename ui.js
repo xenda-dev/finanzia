@@ -679,6 +679,9 @@ function checkWeeklyNotif(){
 function checkTipsNotif(){
   var uid=window._currentUser&&window._currentUser.id;
   if(!uid)return;
+  var lastDay=localStorage.getItem('_notifTips_'+uid+'_lastDay');
+  var today=todayStr();
+  if(lastDay===today)return;
   var tips=[
     'Registra cada gasto, por pequeño que sea. Los pequeños suman.',
     'Aplica la regla 50/30/20: necesidades, deseos y ahorro.',
@@ -687,20 +690,54 @@ function checkTipsNotif(){
     'Automatiza tus ahorros: págate a ti mismo primero.',
     'Compara precios antes de cualquier compra mayor.',
     'Liquida primero las deudas con mayor tasa de interés.',
-    'Visualiza tus metas financieras: escríbelas y ponles fecha.'
+    'Visualiza tus metas financieras: escríbelas y ponles fecha.',
+    'Evita compras impulsivas esperando 48 horas antes de decidir.',
+    'Diversifica tus ingresos: no dependas de una sola fuente.',
+    'Revisa tu estado de cuenta bancario al menos una vez por semana.',
+    'Negocia tus facturas fijas: internet, seguro, telefonía.',
+    'Aprende la diferencia entre activo y pasivo antes de comprar algo grande.',
+    'El interés compuesto es tu mejor aliado — empieza a invertir hoy.',
+    'Usa efectivo para gastos discrecionales: duele más gastar lo que ves.',
+    'Define un presupuesto para ocio — disfrutar también es parte del plan.',
+    'Antes de endeudarte pregúntate: ¿esto genera valor o solo costo?',
+    'Revisa tu historial crediticio al menos una vez al año.',
+    'Separa tus cuentas: una para gastos fijos, otra para variables.',
+    'Invierte en educación financiera — es el activo de mayor rentabilidad.'
   ];
-  var lastDayKey='_notifTips_'+uid+'_lastDay';
+  var frases=[
+    'El dinero es un pésimo amo pero un excelente sirviente. — Francis Bacon',
+    'No ahorres lo que te queda después de gastar; gasta lo que te queda después de ahorrar. — Warren Buffett',
+    'La riqueza no es tener mucho, sino necesitar poco.',
+    'Cada peso que ahorras hoy es libertad que compras para mañana.',
+    'La disciplina financiera es el puente entre tus metas y tu realidad.',
+    'Invierte en ti mismo. Tu carrera es el motor de todo lo demás. — Warren Buffett',
+    'Los pequeños gastos diarios son los grandes ladrones de tu futuro.',
+    'La independencia financiera no es un destino, es un hábito.',
+    'No importa cuánto ganas, sino cuánto conservas. — Robert Kiyosaki',
+    'El mejor momento para empezar a ahorrar fue ayer. El segundo mejor momento es hoy.',
+    'Tu futuro financiero lo construyes con las decisiones de hoy.',
+    'La fortuna favorece a los preparados. — Louis Pasteur',
+    'Gasta menos de lo que ganas — todo lo demás es detalle.',
+    'La libertad financiera es comprarte tiempo, no cosas.',
+    'Un inversor que no duerme bien de noche tiene demasiado riesgo. — Warren Buffett',
+    'No trabajes por dinero — haz que el dinero trabaje por ti.',
+    'Cada meta financiera alcanzada es una prueba de que puedes más.',
+    'El sacrificio de hoy es la recompensa de mañana.',
+    'Construir riqueza es un maratón, no un sprint — constancia ante todo.',
+    'La mejor inversión que puedes hacer es en ti mismo. — Warren Buffett'
+  ];
+  var dayNum=new Date().getDate();
+  var pool=dayNum%2===0?frases:tips;
   var idxKey='_notifTips_'+uid+'_idx';
-  var lastDay=localStorage.getItem(lastDayKey);
-  if(lastDay){
-    var diff=(new Date(todayStr()).getTime()-new Date(lastDay).getTime())/86400000;
-    if(diff<3)return;
-  }
   var idx=parseInt(localStorage.getItem(idxKey)||'0',10);
-  if(isNaN(idx)||idx<0||idx>=tips.length)idx=0;
-  sendNotif('💡 Consejo financiero',tips[idx],'notifTips');
-  localStorage.setItem(idxKey,String((idx+1)%tips.length));
-  localStorage.setItem(lastDayKey,todayStr());
+  if(isNaN(idx)||idx<0||idx>=pool.length)idx=0;
+  var shuffleIdx=Math.floor(Math.random()*pool.length);
+  var finalIdx=(idx+shuffleIdx)%pool.length;
+  var msg=pool[finalIdx];
+  var title=dayNum%2===0?'✨ Frase del día':'💡 Consejo financiero';
+  sendNotif(title,msg,'notifTips');
+  localStorage.setItem(idxKey,String((finalIdx+1)%pool.length));
+  localStorage.setItem('_notifTips_'+uid+'_lastDay',today);
 }
 // ════════════════════════════════════════════════════════════
 // DASHBOARD
