@@ -5569,7 +5569,7 @@ function renderConfiguracion(){
   var curLabel=(S.currencies&&S.currencies.length)?(S.currencies.join(' · ')):'Seleccionar';
   var themeSegs=buildThemeCaps();
   var fmtSegs=buildNumFormatCaps();
-  return '<div style="padding:0 14px calc(var(--nav-h)+24px)">'
+  return '<div style="padding:16px 14px calc(var(--nav-h)+24px)">'
     +'<div onclick="navigate(\'mi-perfil\')" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);margin-bottom:4px;cursor:pointer">'
       +'<div style="position:relative;flex-shrink:0">'
         +'<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;border:2.5px solid rgba(0,212,170,.2);box-sizing:border-box;overflow:hidden">'
