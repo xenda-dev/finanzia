@@ -22,6 +22,7 @@
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden;transition:background .3s,color .3s}
 #app{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;position:relative}
+/* REGLA: nunca agregar border-bottom al header — la transición la maneja #header-curve */
 .header{display:flex;flex-direction:column;justify-content:flex-start;padding:10px 14px 0;background:var(--grad-header);z-index:50;flex-shrink:0;gap:0;position:relative}
 .header-row1{display:flex;align-items:center;justify-content:space-between;gap:4px;position:relative;margin-bottom:0}
 #header-row2{padding-top:12px}
@@ -39,7 +40,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 #page-calculadora{padding:0}
 #page-grp-midinero,#page-grp-planificacion,#page-grp-herramientas,#page-configuracion,#page-mi-perfil,#page-categorias,#page-simulador,#page-calculadora,#page-jubilacion,#page-emergencia,#page-inflacion,#page-rentabilidad,#page-test,#page-estrategia,#page-cambio,#page-listas{background:var(--surface)}
 .page.active{display:block}
-.bottom-nav{height:var(--nav-h);background:var(--surface);border-top:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:50;padding:0 12px max(env(safe-area-inset-bottom),14px)}
+/* REGLA: background siempre transparent, nunca border-top — el nav-card flota limpio sobre la página */
+.bottom-nav{height:var(--nav-h);background:transparent;border-top:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:50;padding:0 12px max(env(safe-area-inset-bottom),14px)}
 .nav-card{background:var(--surface);border-radius:26px;box-shadow:0 6px 24px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:space-around;padding:8px 6px;width:100%}
 .nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 8px;border:none;background:none;color:var(--text3);cursor:pointer;transition:.2s;flex:1}
 .nav-item .ni-dot{width:4px;height:4px;border-radius:50%;background:transparent;transition:.2s}
