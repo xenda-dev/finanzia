@@ -442,6 +442,9 @@ async function openNotifPage(){
     _pickerHdr('Notificaciones',null,'document.getElementById(\'notif-page-overlay\').remove()')
     +'<div style="flex:1;overflow-y:auto;padding:10px 16px 16px">'
     +_buildNotifContent()
+    +'<div style="padding:0 14px 8px">'
+    +'<button onclick="_testNotifs()" style="width:100%;padding:14px;border-radius:50px;border:1.5px dashed rgba(0,212,170,.4);background:rgba(0,212,170,.06);color:#0F766E;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">🔔 Probar notificaciones ahora</button>'
+    +'</div>'
     +'</div>';
   document.body.appendChild(overlay);
 }
@@ -572,6 +575,15 @@ function sendNotif(title,body,prefKey){
   }else{
     try{new Notification(title,opts);}catch(e){}
   }
+}
+function _testNotifs(){
+  Object.keys(localStorage)
+    .filter(function(k){return k.includes('_notif');})
+    .forEach(function(k){localStorage.removeItem(k);});
+  checkTipsNotif();
+  checkBudgetNotifs();
+  checkGoalNotifs();
+  try{toast('Enviando notificaciones de prueba...');}catch(e){}
 }
 function checkAutoPayments(){
   const today=todayStr();
