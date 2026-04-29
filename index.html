@@ -489,6 +489,8 @@
     </button>
     <div id="header-title" style="display:none;font-size:16px;font-weight:700;color:var(--text);flex:1;text-align:center"></div>
     <div class="header-right" id="header-controls">
+      <button id="header-bell" onclick="_openNotifBS()" style="display:none;position:relative;width:32px;height:32px;border-radius:10px;border:0.5px solid rgba(0,0,0,.08);background:rgba(255,255,255,.75);color:var(--text);align-items:center;justify-content:center;cursor:pointer;font-size:15px">🔔<span id="header-bell-badge" style="display:none;position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#EF4444;pointer-events:none"></span></button>
+      <button id="header-avatar" onclick="navigate('mi-perfil')" style="display:none;width:32px;height:32px;border-radius:50%;border:0.5px solid rgba(0,212,170,.3);background:linear-gradient(135deg,#00D4AA,#7461EF);color:white;font-size:11px;font-weight:800;align-items:center;justify-content:center;cursor:pointer;overflow:hidden"></button>
       <div class="currency-toggle" id="currency-toggle">
         <button class="cur-btn active" data-cur="PLN" onclick="setCurrency('PLN')">PLN</button>
         <button class="cur-btn" data-cur="COP" onclick="setCurrency('COP')">COP</button>
@@ -529,6 +531,9 @@
   <div id="page-grp-planificacion" class="page"></div>
   <div id="page-suscripciones" class="page"></div>
   <div id="page-grp-herramientas" class="page"></div>
+  <div id="page-tareas" class="page"></div>
+  <div id="page-objetivos" class="page"></div>
+  <div id="page-plantillas" class="page"></div>
   <div id="page-jubilacion" class="page"></div>
   <div id="page-emergencia" class="page"></div>
   <div id="page-inflacion" class="page"></div>

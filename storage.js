@@ -151,7 +151,7 @@ let S = {
   currency:'', currentPage:'dashboard', theme:'light',
   language:'', weekStart:'', _catTab:'gasto', notifPrefs:{}, numFormat:'auto', currencies:[], profile:{name:'',email:'',photo:'',profession:''},
   shoppingLists:[], investments:[], subscriptions:[], accounts:[], transactions:[], categories:[], subcategories:[],
-  budgets:[], goals:[], scheduledPayments:[],
+  budgets:[], goals:[], scheduledPayments:[], tasks:[], objectives:[],
   movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},
   analysisPeriod:'Mensual', analysisPeriodSub:'anual',
   analysisYear:new Date().getFullYear(),
@@ -311,6 +311,10 @@ async function saveUserData(userId,data){
   delete toSave._cuentasGrupo; // grupo activo en pantalla cuentas
   delete toSave._navHistory;   // historial de navegación
   delete toSave._testAnswers;  // respuestas test salud financiera
+  delete toSave._taskTab;
+  delete toSave._objTab;
+  delete toSave._activeMiDiaPill;
+  delete toSave._tmplSearch;
   // Blindaje final: garantizar updated_at en todos los items antes de persistir
   var _STAMP_KEYS2=['transactions','accounts','subscriptions','budgets','goals',
     'categories','subcategories','scheduledPayments','shoppingLists','investments'];
@@ -402,7 +406,8 @@ function mergeById(localArr, remoteArr){
 // Arrays que deben mergearse por id en lugar de sobrescribirse
 var MERGE_BY_ID_KEYS=[
   'transactions','accounts','subscriptions',
-  'budgets','goals','categories','subcategories','scheduledPayments','shoppingLists','investments'
+  'budgets','goals','categories','subcategories','scheduledPayments','shoppingLists','investments',
+  'tasks','objectives'
 ];
 
 async function syncFromSupabase(userId){
