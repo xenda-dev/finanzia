@@ -163,7 +163,7 @@ function _updateHeader(page){
     ava.style.display=isDash?'flex':'none';
     ava.style.alignItems='center';
     ava.style.justifyContent='center';
-    var _photo=S.profile&&S.profile.photoURL?S.profile.photoURL:'';
+    var _photo=(S.profile&&(S.profile.photoURL||S.profile.photo||S.profile.avatar||S.profile.profilePic))||_getProfilePhoto()||'';
     if(_photo){
       ava.style.backgroundImage='url('+_photo+')';
       ava.style.backgroundSize='cover';
@@ -951,20 +951,17 @@ function _renderMiDiaWidget(){
       }).join('');
     }
   }
-  var expandedHtml=active
-    ?'<div style="padding:4px 0 6px;border-top:0.5px solid var(--border);margin-top:4px">'+expanded+'</div>'
-    :'';
   return '<div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 7px">'
     +'<div style="font-size:13px;font-weight:800;color:var(--text)">Mi día</div>'
     +'</div>'
-    +'<div style="background:var(--surface);border-radius:14px;border:0.5px solid var(--border);padding:10px 10px 0;margin-bottom:14px">'
-    +'<div style="display:flex;gap:7px;margin-bottom:4px">'
+    +'<div style="display:flex;gap:7px;margin-bottom:'+(active?'8px':'14px')+'">'
     +pill('tasks','📋','Tareas',taskDone+'/'+tasks.length,taskPct,'linear-gradient(90deg,#00D4AA,#7461EF)')
     +pill('habits','🔥','Hábitos',habitDone+'/'+habits.length,habitPct,'linear-gradient(90deg,#F59E0B,#EF4444)')
     +pill('objetivos','🎯','Propósitos',propAvg+'%',propAvg,'linear-gradient(90deg,#7461EF,#00D4AA)')
     +'</div>'
-    +expandedHtml
-    +'</div>';
+    +(active
+      ?'<div style="background:var(--surface);border-radius:14px;border:0.5px solid var(--border);padding:10px 12px;margin-bottom:14px">'+expanded+'</div>'
+      :'');
 }
 function _toggleMiDiaPill(key){
   S._activeMiDiaPill=(S._activeMiDiaPill===key)?null:key;
