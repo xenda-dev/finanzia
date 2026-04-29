@@ -161,10 +161,19 @@ function _updateHeader(page){
   if(bell)bell.style.display=isDash?'flex':'none';
   if(ava){
     ava.style.display=isDash?'flex':'none';
-    if(isDash){
-      var _avName=S.profile&&S.profile.name?S.profile.name:'?';
-      var _avIni=_avName.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)||'??';
-      ava.textContent=_avIni;
+    ava.style.alignItems='center';
+    ava.style.justifyContent='center';
+    var _photo=S.profile&&S.profile.photoURL?S.profile.photoURL:'';
+    if(_photo){
+      ava.style.backgroundImage='url('+_photo+')';
+      ava.style.backgroundSize='cover';
+      ava.style.backgroundPosition='center';
+      ava.textContent='';
+    }else{
+      ava.style.backgroundImage='none';
+      var _n=S.profile&&S.profile.name?S.profile.name:'?';
+      var _ini=_n.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+      ava.textContent=_ini;
     }
   }
   // Spacer derecho en pantallas sin controls especiales
@@ -834,7 +843,7 @@ function renderDashboard(){
     +'<div style="flex:1;background:rgba(255,255,255,.07);border-radius:10px;padding:6px 8px;min-width:0"><div style="font-size:8px;color:rgba(255,255,255,.4);font-weight:600;white-space:nowrap">💾 Ahorro mes</div><div style="font-size:11px;font-weight:800;color:#A78BFA;margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(savings)+'</div></div>'
     +'</div>'
     +'</div>'
-    +'<div style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);margin-bottom:10px;display:flex;align-items:stretch;overflow:hidden">'
+    +'<div style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);margin-top:10px;margin-bottom:10px;display:flex;align-items:stretch;overflow:hidden">'
     +'<div style="flex:1;padding:10px 12px;min-width:0">'
     +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
     +'<div style="width:30px;height:30px;border-radius:9px;background:rgba(0,212,170,.1);display:flex;align-items:center;justify-content:center;font-size:14px">💱</div>'
@@ -851,11 +860,11 @@ function renderDashboard(){
     +'<div style="width:0.5px;background:var(--border);margin:8px 0;flex-shrink:0"></div>'
     +'<div style="padding:8px 10px;display:flex;flex-direction:column;gap:5px;justify-content:center;min-width:70px" id="fx-dash-selector"></div>'
     +'</div>'
-    +'<div class="kpi-row">'
-    +'<div class="kpi-card" onclick="openModal(\'balanceDistribution\',{})"><div class="kpi-label" style="font-size:9px">💎 Disponible</div><div class="kpi-val" style="font-size:10px;color:var(--primary);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(Math.max(0,bal-totalGoalSavings))+'</div></div>'
-    +'<div class="kpi-card" onclick="navigate(\'metas\')"><div class="kpi-label" style="font-size:9px">🎯 Ahorrado</div><div class="kpi-val" style="font-size:10px;color:var(--success);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(totalGoalSavings)+'</div></div>'
-    +'<div class="kpi-card" onclick="navigate(\'deudas\')"><div class="kpi-label" style="font-size:9px">💸 Deudas</div><div class="kpi-val" style="font-size:10px;color:var(--danger);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(filterDeleted(S.accounts).filter(function(a){return a.type==='pasivo'&&(a.currency||S.currency)===S.currency;}).reduce(function(s,a){return s+Math.abs(getBalance(a.id));},0))+'</div></div>'
-    +'<div class="kpi-card" onclick="navigate(\'cuentas\')"><div class="kpi-label" style="font-size:9px">💳 Cuentas</div><div class="kpi-val">'+filterDeleted(S.accounts).filter(function(a){return a.type==='activo'&&(a.currency||S.currency)===S.currency;}).length+'</div></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">'
+    +'<div class="kpi-card" onclick="openModal(\'balanceDistribution\',{})" style="overflow:hidden;text-align:center;padding:10px 4px"><div style="font-size:14px">💎</div><div class="kpi-label" style="font-size:8px;margin-top:2px">Disponible</div><div class="kpi-val" style="font-size:10px;color:var(--primary);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(Math.max(0,bal-totalGoalSavings))+'</div></div>'
+    +'<div class="kpi-card" onclick="navigate(\'metas\')" style="overflow:hidden;text-align:center;padding:10px 4px"><div style="font-size:14px">🎯</div><div class="kpi-label" style="font-size:8px;margin-top:2px">Ahorrado</div><div class="kpi-val" style="font-size:10px;color:var(--success);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(totalGoalSavings)+'</div></div>'
+    +'<div class="kpi-card" onclick="navigate(\'deudas\')" style="overflow:hidden;text-align:center;padding:10px 4px"><div style="font-size:14px">💸</div><div class="kpi-label" style="font-size:8px;margin-top:2px">Deudas</div><div class="kpi-val" style="font-size:10px;color:var(--danger);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(filterDeleted(S.accounts).filter(function(a){return a.type==='pasivo'&&(a.currency||S.currency)===S.currency;}).reduce(function(s,a){return s+Math.abs(getBalance(a.id));},0))+'</div></div>'
+    +'<div class="kpi-card" onclick="navigate(\'cuentas\')" style="overflow:hidden;text-align:center;padding:10px 4px"><div style="font-size:14px">💳</div><div class="kpi-label" style="font-size:8px;margin-top:2px">Cuentas</div><div class="kpi-val" style="font-size:10px;white-space:nowrap">'+filterDeleted(S.accounts).filter(function(a){return a.type==='activo'&&(a.currency||S.currency)===S.currency;}).length+'</div></div>'
     +'</div>'
     +_renderMiDiaWidget()
     +'<div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px"><div style="font-size:13px;font-weight:800;color:var(--text)">📐 Regla 50/30/20</div></div>'
@@ -880,12 +889,14 @@ function _renderMiDiaWidget(){
   var props=filterDeleted(S.objectives||[]).filter(function(o){return o.tipo==='proposito';});
   var propAvg=props.length>0?Math.round(props.reduce(function(s,o){
     var p=o.params||{};
-    var cur=parseFloat(p.current||p.pct||0);
-    var tot=parseFloat(p.target||100);
+    var cur=parseFloat(p.pagesRead||p.actual||p.current||p.pct||0);
+    var tot=parseFloat(p.totalPages||p.meta||p.target||100);
     return s+(tot>0?cur/tot*100:0);
   },0)/props.length):0;
-  function pill(icon,label,val,pct,color){
-    return '<div style="flex:1;background:var(--surface);border-radius:12px;border:0.5px solid var(--border);padding:8px 4px;text-align:center;min-width:0">'
+  var active=S._activeMiDiaPill||null;
+  function pill(key,icon,label,val,pct,color){
+    var isActive=active===key;
+    return '<div onclick="_toggleMiDiaPill(\''+key+'\')" style="flex:1;background:var(--surface);border-radius:12px;border:'+(isActive?'1.5px solid var(--primary)':'0.5px solid var(--border)')+';padding:8px 4px;text-align:center;min-width:0;cursor:pointer;transition:border .15s">'
       +'<div style="font-size:14px">'+icon+'</div>'
       +'<div style="font-size:8px;color:var(--text2);font-weight:600;margin-top:2px">'+label+'</div>'
       +'<div style="font-size:12px;font-weight:900;color:var(--text)">'+val+'</div>'
@@ -894,14 +905,70 @@ function _renderMiDiaWidget(){
       +'</div>'
       +'</div>';
   }
+  var expanded='';
+  if(active==='tasks'){
+    if(!tasks.length){
+      expanded='<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px 0">Sin tareas hoy · <span style="color:var(--primary);cursor:pointer" onclick="navigate(\'plantillas\')">Agregar</span></div>';
+    }else{
+      expanded=tasks.map(function(t){
+        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);cursor:pointer" onclick="toggleTask(\''+t.id+'\')">'
+          +'<div style="width:18px;height:18px;border-radius:5px;border:1.5px solid '+(t.done?'var(--primary)':'var(--border)')+';background:'+(t.done?'rgba(0,212,170,.15)':'none')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px">'+(t.done?'✓':'')+'</div>'
+          +'<div style="flex:1;font-size:12px;font-weight:600;color:var(--text)'+(t.done?';text-decoration:line-through;color:var(--text3)':'')+'">'+t.title+'</div>'
+          +'</div>';
+      }).join('');
+    }
+  }else if(active==='habits'){
+    if(!habits.length){
+      expanded='<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px 0">Sin hábitos · <span style="color:var(--primary);cursor:pointer" onclick="navigate(\'objetivos\')">Crear</span></div>';
+    }else{
+      expanded=habits.map(function(h){
+        var done=h.lastLog===today;
+        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border)">'
+          +'<div style="font-size:16px">'+(h.emoji||'🔥')+'</div>'
+          +'<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text)">'+h.name+'</div><div style="font-size:10px;color:var(--text3)">🔥 '+(h.streak||0)+' días</div></div>'
+          +'<button onclick="logHabit(\''+h.id+'\','+(done?'false':'true')+')" style="width:28px;height:28px;border-radius:8px;border:none;cursor:pointer;font-size:14px;background:'+(done?'rgba(0,212,170,.15)':'rgba(0,0,0,.05)')+';">'+(done?'✅':'⭕')+'</button>'
+          +'</div>';
+      }).join('');
+    }
+  }else if(active==='objetivos'){
+    if(!props.length){
+      expanded='<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px 0">Sin propósitos · <span style="color:var(--primary);cursor:pointer" onclick="navigate(\'objetivos\')">Crear</span></div>';
+    }else{
+      expanded=props.map(function(o){
+        var p=o.params||{};
+        var cur=parseFloat(p.pagesRead||p.actual||p.current||p.pct||0);
+        var tot=parseFloat(p.totalPages||p.meta||p.target||100);
+        var pct=tot>0?Math.round(cur/tot*100):0;
+        var color=pct>=75?'#00D4AA':pct>=50?'#3B82F6':pct>=25?'#F59E0B':'#EF4444';
+        return '<div style="padding:7px 0;border-bottom:0.5px solid var(--border)">'
+          +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
+          +'<span style="font-size:14px">'+(o.emoji||'🎯')+'</span>'
+          +'<div style="font-size:12px;font-weight:600;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+o.name+'</div>'
+          +'<span style="font-size:11px;font-weight:800;color:'+color+'">'+pct+'%</span>'
+          +'</div>'
+          +'<div style="height:3px;background:var(--surface2);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:99px"></div></div>'
+          +'</div>';
+      }).join('');
+    }
+  }
+  var expandedHtml=active
+    ?'<div style="padding:4px 0 6px;border-top:0.5px solid var(--border);margin-top:4px">'+expanded+'</div>'
+    :'';
   return '<div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 7px">'
     +'<div style="font-size:13px;font-weight:800;color:var(--text)">Mi día</div>'
     +'</div>'
-    +'<div style="display:flex;gap:7px;margin-bottom:14px">'
-    +pill('📋','Tareas',taskDone+'/'+tasks.length,taskPct,'linear-gradient(90deg,#00D4AA,#7461EF)')
-    +pill('🔥','Hábitos',habitDone+'/'+habits.length,habitPct,'linear-gradient(90deg,#F59E0B,#EF4444)')
-    +pill('🎯','Propósitos',propAvg+'%',propAvg,'linear-gradient(90deg,#7461EF,#00D4AA)')
+    +'<div style="background:var(--surface);border-radius:14px;border:0.5px solid var(--border);padding:10px 10px 0;margin-bottom:14px">'
+    +'<div style="display:flex;gap:7px;margin-bottom:4px">'
+    +pill('tasks','📋','Tareas',taskDone+'/'+tasks.length,taskPct,'linear-gradient(90deg,#00D4AA,#7461EF)')
+    +pill('habits','🔥','Hábitos',habitDone+'/'+habits.length,habitPct,'linear-gradient(90deg,#F59E0B,#EF4444)')
+    +pill('objetivos','🎯','Propósitos',propAvg+'%',propAvg,'linear-gradient(90deg,#7461EF,#00D4AA)')
+    +'</div>'
+    +expandedHtml
     +'</div>';
+}
+function _toggleMiDiaPill(key){
+  S._activeMiDiaPill=(S._activeMiDiaPill===key)?null:key;
+  renderPage('dashboard');
 }
 // ════════════════════════════════════════════════════════════
 // NOTIF BS — CAMPANILLA
