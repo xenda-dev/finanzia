@@ -896,72 +896,79 @@ function _renderMiDiaWidget(){
   var active=S._activeMiDiaPill||null;
   function pill(key,icon,label,val,pct,color){
     var isActive=active===key;
-    return '<div onclick="_toggleMiDiaPill(\''+key+'\')" style="flex:1;background:var(--surface);border-radius:12px;border:'+(isActive?'1.5px solid var(--primary)':'0.5px solid var(--border)')+';padding:8px 4px;text-align:center;min-width:0;cursor:pointer;transition:border .15s">'
-      +'<div style="font-size:14px">'+icon+'</div>'
+    var pillContent='<div style="font-size:14px">'+icon+'</div>'
       +'<div style="font-size:8px;color:var(--text2);font-weight:600;margin-top:2px">'+label+'</div>'
       +'<div style="font-size:12px;font-weight:900;color:var(--text)">'+val+'</div>'
       +'<div style="width:100%;height:3px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:3px">'
       +'<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:99px"></div>'
-      +'</div>'
       +'</div>';
-  }
-  var expanded='';
-  if(active==='tasks'){
-    if(!tasks.length){
-      expanded='<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px 0">Sin tareas hoy · <span style="color:var(--primary);cursor:pointer" onclick="navigate(\'plantillas\')">Agregar</span></div>';
-    }else{
-      expanded=tasks.map(function(t){
-        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);cursor:pointer" onclick="toggleTask(\''+t.id+'\')">'
-          +'<div style="width:18px;height:18px;border-radius:5px;border:1.5px solid '+(t.done?'var(--primary)':'var(--border)')+';background:'+(t.done?'rgba(0,212,170,.15)':'none')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px">'+(t.done?'✓':'')+'</div>'
-          +'<div style="flex:1;font-size:12px;font-weight:600;color:var(--text)'+(t.done?';text-decoration:line-through;color:var(--text3)':'')+'">'+t.title+'</div>'
-          +'</div>';
-      }).join('');
+    var expandContent='';
+    if(isActive){
+      if(key==='tasks'){
+        if(!tasks.length){
+          expandContent='<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0;border-top:0.5px solid var(--border);margin-top:6px">Sin tareas hoy · <span style="color:var(--primary);cursor:pointer" onclick="navigate(\'plantillas\')">Agregar</span></div>';
+        }else{
+          expandContent='<div style="border-top:0.5px solid var(--border);margin-top:6px;padding-top:4px">'
+            +tasks.map(function(t){
+              return '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border);cursor:pointer" onclick="toggleTask(\''+t.id+'\')">'
+                +'<div style="width:16px;height:16px;border-radius:4px;border:1.5px solid '+(t.done?'var(--primary)':'var(--border)')+';background:'+(t.done?'rgba(0,212,170,.15)':'none')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px">'+(t.done?'✓':'')+'</div>'
+                +'<div style="flex:1;font-size:11px;font-weight:600;color:'+(t.done?'var(--text3)':'var(--text)')+';'+(t.done?'text-decoration:line-through':'')+'">'+t.title+'</div>'
+                +'</div>';
+            }).join('')
+            +'</div>';
+        }
+      }else if(key==='habits'){
+        if(!habits.length){
+          expandContent='<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0;border-top:0.5px solid var(--border);margin-top:6px">Sin hábitos · <span style="color:var(--primary);cursor:pointer" onclick="navigate(\'objetivos\')">Crear</span></div>';
+        }else{
+          expandContent='<div style="border-top:0.5px solid var(--border);margin-top:6px;padding-top:4px">'
+            +habits.map(function(h){
+              var done=h.lastLog===today;
+              return '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border)">'
+                +'<span style="font-size:13px">'+(h.emoji||'🔥')+'</span>'
+                +'<div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+h.name+'</div><div style="font-size:9px;color:var(--text3)">🔥 '+(h.streak||0)+' días</div></div>'
+                +'<button onclick="logHabit(\''+h.id+'\','+(done?'false':'true')+')" style="width:24px;height:24px;border-radius:6px;border:none;cursor:pointer;font-size:12px;background:'+(done?'rgba(0,212,170,.15)':'rgba(0,0,0,.05)')+';">'+(done?'✅':'⭕')+'</button>'
+                +'</div>';
+            }).join('')
+            +'</div>';
+        }
+      }else if(key==='objetivos'){
+        if(!props.length){
+          expandContent='<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0;border-top:0.5px solid var(--border);margin-top:6px">Sin propósitos · <span style="color:var(--primary);cursor:pointer" onclick="navigate(\'objetivos\')">Crear</span></div>';
+        }else{
+          expandContent='<div style="border-top:0.5px solid var(--border);margin-top:6px;padding-top:4px">'
+            +props.map(function(o){
+              var p=o.params||{};
+              var cur=parseFloat(p.pagesRead||p.actual||p.current||p.pct||0);
+              var tot=parseFloat(p.totalPages||p.meta||p.target||100);
+              var pct2=tot>0?Math.round(cur/tot*100):0;
+              var col=pct2>=75?'#00D4AA':pct2>=50?'#3B82F6':pct2>=25?'#F59E0B':'#EF4444';
+              return '<div style="padding:5px 0;border-bottom:0.5px solid var(--border)">'
+                +'<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">'
+                +'<span style="font-size:13px">'+(o.emoji||'🎯')+'</span>'
+                +'<div style="flex:1;font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+o.name+'</div>'
+                +'<span style="font-size:10px;font-weight:800;color:'+col+'">'+pct2+'%</span>'
+                +'</div>'
+                +'<div style="height:3px;background:var(--surface2);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct2+'%;background:'+col+';border-radius:99px"></div></div>'
+                +'</div>';
+            }).join('')
+            +'</div>';
+        }
+      }
     }
-  }else if(active==='habits'){
-    if(!habits.length){
-      expanded='<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px 0">Sin hábitos · <span style="color:var(--primary);cursor:pointer" onclick="navigate(\'objetivos\')">Crear</span></div>';
-    }else{
-      expanded=habits.map(function(h){
-        var done=h.lastLog===today;
-        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border)">'
-          +'<div style="font-size:16px">'+(h.emoji||'🔥')+'</div>'
-          +'<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text)">'+h.name+'</div><div style="font-size:10px;color:var(--text3)">🔥 '+(h.streak||0)+' días</div></div>'
-          +'<button onclick="logHabit(\''+h.id+'\','+(done?'false':'true')+')" style="width:28px;height:28px;border-radius:8px;border:none;cursor:pointer;font-size:14px;background:'+(done?'rgba(0,212,170,.15)':'rgba(0,0,0,.05)')+';">'+(done?'✅':'⭕')+'</button>'
-          +'</div>';
-      }).join('');
-    }
-  }else if(active==='objetivos'){
-    if(!props.length){
-      expanded='<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px 0">Sin propósitos · <span style="color:var(--primary);cursor:pointer" onclick="navigate(\'objetivos\')">Crear</span></div>';
-    }else{
-      expanded=props.map(function(o){
-        var p=o.params||{};
-        var cur=parseFloat(p.pagesRead||p.actual||p.current||p.pct||0);
-        var tot=parseFloat(p.totalPages||p.meta||p.target||100);
-        var pct=tot>0?Math.round(cur/tot*100):0;
-        var color=pct>=75?'#00D4AA':pct>=50?'#3B82F6':pct>=25?'#F59E0B':'#EF4444';
-        return '<div style="padding:7px 0;border-bottom:0.5px solid var(--border)">'
-          +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
-          +'<span style="font-size:14px">'+(o.emoji||'🎯')+'</span>'
-          +'<div style="font-size:12px;font-weight:600;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+o.name+'</div>'
-          +'<span style="font-size:11px;font-weight:800;color:'+color+'">'+pct+'%</span>'
-          +'</div>'
-          +'<div style="height:3px;background:var(--surface2);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:99px"></div></div>'
-          +'</div>';
-      }).join('');
-    }
+    return '<div onclick="_toggleMiDiaPill(\''+key+'\')" style="flex:'+(isActive?'2':'1')+';background:var(--surface);border-radius:12px;border:'+(isActive?'1.5px solid var(--primary)':'0.5px solid var(--border)')+';padding:8px 8px '+(isActive?'10px':'8px')+';min-width:0;cursor:pointer;transition:flex .2s,border .15s">'
+      +pillContent
+      +expandContent
+      +'</div>';
   }
   return '<div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 7px">'
     +'<div style="font-size:13px;font-weight:800;color:var(--text)">Mi día</div>'
     +'</div>'
-    +'<div style="display:flex;gap:7px;margin-bottom:'+(active?'8px':'14px')+'">'
+    +'<div style="display:flex;gap:7px;align-items:flex-start;margin-bottom:14px">'
     +pill('tasks','📋','Tareas',taskDone+'/'+tasks.length,taskPct,'linear-gradient(90deg,#00D4AA,#7461EF)')
     +pill('habits','🔥','Hábitos',habitDone+'/'+habits.length,habitPct,'linear-gradient(90deg,#F59E0B,#EF4444)')
     +pill('objetivos','🎯','Propósitos',propAvg+'%',propAvg,'linear-gradient(90deg,#7461EF,#00D4AA)')
-    +'</div>'
-    +(active
-      ?'<div style="background:var(--surface);border-radius:14px;border:0.5px solid var(--border);padding:10px 12px;margin-bottom:14px">'+expanded+'</div>'
-      :'');
+    +'</div>';
 }
 function _toggleMiDiaPill(key){
   S._activeMiDiaPill=(S._activeMiDiaPill===key)?null:key;
