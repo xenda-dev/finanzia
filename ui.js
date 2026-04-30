@@ -7027,13 +7027,15 @@ function renderMiPerfil(){
   var uid=window._currentUser&&window._currentUser.id;
   var dn=p.name||(window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)||'';
   var ev=p.email||(window._currentUser&&window._currentUser.email?window._currentUser.email:'');
-  var ini=dn?dn.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'?';
+  var _ini2=dn?dn.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2):'';
+  var _userSvgMp='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+  var ini=_ini2;
   var ph=_getProfilePhoto();
   var pct=(typeof _calcProfileProgress==='function')?_calcProfileProgress():0;
   var pLabel=pct>=100?'Perfil completo':pct>=80?'Casi completo':pct>=50?'Va por buen camino':pct>0?'En progreso':'Comienza tu perfil';
   var avatarHtml=ph
-    ?('<img src="'+ph+'" style="width:52px;height:52px;object-fit:cover;border-radius:50%;display:block;">')
-    :('<span style="font-size:16px;font-weight:700;color:white">'+ini+'</span>');
+    ?('<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;" onerror="this.style.display=\'none\'">')
+    :(_ini2?'<span style="font-size:18px;font-weight:800;color:white;letter-spacing:-.5px">'+_ini2+'</span>':_userSvgMp);
   var phone=(p.phoneCode?p.phoneCode+' ':'')+(p.phone||'');
   var pinActive=uid&&localStorage.getItem('_pinEnabled_'+uid)==='1'&&!!localStorage.getItem('_userPin_'+uid);
   var bioActive=uid&&localStorage.getItem('_bioEnabled_'+uid)==='1'&&!!localStorage.getItem('_bioCredId_'+uid);
