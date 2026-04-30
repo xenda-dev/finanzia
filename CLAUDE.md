@@ -38,6 +38,37 @@
 > **Pendiente:** puntos
 > ```
 
+### Sesión 6 — 2026-04-30 (cierre del día)
+**Archivos modificados:** `ui.js`, `storage.js`, `index.html`
+
+**Qué se hizo:**
+- **Dashboard rediseñado**: FX card (`fx-dash-*`) con selector de moneda integrado, balance card con 3 stats (ingresos/gastos/ahorro), KPIs grid `repeat(4,1fr)`, currency-toggle oculto del header (solo en FX card).
+- **Widget "Mi día" con acordeón**: Pills Tareas/Hábitos/Propósitos — toque expande el pill activo con `flex:2`, contenido dentro del pill. `_toggleMiDiaPill()` global.
+- **Campanilla y avatar en dashboard**: `header-bell` (badge rojo si alertas) + `header-avatar` (foto o iniciales con fallback SVG persona), solo visibles en dashboard.
+- **Avatar unificado**: `_renderAvatarHtml(size)` helper centralizado. Fallback: foto → iniciales → ícono SVG de persona. `font-weight:800` en los tres contextos. Drawer y header usan `user_metadata.full_name` cuando `S.profile.name` está vacío.
+- **Módulo Tareas**: `renderTareas()` 3 tabs (Hoy/Próximas/Completadas), progress box, grupos Eisenhower, FAB → `navigate('plantillas')`. CRUD: `saveTask()`, `deleteTask()`, `toggleTask()`.
+- **Módulo Objetivos**: `renderObjetivos()` 3 tabs (Todos/Propósitos/Hábitos), cards con barra de progreso coloreada. `saveObjective()`, `deleteObjective()`, `logProgress()`, `logHabit()`. BS detalle via `_showHtmlBS()`.
+- **Módulo Plantillas**: `renderPlantillas()` 78 plantillas en 9 grupos, buscador, forms BS para tarea/hábito via `_showHtmlBS()`. `_showCustomTaskBS()`.
+- **`_showHtmlBS(title, html, zIdx)`**: helper BS con `#bs-overlay` — cierra con `closeBottomSheet()`. Reemplaza overlays propios.
+- **Centro de Ayuda**: `renderAyuda()` 48 FAQ en 7 grupos, acordeón, buscador. `openAyudaOverlay()` como overlay z-index:10002 (funciona desde auth screen). Título centrado en header vía `_updateHeader('ayuda')`.
+- **`openContactSheet()`**: sin subtítulos, logo Telegram oficial, `rowLast()` + Centro de Ayuda. `z-index:10002`. No cierra BS si está en pantalla de auth.
+- **Síguenos**: logos SVG oficiales de todas las redes. `justify-content:center` corregido.
+- **Notificaciones fix**: `masterOn` usa `===true` (no `!==false`). Toggles individuales guardan `true`/`false` explícito. `_toggleNotifMaster` consistente.
+- **`resetApp()` mejorado**: preserva `name`/`email`/`photo`. `_keepName` lee en cascada: `S.profile.name` → `user_metadata.full_name` → `localStorage`. Incluye `tasks:[]` y `objectives:[]`.
+- **`_getProfilePhoto()`** (storage.js): chequea `photo`, `photoURL`, `avatar`, `profilePic`.
+
+**Decisiones de Jorge:**
+- Fallback de avatar: ícono SVG de persona (no `?`).
+- Dashboard es el único lugar donde aparecen campanilla y avatar.
+- Centro de Ayuda siempre se abre como overlay (no como página normal) para funcionar desde auth.
+
+**Pendiente:**
+- Sprint C: Dashboard, Movimientos, Deudas, Herramientas — esperando diseño Claude Design.
+- Web Push + Service Worker completo — etapa monetización SaaS.
+- i18n completo, Emiliano IA real, Monetización SaaS.
+
+---
+
 ### Sesión 5 — 2026-04-28 (cierre del día)
 **Archivos modificados:** `ui.js`, `app.js`, `sw.js` (nuevo)
 
@@ -395,6 +426,10 @@ Claude Design consume muchos tokens. Cada encargo debe ser cerrado y preciso —
 - 🔄 Herramientas — esperar diseño Claude Design
 - 🔄 Detalles oscuros en pantallas congeladas — fixes puntuales según testing
 - ✅ ~~Notificaciones locales: checkBudgetNotifs, checkGoalNotifs, checkWeeklyNotif, checkTipsNotif~~ (resuelto Sesión 5)
+- ✅ ~~Módulo Tareas: renderTareas, saveTask, deleteTask, toggleTask~~ (resuelto Sesión 6)
+- ✅ ~~Módulo Objetivos: renderObjetivos, saveObjective, deleteObjective, logProgress, logHabit~~ (resuelto Sesión 6)
+- ✅ ~~Módulo Plantillas: renderPlantillas, 78 plantillas, 9 grupos, buscador~~ (resuelto Sesión 6)
+- ✅ ~~Centro de Ayuda: renderAyuda, openAyudaOverlay, 48 FAQ~~ (resuelto Sesión 6)
 - 🔄 Web Push + Service Worker completo (notificaciones con app cerrada) — etapa monetización SaaS
 - 🔄 i18n completo — `t(key)`, 15 idiomas, sesión dedicada post-módulos
 - 🔄 Emiliano IA — conectar con Anthropic API real
