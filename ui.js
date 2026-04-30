@@ -387,7 +387,7 @@ function _renderAvatarHtml(size){
     :(initials?'<span style="font-size:'+fontSize+'px;font-weight:800;color:white;letter-spacing:-.5px">'+initials+'</span>':userIcon);
   return '<div style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:2px solid rgba(0,212,170,.2);">'+inner+'</div>';
 }
-function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('overlay').classList.add('active');}
+function openDrawer(){if(typeof updateDrawerProfile==='function'){try{updateDrawerProfile();}catch(e){}}document.getElementById('drawer').classList.add('open');document.getElementById('overlay').classList.add('active');}
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('overlay').classList.remove('active');}
 // ── Drawer Group Portal ─────────────────────────────────────
 function _dico(d,c){return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';}
@@ -6510,8 +6510,8 @@ function renderConfiguracion(){
   var _cfgEmail=(S.profile&&S.profile.email)||(window._currentUser&&window._currentUser.email)||'';
   return '<div style="padding:16px 14px calc(var(--nav-h)+24px)">'
     +'<div onclick="navigate(\'mi-perfil\')" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);margin-bottom:4px;cursor:pointer">'
-      +'<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#00D4AA,#7461EF);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:2px solid rgba(0,212,170,.2)">'
-        +_avatarInner(16)
+      +'<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#00D4AA,#7461EF);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:2px solid rgba(255,255,255,.6);box-sizing:border-box">'
+        +_avatarInner(18)
       +'</div>'
       +'<div style="flex:1;min-width:0">'
         +'<div style="font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">'+(_cfgName||'Mi Perfil')+'</div>'
@@ -7089,7 +7089,7 @@ function renderMiPerfil(){
     // Tarjeta resumen perfil
     +'<div style="background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);padding:14px;margin-top:16px;margin-bottom:4px;display:flex;align-items:center;gap:14px">'
       +'<div style="position:relative;flex-shrink:0">'
-        +'<div onclick="'+(ph?'viewProfilePhoto()':'showPhotoOptions()')+'" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;border:2.5px solid rgba(0,212,170,.2);box-sizing:border-box;cursor:pointer">'+avatarHtml+'</div>'
+        +'<div onclick="'+(ph?'viewProfilePhoto()':'showPhotoOptions()')+'" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#00D4AA,#7461EF);display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid rgba(255,255,255,.6);box-sizing:border-box;cursor:pointer">'+_avatarInner(18)+'</div>'
         +'<div onclick="showPhotoOptions()" style="position:absolute;bottom:1px;right:1px;width:20px;height:20px;border-radius:50%;background:#7461EF;border:2px solid var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1">'
           +'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
         +'</div>'
