@@ -161,19 +161,16 @@ function _updateHeader(page){
   if(bell)bell.style.display=isDash?'flex':'none';
   if(ava){
     ava.style.display=isDash?'flex':'none';
-    ava.style.alignItems='center';
-    ava.style.justifyContent='center';
-    var _photo=(S.profile&&(S.profile.photoURL||S.profile.photo||S.profile.avatar||S.profile.profilePic))||_getProfilePhoto()||'';
+    var _photo=_getProfilePhoto()||'';
+    ava.innerHTML='';
+    ava.style.backgroundImage='none';
     if(_photo){
-      ava.style.backgroundImage='url('+_photo+')';
-      ava.style.backgroundSize='cover';
-      ava.style.backgroundPosition='center';
-      ava.textContent='';
-    }else{
-      ava.style.backgroundImage='none';
-      var _n=S.profile&&S.profile.name?S.profile.name:'?';
-      var _ini=_n.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+      ava.innerHTML='<img src="'+_photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.style.display=\'none\'">';
+    }else if(S.profile&&S.profile.name&&S.profile.name.trim()){
+      var _ini=S.profile.name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
       ava.textContent=_ini;
+    }else{
+      ava.textContent='?';
     }
   }
   // Spacer derecho en pantallas sin controls especiales
