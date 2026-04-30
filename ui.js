@@ -9750,7 +9750,10 @@ function _showSoporteAsuntoBS(){
   },false,10003);
 }
 function openContactSheet(){
-  closeBottomSheet();
+  // Solo cerrar BS si no estamos en pantalla de auth
+  if(document.querySelector('.auth-panel[style*="flex"]')===null){
+    closeBottomSheet();
+  }
   var ov=document.createElement('div');
   ov.id='contact-hub-overlay';
   ov.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
