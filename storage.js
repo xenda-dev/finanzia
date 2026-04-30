@@ -239,25 +239,43 @@ function updateDrawerProfile(){
   if(nameEl)nameEl.textContent=name;
   if(emailEl)emailEl.textContent=email;
   if(avatarEl){
-    var _ini2=name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
-    avatarEl.innerHTML=photo
-      ?'<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.style.display=\'none\'">'
-      :(_ini2?'<span style="font-size:18px;font-weight:800;color:white;letter-spacing:-.5px">'+_ini2+'</span>':'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>');
+    avatarEl.style.background='linear-gradient(135deg,#00D4AA,#7461EF)';
+    avatarEl.style.display='flex';
+    avatarEl.style.alignItems='center';
+    avatarEl.style.justifyContent='center';
+    avatarEl.style.overflow='hidden';
+    avatarEl.style.borderRadius='50%';
+    if(typeof _avatarInner==='function'){
+      avatarEl.innerHTML=_avatarInner(18);
+    } else {
+      var _ph2=photo||'';
+      var _nm2=name&&name!=='Mi Perfil'?name:'';
+      var _ini2=_nm2.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+      avatarEl.innerHTML=_ph2
+        ?'<img src="'+_ph2+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">'
+        :(_ini2
+          ?'<span style="font-size:18px;font-weight:800;color:white;letter-spacing:-.5px">'+_ini2+'</span>'
+          :'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>');
+    }
   }
-  // Progress bar — mismos campos que Mi Perfil
+  // Progress bar — mismos campos que Mi Perfil (_calcProfileProgress)
   try{
-    var p=S.profile||{};
-    var uid=window._currentUser&&window._currentUser.id;
-    var checks=[
-      !!(name&&name!=='Mi Perfil'),
-      !!(p.gender&&p.gender!==''),
-      !!(p.residence),
-      !!(p.phone&&p.phoneCode),
-      !!(p.profession),
-      !!(p.financialGoal),
-      !!(photo)
-    ];
-    var pct=Math.round(checks.filter(Boolean).length/checks.length*100);
+    var pct;
+    if(typeof _calcProfileProgress==='function'){
+      pct=_calcProfileProgress();
+    } else {
+      var p=S.profile||{};
+      var checks=[
+        !!(name&&name!=='Mi Perfil'),
+        !!(p.gender&&p.gender!==''),
+        !!(p.residence),
+        !!(p.phone&&p.phoneCode),
+        !!(p.profession),
+        !!(p.financialGoal),
+        !!(photo)
+      ];
+      pct=Math.round(checks.filter(Boolean).length/checks.length*100);
+    }
     var pctText = pct>=100 ? '¡Perfil completo! ✓' : 'Perfil al '+pct+'% — complétalo para más 💚';
     if(pctEl)pctEl.textContent=pctText;
     if(fillEl)fillEl.style.width=pct+'%';

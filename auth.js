@@ -1655,7 +1655,10 @@ function _completeOnboarding(){
   var done = function(){
     S.currentPage = 'configuracion';
     if(typeof saveState === 'function') saveState();
-    if(typeof renderPage === 'function') renderPage('configuracion');
+    if(typeof renderPage === 'function'){
+      renderPage('configuracion');
+      if(typeof _updateHeader==='function') _updateHeader('configuracion');
+    }
   };
   if(typeof safeSync === 'function' && _currentUser){
     safeSync(_currentUser.id).then(done).catch(done);

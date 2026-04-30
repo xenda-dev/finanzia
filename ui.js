@@ -161,15 +161,12 @@ function _updateHeader(page){
   var ava=document.getElementById('header-avatar');
   if(bell)bell.style.display=isDash?'flex':'none';
   if(ava){
-    ava.style.display=isDash?'flex':'none';
-    var _ph=_getProfilePhoto()||'';
-    var _meta2=window._currentUser&&window._currentUser.user_metadata;
-    var _n=(S.profile&&S.profile.name)||(_meta2&&_meta2.full_name)||(_meta2&&_meta2.name)||'';
-    var _ini=_n.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
-    ava.style.backgroundImage='none';
-    ava.innerHTML=_ph
-      ?'<img src="'+_ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.style.display=\'none\'">'
-      :(_ini?'<span style="font-size:12px;font-weight:800;color:white">'+_ini+'</span>':'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>');
+    if(isDash){
+      ava.style.cssText='display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;overflow:hidden;cursor:pointer;flex-shrink:0;border:none;font-family:inherit;background:linear-gradient(135deg,#00D4AA,#7461EF)';
+    } else {
+      ava.style.display='none';
+    }
+    ava.innerHTML=_avatarInner(12);
   }
   // Spacer derecho en pantallas sin controls especiales
   if(hSpacer)hSpacer.style.display='none';
@@ -359,6 +356,23 @@ function _updateFxDash(){
         +'</button>';
     }).join('');
   }
+}
+function _avatarInner(fontSize){
+  var ph=_getProfilePhoto()||'';
+  var nm=(S.profile&&S.profile.name&&S.profile.name.trim()!==''&&S.profile.name!=='Mi Perfil')
+    ?S.profile.name
+    :(window._currentUser&&window._currentUser.user_metadata&&window._currentUser.user_metadata.full_name)
+      ?window._currentUser.user_metadata.full_name
+      :'';
+  var ini=nm.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+  var fs=fontSize||14;
+  if(ph){
+    return '<img src="'+ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.remove()">';
+  }
+  if(ini){
+    return '<span style="font-size:'+fs+'px;font-weight:800;color:white;letter-spacing:-.5px;pointer-events:none">'+ini+'</span>';
+  }
+  return '<svg width="'+(fs+4)+'" height="'+(fs+4)+'" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" style="pointer-events:none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 }
 function _renderAvatarHtml(size){
   var sz=size||40;
@@ -6491,16 +6505,17 @@ function renderConfiguracion(){
   var curLabel=(S.currencies&&S.currencies.length)?(S.currencies.join(' · ')):'Seleccionar';
   var themeSegs=buildThemeCaps();
   var fmtSegs=buildNumFormatCaps();
+  var _cfgMeta=window._currentUser&&window._currentUser.user_metadata;
+  var _cfgName=(S.profile&&S.profile.name)||(_cfgMeta&&_cfgMeta.full_name)||(_cfgMeta&&_cfgMeta.name)||'';
+  var _cfgEmail=(S.profile&&S.profile.email)||(window._currentUser&&window._currentUser.email)||'';
   return '<div style="padding:16px 14px calc(var(--nav-h)+24px)">'
     +'<div onclick="navigate(\'mi-perfil\')" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);margin-bottom:4px;cursor:pointer">'
-      +'<div style="position:relative;flex-shrink:0">'
-        +'<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;border:2.5px solid rgba(0,212,170,.2);box-sizing:border-box;overflow:hidden">'
-          +((_getProfilePhoto())?('<img src="'+_getProfilePhoto()+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'):((S.profile&&S.profile.name)?('<span style="font-size:16px;font-weight:700;color:white">'+S.profile.name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)+'</span>'):'<span style="font-size:16px;font-weight:700;color:white">?</span>'))
-        +'</div>'
+      +'<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#00D4AA,#7461EF);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:2px solid rgba(0,212,170,.2)">'
+        +_avatarInner(16)
       +'</div>'
       +'<div style="flex:1;min-width:0">'
-        +'<div style="font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">'+((S.profile&&S.profile.name)||'Mi Perfil')+'</div>'
-        +'<div style="font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">'+((S.profile&&S.profile.email)||'Toca para completar tu perfil')+'</div>'
+        +'<div style="font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px">'+(_cfgName||'Mi Perfil')+'</div>'
+        +'<div style="font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">'+(_cfgEmail||'Toca para completar tu perfil')+'</div>'
         +'<div style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:99px;background:rgba(0,212,170,.1);color:#0F766E;font-size:10px;font-weight:600">'
           +'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2.5" stroke-linecap="round" style="pointer-events:none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'
           +'Revisar mi perfil'
