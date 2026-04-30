@@ -1651,9 +1651,11 @@ function _completeOnboarding(){
   if(_currentUser && _currentUser.id) _setOnboardingCompleted(_currentUser.id);
   // Setear página destino ANTES de initApp para evitar flash de dashboard
   if(typeof S!=='undefined') S.currentPage = 'configuracion';
-  hideAuthScreen();
+  // initApp corre DETRÁS de la auth screen (z-index:9999 la cubre).
+  // Cuando hideAuthScreen se ejecute, configuración ya estará 100% pintada.
   if(typeof initApp === 'function') initApp();
   if(_currentUser && typeof _injectLogoutBtn === 'function') _injectLogoutBtn(_currentUser);
+  hideAuthScreen();
   var done = function(){
     S.currentPage = 'configuracion';
     if(typeof saveState === 'function') saveState();
