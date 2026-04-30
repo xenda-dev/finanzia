@@ -9756,7 +9756,7 @@ function openContactSheet(){
   }
   var ov=document.createElement('div');
   ov.id='contact-hub-overlay';
-  ov.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
+  ov.style.cssText='position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
   ov.onclick=function(e){if(e.target===ov)ov.remove();};
   function row(bg,svg,label,onclick){
     return '<div onclick="'+onclick+'" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:0.5px solid var(--border);cursor:pointer">'
