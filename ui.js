@@ -517,7 +517,7 @@ async function openNotifPage(){
 function _buildNotifContent(){
   var perm=!('Notification'in window)?'denied':(Notification.permission||'default');
   var granted=perm==='granted';
-  var masterOn=!!(S.notifPrefs&&S.notifPrefs._master!==false);
+  var masterOn=!!(S.notifPrefs&&S.notifPrefs._master===true);
   var active=granted&&masterOn;
   var bannerSub=active?'Toca para desactivar':(granted?'Toca para activar':'Toca para solicitar permiso al sistema');
   // Banner
@@ -545,7 +545,7 @@ function _buildNotifContent(){
     notifTips:{icon:'💡',bg:'#EDE9FE',label:'Consejos financieros',desc:'Tips personalizados'}
   };
   var list='<div id="notif-items-list" style="opacity:'+(masterOn?'1':'.3')+';pointer-events:'+(masterOn?'all':'none')+'">'+keys.map(function(key,idx){
-    var isOn=!!(S.notifPrefs&&S.notifPrefs[key]);
+    var isOn=S.notifPrefs&&S.notifPrefs[key]===true;
     var m=meta[key];
     var last=idx===keys.length-1;
     return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:'+(last?'none':'0.5px solid rgba(0,0,0,.05)')+';">'
@@ -575,7 +575,7 @@ function _toggleNotifMaster(){
 }
 function _toggleNotifItem(key){
   if(!S.notifPrefs)S.notifPrefs={};
-  S.notifPrefs[key]=!S.notifPrefs[key];
+  S.notifPrefs[key]=(S.notifPrefs[key]===true)?false:true;
   saveState();
   _refreshNotifOverlay();
 }
