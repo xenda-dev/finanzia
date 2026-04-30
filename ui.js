@@ -124,7 +124,8 @@ var _PAGE_LABELS={
   'mi-perfil':'Mi Perfil',
   'tareas':'Mis tareas',
   'objetivos':'Objetivos personales',
-  'plantillas':'Plantillas de tarea'
+  'plantillas':'Plantillas de tarea',
+  'ayuda':'Centro de ayuda'
 };
 function _getPageTitle(page){
   if(page==='cuenta-detalle') return 'Detalle de Cuenta';
@@ -301,6 +302,7 @@ function renderPage(page){
       case'tareas':el.innerHTML=renderTareas();break;
       case'objetivos':el.innerHTML=renderObjetivos();break;
       case'plantillas':el.innerHTML=renderPlantillas();break;
+      case'ayuda':el.innerHTML=renderAyuda();break;
     }
   }catch(e){
     console.error('renderPage ERROR ['+page+']:',e);
@@ -1434,6 +1436,118 @@ function _showCustomTaskBS(){
   _showTmplTaskForm('Mi tarea','📋');
 }
 
+// ════════════════════════════════════════════════════════════
+// CENTRO DE AYUDA
+// ════════════════════════════════════════════════════════════
+var FAQ=[
+  {g:'🚀 Primeros pasos',items:[
+    {q:'¿Cómo creo mi cuenta en FinanzIA?',a:'Abre la app y toca "Créala gratis". Ingresa tu nombre, correo y contraseña. Recibirás un correo de confirmación — tócalo para activar tu cuenta.'},
+    {q:'¿Qué monedas puedo usar?',a:'Puedes activar hasta 2 monedas simultáneamente. Ve a Configuración → Monedas activas y selecciona las que usas. El tipo de cambio se actualiza automáticamente.'},
+    {q:'¿Cómo agrego mi primera cuenta bancaria?',a:'En el dashboard ve a Cuentas → Nueva cuenta. Elige el tipo (banco, efectivo, virtual), selecciona tu banco y el tipo de cuenta. La app nunca se conecta directamente a tu banco.'},
+    {q:'¿FinanzIA se conecta a mi banco?',a:'No. FinanzIA es 100% manual. Tú decides qué registras y cuándo. Así mantienes privacidad total y control completo de tus datos.'},
+    {q:'¿Cómo registro un ingreso o gasto?',a:'Toca el botón ＋ flotante desde cualquier pantalla. Selecciona el tipo (ingreso, gasto o transferencia), la categoría, el monto y la fecha.'},
+    {q:'¿Puedo usar la app en varios dispositivos?',a:'Sí. Tu cuenta se sincroniza automáticamente entre dispositivos. Los datos se guardan en la nube y se actualizan en tiempo real.'},
+    {q:'¿Cómo configuro mi idioma?',a:'Ve a Configuración → Idioma y selecciona entre los 15 idiomas disponibles. El cambio es inmediato.'},
+    {q:'¿Puedo cambiar el formato de números?',a:'Sí. En Configuración → Formato moneda elige entre los formatos disponibles (punto decimal, coma decimal, etc.).'}
+  ]},
+  {g:'💳 Cuentas y movimientos',items:[
+    {q:'¿Cómo edito un movimiento ya registrado?',a:'En Movimientos toca el registro que quieres editar. Se abre el detalle con opción de editar. Modifica los campos y guarda.'},
+    {q:'¿Puedo eliminar un movimiento?',a:'Sí. Abre el movimiento, baja hasta el botón "Eliminar" y confirma. El movimiento se marca como eliminado pero se conserva en el historial del servidor.'},
+    {q:'¿Cómo registro una transferencia entre mis cuentas?',a:'Al agregar un movimiento selecciona tipo "Transferencia". Elige la cuenta origen y la cuenta destino. El saldo de ambas cuentas se actualiza automáticamente.'},
+    {q:'¿Para qué sirven las subcategorías?',a:'Las subcategorías te permiten detallar aún más tus gastos. Por ejemplo, dentro de "Alimentación" puedes tener "Mercado", "Restaurante" y "Delivery".'},
+    {q:'¿Cómo creo una categoría personalizada?',a:'Ve a Configuración → Categorías → Nueva categoría. Elige nombre, ícono, color y naturaleza (necesidades, deseos o ahorros).'},
+    {q:'¿Cómo filtro mis movimientos?',a:'En la pantalla Movimientos toca el ícono de filtros. Puedes filtrar por tipo, fecha, categoría, cuenta y método de pago.'},
+    {q:'¿Qué es la naturaleza de una categoría?',a:'La naturaleza clasifica tus gastos según la regla 50/30/20: Necesidades (50%), Deseos (30%) y Ahorros (20%). Esto te ayuda a visualizar tu distribución financiera.'},
+    {q:'¿Cómo registro un pago con tarjeta de crédito?',a:'Registra el gasto normalmente con el método de pago "Tarjeta crédito". Si quieres controlar la deuda, crea una cuenta de tipo Pasivo para tu tarjeta.'}
+  ]},
+  {g:'📊 Presupuestos y metas',items:[
+    {q:'¿Cómo creo un presupuesto mensual?',a:'Ve a Planificación → Presupuestos → Nuevo presupuesto. Selecciona la categoría, el monto límite y la moneda. La app trackea automáticamente cuánto llevas gastado.'},
+    {q:'¿Cuándo me avisa que estoy llegando al límite?',a:'Recibes una notificación cuando llegas al 80% del presupuesto y otra al 100%. Activa las notificaciones en Configuración → Notificaciones.'},
+    {q:'¿Cómo creo una meta de ahorro?',a:'Ve a Planificación → Metas → Nueva meta. Define el nombre, monto objetivo, fecha límite y la cuenta donde ahorrarás. La app calcula el ritmo necesario.'},
+    {q:'¿Puedo tener metas en diferentes monedas?',a:'Sí. Cada meta tiene su propia moneda. El dashboard muestra el total convertido a tu moneda activa principal.'},
+    {q:'¿Cómo registro un abono a mi meta?',a:'Ve a Metas, toca la meta y selecciona "Registrar avance". Ingresa el monto ahorrado. También puedes registrarlo como gasto con categoría "Metas de ahorro".'},
+    {q:'¿Qué es la regla 50/30/20?',a:'Es una guía financiera: 50% de tus ingresos para necesidades básicas, 30% para deseos y 20% para ahorros e inversiones. El dashboard muestra tu distribución actual.'},
+    {q:'¿Puedo eliminar un presupuesto?',a:'Sí. En la pantalla de Presupuestos toca el presupuesto, baja al botón "Eliminar" y confirma. No afecta los movimientos ya registrados.'},
+    {q:'¿Los presupuestos se reinician cada mes?',a:'Sí. Los presupuestos son mensuales y se reinician automáticamente el primer día de cada mes.'}
+  ]},
+  {g:'🔔 Notificaciones',items:[
+    {q:'¿Cómo activo las notificaciones?',a:'Ve a Configuración → Notificaciones y activa el toggle maestro. La app te pedirá permiso del sistema en Android/iOS. Una vez concedido, activa las alertas que quieras.'},
+    {q:'¿Por qué no recibo notificaciones de presupuesto?',a:'Verifica que las notificaciones estén activas (toggle maestro ON) y que el toggle "Límite de presupuesto" esté activado. También verifica que Android no haya restringido las notificaciones de la app.'},
+    {q:'¿Qué son los consejos financieros?',a:'FinanzIA alterna diariamente entre tips financieros prácticos y frases motivacionales. Se envían una vez al día como notificación cuando la app está instalada.'},
+    {q:'¿Puedo desactivar solo algunos tipos de notificaciones?',a:'Sí. En Configuración → Notificaciones puedes activar/desactivar individualmente: Pagos, Presupuestos, Metas, Resumen semanal y Consejos.'},
+    {q:'¿Cómo funciona el resumen semanal?',a:'Cada lunes recibes un resumen de tus ingresos y gastos de los últimos 7 días en tu moneda activa. Solo se envía si tienes notificaciones activas.'},
+    {q:'¿Las notificaciones funcionan con la app cerrada?',a:'Sí, si tienes la PWA instalada en tu dispositivo. El Service Worker permite recibir notificaciones aunque la app esté cerrada.'}
+  ]},
+  {g:'🔒 Privacidad y seguridad',items:[
+    {q:'¿Cómo funciona el PIN de seguridad?',a:'El PIN protege el acceso a la app. Se configura en el flujo de registro. Si lo olvidas, usa la opción "Recuperar PIN" y te enviaremos un código por correo.'},
+    {q:'¿Qué datos guarda FinanzIA en la nube?',a:'Se guardan tus movimientos, categorías, cuentas, presupuestos, metas y configuración. La foto de perfil se guarda localmente en tu dispositivo, no en los servidores.'},
+    {q:'¿Cómo exporto mis datos?',a:'En Configuración → Datos puedes exportar todos tus datos en formato JSON. Este archivo contiene toda la información de tu cuenta.'},
+    {q:'¿Puedo importar datos de otra app?',a:'Actualmente puedes importar desde un archivo JSON exportado previamente por FinanzIA. La importación de otros formatos (CSV, Excel) está en desarrollo.'},
+    {q:'¿Cómo elimino mi cuenta permanentemente?',a:'Ve a Configuración → Eliminar cuenta. Confirma con tu contraseña. Todos tus datos se eliminan del servidor de forma irreversible en 30 días.'},
+    {q:'¿La app funciona sin internet?',a:'La mayoría de funciones funcionan offline. Los datos se sincronizan cuando vuelve la conexión. Algunas funciones como el tipo de cambio requieren internet.'}
+  ]},
+  {g:'💡 Funciones avanzadas',items:[
+    {q:'¿Qué son los pagos programados?',a:'Son pagos recurrentes que configuras una vez (arriendo, servicios, suscripciones) y la app los registra automáticamente en la fecha indicada. Ve a Planificación → Pagos programados.'},
+    {q:'¿Cómo uso la Matriz Eisenhower en Tareas?',a:'En la pantalla Tareas → Vista Hoy, cada tarea tiene un cuadrante asignado: 🔴 Hazlo ahora (urgente+importante), 🟡 Planifícalo, 🟠 Delégalo, ⚫ Elimínalo.'},
+    {q:'¿Cómo creo un hábito desde plantillas?',a:'Ve a Plantillas, busca el hábito que quieres crear y toca "Como hábito 🔥". Define la frecuencia y la meta de días. Aparecerá en Objetivos → Hábitos.'},
+    {q:'¿Qué es Emiliano IA?',a:'Emiliano es tu asistente financiero personal dentro de FinanzIA. Puedes consultarle sobre tus finanzas, pedirle consejos y analizar tus datos. Accede desde el ícono de chat.'},
+    {q:'¿Cómo funciona el tipo de cambio?',a:'FinanzIA consulta tasas de cambio en tiempo real cuando tienes 2 monedas activas. La tasa se actualiza al abrir el dashboard y se guarda en caché para uso offline.'},
+    {q:'¿Qué son las listas de compra?',a:'En Herramientas → Listas de compra puedes crear listas para el supermercado, hogar u otras compras. Marca los ítems mientras compras y calcula el total estimado.'}
+  ]},
+  {g:'⚙️ Problemas técnicos',items:[
+    {q:'La app no sincroniza mis datos, ¿qué hago?',a:'1) Verifica tu conexión a internet. 2) Cierra y vuelve a abrir la app. 3) Si el problema persiste, ve a Configuración → Datos → Sincronizar ahora. 4) Contacta soporte si continúa.'},
+    {q:'¿Por qué perdí mis datos después de actualizar?',a:'Los datos no se pierden con actualizaciones — siempre están respaldados en la nube. Si ves la app vacía, cierra sesión y vuelve a iniciar para forzar la sincronización.'},
+    {q:'¿Cómo reinstalo la PWA?',a:'En Android Chrome: Menu → Instalar aplicación. En iOS Safari: Compartir → Añadir a pantalla de inicio. Si ya la tienes instalada, desinstálala primero desde los ajustes del dispositivo.'},
+    {q:'El botón ＋ no funciona, ¿qué hago?',a:'Intenta recargar la página (Pull to refresh o F5 en desktop). Si persiste, verifica que tengas suficiente espacio de almacenamiento en el dispositivo.'},
+    {q:'¿Cómo limpio el caché de la app?',a:'En Chrome Android: Configuración → Sitios → FinanzIA → Borrar datos. Esto borrará datos locales pero los datos en nube se recuperarán al iniciar sesión.'},
+    {q:'¿Cómo contacto al soporte técnico?',a:'Usa el menú ≡ → Soporte para acceder a todas las opciones de contacto: correo, Telegram o formulario de contacto. Respondemos en menos de 24 horas hábiles.'}
+  ]}
+];
+var _faqOpen={};
+function _toggleFaq(id){
+  _faqOpen[id]=!_faqOpen[id];
+  var body=document.getElementById('faq-b-'+id);
+  var icon=document.getElementById('faq-i-'+id);
+  if(body){body.style.display=_faqOpen[id]?'block':'none';}
+  if(icon){icon.style.transform=_faqOpen[id]?'rotate(180deg)':'rotate(0deg)';}
+}
+function renderAyuda(){
+  var search=(S._faqSearch||'').toLowerCase();
+  var html='<div class="search-bar" style="margin-bottom:16px">'
+    +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
+    +'<input type="text" placeholder="Buscar pregunta..." value="'+(S._faqSearch||'')+'" oninput="S._faqSearch=this.value;renderPage(\'ayuda\')" style="flex:1;border:none;background:transparent;color:var(--text);font-family:var(--font);font-size:14px;outline:none">'
+    +'</div>';
+  var count=0;
+  FAQ.forEach(function(grp,gi){
+    var items=grp.items.filter(function(it){
+      return !search||it.q.toLowerCase().includes(search)||it.a.toLowerCase().includes(search);
+    });
+    if(!items.length)return;
+    count+=items.length;
+    html+='<div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 6px">'+grp.g+'</div>';
+    html+='<div style="background:var(--surface);border-radius:14px;border:0.5px solid var(--border);overflow:hidden;margin-bottom:4px">';
+    items.forEach(function(it,ii){
+      var id='faq-'+gi+'-'+ii;
+      var isLast=ii===items.length-1;
+      html+='<div>'
+        +'<div onclick="_toggleFaq(\''+id+'\')" style="display:flex;align-items:center;gap:10px;padding:13px 14px;'+(isLast?'':'border-bottom:0.5px solid var(--border);')+'cursor:pointer">'
+        +'<div style="flex:1;font-size:13px;font-weight:600;color:var(--text)">'+it.q+'</div>'
+        +'<svg id="faq-i-'+id+'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>'
+        +'</div>'
+        +'<div id="faq-b-'+id+'" style="display:none;padding:0 14px 13px;font-size:13px;color:var(--text2);line-height:1.6">'+it.a+'</div>'
+        +'</div>';
+    });
+    html+='</div>';
+  });
+  if(search&&count===0){
+    html+='<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Sin resultados</div><div class="empty-desc">Prueba con otras palabras</div></div>';
+  }
+  html+='<div style="text-align:center;padding:20px 0">'
+    +'<div style="font-size:12px;color:var(--text3);margin-bottom:10px">¿No encontraste lo que buscabas?</div>'
+    +'<button onclick="openContactSheet()" style="padding:10px 20px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">Contactar soporte</button>'
+    +'</div>';
+  return html;
+}
 // ════════════════════════════════════════════════════════════
 // TX ROW
 // ════════════════════════════════════════════════════════════
@@ -9636,16 +9750,24 @@ function openContactSheet(){
   ov.id='contact-hub-overlay';
   ov.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
   ov.onclick=function(e){if(e.target===ov)ov.remove();};
-  function row(bg,svg,label,sub,onclick){
+  function row(bg,svg,label,onclick){
     return '<div onclick="'+onclick+'" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:0.5px solid var(--border);cursor:pointer">'
       +'<div style="width:42px;height:42px;border-radius:12px;background:'+bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+svg+'</div>'
-      +'<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:var(--text)">'+label+'</div><div style="font-size:11px;color:var(--text2);margin-top:2px">'+sub+'</div></div>'
+      +'<div style="flex:1;font-size:14px;font-weight:700;color:var(--text)">'+label+'</div>'
+      +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
+    +'</div>';
+  }
+  function rowLast(bg,svg,label,onclick){
+    return '<div onclick="'+onclick+'" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer">'
+      +'<div style="width:42px;height:42px;border-radius:12px;background:'+bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'+svg+'</div>'
+      +'<div style="flex:1;font-size:14px;font-weight:700;color:var(--text)">'+label+'</div>'
       +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
     +'</div>';
   }
   var svgMail='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
-  var svgTg='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><path d="M21.5 4.5L2.5 12.5l5.5 1.5 2 6 3-3.5 5 4 3.5-16z"/></svg>';
+  var svgTg='<svg width="20" height="20" viewBox="0 0 24 24" fill="#1DA8F0"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.367l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.958.192z"/></svg>';
   var svgForm='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
+  var svgHelp='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
   ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;overflow:hidden;animation:bsSlideUp .22s ease">'
     +'<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px">'
       +'<div style="display:flex;align-items:center;gap:8px">'
@@ -9657,9 +9779,10 @@ function openContactSheet(){
     +'<div style="background:var(--surface);height:18px;border-radius:18px 18px 0 0;margin-top:-12px;position:relative;z-index:1"></div>'
     +'<div style="padding:4px 14px max(env(safe-area-inset-bottom),20px)">'
       +'<div style="background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);overflow:hidden">'
-        +row('rgba(59,130,246,.12)',svgMail,'Correo electrónico','soporte@xenda.co','document.getElementById(\'contact-hub-overlay\').remove();window.location.href=\'mailto:soporte@xenda.co?subject=FinanzIA - Consulta\'')
-        +row('rgba(0,212,170,.12)',svgTg,'Telegram','Habla con nuestro bot 24/7','document.getElementById(\'contact-hub-overlay\').remove();window.open(\'https://t.me/xenda_soporte_bot\',\'_blank\')')
-        +row('rgba(116,97,239,.12)',svgForm,'Formulario','Abre un ticket de soporte','document.getElementById(\'contact-hub-overlay\').remove();openSoporteModal()')
+        +row('rgba(59,130,246,.12)',svgMail,'Correo electrónico','document.getElementById(\'contact-hub-overlay\').remove();window.location.href=\'mailto:soporte@xenda.co?subject=FinanzIA - Consulta\'')
+        +row('rgba(0,212,170,.12)',svgTg,'Telegram','document.getElementById(\'contact-hub-overlay\').remove();window.open(\'https://t.me/xenda_soporte_bot\',\'_blank\')')
+        +row('rgba(116,97,239,.12)',svgForm,'Formulario de contacto','document.getElementById(\'contact-hub-overlay\').remove();openSoporteModal()')
+        +rowLast('rgba(245,158,11,.12)',svgHelp,'Centro de ayuda','document.getElementById(\'contact-hub-overlay\').remove();navigate(\'ayuda\')')
       +'</div>'
       +'<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:14px;line-height:1.5">Te respondemos en menos de 24 h hábiles.</div>'
     +'</div>'
