@@ -238,10 +238,10 @@ function updateDrawerProfile(){
   if(nameEl)nameEl.textContent=name;
   if(emailEl)emailEl.textContent=email;
   if(avatarEl){
-    var _ini2=name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)||'?';
+    var _ini2=name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
     avatarEl.innerHTML=photo
       ?'<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.style.display=\'none\'">'
-      :'<span style="font-size:18px;font-weight:800;color:white;letter-spacing:-.5px">'+_ini2+'</span>';
+      :(_ini2?'<span style="font-size:18px;font-weight:800;color:white;letter-spacing:-.5px">'+_ini2+'</span>':'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>');
   }
   // Progress bar — mismos campos que Mi Perfil
   try{
