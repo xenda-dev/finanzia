@@ -38,6 +38,31 @@
 > **Pendiente:** puntos
 > ```
 
+### Sesión 7 — 2026-04-30 (cierre del día)
+**Archivos modificados:** `ui.js`, `storage.js`, `auth.js`, `app.js`, `index.html`
+
+**Qué se hizo:**
+- **Sistema de avatares unificado**: nueva función `_avatarInner(fontSize)` en `ui.js:360` — devuelve solo el innerHTML (foto → iniciales → ícono SVG persona) con fallback en cascada `S.profile.name → user_metadata.full_name → ''`. Usada en los 4 avatares de la app: drawer (18px), header dashboard (12px), Mi Perfil (18px), Configuración (18px).
+- **Header avatar (#header-avatar)**: gradiente fijo `linear-gradient(135deg,#00D4AA,#7461EF) !important` en `index.html:495`. En `_updateHeader` se reescribe `ava.style.cssText` completo cada render para garantizar que el gradiente nunca se pierda. Sin border, 34×34px.
+- **Drawer avatar**: `updateDrawerProfile` (storage.js) usa `_avatarInner(18)` con fallback inline. Aplica gradiente, display flex, overflow hidden directamente al elemento. % calculado vía `_calcProfileProgress()` (mismos 7 campos que Mi Perfil) cuando está disponible.
+- **`openDrawer()` refresca datos**: ahora llama `updateDrawerProfile()` antes de abrir el drawer, eliminando el bug del primer render donde drawer aparecía vacío.
+- **Avatares Mi Perfil y Configuración uniformes**: ambos con `border:2px solid rgba(255,255,255,.6)` (mismo estilo que drawer) + `box-sizing:border-box` + `_avatarInner(18)`. Eliminados los artefactos visuales ("esquinitas") del border verde anterior.
+- **Tarjeta Configuración con fallback**: nuevas variables `_cfgMeta/_cfgName/_cfgEmail` en `renderConfiguracion` que leen `S.profile` con fallback a `user_metadata.full_name`/`name` y `_currentUser.email`. Antes mostraba "Mi Perfil"/"Toca para completar" durante onboarding cuando S.profile estaba vacío.
+- **Flash dashboard durante onboarding eliminado**: en `_completeOnboarding` (auth.js) se setea `S.currentPage='configuracion'` ANTES de `initApp()`, y `initApp()` se ejecuta ANTES de `hideAuthScreen()`. La auth screen (z-index:9999) cubre #app mientras initApp pinta configuración. Cuando se oculta, configuración ya está 100% lista. `app.js:28` cambiado a `navigate(S.currentPage||'dashboard')` (eliminada exclusión histórica de configuración).
+- **Header configuración en onboarding**: `_completeOnboarding` llama `_updateHeader('configuracion')` después de `renderPage` para asegurar header correcto al primer render.
+
+**Decisiones de Jorge:**
+- Los 4 avatares deben verse idénticos: mismo gradiente `#00D4AA→#7461EF`, misma cascada foto/iniciales/SVG persona.
+- Border blanco semitransparente (estilo drawer) para Mi Perfil y Configuración, no verde.
+- **Nueva regla de flujo de trabajo**: después de cada fix verificado, Claude Code debe **preguntar a Jorge si hacer commit y push a GitHub** antes de continuar. Sin push los cambios no llegan a Vercel/finanzia.xenda.co y Jorge no puede probar en su OPPO. Guardado en memoria como feedback permanente.
+
+**Pendiente:**
+- Sprint C: Dashboard, Movimientos, Deudas, Herramientas — esperando diseño Claude Design.
+- Web Push + Service Worker completo — etapa monetización SaaS.
+- i18n completo, Emiliano IA real, Monetización SaaS.
+
+---
+
 ### Sesión 6 — 2026-04-30 (cierre del día)
 **Archivos modificados:** `ui.js`, `storage.js`, `index.html`
 
