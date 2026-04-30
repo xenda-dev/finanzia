@@ -163,7 +163,8 @@ function _updateHeader(page){
   if(ava){
     ava.style.display=isDash?'flex':'none';
     var _ph=_getProfilePhoto()||'';
-    var _n=(S.profile&&S.profile.name)||'';
+    var _meta2=window._currentUser&&window._currentUser.user_metadata;
+    var _n=(S.profile&&S.profile.name)||(_meta2&&_meta2.full_name)||(_meta2&&_meta2.name)||'';
     var _ini=_n.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
     ava.style.backgroundImage='none';
     ava.innerHTML=_ph

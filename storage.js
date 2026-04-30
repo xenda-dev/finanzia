@@ -227,8 +227,9 @@ function loadState(){
   return localStorage.getItem('_profilePhoto_'+_uid)||_allFields;
 }
 function updateDrawerProfile(){
-  var name=S.profile&&S.profile.name?S.profile.name:'Mi Perfil';
-  var email=S.profile&&S.profile.email?S.profile.email:'Toca para configurar';
+  var _meta=window._currentUser&&window._currentUser.user_metadata;
+  var name=(S.profile&&S.profile.name)||(_meta&&_meta.full_name)||(_meta&&_meta.name)||'Mi Perfil';
+  var email=(S.profile&&S.profile.email)||(window._currentUser&&window._currentUser.email)||'Toca para configurar';
   var photo=_getProfilePhoto();
   var nameEl=document.getElementById('drawer-profile-name');
   var emailEl=document.getElementById('drawer-profile-email');
@@ -248,7 +249,7 @@ function updateDrawerProfile(){
     var p=S.profile||{};
     var uid=window._currentUser&&window._currentUser.id;
     var checks=[
-      !!(p.name&&p.name.trim()),
+      !!(name&&name!=='Mi Perfil'),
       !!(p.gender&&p.gender!==''),
       !!(p.residence),
       !!(p.phone&&p.phoneCode),
