@@ -7879,7 +7879,9 @@ function handleImportFile(e){
 function resetApp(){
   confirmDialog('⚠️','¿Restaurar la app?','Se eliminarán TODOS tus datos. Esta acción es irreversible.',()=>{
     localStorage.removeItem('finanziaState3');_testAnswers={};
-    var _keepName=(S.profile&&S.profile.name)||'';
+    var _keepName=(S.profile&&S.profile.name&&S.profile.name.trim())
+      ||(function(){try{if(typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.user_metadata&&_currentUser.user_metadata.full_name)return _currentUser.user_metadata.full_name;}catch(e){}return '';})()
+      ||(function(){try{var _ls=JSON.parse(localStorage.getItem('finanziaState3')||'{}');return(_ls.profile&&_ls.profile.name)||'';}catch(e){return '';}})()||'';
     var _keepEmail=(S.profile&&S.profile.email)||'';
     var _keepPhoto=(S.profile&&S.profile.photo)||'';
     S={currency:'',currentPage:'dashboard',theme:S.theme,language:'',weekStart:'',currencies:[],accounts:[],transactions:[],categories:JSON.parse(JSON.stringify(DEFAULT_CATS)),subcategories:JSON.parse(JSON.stringify(DEFAULT_SUBS)),budgets:[],goals:[],scheduledPayments:[],tasks:[],objectives:[],movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},analysisPeriod:'Mensual',analysisYear:new Date().getFullYear(),exchangeRate:{PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''},profile:{name:_keepName,email:_keepEmail,photo:_keepPhoto}};
