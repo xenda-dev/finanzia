@@ -566,7 +566,7 @@ function _buildNotifContent(){
 }
 function _toggleNotifMaster(){
   if(!S.notifPrefs)S.notifPrefs={};
-  var currentOn=S.notifPrefs._master!==false;
+  var currentOn=S.notifPrefs._master===true;
   if(currentOn){
     confirmDialog('🔔','¿Desactivar notificaciones?',
       'No recibirás alertas de FinanzIA.',
