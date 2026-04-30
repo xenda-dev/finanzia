@@ -25,7 +25,7 @@ function initApp(){
   refreshCurrencyToggle();
   applyLanguage();
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){if(S.theme==='auto')applyThemeMode();});
-  navigate((S.currentPage&&S.currentPage!=='configuracion')?S.currentPage:'dashboard');
+  navigate(S.currentPage||'dashboard');
   checkAutoPayments();
   checkBudgetNotifs();
   checkGoalNotifs();

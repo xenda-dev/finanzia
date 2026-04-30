@@ -1649,6 +1649,8 @@ function _initBioSetupScreen(){
 function _completeOnboarding(){
   // Marcar onboarding completado para este usuario (no vuelve a ejecutarse)
   if(_currentUser && _currentUser.id) _setOnboardingCompleted(_currentUser.id);
+  // Setear página destino ANTES de initApp para evitar flash de dashboard
+  if(typeof S!=='undefined') S.currentPage = 'configuracion';
   hideAuthScreen();
   if(typeof initApp === 'function') initApp();
   if(_currentUser && typeof _injectLogoutBtn === 'function') _injectLogoutBtn(_currentUser);
