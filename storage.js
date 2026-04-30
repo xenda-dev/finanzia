@@ -222,8 +222,9 @@ function loadState(){
   var _uid=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id
     ?_currentUser.id
     :(localStorage.getItem('_lastAuthUserId')||'');
-  if(!_uid) return (S.profile&&S.profile.photo)||'';
-  return localStorage.getItem('_profilePhoto_'+_uid)||'';
+  var _allFields=(S.profile&&(S.profile.photo||S.profile.photoURL||S.profile.avatar||S.profile.profilePic))||'';
+  if(!_uid) return _allFields;
+  return localStorage.getItem('_profilePhoto_'+_uid)||_allFields;
 }
 function updateDrawerProfile(){
   var name=S.profile&&S.profile.name?S.profile.name:'Mi Perfil';
