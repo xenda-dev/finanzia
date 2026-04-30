@@ -238,19 +238,17 @@ function updateDrawerProfile(){
   if(nameEl)nameEl.textContent=name;
   if(emailEl)emailEl.textContent=email;
   if(avatarEl){
-    if(photo){
-      avatarEl.innerHTML='<img src="'+photo+'" alt="foto">';
-    }else{
-      var initials=name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
-      avatarEl.innerHTML='<span style="font-size:18px;font-weight:900;color:white;letter-spacing:-.5px">'+(initials&&initials!=='MI'?initials:'JQ')+'</span>';
-    }
+    var _ini2=name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)||'?';
+    avatarEl.innerHTML=photo
+      ?'<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.style.display=\'none\'">'
+      :'<span style="font-size:18px;font-weight:800;color:white;letter-spacing:-.5px">'+_ini2+'</span>';
   }
-  // Progress bar
+  // Progress bar — mismos campos que Mi Perfil
   try{
     var p=S.profile||{};
     var uid=window._currentUser&&window._currentUser.id;
     var checks=[
-      !!(name&&name!=='Mi Perfil'),
+      !!(p.name&&p.name.trim()),
       !!(p.gender&&p.gender!==''),
       !!(p.residence),
       !!(p.phone&&p.phoneCode),

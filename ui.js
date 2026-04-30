@@ -162,17 +162,13 @@ function _updateHeader(page){
   if(bell)bell.style.display=isDash?'flex':'none';
   if(ava){
     ava.style.display=isDash?'flex':'none';
-    var _photo=_getProfilePhoto()||'';
-    ava.innerHTML='';
+    var _ph=_getProfilePhoto()||'';
+    var _n=(S.profile&&S.profile.name)||'';
+    var _ini=_n.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)||'?';
     ava.style.backgroundImage='none';
-    if(_photo){
-      ava.innerHTML='<img src="'+_photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.style.display=\'none\'">';
-    }else if(S.profile&&S.profile.name&&S.profile.name.trim()){
-      var _ini=S.profile.name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
-      ava.textContent=_ini;
-    }else{
-      ava.textContent='?';
-    }
+    ava.innerHTML=_ph
+      ?'<img src="'+_ph+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.style.display=\'none\'">'
+      :'<span style="font-size:12px;font-weight:800;color:white">'+_ini+'</span>';
   }
   // Spacer derecho en pantallas sin controls especiales
   if(hSpacer)hSpacer.style.display='none';
@@ -362,6 +358,17 @@ function _updateFxDash(){
         +'</button>';
     }).join('');
   }
+}
+function _renderAvatarHtml(size){
+  var sz=size||40;
+  var photo=_getProfilePhoto()||'';
+  var name=(S.profile&&S.profile.name)||'';
+  var initials=name.split(' ').filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)||'?';
+  var fontSize=Math.round(sz*0.35);
+  var inner=photo
+    ?'<img src="'+photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.style.display=\'none\'">'
+    :'<span style="font-size:'+fontSize+'px;font-weight:800;color:white;letter-spacing:-.5px">'+initials+'</span>';
+  return '<div style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;border:2px solid rgba(0,212,170,.2);">'+inner+'</div>';
 }
 function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('overlay').classList.add('active');}
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('overlay').classList.remove('active');}
