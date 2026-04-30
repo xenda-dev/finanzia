@@ -221,6 +221,13 @@ function _updateHeader(page){
       if(hSubtitle){hSubtitle.style.display='none';}
       if(hSpacer){hSpacer.style.display='block';hSpacer.innerHTML='';}
       if(hHeaderEl)hHeaderEl.style.background='';
+    }else if(page==='ayuda'){
+      hRow2.style.display='none';
+      if(hHero){hHero.style.display='none';hHero.innerHTML='';}
+      if(hTitle){hTitle.style.display='block';hTitle.textContent='Centro de ayuda';}
+      if(hSubtitle){hSubtitle.style.display='none';}
+      if(hSpacer){hSpacer.style.display='block';hSpacer.innerHTML='';}
+      if(hHeaderEl)hHeaderEl.style.background='';
     }else if(isDash){
       var _mpEl2=document.getElementById('page-mi-perfil');
       if(_mpEl2){_mpEl2.style.height='';_mpEl2.style.overflowY='';}
@@ -1439,6 +1446,24 @@ function _showCustomTaskBS(){
 // ════════════════════════════════════════════════════════════
 // CENTRO DE AYUDA
 // ════════════════════════════════════════════════════════════
+function openAyudaOverlay(){
+  var existing=document.getElementById('ayuda-overlay');
+  if(existing)existing.remove();
+  var ov=document.createElement('div');
+  ov.id='ayuda-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:10002;background:var(--bg);display:flex;flex-direction:column;overflow:hidden';
+  ov.innerHTML=
+    '<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 12px 22px;flex-shrink:0">'
+    +'<div style="display:flex;align-items:center;gap:8px">'
+    +'<button onclick="document.getElementById(\'ayuda-overlay\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
+    +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">Centro de ayuda</div>'
+    +'<div style="width:34px;flex-shrink:0"></div>'
+    +'</div>'
+    +'</div>'
+    +'<div style="background:var(--bg);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
+    +'<div style="flex:1;overflow-y:auto;padding:0 16px 32px">'+renderAyuda()+'</div>';
+  document.body.appendChild(ov);
+}
 var FAQ=[
   {g:'🚀 Primeros pasos',items:[
     {q:'¿Cómo creo mi cuenta en FinanzIA?',a:'Abre la app y toca "Créala gratis". Ingresa tu nombre, correo y contraseña. Recibirás un correo de confirmación — tócalo para activar tu cuenta.'},
@@ -9790,7 +9815,7 @@ function openContactSheet(){
         +row('rgba(59,130,246,.12)',svgMail,'Correo electrónico','document.getElementById(\'contact-hub-overlay\').remove();window.location.href=\'mailto:soporte@xenda.co?subject=FinanzIA - Consulta\'')
         +row('rgba(0,212,170,.12)',svgTg,'Telegram','document.getElementById(\'contact-hub-overlay\').remove();window.open(\'https://t.me/xenda_soporte_bot\',\'_blank\')')
         +row('rgba(116,97,239,.12)',svgForm,'Formulario de contacto','document.getElementById(\'contact-hub-overlay\').remove();openSoporteModal()')
-        +rowLast('rgba(245,158,11,.12)',svgHelp,'Centro de ayuda','document.getElementById(\'contact-hub-overlay\').remove();navigate(\'ayuda\')')
+        +rowLast('rgba(245,158,11,.12)',svgHelp,'Centro de ayuda','document.getElementById(\'contact-hub-overlay\').remove();openAyudaOverlay()')
       +'</div>'
       +'<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:14px;line-height:1.5">Te respondemos en menos de 24 h hábiles.</div>'
     +'</div>'
