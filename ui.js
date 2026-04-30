@@ -1512,8 +1512,13 @@ function _toggleFaq(id){
   if(icon){icon.style.transform=_faqOpen[id]?'rotate(180deg)':'rotate(0deg)';}
 }
 function renderAyuda(){
+  // Curva con var(--bg) igual que dashboard — sin contraste blanco
+  setTimeout(function(){
+    var curve=document.getElementById('header-curve');
+    if(curve)curve.style.background='var(--bg)';
+  },0);
   var search=(S._faqSearch||'').toLowerCase();
-  var html='<div class="search-bar" style="margin-bottom:16px">'
+  var html='<div class="search-bar" style="margin-bottom:16px;background:var(--bg);border-color:var(--border)">'
     +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
     +'<input type="text" placeholder="Buscar pregunta..." value="'+(S._faqSearch||'')+'" oninput="S._faqSearch=this.value;renderPage(\'ayuda\')" style="flex:1;border:none;background:transparent;color:var(--text);font-family:var(--font);font-size:14px;outline:none">'
     +'</div>';
