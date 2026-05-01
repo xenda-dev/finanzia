@@ -23,7 +23,13 @@ function initApp(){
   }
   if(_notifPage){
     localStorage.removeItem('_notifPage');
-    setTimeout(function(){if(typeof navigate==='function')navigate(_notifPage);},2000);
+    setTimeout(function(){
+      try{
+        if(typeof navigate==='function'&&_notifPage){navigate(_notifPage);}
+      }catch(e){
+        if(typeof toast==='function')toast('Nav error: '+String(e).substring(0,60));
+      }
+    },2000);
   }
   loadState();
 
