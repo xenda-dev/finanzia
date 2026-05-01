@@ -9994,7 +9994,7 @@ function openContactSheet(){
       +'<div style="text-align:center;padding:8px 0 16px">'
         +'<div style="font-size:32px;margin-bottom:6px">🎧</div>'
         +'<div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:4px">¿En qué podemos ayudarte?</div>'
-        +'<div style="font-size:12px;color:var(--text2);line-height:1.5">Elige cómo prefieres contactarnos</div>'
+        +'<div style="font-size:12px;color:var(--text2);line-height:1.5">Estamos aquí para ti. Elige cómo prefieres contactarnos.</div>'
       +'</div>'
       +'<div style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);overflow:hidden;margin-bottom:8px">'
         +row('rgba(0,212,170,.12)',svgMail,'Correo electrónico',_cl+'window.location=\'mailto:soporte@xenda.co\'')
