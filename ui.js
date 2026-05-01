@@ -586,25 +586,23 @@ function _buildNotifContent(){
     +'</div>'
   +'</div>';
   // Items
-  var keys=['notifPayments','notifBudget','notifGoal','notifWeekly','notifTips','notifReminders'];
+  var keys=['notifPayments','notifBudget','notifGoal','notifWeekly','notifTips'];
   var meta={
     notifPayments:{icon:'💳',bg:'#FEF3C7',label:'Pagos programados',desc:'Avisa '+(S.notifDaysDefault||3)+' día(s) antes del vencimiento'},
     notifBudget:{icon:'📊',bg:'#DBEAFE',label:'Límite de presupuesto',desc:'Al llegar al 80%'},
     notifGoal:{icon:'🎯',bg:'#FCE7F3',label:'Progreso de metas',desc:'Al alcanzar hitos'},
     notifWeekly:{icon:'📅',bg:'#D1FAE5',label:'Resumen semanal',desc:'Cada lunes'},
-    notifTips:{icon:'💡',bg:'#EDE9FE',label:'Consejos financieros',desc:'Tips personalizados'},
-    notifReminders:{icon:'🔁',bg:'#D1FAE5',label:'Recordatorio de registro',desc:'Si no registras movimientos a las 8 PM'}
+    notifTips:{icon:'💡',bg:'#EDE9FE',label:'Consejos financieros',desc:'Tips personalizados'}
   };
   var list='<div id="notif-items-list" style="opacity:'+(masterOn?'1':'.3')+';pointer-events:'+(masterOn?'all':'none')+'">'+keys.map(function(key,idx){
     var isOn=S.notifPrefs&&S.notifPrefs[key]===true;
     var m=meta[key];
     var last=idx===keys.length-1;
     var timeVal=(S.notifPrefs&&S.notifPrefs['_'+key+'Time'])||'08:00';
-    var timeBtn=key==='notifReminders'?'':
-      '<button onclick="event.stopPropagation();_openNotifTimePick(\''+key+'\')" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;background:rgba(0,212,170,.08);border:none;cursor:pointer;font-family:var(--font);pointer-events:auto;flex-shrink:0">'
+    var timeBtn='<button onclick="event.stopPropagation();_openNotifTimePick(\''+key+'\')" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;background:rgba(0,212,170,.08);border:none;cursor:pointer;font-family:var(--font);pointer-events:auto;flex-shrink:0">'
       +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
       +'<span style="font-size:11px;font-weight:700;color:#0F766E">'+fmtTime(timeVal)+'</span>'
-      +'</button>';
+    +'</button>';
     return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:'+(last?'none':'0.5px solid rgba(0,0,0,.05)')+';">'
       +'<div style="width:26px;height:26px;border-radius:8px;background:'+m.bg+';display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">'+m.icon+'</div>'
       +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">'+m.label+'</div>'
