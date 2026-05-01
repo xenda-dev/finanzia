@@ -23,7 +23,7 @@ function initApp(){
   }
   if(_notifPage){
     localStorage.removeItem('_notifPage');
-    setTimeout(function(){if(typeof navigate==='function')navigate(_notifPage);},800);
+    setTimeout(function(){if(typeof navigate==='function')navigate(_notifPage);},2000);
   }
   loadState();
 
