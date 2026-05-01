@@ -154,6 +154,7 @@ let S = {
   notifScheduleFrom:'07:00', notifScheduleTo:'22:00',
   notifDaysDefault:3,
   notifPrefs:{_notifPaymentsTime:'08:00',_notifBudgetTime:'08:00',_notifGoalTime:'08:00',_notifWeeklyTime:'08:00',_notifTipsTime:'08:00'},
+  notifications:[],
   numFormat:'auto', currencies:[], profile:{name:'',email:'',photo:'',profession:''},
   shoppingLists:[], investments:[], subscriptions:[], accounts:[], transactions:[], categories:[], subcategories:[],
   budgets:[], goals:[], scheduledPayments:[], tasks:[], objectives:[],
@@ -430,7 +431,7 @@ function mergeById(localArr, remoteArr){
 var MERGE_BY_ID_KEYS=[
   'transactions','accounts','subscriptions',
   'budgets','goals','categories','subcategories','scheduledPayments','shoppingLists','investments',
-  'tasks','objectives'
+  'tasks','objectives','notifications'
 ];
 
 async function syncFromSupabase(userId){
