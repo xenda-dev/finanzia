@@ -808,29 +808,16 @@ function _notifTimeReady(key){
 // ─────────────────────────────────────────────────────────────────
 function checkAutoPayments(){
   const today=todayStr();
-  S.scheduledPayments.forEach(p=>{
+  filterDeleted(S.scheduledPayments||[]).filter(function(p){
+    return p.status!=='pagado'&&p.status!=='cancelado';
+  }).forEach(p=>{
     if(p.isAuto&&p.nextDate===today){
       const alreadyDone=S.transactions.some(t=>t.description==='AUTO:'+p.id&&t.date===today);
       if(!alreadyDone){
         const tx=stampItem({id:uid(),type:'gasto',accountId:p.accountId||'',categoryId:p.categoryId||'',subcategoryId:p.subcategoryId||'',amount:p.amount,currency:p.currency||S.currency,date:today,description:'AUTO:'+p.id,paymentMethod:''});
         S.transactions.push(tx);
-        sendNotif('💳 Pago automático',`${p.name} — ${fmt(p.amount,p.currency||S.currency)}`,'notifPayments');
         advancePayment(p);
         toast('Auto-pago: '+p.name);
-      }
-    }
-    if(p.nextDate<=today&&!p.isAuto){
-      sendNotif('⚠️ Pago pendiente',`${p.name} venció el ${fmtDate(p.nextDate)}`,'notifPayments');
-    }
-    // Aviso anticipado según notifDaysDefault
-    var advDays=S.notifDaysDefault||3;
-    var dLeft=daysUntil(p.nextDate);
-    if(!p.isAuto&&dLeft>0&&dLeft<=advDays&&_inNotifWindow()){
-      var uid2=window._currentUser&&window._currentUser.id;
-      var advKey='_notifPayAdv_'+(uid2||'')+'_'+p.id+'_'+p.nextDate;
-      if(!localStorage.getItem(advKey)){
-        sendNotif('💳 Pago próximo',''+p.name+' vence en '+dLeft+' día'+(dLeft===1?'':'s'),'notifPayments');
-        localStorage.setItem(advKey,'1');
       }
     }
   });
@@ -864,11 +851,6 @@ function checkBudgetNotifs(){
     if(localStorage.getItem(key))return;
     var cat=filterDeleted(S.categories).find(function(c){return c.id===b.categoryId;});
     var catName=cat?cat.name:'Presupuesto';
-    if(pct>=1.0){
-      sendNotif('🚨 Presupuesto superado',catName+' superó el límite este mes','notifBudget');
-    }else{
-      sendNotif('📊 Presupuesto al límite',catName+' — '+Math.round(pct*100)+'% usado','notifBudget');
-    }
     localStorage.setItem(key,'1');
   });
 }
@@ -920,7 +902,6 @@ function checkWeeklyNotif(){
     if(t.type==='ingreso')inc+=parseFloat(t.amount)||0;
     else if(t.type==='gasto')exp+=parseFloat(t.amount)||0;
   });
-  sendNotif('📅 Resumen semanal','Ingresos: '+fmt(inc,S.currency)+'  ·  Gastos: '+fmt(exp,S.currency),'notifWeekly');
   localStorage.setItem(key,'1');
 }
 function checkTipsNotif(){
@@ -982,8 +963,6 @@ function checkTipsNotif(){
   var shuffleIdx=Math.floor(Math.random()*pool.length);
   var finalIdx=(idx+shuffleIdx)%pool.length;
   var msg=pool[finalIdx];
-  var title=dayNum%2===0?'✨ Frase del día':'💡 Consejo financiero';
-  sendNotif(title,msg,'notifTips');
   localStorage.setItem(idxKey,String((finalIdx+1)%pool.length));
   localStorage.setItem('_notifTips_'+uid+'_lastDay',today);
 }
