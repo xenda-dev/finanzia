@@ -38,6 +38,42 @@
 > **Pendiente:** puntos
 > ```
 
+### Sesión 8 — 2026-05-01 (cierre del día)
+**Archivos modificados:** `ui.js`, `storage.js`, `auth.js`, `app.js`, `index.html`, `sw.js`, `finance.js`
+
+**Qué se hizo:**
+- **Drawer reorganizado**: Categorías portal después de Herramientas, Mi día portal con separador propio, "Comunidad" → "Comunidad y ayuda", Soporte movido junto a Síguenos, eliminados sección Ayuda + Acerca de/Legal del drawer (movidos a Configuración → Sistema).
+- **Página Mi día**: `renderMiDia()` con cards Tareas y Objetivos, entrada `'mi-dia'` en `_PAGE_LABELS` y switch de `renderPage`.
+- **Configuración expandida**: Formato de fecha (`showBS_dateFmt`) y Formato de hora (`showBS_timeFmt`) en Preferencias; Acerca de y Legal en Sistema antes de Notificaciones.
+- **`fmtDate()` y `fmtTime()`** en `finance.js`: respetan `S.dateFormat` y `S.timeFormat`. Aplicados en lista movimientos, pagos programados, tareas, botones hora notificaciones.
+- **Sistema de notificaciones persistente** (`S.notifications[]`): `_addNotif`, `_updateNotifBadge`, `_markNotifRead`, `_markAllNotifsRead`, `_deleteNotif`, `_notifTap`. BS campanilla rediseñado con leído/no leído, badge, navegación a pantalla correcta.
+- **Notificaciones CRON**: `checkAutoPayments/checkBudgetNotifs/checkWeeklyNotif/checkTipsNotif` ya no envían locales — CRON Supabase es el responsable. `checkGoalNotifs` vaciada.
+- **Web Push completo**: `_subscribePush`, `_urlBase64ToUint8Array`, `_sendPushNotif(title,body,page)` en `ui.js`. VAPID_PUBLIC_KEY hardcodeado. Auto-suscripción en `initApp`. `sw.js` handler push completo con `data:{page}` y `tag` para evitar agrupación Android.
+- **Navegación desde push**: `sw.js` `notificationclick` → `postMessage({type:'notif_page'})` o `openWindow('/?notif_page=X')`. `app.js` detecta `_notifPage` en `localStorage` y navega con timeout 500ms.
+- **Auto-detección timezone**: `app.js` detecta `Intl.DateTimeFormat().resolvedOptions().timeZone` y guarda en `S.profile.timezone` al iniciar.
+- **Días de anticipación configurables**: `S.notifDaysDefault`, chips 1/2/3/5/7/15 días en `_openNotifTimePick` para pagos. `_setNotifDays` actualiza in-place sin cerrar BS.
+- **Horario de notificaciones** (Desde/Hasta) en panel Notificaciones. Hora específica por tipo con `_openNotifTimePick`. Inputs Desde/Hasta centrados.
+- **Toggle `notifReminders`** añadido a `_notifActivateAll` (no visible en UI — comportamiento interno). Recordatorio de registro a las 20:00 si no hay movimientos en el día.
+- **Flash onboarding eliminado**: `initApp()` antes de `hideAuthScreen()`, `S.currentPage='configuracion'` antes de `initApp`.
+- **`openDrawer()` refresca datos**: llama `updateDrawerProfile()` al abrir.
+- **Bug sync detectado**: cambios en la app (tiempos de notificación, scheduleTo) no llegan a Supabase por gate `_supabaseSynced`. **Pendiente arreglar en próxima sesión.**
+- **Edge Functions Supabase** (actualizadas manualmente, no en repo): `send-push` con `tag` para evitar agrupación Android y campo `page`; `check-notifications` con 6 bloques (pagos, tips, resumen semanal, presupuesto, metas, recordatorio). CRON cada 15 min.
+- **Web Push verificado end-to-end**: notificación de pago llegó al OPPO con pantalla bloqueada ✅.
+
+**Decisiones de Jorge:**
+- Formato fecha/hora solo aplica a listas y reportes (no a inputs nativos del navegador).
+- Toggle `notifReminders` no visible al usuario — es comportamiento interno.
+- Timezone auto-detectado del dispositivo, no configurable manualmente.
+- **Bug pendiente**: `saveState()` debe sincronizar a Supabase aunque `_supabaseSynced` sea false para cambios de preferencias críticas.
+
+**Pendiente:**
+- **Fix urgente**: `saveState()` gate `_supabaseSynced` bloquea sync de preferencias de notificaciones → CRON lee datos viejos.
+- Sprint C: Dashboard, Movimientos, Deudas, Herramientas — esperando diseño Claude Design.
+- Web Push + notificaciones con app cerrada: ✅ funcional. Afinar agrupación Android.
+- i18n completo, Emiliano IA real, Monetización SaaS.
+
+---
+
 ### Sesión 7 — 2026-04-30 (cierre del día)
 **Archivos modificados:** `ui.js`, `storage.js`, `auth.js`, `app.js`, `index.html`
 
