@@ -9952,31 +9952,32 @@ function openContactSheet(){
       +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
     +'</div>';
   }
-  var svgMail='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
+  var svgMail='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
   var svgTg='<svg width="20" height="20" viewBox="0 0 24 24" fill="#1DA8F0"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.367l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.958.192z"/></svg>';
   var svgForm='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>';
-  var svgHelp='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+  var svgHelp='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+  var _cl='document.getElementById(\'contact-hub-overlay\').remove();';
   ov.innerHTML='<div style="width:100%;background:var(--surface);border-radius:20px 20px 0 0;overflow:hidden;animation:bsSlideUp .22s ease">'
     +'<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px">'
       +'<div style="display:flex;align-items:center;gap:8px">'
         +'<button onclick="document.getElementById(\'contact-hub-overlay\').remove()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
-        +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">Contacta con Xenda</div>'
+        +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">Soporte</div>'
         +'<div style="width:34px;flex-shrink:0"></div>'
       +'</div>'
     +'</div>'
     +'<div style="background:var(--surface);height:18px;border-radius:18px 18px 0 0;margin-top:-12px;position:relative;z-index:1"></div>'
     +'<div style="padding:4px 14px max(env(safe-area-inset-bottom),20px)">'
-      +'<div style="background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);overflow:hidden">'
-        +row('rgba(59,130,246,.12)',svgMail,'Correo electrónico','document.getElementById(\'contact-hub-overlay\').remove();window.location.href=\'mailto:soporte@xenda.co?subject=FinanzIA - Consulta\'')
-        +row('rgba(0,212,170,.12)',svgTg,'Telegram','document.getElementById(\'contact-hub-overlay\').remove();window.open(\'https://t.me/xenda_soporte_bot\',\'_blank\')')
-        +row('rgba(116,97,239,.12)',svgForm,'Formulario de contacto','document.getElementById(\'contact-hub-overlay\').remove();openSoporteModal()')
-        +rowLast('rgba(245,158,11,.12)',svgHelp,'Centro de ayuda','document.getElementById(\'contact-hub-overlay\').remove();openAyudaOverlay()')
+      +'<div style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);overflow:hidden;margin-bottom:8px">'
+        +row('rgba(0,212,170,.12)',svgMail,'Correo electrónico',_cl+'window.location=\'mailto:soporte@xenda.co\'')
+        +row('rgba(29,155,240,.12)',svgTg,'Telegram',_cl+'window.open(\'https://t.me/FinanzIAapp\',\'_blank\')')
+        +row('rgba(116,97,239,.12)',svgForm,'Formulario de contacto',_cl+'openFormularioBS()')
+        +rowLast('rgba(245,158,11,.12)',svgHelp,'Centro de ayuda',_cl+'navigate(\'ayuda\')')
       +'</div>'
-      +'<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:14px;line-height:1.5">Te respondemos en menos de 24 h hábiles.</div>'
     +'</div>'
   +'</div>';
   document.body.appendChild(ov);
 }
+function openFormularioBS(){openSoporteModal();}
 function openSoporteModal(){
   var name='';
   // 1. S.profile (dentro de la app)
