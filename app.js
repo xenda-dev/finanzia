@@ -31,6 +31,9 @@ function initApp(){
   checkGoalNotifs();
   checkWeeklyNotif();
   checkTipsNotif();
+  if(typeof _subscribePush==='function'&&typeof Notification!=='undefined'&&Notification.permission==='granted'&&S.notifPrefs&&S.notifPrefs._master===true){
+    setTimeout(_subscribePush,2000);
+  }
   fetchExchangeRate();
   let touchStartX=0;
   document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;},{passive:true});

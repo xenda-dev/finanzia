@@ -706,6 +706,47 @@ function _refreshNotifOverlay(){
   var cfgEl=document.getElementById('page-configuracion');
   if(cfgEl&&cfgEl.classList.contains('active'))renderPage('configuracion');
 }
+function _urlBase64ToUint8Array(base64String){
+  var padding='='.repeat((4-base64String.length%4)%4);
+  var base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  var rawData=window.atob(base64);
+  var outputArray=new Uint8Array(rawData.length);
+  for(var i=0;i<rawData.length;i++){outputArray[i]=rawData.charCodeAt(i);}
+  return outputArray;
+}
+function _subscribePush(){
+  if(!('serviceWorker'in navigator)||!('PushManager'in window))return;
+  var VAPID_PUBLIC_KEY='BK2a-mcaKx4AicxcrlviqwqptLRYcp0AZklcFOnPiXs73KBw5jF9JNJkGdtjd9P4jQyHLOi478SNGx8WbFHorzk';
+  navigator.serviceWorker.ready.then(function(reg){
+    reg.pushManager.getSubscription().then(function(existing){
+      if(existing)return existing;
+      return reg.pushManager.subscribe({
+        userVisibleOnly:true,
+        applicationServerKey:_urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }).then(function(sub){
+      if(!sub)return;
+      var _uid=window._currentUser&&window._currentUser.id;
+      if(!_uid||!_supabase)return;
+      var p256dh=btoa(String.fromCharCode.apply(null,new Uint8Array(sub.getKey('p256dh'))));
+      var authStr=btoa(String.fromCharCode.apply(null,new Uint8Array(sub.getKey('auth'))));
+      _supabase.from('push_subscriptions').upsert({
+        user_id:_uid,endpoint:sub.endpoint,p256dh:p256dh,auth:authStr
+      },{onConflict:'endpoint'}).then(function(r){
+        if(r.error)console.warn('push_sub:',r.error);
+        else console.log('🔔 Push subscription guardada ✓');
+      });
+    }).catch(function(e){console.warn('Push subscribe:',e);});
+  });
+}
+function _sendPushNotif(title,body){
+  var _uid=window._currentUser&&window._currentUser.id;
+  if(!_uid||!_supabase)return;
+  if(!S.notifPrefs||S.notifPrefs._master!==true)return;
+  _supabase.functions.invoke('send-push',{
+    body:{user_id:_uid,title:title,body:body}
+  }).catch(function(e){console.warn('send-push:',e);});
+}
 function requestNotifPerm(){
   if(!('Notification'in window)){toast('Notificaciones no disponibles en este navegador');return;}
   if(Notification.permission==='denied'){
@@ -719,6 +760,7 @@ function requestNotifPerm(){
     S.notifPrefs._master=true;
     _notifActivateAll();
     saveState();
+    _subscribePush();
     _refreshNotifOverlay();
     return;
   }
@@ -728,6 +770,7 @@ function requestNotifPerm(){
       S.notifPrefs._master=true;
       _notifActivateAll();
       saveState();
+      _subscribePush();
       toast('🔔 Notificaciones activadas ✓');
     }else if(result==='denied'){
       toast('Notificaciones bloqueadas en el navegador');
@@ -750,6 +793,7 @@ function sendNotif(title,body,prefKey){
   }else{
     try{new Notification(title,opts);}catch(e){}
   }
+  _sendPushNotif(title,body);
 }
 // ── Helpers de horario de notificaciones ─────────────────────────
 function _toNotifMin(t){var p=(t||'00:00').split(':');return(parseInt(p[0]||0,10)*60)+(parseInt(p[1]||0,10));}
