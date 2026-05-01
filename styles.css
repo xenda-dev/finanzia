@@ -1,4 +1,6 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-inner-spin-button{display:none}
 [data-theme="dark"]{
   --bg:#0B0F1A;--surface:#131826;--surface2:#1B2233;--surface3:#232C42;
   --border:rgba(255,255,255,0.06);--border-strong:rgba(255,255,255,0.10);

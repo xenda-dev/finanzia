@@ -643,7 +643,7 @@ function _openNotifTimePick(key){
     +'</div>'
     :'';
   var html='<div style="padding:8px 16px 16px">'
-    +'<div style="background:rgba(0,212,170,.07);border-radius:12px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#0F766E;line-height:1.5">Recibirás una notificación antes de cada vencimiento, dentro de tu horario configurado.</div>'
+    +'<div style="background:rgba(0,212,170,.07);border-radius:12px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#0F766E;line-height:1.5">Recibirás una notificación antes de cada vencimiento, dentro del horario y día configurado.</div>'
     +'<div style="background:var(--surface);border-radius:14px;padding:12px 14px;border:0.5px solid var(--border);margin-bottom:12px">'
       +'<div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">🕐 Hora de notificación</div>'
       +'<input type="time" id="notif-time-inp" value="'+cur+'" style="font-size:28px;font-weight:900;color:var(--text);border:none;outline:none;background:none;font-family:var(--font);width:100%;text-align:center;margin-bottom:4px;font-variant-numeric:tabular-nums">'
