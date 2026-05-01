@@ -734,11 +734,11 @@ function _subscribePush(){
       _supabase.from('push_subscriptions').upsert({
         user_id:_uid,endpoint:sub.endpoint,p256dh:p256dh,auth:authStr
       },{onConflict:'endpoint'}).then(function(r){
-        if(r.error){toast('❌ Error push: '+(r.error.message||r.error));console.warn('push_sub:',r.error);}
+        if(r.error){alert('Push error: '+String(r.error.message||r.error).substring(0,120));console.warn('push_sub:',r.error);}
         else{toast('✅ Endpoint guardado en Supabase');console.log('🔔 Push subscription guardada ✓');}
       });
-    }).catch(function(e){toast('❌ Error push: '+(e.message||e));console.warn('Push subscribe:',e);});
-  }).catch(function(e){toast('❌ Error SW ready: '+(e.message||e));});
+    }).catch(function(e){alert('Push error: '+String(e).substring(0,120));console.warn('Push subscribe:',e);});
+  }).catch(function(e){alert('Push error SW: '+String(e).substring(0,120));});
 }
 function _sendPushNotif(title,body){
   var _uid=window._currentUser&&window._currentUser.id;
