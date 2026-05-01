@@ -16,13 +16,13 @@ function initApp(){
     });
   }
   // Detectar navegación desde push
-  var _notifPage=sessionStorage.getItem('_notifPage')||'';
+  var _notifPage=localStorage.getItem('_notifPage')||'';
   if(!_notifPage){
     var _urlParams=new URLSearchParams(window.location.search);
     _notifPage=_urlParams.get('notif_page')||'';
   }
   if(_notifPage){
-    sessionStorage.removeItem('_notifPage');
+    localStorage.removeItem('_notifPage');
     setTimeout(function(){if(typeof navigate==='function')navigate(_notifPage);},800);
   }
   loadState();
@@ -163,7 +163,7 @@ if('serviceWorker'in navigator){
   navigator.serviceWorker.addEventListener('message',function(e){
     if(e.data&&e.data.type==='notif_page'&&e.data.page){
       if(typeof navigate==='function'){navigate(e.data.page);}
-      else{sessionStorage.setItem('_notifPage',e.data.page);}
+      else{localStorage.setItem('_notifPage',e.data.page);}
     }
   });
 }
