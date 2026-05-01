@@ -751,6 +751,17 @@ function sendNotif(title,body,prefKey){
     try{new Notification(title,opts);}catch(e){}
   }
 }
+// ── Helpers de horario de notificaciones ─────────────────────────
+function _toNotifMin(t){var p=(t||'00:00').split(':');return(parseInt(p[0]||0,10)*60)+(parseInt(p[1]||0,10));}
+function _inNotifWindow(){
+  var now=new Date();var cur=now.getHours()*60+now.getMinutes();
+  return cur>=_toNotifMin(S.notifScheduleFrom||'07:00')&&cur<=_toNotifMin(S.notifScheduleTo||'22:00');
+}
+function _notifTimeReady(key){
+  if(!_inNotifWindow())return false;
+  return(new Date().getHours()*60+new Date().getMinutes())>=_toNotifMin((S.notifPrefs&&S.notifPrefs['_'+key+'Time'])||'08:00');
+}
+// ─────────────────────────────────────────────────────────────────
 function checkAutoPayments(){
   const today=todayStr();
   S.scheduledPayments.forEach(p=>{
@@ -765,7 +776,18 @@ function checkAutoPayments(){
       }
     }
     if(p.nextDate<=today&&!p.isAuto){
-      sendNotif('⚠️ Pago pendiente',`${p.name} venció el ${p.nextDate}`,'notifPayments');
+      sendNotif('⚠️ Pago pendiente',`${p.name} venció el ${fmtDate(p.nextDate)}`,'notifPayments');
+    }
+    // Aviso anticipado según notifDaysDefault
+    var advDays=S.notifDaysDefault||3;
+    var dLeft=daysUntil(p.nextDate);
+    if(!p.isAuto&&dLeft>0&&dLeft<=advDays&&_inNotifWindow()){
+      var uid2=window._currentUser&&window._currentUser.id;
+      var advKey='_notifPayAdv_'+(uid2||'')+'_'+p.id+'_'+p.nextDate;
+      if(!localStorage.getItem(advKey)){
+        sendNotif('💳 Pago próximo',''+p.name+' vence en '+dLeft+' día'+(dLeft===1?'':'s'),'notifPayments');
+        localStorage.setItem(advKey,'1');
+      }
     }
   });
   saveState();
@@ -785,6 +807,7 @@ function advancePayment(p){
 }
 
 function checkBudgetNotifs(){
+  if(!_inNotifWindow())return;
   var uid=window._currentUser&&window._currentUser.id;
   if(!uid)return;
   var ym=todayStr().substring(0,7);
@@ -806,6 +829,7 @@ function checkBudgetNotifs(){
   });
 }
 function checkGoalNotifs(){
+  if(!_inNotifWindow())return;
   var uid=window._currentUser&&window._currentUser.id;
   if(!uid)return;
   var milestones=[25,50,75,100];
@@ -829,6 +853,7 @@ function checkGoalNotifs(){
 }
 function checkWeeklyNotif(){
   if(new Date().getDay()!==1)return;
+  if(!_notifTimeReady('notifWeekly'))return;
   var uid=window._currentUser&&window._currentUser.id;
   if(!uid)return;
   function _getISOWeek(d){
@@ -855,6 +880,7 @@ function checkWeeklyNotif(){
   localStorage.setItem(key,'1');
 }
 function checkTipsNotif(){
+  if(!_notifTimeReady('notifTips'))return;
   var uid=window._currentUser&&window._currentUser.id;
   if(!uid)return;
   var lastDay=localStorage.getItem('_notifTips_'+uid+'_lastDay');
