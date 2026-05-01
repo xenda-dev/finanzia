@@ -33,6 +33,16 @@ function initApp(){
   }
   loadState();
 
+  // ── Auto-detectar timezone del dispositivo ────────────────
+  try{
+    var _tz=Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if(_tz&&(!S.profile||!S.profile.timezone||S.profile.timezone!==_tz)){
+      if(!S.profile)S.profile={};
+      S.profile.timezone=_tz;
+      saveState();
+    }
+  }catch(e){}
+
   // ── Quitar monedas hardcodeadas si son las de prueba ──────
   // Solo limpia si el usuario no ha configurado su perfil (currencies vacío = ok)
   // No tocar si ya tiene monedas elegidas por él
