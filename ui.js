@@ -625,6 +625,8 @@ function _buildNotifContent(){
   return banner+mt+sched+list;
 }
 function _openNotifTimePick(key){
+  // Normalizar 'pay' → 'notifPayments' para storage
+  var storageKey=(key==='pay')?'notifPayments':key;
   var _meta={
     notifPayments:{icon:'💳',label:'Pagos próximos'},
     notifBudget:{icon:'📊',label:'Límite de presupuesto'},
@@ -632,48 +634,33 @@ function _openNotifTimePick(key){
     notifWeekly:{icon:'📅',label:'Resumen semanal'},
     notifTips:{icon:'💡',label:'Consejos financieros'}
   };
-  var m=_meta[key]||{icon:'🔔',label:'Notificación'};
-  var cur=(S.notifPrefs&&S.notifPrefs['_'+key+'Time'])||'08:00';
-  var isPay=key==='notifPayments';
+  var m=_meta[storageKey]||{icon:'🔔',label:'Notificación'};
+  var cur=(S.notifPrefs&&S.notifPrefs['_'+storageKey+'Time'])||'08:00';
+  var isPay=(key==='pay'||key==='notifPayments');
   var days=S.notifDaysDefault||3;
   var daysSection=isPay
-    ?'<div style="margin-bottom:16px">'
-      +'<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">📅 Días de anticipación</div>'
-      +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'
+    ?'<div style="background:var(--surface);border-radius:14px;padding:12px 14px;border:0.5px solid var(--border);margin-bottom:14px">'
+      +'<div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">📅 Días de anticipación</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
         +[1,2,3,5,7,15].map(function(d){
-          var sel=days===d;
-          return '<button onclick="S.notifDaysDefault='+d+';saveState();_openNotifTimePick(\''+key+'\')" style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);border:1.5px solid '+(sel?'var(--primary)':'var(--border)')+';background:'+(sel?'rgba(0,212,170,.1)':'none')+';color:'+(sel?'var(--primary)':'var(--text2)')+'">'+d+' día'+(d===1?'':'s')+'</button>';
+          var sel=(S.notifDaysDefault||3)===d;
+          return '<button onclick="_setNotifDays('+d+')" style="padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);border:1.5px solid '+(sel?'var(--primary)':'var(--border)')+';background:'+(sel?'rgba(0,212,170,.1)':'none')+';color:'+(sel?'var(--primary)':'var(--text2)')+'">'+d+' día'+(d===1?'':'s')+'</button>';
         }).join('')
       +'</div>'
-      +'<div style="font-size:11px;color:var(--text3)">Recibirás la alerta '+days+' día'+(days===1?'':'s')+' antes del vencimiento</div>'
+      +'<div style="font-size:11px;color:var(--text2);margin-top:10px">Recibirás la alerta <strong style="color:var(--text)">'+days+' día'+(days===1?'':'s')+'</strong> antes del vencimiento</div>'
     +'</div>'
     :'';
   var html='<div style="padding:8px 16px 16px">'
-    +'<div style="font-size:12px;color:var(--text2);background:rgba(0,212,170,.07);border-radius:10px;padding:8px 10px;margin-bottom:16px;line-height:1.5">Si esta hora cae fuera del horario general, la notificación llegará al inicio del horario.</div>'
-    +'<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">🕐 Hora de notificación</div>'
-    +'<input type="time" id="notif-time-inp" value="'+cur+'" style="font-size:28px;font-weight:800;color:var(--text);border:none;outline:none;background:none;font-family:var(--font);width:100%;text-align:center;margin-bottom:16px">'
-    +daysSection
-    +'<button onclick="_setNotifTime(\''+key+'\',document.getElementById(\'notif-time-inp\').value);openNotifPage()" style="width:100%;padding:13px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Guardar configuración</button>'
-  +'</div>';
-  closeBottomSheet();
-  var overlay=document.createElement('div');
-  overlay.id='bs-overlay';
-  overlay.style.cssText='position:fixed;inset:0;z-index:10003;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
-  overlay.onclick=function(e){if(e.target===overlay)closeBottomSheet();};
-  var sheet=document.createElement('div');
-  sheet.id='bs-sheet';
-  sheet.style.cssText='width:100%;max-height:80vh;display:flex;flex-direction:column;animation:bsSlideUp .22s ease;background:var(--surface);border-radius:16px 16px 0 0;overflow:hidden';
-  var bk='<button onclick="closeBottomSheet()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
-  sheet.innerHTML=
-    '<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;flex-shrink:0">'
-    +'<div style="display:flex;align-items:center;gap:8px">'+bk
-    +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">'+m.icon+' '+m.label+'</div>'
-    +'<div style="width:34px;flex-shrink:0"></div></div>'
+    +'<div style="background:rgba(0,212,170,.07);border-radius:12px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#0F766E;line-height:1.5">Recibirás una notificación antes de cada vencimiento, dentro de tu horario configurado.</div>'
+    +'<div style="background:var(--surface);border-radius:14px;padding:12px 14px;border:0.5px solid var(--border);margin-bottom:12px">'
+      +'<div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">🕐 Hora de notificación</div>'
+      +'<input type="time" id="notif-time-inp" value="'+cur+'" style="font-size:28px;font-weight:900;color:var(--text);border:none;outline:none;background:none;font-family:var(--font);width:100%;text-align:center;margin-bottom:4px;font-variant-numeric:tabular-nums">'
+      +'<div style="font-size:11px;color:var(--text2);text-align:center">Si cae fuera del horario general, llegará al inicio del horario</div>'
     +'</div>'
-    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
-    +'<div style="background:var(--surface);overflow-y:auto;flex:1;padding-bottom:max(env(safe-area-inset-bottom),16px)">'+html+'</div>';
-  overlay.appendChild(sheet);
-  document.body.appendChild(overlay);
+    +daysSection
+    +'<button onclick="_setNotifTime(\''+storageKey+'\',document.getElementById(\'notif-time-inp\').value);openNotifPage()" style="width:100%;padding:13px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Guardar configuración</button>'
+  +'</div>';
+  _showHtmlBS(m.icon+' '+m.label,html,10003);
 }
 function _setNotifTime(key,val){
   if(!S.notifPrefs)S.notifPrefs={};
@@ -684,7 +671,8 @@ function _setNotifTime(key,val){
 function _setNotifDays(d){
   S.notifDaysDefault=d;
   saveState();
-  openNotifPage();
+  closeBottomSheet();
+  setTimeout(function(){_openNotifTimePick('notifPayments');},50);
 }
 function _toggleNotifMaster(){
   if(!S.notifPrefs)S.notifPrefs={};
