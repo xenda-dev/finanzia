@@ -716,15 +716,14 @@ function _urlBase64ToUint8Array(base64String){
 }
 function _subscribePush(){
   if(!('serviceWorker'in navigator)||!('PushManager'in window))return;
-  toast('🔔 Iniciando suscripción push...');
   var VAPID_PUBLIC_KEY='BK2a-mcaKx4AicxcrlviqwqptLRYcp0AZklcFOnPiXs73KBw5jF9JNJkGdtjd9P4jQyHLOi478SNGx8WbFHorzk';
   navigator.serviceWorker.ready.then(function(reg){
     reg.pushManager.getSubscription().then(function(existing){
-      if(existing){toast('🔔 Suscripción existente encontrada');return existing;}
+      if(existing)return existing;
       return reg.pushManager.subscribe({
         userVisibleOnly:true,
         applicationServerKey:_urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      }).then(function(sub){toast('🔔 Nueva suscripción creada');return sub;});
+      });
     }).then(function(sub){
       if(!sub)return;
       var _uid=window._currentUser&&window._currentUser.id;
@@ -734,11 +733,11 @@ function _subscribePush(){
       _supabase.from('push_subscriptions').upsert({
         user_id:_uid,endpoint:sub.endpoint,p256dh:p256dh,auth:authStr
       },{onConflict:'endpoint'}).then(function(r){
-        if(r.error){alert('Push error: '+String(r.error.message||r.error).substring(0,120));console.warn('push_sub:',r.error);}
-        else{toast('✅ Endpoint guardado en Supabase');console.log('🔔 Push subscription guardada ✓');}
+        if(r.error)console.warn('push_sub:',r.error);
+        else console.log('🔔 Push subscription guardada ✓');
       });
-    }).catch(function(e){alert('Push error: '+String(e).substring(0,120));console.warn('Push subscribe:',e);});
-  }).catch(function(e){alert('Push error SW: '+String(e).substring(0,120));});
+    }).catch(function(e){console.warn('Push subscribe:',e);});
+  }).catch(function(e){console.warn('Push SW ready:',e);});
 }
 function _sendPushNotif(title,body){
   var _uid=window._currentUser&&window._currentUser.id;
