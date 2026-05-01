@@ -613,6 +613,15 @@ function _buildNotifContent(){
   }).join('')+'</div>';
   return banner+mt+sched+list;
 }
+function _notifDaysInner(days){
+  return '<div style="display:flex;gap:6px;flex-wrap:wrap">'
+    +[1,2,3,5,7,15].map(function(d){
+      var sel=(days||3)===d;
+      return '<button onclick="_setNotifDays('+d+')" style="padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);border:1.5px solid '+(sel?'var(--primary)':'var(--border)')+';background:'+(sel?'rgba(0,212,170,.1)':'none')+';color:'+(sel?'var(--primary)':'var(--text2)')+'">'+d+' día'+(d===1?'':'s')+'</button>';
+    }).join('')
+  +'</div>'
+  +'<div style="font-size:11px;color:var(--text2);margin-top:10px">Recibirás la alerta <strong style="color:var(--text)">'+days+' día'+(days===1?'':'s')+'</strong> antes del vencimiento</div>';
+}
 function _openNotifTimePick(key){
   // Normalizar 'pay' → 'notifPayments' para storage
   var storageKey=(key==='pay')?'notifPayments':key;
@@ -630,13 +639,7 @@ function _openNotifTimePick(key){
   var daysSection=isPay
     ?'<div style="background:var(--surface);border-radius:14px;padding:12px 14px;border:0.5px solid var(--border);margin-bottom:14px">'
       +'<div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">📅 Días de anticipación</div>'
-      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
-        +[1,2,3,5,7,15].map(function(d){
-          var sel=(S.notifDaysDefault||3)===d;
-          return '<button onclick="_setNotifDays('+d+')" style="padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);border:1.5px solid '+(sel?'var(--primary)':'var(--border)')+';background:'+(sel?'rgba(0,212,170,.1)':'none')+';color:'+(sel?'var(--primary)':'var(--text2)')+'">'+d+' día'+(d===1?'':'s')+'</button>';
-        }).join('')
-      +'</div>'
-      +'<div style="font-size:11px;color:var(--text2);margin-top:10px">Recibirás la alerta <strong style="color:var(--text)">'+days+' día'+(days===1?'':'s')+'</strong> antes del vencimiento</div>'
+      +'<div id="notif-days-inner">'+_notifDaysInner(days)+'</div>'
     +'</div>'
     :'';
   var html='<div style="padding:8px 16px 16px">'
@@ -660,8 +663,9 @@ function _setNotifTime(key,val){
 function _setNotifDays(d){
   S.notifDaysDefault=d;
   saveState();
-  closeBottomSheet();
-  setTimeout(function(){_openNotifTimePick('notifPayments');},50);
+  var inner=document.getElementById('notif-days-inner');
+  if(inner){inner.innerHTML=_notifDaysInner(d);}
+  else{closeBottomSheet();setTimeout(function(){_openNotifTimePick('notifPayments');},50);}
 }
 function _toggleNotifMaster(){
   if(!S.notifPrefs)S.notifPrefs={};
