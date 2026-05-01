@@ -6612,8 +6612,7 @@ function renderConfiguracion(){
       cfgRow('rgba(245,158,11,.12)',svgCal,'Inicio de semana',wkLabel,'showBS_week()',false,false),
       cfgRow('rgba(0,212,170,.12)',svgCur,'Monedas activas',curLabel,'showCurrenciesPickerScreen()',false,false),
       cfgRow('rgba(116,97,239,.12)',svgDateFmt,'Formato de fecha',(S.dateFormat||'DD/MM/YYYY')+' · Ej: '+((S.dateFormat||'DD/MM/YYYY')==='MM/DD/YYYY'?'04/30/2026':(S.dateFormat||'DD/MM/YYYY')==='YYYY-MM-DD'?'2026-04-30':'30/04/2026'),'showBS_dateFmt()',false,false),
-      cfgRow('rgba(16,185,129,.12)',svgTimeFmt,'Formato de hora',(S.timeFormat||'24h')==='24h'?'24 horas · Ej: 19:30':'12 horas · Ej: 7:30 PM','showBS_timeFmt()',false,false),
-      cfgRow('rgba(0,212,170,.12)',svgCat,'Categorías',filterDeleted(S.categories).length+' categorías','openCatPanel()',true,false)
+      cfgRow('rgba(16,185,129,.12)',svgTimeFmt,'Formato de hora',(S.timeFormat||'24h')==='24h'?'24 horas · Ej: 19:30':'12 horas · Ej: 7:30 PM','showBS_timeFmt()',true,false)
     ])
     // Apariencia
     +secLbl('Apariencia')
