@@ -125,7 +125,8 @@ var _PAGE_LABELS={
   'tareas':'Mis tareas',
   'objetivos':'Objetivos personales',
   'plantillas':'Plantillas de tarea',
-  'ayuda':'Centro de ayuda'
+  'ayuda':'Centro de ayuda',
+  'mi-dia':'Mi día'
 };
 function _getPageTitle(page){
   if(page==='cuenta-detalle') return 'Detalle de Cuenta';
@@ -304,6 +305,7 @@ function renderPage(page){
       case'objetivos':el.innerHTML=renderObjetivos();break;
       case'plantillas':el.innerHTML=renderPlantillas();break;
       case'ayuda':el.innerHTML=renderAyuda();break;
+      case'mi-dia':el.innerHTML=renderMiDia();break;
     }
   }catch(e){
     console.error('renderPage ERROR ['+page+']:',e);
@@ -558,13 +560,30 @@ function _buildNotifContent(){
     +'<div style="width:8px;height:8px;border-radius:50%;background:'+(active?'#00D4AA':'#CBD5E1')+';flex-shrink:0"></div>'
     +'</div>';
   // Master toggle
-  var mt='<div onclick="_toggleNotifMaster()" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1.5px solid var(--border);margin-bottom:4px;cursor:pointer">'
+  var mt='<div onclick="_toggleNotifMaster()" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1.5px solid var(--border);margin-bottom:10px;cursor:pointer">'
     +'<div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,rgba(0,212,170,.15),rgba(116,97,239,.10));display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">🔔</div>'
     +'<div style="flex:1"><div style="font-size:14px;font-weight:800;color:var(--text)">'+(masterOn?'Desactivar todas':'Activar todas')+'</div>'
     +'<div style="font-size:11px;color:var(--text3)">Controla todas las alertas</div></div>'
     +'<div id="notif-master-tgl" style="width:36px;height:20px;border-radius:99px;background:'+(masterOn?'var(--primary)':'#CBD5E1')+';display:flex;align-items:center;padding:3px;transition:.2s;flex-shrink:0">'
     +'<div style="width:14px;height:14px;border-radius:50%;background:white;box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:'+(masterOn?'auto':'0')+'"></div></div>'
     +'</div>';
+  // Horario general
+  var schedFrom=S.notifScheduleFrom||'07:00';
+  var schedTo=S.notifScheduleTo||'22:00';
+  var sched='<div style="background:var(--surface);border-radius:14px;padding:12px 14px;border:0.5px solid var(--border);margin-bottom:10px">'
+    +'<div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🌤 Horario de notificaciones</div>'
+    +'<div style="font-size:12px;color:var(--text2);background:rgba(0,212,170,.07);border-radius:10px;padding:8px 10px;margin-bottom:10px;line-height:1.5">Fuera de este rango no llegarán notificaciones aunque estén activadas.</div>'
+    +'<div style="display:flex;gap:10px">'
+      +'<div style="flex:1">'
+        +'<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">Desde</div>'
+        +'<input type="time" value="'+schedFrom+'" onchange="S.notifScheduleFrom=this.value;saveState()" style="width:100%;padding:9px 10px;border-radius:10px;border:0.5px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:var(--font)">'
+      +'</div>'
+      +'<div style="flex:1">'
+        +'<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">Hasta</div>'
+        +'<input type="time" value="'+schedTo+'" onchange="S.notifScheduleTo=this.value;saveState()" style="width:100%;padding:9px 10px;border-radius:10px;border:0.5px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:var(--font)">'
+      +'</div>'
+    +'</div>'
+  +'</div>';
   // Items
   var keys=['notifPayments','notifBudget','notifGoal','notifWeekly','notifTips'];
   var meta={
@@ -578,15 +597,54 @@ function _buildNotifContent(){
     var isOn=S.notifPrefs&&S.notifPrefs[key]===true;
     var m=meta[key];
     var last=idx===keys.length-1;
+    var timeVal=(S.notifPrefs&&S.notifPrefs['_'+key+'Time'])||'08:00';
+    var timeBtn='<button onclick="event.stopPropagation();_openNotifTimePick(\''+key+'\')" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;background:rgba(0,212,170,.08);border:none;cursor:pointer;font-family:var(--font);pointer-events:auto;flex-shrink:0">'
+      +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+      +'<span style="font-size:11px;font-weight:700;color:#0F766E">'+timeVal+'</span>'
+    +'</button>';
     return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:'+(last?'none':'0.5px solid rgba(0,0,0,.05)')+';">'
       +'<div style="width:26px;height:26px;border-radius:8px;background:'+m.bg+';display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">'+m.icon+'</div>'
-      +'<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">'+m.label+'</div>'
+      +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">'+m.label+'</div>'
       +'<div style="font-size:11px;color:var(--text3);margin-top:1px">'+m.desc+'</div></div>'
+      +timeBtn
       +'<div onclick="_toggleNotifItem(\''+key+'\')" style="width:36px;height:20px;border-radius:99px;background:'+(isOn?'var(--primary)':'#CBD5E1')+';display:flex;align-items:center;padding:3px;transition:.2s;cursor:pointer;flex-shrink:0">'
       +'<div style="width:14px;height:14px;border-radius:50%;background:white;box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:'+(isOn?'auto':'0')+'"></div></div>'
       +'</div>';
   }).join('')+'</div>';
-  return banner+mt+list;
+  return banner+mt+sched+list;
+}
+function _openNotifTimePick(key){
+  var cur=(S.notifPrefs&&S.notifPrefs['_'+key+'Time'])||'08:00';
+  var html='<div style="padding:8px 16px 16px;text-align:center">'
+    +'<div style="font-size:12px;color:var(--text2);background:rgba(0,212,170,.07);border-radius:10px;padding:8px 10px;margin-bottom:14px;line-height:1.5">Si esta hora cae fuera del horario general, la notificación llegará al inicio del horario.</div>'
+    +'<input type="time" id="notif-time-inp" value="'+cur+'" style="font-size:28px;font-weight:800;color:var(--text);border:none;outline:none;background:none;font-family:var(--font);width:100%;text-align:center;margin-bottom:14px">'
+    +'<button onclick="_setNotifTime(\''+key+'\',document.getElementById(\'notif-time-inp\').value);openNotifPage()" style="width:100%;padding:13px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Confirmar hora</button>'
+  +'</div>';
+  closeBottomSheet();
+  var overlay=document.createElement('div');
+  overlay.id='bs-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:10003;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;animation:bsFadeIn .18s ease';
+  overlay.onclick=function(e){if(e.target===overlay)closeBottomSheet();};
+  var sheet=document.createElement('div');
+  sheet.id='bs-sheet';
+  sheet.style.cssText='width:100%;max-height:80vh;display:flex;flex-direction:column;animation:bsSlideUp .22s ease;background:var(--surface);border-radius:16px 16px 0 0;overflow:hidden';
+  var bk='<button onclick="closeBottomSheet()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,212,170,.3);background:rgba(255,255,255,.7);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
+  sheet.innerHTML=
+    '<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;flex-shrink:0">'
+    +'<div style="display:flex;align-items:center;gap:8px">'+bk
+    +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">Hora de notificación</div>'
+    +'<div style="width:34px;flex-shrink:0"></div></div>'
+    +'</div>'
+    +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
+    +'<div style="background:var(--surface);overflow-y:auto;flex:1;padding-bottom:max(env(safe-area-inset-bottom),16px)">'+html+'</div>';
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+}
+function _setNotifTime(key,val){
+  if(!S.notifPrefs)S.notifPrefs={};
+  S.notifPrefs['_'+key+'Time']=val;
+  saveState();
+  closeBottomSheet();
 }
 function _toggleNotifMaster(){
   if(!S.notifPrefs)S.notifPrefs={};
@@ -1559,6 +1617,26 @@ function _toggleFaq(id){
   var icon=document.getElementById('faq-i-'+id);
   if(body){body.style.display=_faqOpen[id]?'block':'none';}
   if(icon){icon.style.transform=_faqOpen[id]?'rotate(180deg)':'rotate(0deg)';}
+}
+function renderMiDia(){
+  return '<div style="padding:16px 14px calc(var(--nav-h)+24px)">'
+    +'<div onclick="navigate(\'tareas\')" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);margin-bottom:8px;cursor:pointer">'
+      +'<div style="width:44px;height:44px;border-radius:14px;background:rgba(0,212,170,.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📋</div>'
+      +'<div style="flex:1">'
+        +'<div style="font-size:15px;font-weight:700;color:var(--text)">Tareas</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">Organiza y planifica tu día</div>'
+      +'</div>'
+      +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
+    +'</div>'
+    +'<div onclick="navigate(\'objetivos\')" style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);cursor:pointer">'
+      +'<div style="width:44px;height:44px;border-radius:14px;background:rgba(116,97,239,.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🎯</div>'
+      +'<div style="flex:1">'
+        +'<div style="font-size:15px;font-weight:700;color:var(--text)">Objetivos</div>'
+        +'<div style="font-size:12px;color:var(--text2);margin-top:2px">Propósitos y hábitos</div>'
+      +'</div>'
+      +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
+    +'</div>'
+  +'</div>';
 }
 function renderAyuda(){
   // Curva con var(--bg) igual que dashboard — sin contraste blanco
@@ -6500,6 +6578,10 @@ function renderConfiguracion(){
   var svgImp='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
   var svgReset='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>';
   var svgCat='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>';
+  var svgDateFmt='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7461EF" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  var svgTimeFmt='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  var svgInfo='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  var svgLegalCfg='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>';
   var secLbl=function(txt,first){return '<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:'+(first?'2px 0 10px':'22px 0 8px')+';padding-left:2px">'+txt+'</div>';};
   var wkLabel=({lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'})[S.weekStart]||'Seleccionar';
   var curLabel=(S.currencies&&S.currencies.length)?(S.currencies.join(' · ')):'Seleccionar';
@@ -6529,6 +6611,8 @@ function renderConfiguracion(){
       cfgRow('rgba(59,130,246,.12)',svgLang,'Idioma',langCurrent?langCurrent.flag+' '+langCurrent.label:'Seleccionar','showLangPickerScreen()',false,false),
       cfgRow('rgba(245,158,11,.12)',svgCal,'Inicio de semana',wkLabel,'showBS_week()',false,false),
       cfgRow('rgba(0,212,170,.12)',svgCur,'Monedas activas',curLabel,'showCurrenciesPickerScreen()',false,false),
+      cfgRow('rgba(116,97,239,.12)',svgDateFmt,'Formato de fecha',(S.dateFormat||'DD/MM/YYYY')+' · Ej: '+((S.dateFormat||'DD/MM/YYYY')==='MM/DD/YYYY'?'04/30/2026':(S.dateFormat||'DD/MM/YYYY')==='YYYY-MM-DD'?'2026-04-30':'30/04/2026'),'showBS_dateFmt()',false,false),
+      cfgRow('rgba(16,185,129,.12)',svgTimeFmt,'Formato de hora',(S.timeFormat||'24h')==='24h'?'24 horas · Ej: 19:30':'12 horas · Ej: 7:30 PM','showBS_timeFmt()',false,false),
       cfgRow('rgba(0,212,170,.12)',svgCat,'Categorías',filterDeleted(S.categories).length+' categorías','openCatPanel()',true,false)
     ])
     // Apariencia
@@ -6547,6 +6631,8 @@ function renderConfiguracion(){
     // Sistema
     +secLbl('Sistema')
     +cfgCard([
+      cfgRow('rgba(100,116,139,.12)',svgInfo,'Acerca de','FinanzIA v3 · Xenda.co','openAcercaDeModal()',false,false),
+      cfgRow('rgba(100,116,139,.12)',svgLegalCfg,'Legal','Términos · Privacidad','openTerminosModal()',false,false),
       cfgRow('rgba(245,158,11,.12)',svgNotif,'Notificaciones',notifStatus,'openNotifPage()',false,false),
       cfgRow('rgba(59,130,246,.12)',svgExp,'Exportar mis datos','Descarga un respaldo','exportData()',false,false),
       cfgRow('rgba(16,185,129,.12)',svgImp,'Importar datos','Restaura un respaldo','importData()',false,false),
@@ -6820,6 +6906,33 @@ function showBS_week(){
     {val:'domingo',label:'Domingo'}
   ];
   _showGradBS('Inicio de semana',items,S.weekStart||'',function(val){saveWeekStart(val);},true);
+}
+function showBS_dateFmt(){
+  var items=[
+    {val:'DD/MM/YYYY',label:'DD/MM/YYYY · Ej: 30/04/2026'},
+    {val:'MM/DD/YYYY',label:'MM/DD/YYYY · Ej: 04/30/2026'},
+    {val:'YYYY-MM-DD',label:'YYYY-MM-DD · Ej: 2026-04-30'}
+  ];
+  _showGradBS('Formato de fecha',items,S.dateFormat||'DD/MM/YYYY',function(val){_setDateFmt(val);},false);
+}
+function _setDateFmt(val){
+  S.dateFormat=val;
+  saveState();
+  closeBottomSheet();
+  renderPage('configuracion');
+}
+function showBS_timeFmt(){
+  var items=[
+    {val:'24h',label:'24 horas · Ej: 19:30'},
+    {val:'12h',label:'12 horas · Ej: 7:30 PM'}
+  ];
+  _showGradBS('Formato de hora',items,S.timeFormat||'24h',function(val){_setTimeFmt(val);},false);
+}
+function _setTimeFmt(val){
+  S.timeFormat=val;
+  saveState();
+  closeBottomSheet();
+  renderPage('configuracion');
 }
 function showBS_theme(){
   var items=[
