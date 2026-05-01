@@ -29,7 +29,7 @@ function initApp(){
       }catch(e){
         if(typeof toast==='function')toast('Nav error: '+String(e).substring(0,60));
       }
-    },2000);
+    },500);
   }
   loadState();
 
