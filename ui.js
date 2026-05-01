@@ -9967,6 +9967,11 @@ function openContactSheet(){
     +'</div>'
     +'<div style="background:var(--surface);height:18px;border-radius:18px 18px 0 0;margin-top:-12px;position:relative;z-index:1"></div>'
     +'<div style="padding:4px 14px max(env(safe-area-inset-bottom),20px)">'
+      +'<div style="text-align:center;padding:8px 0 16px">'
+        +'<div style="font-size:32px;margin-bottom:6px">🎧</div>'
+        +'<div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:4px">¿En qué podemos ayudarte?</div>'
+        +'<div style="font-size:12px;color:var(--text2);line-height:1.5">Elige cómo prefieres contactarnos</div>'
+      +'</div>'
       +'<div style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);overflow:hidden;margin-bottom:8px">'
         +row('rgba(0,212,170,.12)',svgMail,'Correo electrónico',_cl+'window.location=\'mailto:soporte@xenda.co\'')
         +row('rgba(29,155,240,.12)',svgTg,'Telegram',_cl+'window.open(\'https://t.me/FinanzIAapp\',\'_blank\')')
