@@ -15,6 +15,16 @@ function initApp(){
       console.warn('SW registro fallido:',e);
     });
   }
+  // Detectar navegación desde push
+  var _notifPage=sessionStorage.getItem('_notifPage')||'';
+  if(!_notifPage){
+    var _urlParams=new URLSearchParams(window.location.search);
+    _notifPage=_urlParams.get('notif_page')||'';
+  }
+  if(_notifPage){
+    sessionStorage.removeItem('_notifPage');
+    setTimeout(function(){if(typeof navigate==='function')navigate(_notifPage);},800);
+  }
   loadState();
 
   // ── Quitar monedas hardcodeadas si son las de prueba ──────
@@ -149,3 +159,11 @@ function _startRealtimeSync(){
 document.addEventListener('DOMContentLoaded',()=>{
   if(typeof initAuth==='function'){initAuth();}else{initApp();}
 });
+if('serviceWorker'in navigator){
+  navigator.serviceWorker.addEventListener('message',function(e){
+    if(e.data&&e.data.type==='notif_page'&&e.data.page){
+      if(typeof navigate==='function'){navigate(e.data.page);}
+      else{sessionStorage.setItem('_notifPage',e.data.page);}
+    }
+  });
+}

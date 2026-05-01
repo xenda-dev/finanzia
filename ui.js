@@ -740,12 +740,14 @@ function _subscribePush(){
     }).catch(function(e){console.warn('Push subscribe:',e);});
   }).catch(function(e){console.warn('Push SW ready:',e);});
 }
-function _sendPushNotif(title,body){
+function _sendPushNotif(title,body,page){
   var _uid=window._currentUser&&window._currentUser.id;
   if(!_uid||!_supabase)return;
   if(!S.notifPrefs||S.notifPrefs._master!==true)return;
   _supabase.functions.invoke('send-push',{
-    body:{user_id:_uid,title:title,body:body}
+    body:{user_id:_uid,title:title,body:body,icon:'/icon-192.png',page:page||''}
+  }).then(function(r){
+    if(r.error)console.warn('send-push error:',r.error);
   }).catch(function(e){console.warn('send-push:',e);});
 }
 function requestNotifPerm(){
