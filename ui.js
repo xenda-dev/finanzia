@@ -587,7 +587,7 @@ function _buildNotifContent(){
   // Items
   var keys=['notifPayments','notifBudget','notifGoal','notifWeekly','notifTips'];
   var meta={
-    notifPayments:{icon:'💳',bg:'#FEF3C7',label:'Pagos programados',desc:'Día del vencimiento'},
+    notifPayments:{icon:'💳',bg:'#FEF3C7',label:'Pagos programados',desc:'Avisa '+(S.notifDaysDefault||3)+' día(s) antes del vencimiento'},
     notifBudget:{icon:'📊',bg:'#DBEAFE',label:'Límite de presupuesto',desc:'Al llegar al 80%'},
     notifGoal:{icon:'🎯',bg:'#FCE7F3',label:'Progreso de metas',desc:'Al alcanzar hitos'},
     notifWeekly:{icon:'📅',bg:'#D1FAE5',label:'Resumen semanal',desc:'Cada lunes'},
@@ -602,13 +602,24 @@ function _buildNotifContent(){
       +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
       +'<span style="font-size:11px;font-weight:700;color:#0F766E">'+fmtTime(timeVal)+'</span>'
     +'</button>';
-    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:'+(last?'none':'0.5px solid rgba(0,0,0,.05)')+';">'
+    var daysSelector=key==='notifPayments'
+      ?'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding-left:2px">'
+        +[1,3,5,7,15].map(function(d){
+          var sel=(S.notifDaysDefault||3)===d;
+          return '<button onclick="_setNotifDays('+d+')" style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);border:1.5px solid '+(sel?'var(--primary)':'var(--border)')+';background:'+(sel?'rgba(0,212,170,.1)':'none')+';color:'+(sel?'var(--primary)':'var(--text2)')+'">'+d+' día'+(d===1?'':'s')+'</button>';
+        }).join('')
+      +'</div>'
+      :'';
+    return '<div style="padding:9px 0;border-bottom:'+(last?'none':'0.5px solid rgba(0,0,0,.05)')+';">'
+      +'<div style="display:flex;align-items:center;gap:10px">'
       +'<div style="width:26px;height:26px;border-radius:8px;background:'+m.bg+';display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">'+m.icon+'</div>'
       +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">'+m.label+'</div>'
       +'<div style="font-size:11px;color:var(--text3);margin-top:1px">'+m.desc+'</div></div>'
       +timeBtn
       +'<div onclick="_toggleNotifItem(\''+key+'\')" style="width:36px;height:20px;border-radius:99px;background:'+(isOn?'var(--primary)':'#CBD5E1')+';display:flex;align-items:center;padding:3px;transition:.2s;cursor:pointer;flex-shrink:0">'
       +'<div style="width:14px;height:14px;border-radius:50%;background:white;box-shadow:0 1px 2px rgba(0,0,0,.15);margin-left:'+(isOn?'auto':'0')+'"></div></div>'
+      +'</div>'
+      +daysSelector
       +'</div>';
   }).join('')+'</div>';
   return banner+mt+sched+list;
@@ -645,6 +656,11 @@ function _setNotifTime(key,val){
   S.notifPrefs['_'+key+'Time']=val;
   saveState();
   closeBottomSheet();
+}
+function _setNotifDays(d){
+  S.notifDaysDefault=d;
+  saveState();
+  openNotifPage();
 }
 function _toggleNotifMaster(){
   if(!S.notifPrefs)S.notifPrefs={};

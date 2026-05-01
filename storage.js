@@ -152,6 +152,7 @@ let S = {
   language:'', weekStart:'', _catTab:'gasto',
   dateFormat:'DD/MM/YYYY', timeFormat:'24h',
   notifScheduleFrom:'07:00', notifScheduleTo:'22:00',
+  notifDaysDefault:3,
   notifPrefs:{_notifPaymentsTime:'08:00',_notifBudgetTime:'08:00',_notifGoalTime:'08:00',_notifWeeklyTime:'08:00',_notifTipsTime:'08:00'},
   numFormat:'auto', currencies:[], profile:{name:'',email:'',photo:'',profession:''},
   shoppingLists:[], investments:[], subscriptions:[], accounts:[], transactions:[], categories:[], subcategories:[],
