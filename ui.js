@@ -902,27 +902,7 @@ function checkBudgetNotifs(){
   });
 }
 function checkGoalNotifs(){
-  if(!_inNotifWindow())return;
-  var uid=window._currentUser&&window._currentUser.id;
-  if(!uid)return;
-  var milestones=[25,50,75,100];
-  var msgs={
-    25:{title:'🎯 Meta en marcha',body:' — ¡Ya llevas el 25%!'},
-    50:{title:'🎯 ¡Vas a la mitad!',body:' — Sigue así.'},
-    75:{title:'🎯 ¡Casi llegas!',body:' — 75% completado.'},
-    100:{title:'🎉 ¡Meta alcanzada!',body:' — ¡Felicitaciones!'}
-  };
-  filterDeleted(S.goals).forEach(function(g){
-    if(!g.target||g.target<=0)return;
-    var pct=Math.round((g.saved/g.target)*100);
-    milestones.forEach(function(m){
-      if(pct<m)return;
-      var key='_notifGoal_'+uid+'_'+g.id+'_'+m;
-      if(localStorage.getItem(key))return;
-      sendNotif(msgs[m].title,g.name+msgs[m].body,'notifGoal');
-      localStorage.setItem(key,'1');
-    });
-  });
+  // Notificaciones de metas manejadas por CRON en Supabase (check-notifications)
 }
 function checkWeeklyNotif(){
   if(new Date().getDay()!==1)return;
