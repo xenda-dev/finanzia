@@ -625,11 +625,35 @@ function _buildNotifContent(){
   return banner+mt+sched+list;
 }
 function _openNotifTimePick(key){
+  var _meta={
+    notifPayments:{icon:'💳',label:'Pagos próximos'},
+    notifBudget:{icon:'📊',label:'Límite de presupuesto'},
+    notifGoal:{icon:'🎯',label:'Progreso de metas'},
+    notifWeekly:{icon:'📅',label:'Resumen semanal'},
+    notifTips:{icon:'💡',label:'Consejos financieros'}
+  };
+  var m=_meta[key]||{icon:'🔔',label:'Notificación'};
   var cur=(S.notifPrefs&&S.notifPrefs['_'+key+'Time'])||'08:00';
-  var html='<div style="padding:8px 16px 16px;text-align:center">'
-    +'<div style="font-size:12px;color:var(--text2);background:rgba(0,212,170,.07);border-radius:10px;padding:8px 10px;margin-bottom:14px;line-height:1.5">Si esta hora cae fuera del horario general, la notificación llegará al inicio del horario.</div>'
-    +'<input type="time" id="notif-time-inp" value="'+cur+'" style="font-size:28px;font-weight:800;color:var(--text);border:none;outline:none;background:none;font-family:var(--font);width:100%;text-align:center;margin-bottom:14px">'
-    +'<button onclick="_setNotifTime(\''+key+'\',document.getElementById(\'notif-time-inp\').value);openNotifPage()" style="width:100%;padding:13px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Confirmar hora</button>'
+  var isPay=key==='notifPayments';
+  var days=S.notifDaysDefault||3;
+  var daysSection=isPay
+    ?'<div style="margin-bottom:16px">'
+      +'<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">📅 Días de anticipación</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'
+        +[1,2,3,5,7,15].map(function(d){
+          var sel=days===d;
+          return '<button onclick="S.notifDaysDefault='+d+';saveState();_openNotifTimePick(\''+key+'\')" style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);border:1.5px solid '+(sel?'var(--primary)':'var(--border)')+';background:'+(sel?'rgba(0,212,170,.1)':'none')+';color:'+(sel?'var(--primary)':'var(--text2)')+'">'+d+' día'+(d===1?'':'s')+'</button>';
+        }).join('')
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--text3)">Recibirás la alerta '+days+' día'+(days===1?'':'s')+' antes del vencimiento</div>'
+    +'</div>'
+    :'';
+  var html='<div style="padding:8px 16px 16px">'
+    +'<div style="font-size:12px;color:var(--text2);background:rgba(0,212,170,.07);border-radius:10px;padding:8px 10px;margin-bottom:16px;line-height:1.5">Si esta hora cae fuera del horario general, la notificación llegará al inicio del horario.</div>'
+    +'<div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">🕐 Hora de notificación</div>'
+    +'<input type="time" id="notif-time-inp" value="'+cur+'" style="font-size:28px;font-weight:800;color:var(--text);border:none;outline:none;background:none;font-family:var(--font);width:100%;text-align:center;margin-bottom:16px">'
+    +daysSection
+    +'<button onclick="_setNotifTime(\''+key+'\',document.getElementById(\'notif-time-inp\').value);openNotifPage()" style="width:100%;padding:13px;border-radius:50px;border:none;background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Guardar configuración</button>'
   +'</div>';
   closeBottomSheet();
   var overlay=document.createElement('div');
@@ -643,7 +667,7 @@ function _openNotifTimePick(key){
   sheet.innerHTML=
     '<div style="background-color:var(--surface);background-image:linear-gradient(160deg,rgba(0,212,170,.10),rgba(116,97,239,.06));padding:10px 14px 22px;flex-shrink:0">'
     +'<div style="display:flex;align-items:center;gap:8px">'+bk
-    +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">Hora de notificación</div>'
+    +'<div style="flex:1;text-align:center;font-size:17px;font-weight:800;color:var(--text);pointer-events:none">'+m.icon+' '+m.label+'</div>'
     +'<div style="width:34px;flex-shrink:0"></div></div>'
     +'</div>'
     +'<div style="background:var(--surface);height:20px;border-radius:20px 20px 0 0;margin-top:-14px;position:relative;z-index:1;flex-shrink:0"></div>'
