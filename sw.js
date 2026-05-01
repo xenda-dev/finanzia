@@ -9,7 +9,8 @@ self.addEventListener('push',function(e){
       icon:data.icon||'/icon-192.png',
       badge:'/icon-192.png',
       vibrate:[200,100,200],
-      data:{page:data.page||''}
+      data:{page:data.page||''},
+      tag:data.tag||(data.title+'-'+Date.now())
     })
   );
 });
