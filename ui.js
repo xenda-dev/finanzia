@@ -576,11 +576,11 @@ function _buildNotifContent(){
     +'<div style="display:flex;gap:10px">'
       +'<div style="flex:1">'
         +'<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">Desde</div>'
-        +'<input type="time" value="'+schedFrom+'" onchange="S.notifScheduleFrom=this.value;saveState()" style="width:100%;padding:9px 10px;border-radius:10px;border:0.5px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:var(--font)">'
+        +'<input type="time" value="'+schedFrom+'" onchange="S.notifScheduleFrom=this.value;saveState()" style="width:100%;padding:9px 10px;border-radius:10px;border:0.5px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:var(--font);text-align:center">'
       +'</div>'
       +'<div style="flex:1">'
         +'<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">Hasta</div>'
-        +'<input type="time" value="'+schedTo+'" onchange="S.notifScheduleTo=this.value;saveState()" style="width:100%;padding:9px 10px;border-radius:10px;border:0.5px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:var(--font)">'
+        +'<input type="time" value="'+schedTo+'" onchange="S.notifScheduleTo=this.value;saveState()" style="width:100%;padding:9px 10px;border-radius:10px;border:0.5px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:var(--font);text-align:center">'
       +'</div>'
     +'</div>'
   +'</div>';
