@@ -265,8 +265,28 @@ function buildCurrencyOptions(selected){
   return curs.map(c=>`<option value="${c}" ${c===selected?'selected':''}>${c}</option>`).join('');
 }
 function getCurrencyMeta(code){return CURRENCY_META[code]||{sym:code,locale:'en-US',pos:'before'};}
-// Convierte YYYY-MM-DD a DD/MM/YYYY
-function fmtDate(d){if(!d)return '—';var p=String(d).split('-');if(p.length!==3)return d;return p[2]+'/'+p[1]+'/'+p[0];}
+// Convierte YYYY-MM-DD al formato configurado en S.dateFormat
+function fmtDate(d){
+  if(!d)return '—';
+  var p=String(d).split('-');
+  if(p.length!==3)return d;
+  var fmt=(typeof S!=='undefined'&&S.dateFormat)||'DD/MM/YYYY';
+  if(fmt==='MM/DD/YYYY')return p[1]+'/'+p[2]+'/'+p[0];
+  if(fmt==='YYYY-MM-DD')return p[0]+'-'+p[1]+'-'+p[2];
+  return p[2]+'/'+p[1]+'/'+p[0];
+}
+function fmtTime(t){
+  if(!t)return '—';
+  var fmt=(typeof S!=='undefined'&&S.timeFormat)||'24h';
+  if(fmt==='24h')return t;
+  var parts=String(t).split(':');
+  if(parts.length<2)return t;
+  var h=parseInt(parts[0],10);
+  var m=parts[1];
+  var ampm=h>=12?'PM':'AM';
+  h=h%12||12;
+  return h+':'+m+' '+ampm;
+}
 function fmt(amount,cur){
   const code=cur||S.currency||'';
   const n=parseFloat(amount)||0;

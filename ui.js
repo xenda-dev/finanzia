@@ -600,7 +600,7 @@ function _buildNotifContent(){
     var timeVal=(S.notifPrefs&&S.notifPrefs['_'+key+'Time'])||'08:00';
     var timeBtn='<button onclick="event.stopPropagation();_openNotifTimePick(\''+key+'\')" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;background:rgba(0,212,170,.08);border:none;cursor:pointer;font-family:var(--font);pointer-events:auto;flex-shrink:0">'
       +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
-      +'<span style="font-size:11px;font-weight:700;color:#0F766E">'+timeVal+'</span>'
+      +'<span style="font-size:11px;font-weight:700;color:#0F766E">'+fmtTime(timeVal)+'</span>'
     +'</button>';
     return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:'+(last?'none':'0.5px solid rgba(0,0,0,.05)')+';">'
       +'<div style="width:26px;height:26px;border-radius:8px;background:'+m.bg+';display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">'+m.icon+'</div>'
@@ -1150,7 +1150,7 @@ function renderTareas(){
       +'</div>'
       +'<div style="flex:1;min-width:0">'
       +'<div style="font-size:13px;font-weight:600;color:var(--text);text-decoration:'+(t.done?'line-through':'none')+';opacity:'+(t.done?'.5':'1')+'">'+t.title+'</div>'
-      +(t.time?'<div style="font-size:11px;color:var(--text3)">🕐 '+t.time+'</div>':'')
+      +(t.time?'<div style="font-size:11px;color:var(--text3)">🕐 '+fmtTime(t.time)+'</div>':'')
       +'</div>'
       +'<span style="font-size:10px;font-weight:700;color:white;background:'+(qColors[t.q]||'#94A3B8')+';padding:2px 6px;border-radius:99px;flex-shrink:0">'+(qEmoji[t.q]||'⚪')+'</span>'
       +(t.notif?'<div style="font-size:12px">🔔</div>':'')
@@ -1693,7 +1693,7 @@ function txRow(t){
   const subName=sub?sub.name:(acc?acc.name:'');
   return`<div class="tx-item" onclick="openModal('viewTx',{id:'${t.id}'})">
     <div class="tx-icon" style="background:${color}22">${icon}</div>
-    <div class="tx-info"><div class="tx-name">${name}</div><div class="tx-sub">${subName?subName+' · ':''}${t.date}${t.paymentMethod?' · '+t.paymentMethod:''}</div></div>
+    <div class="tx-info"><div class="tx-name">${name}</div><div class="tx-sub">${subName?subName+' · ':''}${fmtDate(t.date)}${t.paymentMethod?' · '+t.paymentMethod:''}</div></div>
     <div class="tx-amount ${cls}">${sign}${fmt(t.amount,t.currency)}</div>
   </div>`;
 }
@@ -3592,7 +3592,7 @@ function renderPagos(){
           <div style="width:44px;height:44px;border-radius:12px;background:${cat?cat.color+'22':'#64748B22'};display:flex;align-items:center;justify-content:center;font-size:22px">${cat?cat.icon:'🔔'}</div>
           <div style="flex:1">
             <div style="font-size:14px;font-weight:700">${p.name}</div>
-            <div style="font-size:11px;color:var(--text2)">${p.frequency} · ${p.nextDate} ${p.isAuto?'· 🤖 Auto':''}</div>
+            <div style="font-size:11px;color:var(--text2)">${p.frequency} · ${fmtDate(p.nextDate)} ${p.isAuto?'· 🤖 Auto':''}</div>
           </div>
           <div style="text-align:right">${statusBadge}<div style="font-size:16px;font-weight:700;color:var(--danger);margin-top:4px">${fmt(p.amount,p.currency)}</div></div>
         </div>
