@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Política de privacidad — FinanzIA</title>
+  <meta name="description" content="Cómo FinanzIA protege y trata tus datos financieros y personales.">
+  <meta name="robots" content="noindex, follow">
+  <link rel="icon" type="image/png" href="/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --fz-teal:#00C4A3; --fz-azul:#0EA5E9;
+      --fz-grad:linear-gradient(135deg,#00C4A3,#0EA5E9);
+      --fz-ink:#0A0F1E; --fz-soft:#64748B;
+      --fz-border:#E2E8F0; --fz-surface:#FFFFFF;
+      --fz-bg:#F8FAFC;
+      --fz-r-card:20px; --fz-r-btn:12px; --fz-r-pill:100px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;color:#64748B;background:#F8FAFC;-webkit-font-smoothing:antialiased;line-height:1.5}
+    p{text-wrap:pretty}
+
+    /* NAV */
+    .lnav{background:#ffffff;border-bottom:1px solid #E2E8F0;position:sticky;top:0;z-index:100}
+    .lnav-inner{max-width:900px;margin:0 auto;padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between}
+    .lnav-logo{display:flex;align-items:center;text-decoration:none;font-family:"Outfit",sans-serif;font-weight:900;font-size:20px;letter-spacing:-.03em;line-height:1}
+    .lnav-grad{background:linear-gradient(135deg,#00C4A3,#0EA5E9);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+    .lnav-ia{color:#0A0F1E;-webkit-text-fill-color:#0A0F1E}
+    .lnav-back{color:#64748B;border:1px solid #E2E8F0;border-radius:8px;padding:7px 14px;background:#F8FAFC;font-family:"Plus Jakarta Sans",sans-serif;font-weight:500;font-size:13px;text-decoration:none;transition:color .15s,border-color .15s}
+    .lnav-back:hover{color:#0A0F1E;border-color:#CBD5E1}
+
+    /* HERO */
+    .lhero{background:linear-gradient(135deg,#00C4A3,#0EA5E9);padding:56px 32px 64px;text-align:center;position:relative;overflow:hidden}
+    .lhero::before{content:"";position:absolute;top:-20%;right:-5%;width:360px;height:360px;background:radial-gradient(circle,rgba(255,255,255,.13) 0%,transparent 60%);pointer-events:none}
+    .lhero-inner{max-width:680px;margin:0 auto;position:relative;z-index:1}
+    .lhero-eye{color:rgba(255,255,255,.85);font-family:"Plus Jakarta Sans",sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin-bottom:14px}
+    .lhero h1{font-family:"Outfit",sans-serif;font-weight:900;font-size:clamp(32px,5vw,52px);letter-spacing:-.03em;color:#ffffff;line-height:1.05;margin-bottom:12px}
+    .lhero-date{font-size:13px;color:rgba(255,255,255,.7);margin-bottom:14px}
+    .lhero-lead{font-family:"Plus Jakarta Sans",sans-serif;font-size:16px;font-weight:500;color:rgba(255,255,255,.92);line-height:1.65;max-width:540px;margin:0 auto}
+    .lhero-wave{position:relative;height:32px;overflow:hidden;margin-top:-1px}
+    .lhero-wave svg{display:block;width:100%;height:32px}
+
+    /* BODY */
+    .lbody{background:#F8FAFC;padding:0 0 72px}
+    .linner{max-width:780px;margin:0 auto;padding:48px 40px 0}
+
+    /* SECTIONS */
+    .lsec{display:flex;gap:18px;padding:32px 0;border-bottom:1px solid #E2E8F0}
+    .lsec:last-of-type{border-bottom:none}
+    .lnum{flex-shrink:0;width:26px;height:26px;background:#00C4A3;color:#ffffff;border-radius:50%;font-size:12px;font-weight:700;font-family:"Outfit",sans-serif;display:flex;align-items:center;justify-content:center;margin-top:1px}
+    .lsec-body{}
+    .lsec-title{font-family:"Outfit",sans-serif;font-weight:600;font-size:17px;color:#0A0F1E;margin-bottom:10px;letter-spacing:-.01em}
+    .lsec-text{font-family:"Plus Jakarta Sans",sans-serif;font-size:14px;color:#64748B;line-height:1.65}
+    .lsec-text+.lsec-text{margin-top:8px}
+    .lsec-text a{color:#00C4A3;text-decoration:none}
+    .lsec-text a:hover{text-decoration:underline}
+    .lsec-text ul{margin:8px 0 0 18px;list-style:disc}
+    .lsec-text li{margin-bottom:4px}
+
+    /* BOX INFO */
+    .lbox{background:#F0F4F8;border-radius:16px;padding:16px 20px;margin-top:32px;font-family:"Plus Jakarta Sans",sans-serif;font-size:13px;color:#64748B;line-height:1.65}
+    .lbox a{color:#00C4A3;text-decoration:none}
+
+    /* WARNING BOX */
+    .lwarn{background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:12px 16px;margin-top:12px;font-family:"Plus Jakarta Sans",sans-serif;font-size:13px;color:#9A3412;line-height:1.65}
+
+    /* PLANS TABLE */
+    .lplans{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+    .lplan{border:1px solid #E2E8F0;border-radius:12px;padding:16px;background:#ffffff}
+    .lplan.featured{border-color:#00C4A3;border-width:2px}
+    .lplan-name{font-family:"Outfit",sans-serif;font-weight:700;font-size:13px;color:#0A0F1E;margin-bottom:2px;text-transform:uppercase;letter-spacing:.06em}
+    .lplan-price{font-family:"Outfit",sans-serif;font-weight:800;font-size:22px;color:#0A0F1E;margin-bottom:10px;letter-spacing:-.02em}
+    .lplan-price span{font-size:13px;font-weight:500;color:#64748B}
+    .lplan ul{list-style:none;padding:0;margin:0}
+    .lplan li{font-size:12px;color:#64748B;padding:3px 0;display:flex;align-items:baseline;gap:6px;line-height:1.45}
+    .lplan li::before{content:"·";color:#00C4A3;font-size:16px;line-height:0;flex-shrink:0}
+
+    /* COOKIE CARDS */
+    .lcards{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+    .lcard{border:1px solid #E2E8F0;border-radius:14px;padding:14px 16px}
+    .lcard-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+    .lcard-title{font-family:"Plus Jakarta Sans",sans-serif;font-weight:700;font-size:14px;color:#0A0F1E}
+    .lbadge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:var(--fz-r-pill);letter-spacing:.03em;white-space:nowrap}
+    .lbadge-green{background:#E8FBF5;color:#00876F}
+    .lbadge-yellow{background:#FEF3C7;color:#92400E}
+    .lbadge-indigo{background:#EEF2FF;color:#4338CA}
+
+    /* FOOTER */
+    .lfooter{border-top:1px solid #E2E8F0;background:#ffffff;padding:20px 32px}
+    .lfooter-inner{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+    .lfooter-copy{font-family:"Plus Jakarta Sans",sans-serif;font-size:12px;color:#64748B}
+    .lfooter-links{display:flex;align-items:center;gap:6px}
+    .lfooter-link{font-family:"Plus Jakarta Sans",sans-serif;font-size:12px;color:#64748B;text-decoration:none;padding:2px 6px;border-radius:6px;transition:color .15s}
+    .lfooter-link:hover{color:#0A0F1E}
+    .lfooter-link.active{color:#00C4A3;font-weight:600}
+    .lfooter-sep{color:#CBD5E1;font-size:12px}
+    .lfooter-email{font-family:"Plus Jakarta Sans",sans-serif;font-size:12px;font-weight:500;color:#00C4A3;text-decoration:none}
+    .lfooter-email:hover{text-decoration:underline}
+
+    @media(max-width:640px){
+      .lnav-inner{padding:0 16px}
+      .lhero{padding:40px 20px 52px}
+      .linner{padding:32px 20px 0}
+      .lfooter{padding:20px 16px}
+      .lfooter-inner{flex-direction:column;text-align:center;gap:10px}
+      .lplans{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<nav class="lnav">
+  <div class="lnav-inner">
+    <a href="https://finanzia.xenda.co" class="lnav-logo" aria-label="FinanzIA">
+      <span class="lnav-grad">Finanz</span><span class="lnav-ia">IA</span>
+    </a>
+    <a href="https://finanzia.xenda.co" class="lnav-back">← Volver a FinanzIA</a>
+  </div>
+</nav>
+
+<section class="lhero">
+  <div class="lhero-inner">
+    <div class="lhero-eye">Legal · FinanzIA</div>
+    <h1>Política de privacidad</h1>
+    <div class="lhero-date">Mayo de 2026 · Versión 1.0</div>
+    <p class="lhero-lead">FinanzIA maneja datos financieros sensibles. Por eso somos especialmente cuidadosos con tu privacidad. Cumplimos con la Ley 1581 de 2012 de Colombia y el GDPR de la Unión Europea.</p>
+  </div>
+  <div class="lhero-wave"><svg viewBox="0 0 1440 32" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,16 C360,32 720,0 1080,16 C1260,24 1380,8 1440,16 L1440,32 L0,32 Z" fill="#F8FAFC"/></svg></div>
+</section>
+
+<div class="lbody">
+  <div class="linner">
+    <div class="lsec">
+      <div class="lnum">1</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Quién responde por tus datos</div>
+      <div class="lsec-text">Xenda, proyecto fundado por Jorge Quintero y Sofía Montejo, con operaciones orientadas al mercado latinoamericano. Los operadores residen en Europa, por lo que esta política cumple con la Ley 1581 de 2012 de Colombia y el GDPR de la Unión Europea.</div>
+      <div class="lsec-text">Contacto: <a href="mailto:soporte@xenda.co">soporte@xenda.co</a></div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">2</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Qué información recopilamos</div>
+      <div class="lsec-text">Recopilamos los datos que tú ingresas y los necesarios para operar el servicio:</div>
+      <div class="lsec-text"><ul><li>Datos de registro: nombre, correo electrónico</li><li>Datos de perfil: nombre del negocio, ocupación, meta financiera</li><li>Datos financieros: transacciones, cuentas, categorías, presupuestos, metas, pagos programados, inversiones y suscripciones que registres</li><li>Datos de uso: funciones utilizadas, frecuencia de uso</li><li>Datos técnicos: dirección IP, dispositivo, navegador, zona horaria (auto-detectada)</li><li>Datos de pago: procesados por Stripe — FinanzIA no almacena datos de tarjetas</li></ul></div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">3</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Para qué usamos tu información</div>
+      <div class="lsec-text"><ul><li>Brindarte el servicio y sincronizar tus datos entre dispositivos en tiempo real</li><li>Mostrarte análisis, reportes y resúmenes de tus finanzas</li><li>Enviarte notificaciones de pagos, alertas de presupuesto y resúmenes semanales</li><li>Procesar tu suscripción a través de Stripe</li><li>Mejorar la app con análisis agregados y anónimos</li><li>Cumplir obligaciones legales aplicables</li></ul></div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">4</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Con quién compartimos tu información</div>
+      <div class="lsec-text">Solo con proveedores técnicos esenciales:</div>
+      <div class="lsec-text"><ul><li>Supabase — base de datos, autenticación y sincronización en tiempo real</li><li>Vercel — alojamiento web y distribución</li><li>Stripe — procesamiento de pagos Pro y Premium</li><li>Autoridades competentes cuando la ley lo exige</li></ul></div>
+      <div class="lsec-text">Nunca vendemos tus datos financieros ni personales.</div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">5</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Datos financieros — nota especial</div>
+      <div class="lsec-text">Los datos financieros son especialmente sensibles. Por eso:</div>
+      <div class="lsec-text"><ul><li>Están cifrados en tránsito (HTTPS/TLS) y en reposo</li><li>Solo tú puedes ver tus propios datos</li><li>Nuestro equipo no accede a tus datos salvo para soporte técnico con tu autorización explícita</li><li>FinanzIA no se conecta a tus cuentas bancarias reales ni tiene acceso a tu dinero</li></ul></div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">6</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Tus derechos sobre tus datos</div>
+      <div class="lsec-text">Bajo la Ley 1581 de 2012 y el GDPR tienes derecho a:</div>
+      <div class="lsec-text"><ul><li>Conocer qué datos personales y financieros tenemos sobre ti</li><li>Actualizar o corregir tu información</li><li>Solicitar la eliminación completa de tu cuenta y datos</li><li>Exportar tus datos en formato legible (plan Premium)</li><li>Revocar el consentimiento en cualquier momento</li><li>Presentar quejas ante la SIC (Colombia) o autoridad de datos de tu país</li></ul></div>
+      <div class="lsec-text">Para ejercer estos derechos: <a href="mailto:soporte@xenda.co">soporte@xenda.co</a> — respondemos en máximo 10 días hábiles.</div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">7</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Seguridad</div>
+      <div class="lsec-text">Usamos cifrado HTTPS/TLS en tránsito y en reposo vía Supabase. La sesión se cierra automáticamente tras 3 minutos en segundo plano.</div>
+      <div class="lsec-text">Te recomendamos usar una contraseña única y fuerte.</div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">8</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Retención de datos</div>
+      <div class="lsec-text">Guardamos tus datos mientras tu cuenta esté activa. Al eliminar tu cuenta, borramos tus datos en un plazo de 30 días calendario, excepto los que la ley obligue a conservar.</div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">9</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Menores de edad</div>
+      <div class="lsec-text">FinanzIA no está dirigido a menores de 18 años. Si eres padre o tutor y crees que tu hijo ha creado una cuenta, contáctanos de inmediato.</div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">10</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Cambios en esta política</div>
+      <div class="lsec-text">Publicaremos cambios aquí y notificaremos por correo si son significativos.</div>
+      </div>
+    </div>
+    <div class="lbox">Autoridades de supervisión: Superintendencia de Industria y Comercio de Colombia (<a href="https://www.sic.gov.co" target="_blank" rel="noopener">sic.gov.co</a>) o la autoridad de protección de datos de tu país de residencia.</div>
+  </div>
+</div>
+
+<footer class="lfooter">
+  <div class="lfooter-inner">
+    <span class="lfooter-copy">© 2026 Xenda · Todos los derechos reservados</span>
+    <div class="lfooter-links">
+      <a href="/terminos" class="lfooter-link">Términos</a>
+      <span class="lfooter-sep">·</span>
+      <a href="/privacidad" class="lfooter-link active">Privacidad</a>
+      <span class="lfooter-sep">·</span>
+      <a href="/cookies" class="lfooter-link">Cookies</a>
+    </div>
+    <a href="mailto:soporte@xenda.co" class="lfooter-email">soporte@xenda.co</a>
+  </div>
+</footer>
+
+</body>
+</html>

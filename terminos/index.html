@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Términos y condiciones — FinanzIA</title>
+  <meta name="description" content="Términos y condiciones de uso de FinanzIA, la app de finanzas personales de Xenda.">
+  <meta name="robots" content="noindex, follow">
+  <link rel="icon" type="image/png" href="/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --fz-teal:#00C4A3; --fz-azul:#0EA5E9;
+      --fz-grad:linear-gradient(135deg,#00C4A3,#0EA5E9);
+      --fz-ink:#0A0F1E; --fz-soft:#64748B;
+      --fz-border:#E2E8F0; --fz-surface:#FFFFFF;
+      --fz-bg:#F8FAFC;
+      --fz-r-card:20px; --fz-r-btn:12px; --fz-r-pill:100px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;color:#64748B;background:#F8FAFC;-webkit-font-smoothing:antialiased;line-height:1.5}
+    p{text-wrap:pretty}
+
+    /* NAV */
+    .lnav{background:#ffffff;border-bottom:1px solid #E2E8F0;position:sticky;top:0;z-index:100}
+    .lnav-inner{max-width:900px;margin:0 auto;padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between}
+    .lnav-logo{display:flex;align-items:center;text-decoration:none;font-family:"Outfit",sans-serif;font-weight:900;font-size:20px;letter-spacing:-.03em;line-height:1}
+    .lnav-grad{background:linear-gradient(135deg,#00C4A3,#0EA5E9);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+    .lnav-ia{color:#0A0F1E;-webkit-text-fill-color:#0A0F1E}
+    .lnav-back{color:#64748B;border:1px solid #E2E8F0;border-radius:8px;padding:7px 14px;background:#F8FAFC;font-family:"Plus Jakarta Sans",sans-serif;font-weight:500;font-size:13px;text-decoration:none;transition:color .15s,border-color .15s}
+    .lnav-back:hover{color:#0A0F1E;border-color:#CBD5E1}
+
+    /* HERO */
+    .lhero{background:linear-gradient(135deg,#00C4A3,#0EA5E9);padding:56px 32px 64px;text-align:center;position:relative;overflow:hidden}
+    .lhero::before{content:"";position:absolute;top:-20%;right:-5%;width:360px;height:360px;background:radial-gradient(circle,rgba(255,255,255,.13) 0%,transparent 60%);pointer-events:none}
+    .lhero-inner{max-width:680px;margin:0 auto;position:relative;z-index:1}
+    .lhero-eye{color:rgba(255,255,255,.85);font-family:"Plus Jakarta Sans",sans-serif;font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin-bottom:14px}
+    .lhero h1{font-family:"Outfit",sans-serif;font-weight:900;font-size:clamp(32px,5vw,52px);letter-spacing:-.03em;color:#ffffff;line-height:1.05;margin-bottom:12px}
+    .lhero-date{font-size:13px;color:rgba(255,255,255,.7);margin-bottom:14px}
+    .lhero-lead{font-family:"Plus Jakarta Sans",sans-serif;font-size:16px;font-weight:500;color:rgba(255,255,255,.92);line-height:1.65;max-width:540px;margin:0 auto}
+    .lhero-wave{position:relative;height:32px;overflow:hidden;margin-top:-1px}
+    .lhero-wave svg{display:block;width:100%;height:32px}
+
+    /* BODY */
+    .lbody{background:#F8FAFC;padding:0 0 72px}
+    .linner{max-width:780px;margin:0 auto;padding:48px 40px 0}
+
+    /* SECTIONS */
+    .lsec{display:flex;gap:18px;padding:32px 0;border-bottom:1px solid #E2E8F0}
+    .lsec:last-of-type{border-bottom:none}
+    .lnum{flex-shrink:0;width:26px;height:26px;background:#00C4A3;color:#ffffff;border-radius:50%;font-size:12px;font-weight:700;font-family:"Outfit",sans-serif;display:flex;align-items:center;justify-content:center;margin-top:1px}
+    .lsec-body{}
+    .lsec-title{font-family:"Outfit",sans-serif;font-weight:600;font-size:17px;color:#0A0F1E;margin-bottom:10px;letter-spacing:-.01em}
+    .lsec-text{font-family:"Plus Jakarta Sans",sans-serif;font-size:14px;color:#64748B;line-height:1.65}
+    .lsec-text+.lsec-text{margin-top:8px}
+    .lsec-text a{color:#00C4A3;text-decoration:none}
+    .lsec-text a:hover{text-decoration:underline}
+    .lsec-text ul{margin:8px 0 0 18px;list-style:disc}
+    .lsec-text li{margin-bottom:4px}
+
+    /* BOX INFO */
+    .lbox{background:#F0F4F8;border-radius:16px;padding:16px 20px;margin-top:32px;font-family:"Plus Jakarta Sans",sans-serif;font-size:13px;color:#64748B;line-height:1.65}
+    .lbox a{color:#00C4A3;text-decoration:none}
+
+    /* WARNING BOX */
+    .lwarn{background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:12px 16px;margin-top:12px;font-family:"Plus Jakarta Sans",sans-serif;font-size:13px;color:#9A3412;line-height:1.65}
+
+    /* PLANS TABLE */
+    .lplans{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+    .lplan{border:1px solid #E2E8F0;border-radius:12px;padding:16px;background:#ffffff}
+    .lplan.featured{border-color:#00C4A3;border-width:2px}
+    .lplan-name{font-family:"Outfit",sans-serif;font-weight:700;font-size:13px;color:#0A0F1E;margin-bottom:2px;text-transform:uppercase;letter-spacing:.06em}
+    .lplan-price{font-family:"Outfit",sans-serif;font-weight:800;font-size:22px;color:#0A0F1E;margin-bottom:10px;letter-spacing:-.02em}
+    .lplan-price span{font-size:13px;font-weight:500;color:#64748B}
+    .lplan ul{list-style:none;padding:0;margin:0}
+    .lplan li{font-size:12px;color:#64748B;padding:3px 0;display:flex;align-items:baseline;gap:6px;line-height:1.45}
+    .lplan li::before{content:"·";color:#00C4A3;font-size:16px;line-height:0;flex-shrink:0}
+
+    /* COOKIE CARDS */
+    .lcards{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+    .lcard{border:1px solid #E2E8F0;border-radius:14px;padding:14px 16px}
+    .lcard-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+    .lcard-title{font-family:"Plus Jakarta Sans",sans-serif;font-weight:700;font-size:14px;color:#0A0F1E}
+    .lbadge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:var(--fz-r-pill);letter-spacing:.03em;white-space:nowrap}
+    .lbadge-green{background:#E8FBF5;color:#00876F}
+    .lbadge-yellow{background:#FEF3C7;color:#92400E}
+    .lbadge-indigo{background:#EEF2FF;color:#4338CA}
+
+    /* FOOTER */
+    .lfooter{border-top:1px solid #E2E8F0;background:#ffffff;padding:20px 32px}
+    .lfooter-inner{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+    .lfooter-copy{font-family:"Plus Jakarta Sans",sans-serif;font-size:12px;color:#64748B}
+    .lfooter-links{display:flex;align-items:center;gap:6px}
+    .lfooter-link{font-family:"Plus Jakarta Sans",sans-serif;font-size:12px;color:#64748B;text-decoration:none;padding:2px 6px;border-radius:6px;transition:color .15s}
+    .lfooter-link:hover{color:#0A0F1E}
+    .lfooter-link.active{color:#00C4A3;font-weight:600}
+    .lfooter-sep{color:#CBD5E1;font-size:12px}
+    .lfooter-email{font-family:"Plus Jakarta Sans",sans-serif;font-size:12px;font-weight:500;color:#00C4A3;text-decoration:none}
+    .lfooter-email:hover{text-decoration:underline}
+
+    @media(max-width:640px){
+      .lnav-inner{padding:0 16px}
+      .lhero{padding:40px 20px 52px}
+      .linner{padding:32px 20px 0}
+      .lfooter{padding:20px 16px}
+      .lfooter-inner{flex-direction:column;text-align:center;gap:10px}
+      .lplans{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<nav class="lnav">
+  <div class="lnav-inner">
+    <a href="https://finanzia.xenda.co" class="lnav-logo" aria-label="FinanzIA">
+      <span class="lnav-grad">Finanz</span><span class="lnav-ia">IA</span>
+    </a>
+    <a href="https://finanzia.xenda.co" class="lnav-back">← Volver a FinanzIA</a>
+  </div>
+</nav>
+
+<section class="lhero">
+  <div class="lhero-inner">
+    <div class="lhero-eye">Legal · FinanzIA</div>
+    <h1>Términos y condiciones de uso</h1>
+    <div class="lhero-date">Mayo de 2026 · Versión 1.0</div>
+    <p class="lhero-lead">Al crear una cuenta o usar FinanzIA, aceptas estos términos. Te los explicamos en lenguaje claro — sin letra pequeña.</p>
+  </div>
+  <div class="lhero-wave"><svg viewBox="0 0 1440 32" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,16 C360,32 720,0 1080,16 C1260,24 1380,8 1440,16 L1440,32 L0,32 Z" fill="#F8FAFC"/></svg></div>
+</section>
+
+<div class="lbody">
+  <div class="linner">
+    <div class="lsec">
+      <div class="lnum">1</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Qué es FinanzIA</div>
+      <div class="lsec-text">FinanzIA es un producto de Xenda, proyecto tecnológico fundado por Jorge Quintero y Sofía Montejo (razón social en proceso de registro en Colombia). Es una aplicación web progresiva (PWA) de gestión financiera personal y para pequeñas empresas, disponible en <a href='https://finanzia.xenda.co'>finanzia.xenda.co</a>.</div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">2</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Aceptación</div>
+      <div class="lsec-text">Al registrarte o usar FinanzIA confirmas que leíste y aceptas estos términos. Si no estás de acuerdo, por favor no uses el servicio.</div>
+      <div class="lsec-text">Si eres menor de 18 años, necesitas autorización de tus padres o tutor legal.</div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">3</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Planes y limitaciones</div>
+        <div class="lsec-text">FinanzIA ofrece tres planes:</div>
+      <div class="lplans">
+        <div class="lplan">
+          <div class="lplan-name">Gratis</div>
+          <div class="lplan-price">$0 <span>USD</span></div>
+          <ul>
+            <li>1 divisa</li>
+            <li>50 transacciones/mes</li>
+            <li>2 cuentas</li>
+            <li>Categorías predefinidas</li>
+            <li>1 presupuesto · 1 meta</li>
+          </ul>
+        </div>
+        <div class="lplan featured">
+          <div class="lplan-name" style="color:#00C4A3;">Pro</div>
+          <div class="lplan-price">$4.99 <span>USD/mes</span></div>
+          <ul>
+            <li>Hasta 3 divisas</li>
+            <li>Transacciones ilimitadas</li>
+            <li>Cuentas ilimitadas</li>
+            <li>Categorías personalizables</li>
+            <li>Presupuestos y metas ilimitadas</li>
+            <li>Pagos programados</li>
+          </ul>
+        </div>
+        <div class="lplan">
+          <div class="lplan-name">Premium</div>
+          <div class="lplan-price">$9.99 <span>USD/mes</span></div>
+          <ul>
+            <li>Divisas ilimitadas</li>
+            <li>Todo lo de Pro</li>
+            <li>Exportar PDF/CSV</li>
+            <li>Emiliano IA</li>
+            <li>Soporte prioritario</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">4</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Pagos y facturación</div>
+      <div class="lsec-text">Los planes pagos se cobran mensualmente en dólares estadounidenses (USD) a través de Stripe. Al suscribirte autorizas el cobro recurrente.</div>
+      <div class="lsec-text">Puedes cancelar en cualquier momento desde tu cuenta — sin penalizaciones. No realizamos reembolsos por períodos parciales, pero el acceso continúa hasta el final del período pagado.</div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">5</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Tus datos financieros</div>
+        <div class="lsec-text">La información financiera que ingresas (transacciones, cuentas, presupuestos, metas) es tuya en todo momento. Xenda no tiene acceso a tus cuentas bancarias reales ni mueve dinero. FinanzIA es una herramienta de registro y análisis, no un servicio bancario o financiero regulado.</div>
+<div class="lwarn">⚠️ FinanzIA no es un servicio bancario ni de inversión. La información que muestra es la que tú ingresas y no debe usarse como asesoría financiera.</div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">6</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Uso aceptable</div>
+      <div class="lsec-text">Puedes usar FinanzIA para gestionar tus finanzas personales o de tu negocio. No puedes:</div>
+      <div class="lsec-text"><ul><li>Usar el servicio para actividades ilegales o fraudulentas</li><li>Intentar acceder a datos de otros usuarios</li><li>Automatizar acceso masivo o hacer scraping</li><li>Compartir tu cuenta con terceros sin autorización</li></ul></div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">7</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Disponibilidad del servicio</div>
+      <div class="lsec-text">Nos esforzamos por mantener FinanzIA disponible 24/7, pero no garantizamos disponibilidad ininterrumpida. Podemos realizar mantenimientos programados avisando con anticipación.</div>
+      <div class="lsec-text">No somos responsables por pérdidas derivadas de interrupciones del servicio.</div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">8</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Propiedad intelectual</div>
+      <div class="lsec-text">El software, diseño, nombre y marca de FinanzIA son propiedad de Xenda. Tus datos financieros son tuyos — nunca reclamamos propiedad sobre ellos.</div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">9</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Cambios en estos términos</div>
+      <div class="lsec-text">Podemos actualizar estos términos. Te avisaremos por correo con al menos 15 días de anticipación para cambios significativos.</div>
+      <div class="lsec-text">Continuar usando FinanzIA después de ese plazo equivale a aceptar los nuevos términos.</div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">10</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Ley aplicable</div>
+      <div class="lsec-text">Estos términos se rigen por las leyes de la República de Colombia (Ley 527 de 1999). Los operadores del servicio residen en Europa, por lo que también se da cumplimiento al GDPR de la Unión Europea en lo que respecta al tratamiento de datos personales.</div>
+      <div class="lsec-text">Cualquier disputa contractual se resolverá ante las autoridades competentes de Colombia.</div>
+      </div>
+    </div>
+    <div class="lsec">
+      <div class="lnum">11</div>
+      <div class="lsec-body">
+        <div class="lsec-title">Contacto</div>
+      <div class="lsec-text">Preguntas sobre estos términos: <a href="mailto:soporte@xenda.co">soporte@xenda.co</a></div>
+      </div>
+    </div>
+    <div class="lbox">Este documento se actualizará cuando Xenda complete su registro legal en Colombia y cuando FinanzIA active los planes de pago con Stripe.</div>
+  </div>
+</div>
+
+<footer class="lfooter">
+  <div class="lfooter-inner">
+    <span class="lfooter-copy">© 2026 Xenda · Todos los derechos reservados</span>
+    <div class="lfooter-links">
+      <a href="/terminos" class="lfooter-link active">Términos</a>
+      <span class="lfooter-sep">·</span>
+      <a href="/privacidad" class="lfooter-link">Privacidad</a>
+      <span class="lfooter-sep">·</span>
+      <a href="/cookies" class="lfooter-link">Cookies</a>
+    </div>
+    <a href="mailto:soporte@xenda.co" class="lfooter-email">soporte@xenda.co</a>
+  </div>
+</footer>
+
+</body>
+</html>
