@@ -212,7 +212,7 @@ function loadState(){
   if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
   if(!S.analysisPeriodSub)S.analysisPeriodSub='anual';if(!S.analysisYear)S.analysisYear=new Date().getFullYear();
   if(!S.exchangeRate)S.exchangeRate={PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''};
-  if(!S.plan)S.plan='gratis';
+  if(!S.plan)S.plan='premium';
   if(!S.baseCurrency&&S.currencies&&S.currencies.length){S.baseCurrency=S.currencies[0];}
   // Tema: siempre light por defecto. Solo persiste si el usuario lo cambió en este dispositivo.
   var _uid2=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:(localStorage.getItem('_lastAuthUserId')||'');

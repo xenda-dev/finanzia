@@ -1119,12 +1119,6 @@ function renderDashboard(){
   setTimeout(function(){ _updateNotifBadge(); }, 0);
   var html = '';
 
-  // Badge plan
-  html += '<div style="padding:8px 16px 0">'
-    + '<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;'
-    + 'padding:2px 9px;border-radius:100px;background:'+pb.bg+';color:'+pb.color+'">'
-    + pb.icon+' '+pb.label+'</span></div>';
-
   // Card patrimonio
   html += '<div style="margin:10px 0 0;background:var(--surface);border-radius:20px;'
     + 'border:0.5px solid var(--border);padding:16px">'
@@ -1143,23 +1137,23 @@ function renderDashboard(){
       + '</div>' : '')
     + '</div>';
 
-  // Sección Mis Divisas
-  html += '<div style="margin-top:12px">'
-    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
-    + '<span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Mis divisas</span>'
-    + addBtnHtml
-    + '</div>'
-    + '<div style="display:grid;grid-template-columns:'+gridCols+';gap:6px">'
-    + curCardsHtml
-    + '</div></div>';
+  // Sección Mis Divisas + FX strip (solo con 2+ divisas)
+  if (curs.length >= 2) {
+    html += '<div style="margin-top:12px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+      + '<span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Mis divisas</span>'
+      + addBtnHtml
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:'+gridCols+';gap:6px">'
+      + curCardsHtml
+      + '</div></div>';
+    html += '<div id="exchange-widget" style="margin-top:8px;background:var(--surface2);'
+      + 'border:0.5px solid var(--border);border-radius:12px;padding:9px 12px"></div>';
+  }
 
-  // FX Strip (solo si 2+ divisas)
-  html += '<div id="exchange-widget" style="margin-top:8px;background:var(--surface2);'
-    + 'border:0.5px solid var(--border);border-radius:12px;padding:9px 12px;'
-    + (curs.length<2?'display:none':'') + '"></div>';
-
-  // Ingresos / Gastos
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">'
+  // Ingresos / Gastos / Ahorro — grilla 3 cols
+  var savColor = savings >= 0 ? '#10B981' : 'var(--danger)';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">'
     + '<div style="background:var(--surface2);border-radius:12px;padding:11px">'
     + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px">'
     + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/></svg>Ingresos</div>'
@@ -1168,21 +1162,11 @@ function renderDashboard(){
     + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px">'
     + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/></svg>Gastos</div>'
     + '<div style="font-size:16px;font-weight:500;color:var(--danger);font-variant-numeric:tabular-nums">'+fmt(exp)+'</div></div>'
+    + '<div style="background:var(--surface2);border-radius:12px;padding:11px">'
+    + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px">'
+    + '<span style="font-size:13px">🐷</span>Ahorro</div>'
+    + '<div style="font-size:16px;font-weight:500;color:'+savColor+';font-variant-numeric:tabular-nums">'+(savings>=0?'+':'')+fmt(savings)+'</div></div>'
     + '</div>';
-
-  // Ahorro del mes
-  var savColor = savings >= 0 ? '#10B981' : 'var(--danger)';
-  var savBg = savings >= 0 ? 'rgba(16,185,129,.1)' : 'rgba(239,68,68,.1)';
-  html += '<div style="margin-top:8px;background:var(--surface);border:0.5px solid var(--border);'
-    + 'border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between">'
-    + '<div style="display:flex;align-items:center;gap:9px">'
-    + '<div style="width:34px;height:34px;border-radius:50%;background:'+savBg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">🐷</div>'
-    + '<div><div style="font-size:11px;color:var(--text2)">Ahorro del mes</div>'
-    + '<div style="font-size:18px;font-weight:500;color:'+savColor+';font-variant-numeric:tabular-nums">'
-    + (savings>=0?'+':'')+fmt(savings)+'</div></div></div>'
-    + '<div style="text-align:right">'
-    + '<div style="font-size:14px;font-weight:500;color:'+savColor+'">'+Math.abs(savingsPct)+'%</div>'
-    + '<div style="font-size:11px;color:var(--text2)">de ingresos</div></div></div>';
 
   // Regla 50/30/20
   html += '<div style="margin-top:10px;background:var(--surface);border:0.5px solid var(--border);'
@@ -1206,9 +1190,6 @@ function renderDashboard(){
       + '</div></div>'
       + '<div style="height:5px;background:var(--surface2);border-radius:100px;overflow:hidden;margin-top:9px">'
       + '<div style="height:100%;width:'+budPct+'%;background:'+budBarColor+';border-radius:100px"></div></div>'
-      + '<div style="font-size:11px;color:var(--text2);margin-top:7px;display:flex;align-items:center;gap:4px">'
-      + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>'
-      + 'Toca para ver todos los presupuestos</div>'
     : '<div style="font-size:13px;color:var(--text2)">Sin presupuestos activos · '
       + '<span style="color:var(--primary);cursor:pointer" onclick="navigate(\'presupuestos\')">Crear uno</span></div>';
 
