@@ -1072,7 +1072,7 @@ function renderDashboard(){
       +'style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:100px;'
       +'background:var(--surface);border:'+border+';box-shadow:var(--card-shadow);cursor:pointer;overflow:hidden;min-width:0">'
       +(flag?'<span style="font-size:16px;flex-shrink:0">'+flag+'</span>':'<span style="width:16px;flex-shrink:0"></span>')
-      +'<span style="width:6px;height:6px;border-radius:50%;background:#10B981;flex-shrink:0"></span>'
+      +'<span style="width:6px;height:6px;border-radius:50%;background:'+(isActive?'#10B981':'var(--border)')+';flex-shrink:0"></span>'
       +'<span style="font-size:11px;font-weight:600;text-transform:uppercase;color:'+codeColor+';flex-shrink:0">'+cur+'</span>'
       +'<span style="width:0.5px;height:12px;background:var(--border);flex-shrink:0"></span>'
       +'<span style="font-size:11px;font-weight:600;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+fmt(getBalanceForCurrency(cur),cur)+'</span>'
@@ -1150,23 +1150,48 @@ function renderDashboard(){
   setTimeout(function(){ _updateNotifBadge(); }, 0);
   var html = '';
 
-  // Card patrimonio
+  // Card patrimonio — layout split: balance izq | KPIs der
   html += '<div style="margin:-8px 0 0;background:var(--surface);border-radius:20px;'
-    + 'border:0.5px solid var(--border);padding:16px;box-shadow:var(--card-shadow)">'
+    + 'border:0.5px solid var(--border);padding:14px;box-shadow:var(--card-shadow);'
+    + 'display:flex;gap:12px;align-items:stretch">'
+    // ── Columna izquierda
+    + '<div style="flex:1;min-width:0">'
     + '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-bottom:4px">'
-    + '<span style="width:6px;height:6px;border-radius:50%;background:#10B981;display:inline-block"></span>'
-    + balLabel + '</div>'
-    + '<div style="font-size:26px;font-weight:500;color:var(--text);letter-spacing:-.5px;line-height:1.1;font-variant-numeric:tabular-nums">'
-    + fmt(consolidated, base)
-    + ' <span style="font-size:14px;color:var(--text2);font-weight:400">'+base+'</span>'
+    + '<span style="width:6px;height:6px;border-radius:50%;background:#10B981;display:inline-block;flex-shrink:0"></span>'
+    + balLabel+'</div>'
+    + '<div style="font-size:24px;font-weight:500;color:var(--text);letter-spacing:-.5px;line-height:1.1;font-variant-numeric:tabular-nums">'
+    + fmt(consolidated,base)
+    + ' <span style="font-size:13px;color:var(--text2);font-weight:400">'+base+'</span>'
     + '</div>'
-    + (inc>0 ? '<div style="font-size:12px;margin-top:5px;display:flex;align-items:center;gap:5px">'
-      + (savings>=0
-        ? '<span style="color:#10B981;font-weight:500">▲ +'+savingsPct+'%</span>'
-        : '<span style="color:var(--danger);font-weight:500">▼ '+savingsPct+'%</span>')
-      + '<span style="color:var(--text3);font-size:11px">vs ingresos del mes</span>'
-      + '</div>' : '')
-    + '</div>';
+    + (inc>0?'<div style="font-size:11px;margin-top:5px;display:flex;align-items:center;gap:4px">'
+      +(savings>=0
+        ?'<span style="color:#10B981;font-weight:500">▲ +'+savingsPct+'%</span>'
+        :'<span style="color:var(--danger);font-weight:500">▼ '+savingsPct+'%</span>')
+      +'<span style="color:var(--text3);font-size:10px">vs mes ant.</span>'
+      +'</div>':'')
+    +'</div>'
+    // ── Separador vertical
+    +'<div style="width:0.5px;background:var(--border);flex-shrink:0;margin:2px 0"></div>'
+    // ── Columna derecha — 4 KPIs
+    +'<div style="display:flex;flex-direction:column;justify-content:space-between;min-width:90px">'
+    +'<div onclick="openModal(\'balanceDistribution\',{})" style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
+    +'<span style="font-size:13px;width:18px;text-align:center">💎</span>'
+    +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Disponible</div>'
+    +'<div style="font-size:12px;font-weight:600;color:var(--primary);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(Math.max(0,consolidated-totalGoalSavings),base)+'</div></div></div>'
+    +'<div onclick="navigate(\'metas\')" style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
+    +'<span style="font-size:13px;width:18px;text-align:center">🎯</span>'
+    +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Ahorrado</div>'
+    +'<div style="font-size:12px;font-weight:600;color:var(--secondary);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(totalGoalSavings)+'</div></div></div>'
+    +'<div onclick="navigate(\'deudas\')" style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
+    +'<span style="font-size:13px;width:18px;text-align:center">💸</span>'
+    +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Deudas</div>'
+    +'<div style="font-size:12px;font-weight:600;color:var(--danger);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(debtTotal)+'</div></div></div>'
+    +'<div onclick="navigate(\'cuentas\')" style="display:flex;align-items:center;gap:6px;padding:5px 0;cursor:pointer">'
+    +'<span style="font-size:13px;width:18px;text-align:center">💳</span>'
+    +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Cuentas</div>'
+    +'<div style="font-size:12px;font-weight:600;color:#3B82F6;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+activeAccCount+' cuentas</div></div></div>'
+    +'</div>'
+    +'</div>';
 
   // Sección Mis Divisas — visible en Pro/Premium siempre (con 1 o más divisas)
   if (plan !== 'gratis') {
@@ -1201,21 +1226,6 @@ function renderDashboard(){
     + '<div style="font-size:16px;font-weight:500;color:'+savColor+';font-variant-numeric:tabular-nums">'+(savings>=0?'+':'')+fmt(savings)+'</div></div>'
     + '</div>';
 
-  // KPI 2x2
-  function _kpiCard(icon,iconBg,label,val,valColor,onclick){
-    return '<div onclick="'+onclick+'" style="background:var(--surface);border-radius:12px;padding:11px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;border:0.5px solid var(--border);box-shadow:var(--card-shadow)">'
-      +'<div style="width:32px;height:32px;border-radius:10px;background:'+iconBg+';display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">'+icon+'</div>'
-      +'<div style="flex:1;min-width:0">'
-      +'<div style="font-size:11px;color:var(--text2)">'+label+'</div>'
-      +'<div style="font-size:14px;font-weight:500;color:'+valColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+val+'</div>'
-      +'</div></div>';
-  }
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px">'
-    +_kpiCard('💎','rgba(0,212,170,.1)','Disponible',fmt(Math.max(0,_bal-totalGoalSavings)),'var(--primary)',"openModal('balanceDistribution',{})")
-    +_kpiCard('🎯','rgba(116,97,239,.1)','Ahorrado',fmt(totalGoalSavings),'var(--secondary)',"navigate('metas')")
-    +_kpiCard('💸','rgba(239,68,68,.1)','Deudas',fmt(debtTotal),'var(--danger)',"navigate('deudas')")
-    +_kpiCard('💳','rgba(59,130,246,.1)','Cuentas',activeAccCount+' cuentas','#3B82F6',"navigate('cuentas')")
-    +'</div>';
 
   // Regla 50/30/20
   var _ruleMonthLbl = new Date(_selMY+'-01').toLocaleString('es',{month:'long'});
