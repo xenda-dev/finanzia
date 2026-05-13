@@ -1023,7 +1023,7 @@ function renderDashboard(){
   var plan = S.plan || 'gratis';
   var curs = S.currencies || [];
   var base = S.baseCurrency || (curs.length ? curs[0] : S.currency) || 'USD';
-  var maxCurs = plan==='premium' ? Infinity : plan==='pro' ? 3 : 1;
+  var maxCurs = plan==='premium' ? 4 : plan==='pro' ? 2 : 1;
 
   // Mes seleccionado
   var _nowD = new Date();
@@ -1060,41 +1060,30 @@ function renderDashboard(){
   };
   var pb = planBadgeMap[plan] || planBadgeMap.gratis;
 
-  // Grid de divisas
-  var curCount = curs.length;
-  var gridCols = curCount >= 3 ? 'repeat(3,1fr)' : '1fr 1fr';
-
-  // Cards de divisas HTML
-  var curCardsHtml = '';
+  // Pills de divisas
+  var _CUR_FLAGS={PLN:'🇵🇱',COP:'🇨🇴',USD:'🇺🇸',EUR:'🇪🇺',GBP:'🇬🇧',MXN:'🇲🇽',ARS:'🇦🇷',BRL:'🇧🇷',CLP:'🇨🇱',PEN:'🇵🇪',BOB:'🇧🇴',PYG:'🇵🇾',CAD:'🇨🇦',AUD:'🇦🇺',CHF:'🇨🇭',JPY:'🇯🇵',CNY:'🇨🇳',KRW:'🇰🇷',INR:'🇮🇳',RUB:'🇷🇺',TRY:'🇹🇷',SEK:'🇸🇪',NOK:'🇳🇴',DKK:'🇩🇰',CZK:'🇨🇿',HUF:'🇭🇺',RON:'🇷🇴',HKD:'🇭🇰',SGD:'🇸🇬',NZD:'🇳🇿',ZAR:'🇿🇦',SAR:'🇸🇦',AED:'🇦🇪',NGN:'🇳🇬',UAH:'🇺🇦',IDR:'🇮🇩',MYR:'🇲🇾',THB:'🇹🇭',PHP:'🇵🇭',VND:'🇻🇳'};
+  var curPillsHtml = '';
   curs.forEach(function(cur) {
-    var isBase = cur === base;
     var isActive = cur === (S.currency || base);
-    var bal = getBalanceForCurrency(cur);
-    var meta = getCurrencyMeta(cur);
-    var fmtAmt = bal.toLocaleString(meta.locale || 'es', {
-      minimumFractionDigits: 2, maximumFractionDigits: 2
-    });
+    var flag = _CUR_FLAGS[cur] || '';
     var border = isActive ? '1.5px solid var(--primary)' : '0.5px solid var(--border)';
-    var bg = 'var(--surface)';
-    var codeColor = isActive ? 'var(--primary)' : 'var(--text3)';
-    var checkIcon = isActive
-      ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
-      : '';
-    // Chip ✦ Base — solo en la card activa (activa = base siempre)
-    var bottomEl = isActive
-      ? '<div style="margin-top:7px;padding:4px 0;border-radius:6px;background:rgba(0,212,170,.1);'
-        + 'text-align:center;font-size:10px;font-weight:600;color:var(--primary)">✦ Base</div>'
-      : '';
-    curCardsHtml += '<div onclick="setCurrency(\''+cur+'\')" style="background:'+bg+';border:'+border+';border-radius:12px;padding:10px 8px;cursor:pointer;box-shadow:var(--card-shadow)">'
-      + '<div style="font-size:10px;font-weight:600;color:'+codeColor+';text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;display:flex;align-items:center;justify-content:space-between">'
-      + '<span>'+cur+'</span>'+checkIcon
-      + '</div>'
-      + '<div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.3">'
-      + (meta.pos==='before' ? meta.sym : '') + fmtAmt + (meta.pos==='after' ? ' '+meta.sym : '')
-      + '</div>'
-      + bottomEl
-      + '</div>';
+    var codeColor = isActive ? 'var(--primary)' : 'var(--text2)';
+    curPillsHtml += '<div onclick="setCurrency(\''+cur+'\')" '
+      +'style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:100px;'
+      +'background:var(--surface);border:'+border+';box-shadow:var(--card-shadow);cursor:pointer;overflow:hidden;min-width:0">'
+      +(flag?'<span style="font-size:16px;flex-shrink:0">'+flag+'</span>':'<span style="width:16px;flex-shrink:0"></span>')
+      +'<span style="width:6px;height:6px;border-radius:50%;background:#10B981;flex-shrink:0"></span>'
+      +'<span style="font-size:11px;font-weight:600;text-transform:uppercase;color:'+codeColor+';flex-shrink:0">'+cur+'</span>'
+      +'<span style="width:0.5px;height:12px;background:var(--border);flex-shrink:0"></span>'
+      +'<span style="font-size:11px;font-weight:600;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+fmt(getBalanceForCurrency(cur),cur)+'</span>'
+      +'</div>';
   });
+  // Wrapper según número de divisas
+  var pillsWrapper = curs.length<=1
+    ? '<div style="display:flex">'+curPillsHtml+'</div>'
+    : curs.length===2
+      ? '<div style="display:flex;gap:7px">'+curPillsHtml+'</div>'
+      : '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">'+curPillsHtml+'</div>';
 
   // Botón agregar divisa
   var addBtnHtml = '';
@@ -1105,7 +1094,7 @@ function renderDashboard(){
       + 'border-radius:100px;padding:3px 9px;cursor:pointer;font-family:var(--font)">'
       + '🔒 Agregar · Plan Pro</button>';
   } else if (curs.length < maxCurs) {
-    var remaining = maxCurs === Infinity ? '' : ' · '+(maxCurs-curs.length)+' más';
+    var remaining = ' · '+(maxCurs-curs.length)+' más';
     addBtnHtml = '<button onclick="openAddCurrencyModal()" '
       + 'style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;'
       + 'color:var(--primary);background:rgba(0,212,170,.1);border:0.5px solid rgba(0,212,170,.3);'
@@ -1145,6 +1134,18 @@ function renderDashboard(){
       return dd!==0?dd:(b.id>a.id?1:-1);
     }).slice(0,4);
 
+  // KPI data
+  var _bal = getTotalBalance();
+  var totalGoalSavings = filterDeleted(S.goals)
+    .filter(function(g){return(g.currency||S.currency)===S.currency;})
+    .reduce(function(s,g){return s+(parseFloat(g.current)||0);},0);
+  var debtTotal = filterDeleted(S.accounts)
+    .filter(function(a){return a.type==='pasivo'&&(a.currency||S.currency)===S.currency;})
+    .reduce(function(s,a){return s+Math.abs(getBalance(a.id));},0);
+  var activeAccCount = filterDeleted(S.accounts)
+    .filter(function(a){return a.type==='activo'&&(a.currency||S.currency)===S.currency;})
+    .length;
+
   // ── HTML ─────────────────────────────────────────
   setTimeout(function(){ _updateNotifBadge(); }, 0);
   var html = '';
@@ -1174,9 +1175,8 @@ function renderDashboard(){
       + '<div style="font-size:13px;font-weight:800;color:var(--text)">Mis divisas</div>'
       + addBtnHtml
       + '</div>'
-      + '<div style="display:grid;grid-template-columns:'+gridCols+';gap:6px">'
-      + curCardsHtml
-      + '</div></div>';
+      + pillsWrapper
+      + '</div>';
     // FX strip solo con 2+ divisas
     if (curs.length >= 2) {
       html += '<div id="exchange-widget" style="margin-top:8px;background:var(--surface);'
@@ -1200,6 +1200,22 @@ function renderDashboard(){
     + '<span style="font-size:13px">🐷</span>Ahorro</div>'
     + '<div style="font-size:16px;font-weight:500;color:'+savColor+';font-variant-numeric:tabular-nums">'+(savings>=0?'+':'')+fmt(savings)+'</div></div>'
     + '</div>';
+
+  // KPI 2x2
+  function _kpiCard(icon,iconBg,label,val,valColor,onclick){
+    return '<div onclick="'+onclick+'" style="background:var(--surface);border-radius:12px;padding:11px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;border:0.5px solid var(--border);box-shadow:var(--card-shadow)">'
+      +'<div style="width:32px;height:32px;border-radius:10px;background:'+iconBg+';display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">'+icon+'</div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-size:11px;color:var(--text2)">'+label+'</div>'
+      +'<div style="font-size:14px;font-weight:500;color:'+valColor+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+val+'</div>'
+      +'</div></div>';
+  }
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px">'
+    +_kpiCard('💎','rgba(0,212,170,.1)','Disponible',fmt(Math.max(0,_bal-totalGoalSavings)),'var(--primary)',"openModal('balanceDistribution',{})")
+    +_kpiCard('🎯','rgba(116,97,239,.1)','Ahorrado',fmt(totalGoalSavings),'var(--secondary)',"navigate('metas')")
+    +_kpiCard('💸','rgba(239,68,68,.1)','Deudas',fmt(debtTotal),'var(--danger)',"navigate('deudas')")
+    +_kpiCard('💳','rgba(59,130,246,.1)','Cuentas',activeAccCount+' cuentas','#3B82F6',"navigate('cuentas')")
+    +'</div>';
 
   // Regla 50/30/20
   var _ruleMonthLbl = new Date(_selMY+'-01').toLocaleString('es',{month:'long'});
@@ -1334,8 +1350,8 @@ function setPlan(plan){
   var valid={gratis:1,pro:1,premium:1};
   if(!valid[plan])return;
   S.plan=plan;
-  var maxCurs=plan==='premium'?Infinity:plan==='pro'?3:1;
-  if(maxCurs!==Infinity&&S.currencies&&S.currencies.length>maxCurs){
+  var maxCurs=plan==='premium'?4:plan==='pro'?2:1;
+  if(S.currencies&&S.currencies.length>maxCurs){
     // Respetar baseCurrency al truncar; si no está en la lista, usar currencies[0]
     var _keepCurs=S.currencies.slice();
     if(S.baseCurrency&&_keepCurs.includes(S.baseCurrency)){
@@ -7425,7 +7441,7 @@ function showBS_currencies(){
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 16px 12px;border-bottom:1px solid var(--border)">'+
       '<span style="font-size:15px;font-weight:700;color:var(--text)">💱 Monedas activas</span>'+
       '<div style="display:flex;align-items:center;gap:8px">'+
-        '<span id="bs-cur-count" style="font-size:12px;color:var(--primary);font-weight:700;background:rgba(0,212,170,.12);padding:3px 10px;border-radius:50px">'+sel.length+'/'+(S.plan==='premium'?'∞':S.plan==='pro'?'3':'1')+'</span>'+
+        '<span id="bs-cur-count" style="font-size:12px;color:var(--primary);font-weight:700;background:rgba(0,212,170,.12);padding:3px 10px;border-radius:50px">'+sel.length+'/'+(S.plan==='premium'?'4':S.plan==='pro'?'2':'1')+'</span>'+
         '<button onclick="_saveCurrencyBS(window._bsCurSel);closeBottomSheet()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:13px;width:28px;height:28px;border-radius:50%;background:var(--surface2)">✕</button>'+
       '</div>'+
     '</div>';
@@ -7466,18 +7482,18 @@ function showBS_currencies(){
 }
 function _toggleCurBS(code){
   var sel=window._bsCurSel||(window._bsCurSel=[]);
-  var _maxCurs=S.plan==='premium'?Infinity:S.plan==='pro'?3:1;
-  var _maxLbl=S.plan==='premium'?'∞':S.plan==='pro'?'3':'1';
+  var _maxCurs=S.plan==='premium'?4:S.plan==='pro'?2:1;
+  var _maxLbl=S.plan==='premium'?'4':S.plan==='pro'?'2':'1';
   var idx=sel.indexOf(code);
   if(idx!==-1){
     sel.splice(idx,1);
   } else {
     if(sel.length>=_maxCurs){
-      toast('🔒 Límite de tu plan ('+_maxLbl+' divisa'+((_maxCurs>1&&_maxCurs!==Infinity)||S.plan==='pro'?'s':'')+') · Cambia de plan para más');
+      toast('🔒 Límite de tu plan ('+_maxLbl+' divisa'+(_maxCurs>1?'s':'')+') · Cambia de plan para más');
       return;
     }
     sel.push(code);
-    if(_maxCurs!==Infinity&&sel.length>=_maxCurs){_saveCurrencyBS(sel);closeBottomSheet();return;}
+    if(sel.length>=_maxCurs){_saveCurrencyBS(sel);closeBottomSheet();return;}
   }
   // Re-render list and counter
   var q=document.getElementById('bs-cur-search')?document.getElementById('bs-cur-search').value:'';
@@ -7976,8 +7992,8 @@ function showCurrenciesPickerScreen(){
     }
   };
   closePickerScreen();
-  var _pMaxCurs=S.plan==='premium'?Infinity:S.plan==='pro'?3:1;
-  var _pMaxLbl=S.plan==='premium'?'∞':S.plan==='pro'?'3':'1';
+  var _pMaxCurs=S.plan==='premium'?4:S.plan==='pro'?2:1;
+  var _pMaxLbl=S.plan==='premium'?'4':S.plan==='pro'?'2':'1';
   var cntHtml='<span id="picker-cur-count" style="font-size:12px;color:var(--primary);font-weight:700;background:rgba(0,212,170,.12);padding:3px 10px;border-radius:50px;white-space:nowrap">'+sel.length+'/'+_pMaxLbl+'</span>';
   var ov=document.createElement('div');
   ov.id='picker-screen-overlay';
@@ -7997,8 +8013,8 @@ function showCurrenciesPickerScreen(){
 }
 function _togglePickerCur(code){
   var sel=window._pickerCurSel||(window._pickerCurSel=[]);
-  var _maxCurs=S.plan==='premium'?Infinity:S.plan==='pro'?3:1;
-  var _maxLbl=S.plan==='premium'?'∞':S.plan==='pro'?'3':'1';
+  var _maxCurs=S.plan==='premium'?4:S.plan==='pro'?2:1;
+  var _maxLbl=S.plan==='premium'?'4':S.plan==='pro'?'2':'1';
   var idx=sel.indexOf(code);
   if(idx!==-1){
     sel.splice(idx,1);
@@ -8620,8 +8636,8 @@ function toggleCurrency(c,checked){
     renderPage('configuracion');return;
   }
   if(checked){
-    var _maxCursCfg=S.plan==='premium'?Infinity:S.plan==='pro'?3:1;
-    var _maxLblCfg=S.plan==='premium'?'∞':S.plan==='pro'?'3':'1';
+    var _maxCursCfg=S.plan==='premium'?4:S.plan==='pro'?2:1;
+    var _maxLblCfg=S.plan==='premium'?'4':S.plan==='pro'?'2':'1';
     if(S.currencies.length>=_maxCursCfg){
       toast('🔒 Límite de tu plan ('+_maxLblCfg+' divisa'+(S.plan==='pro'?'s':'')+') · Cambia de plan para agregar más');
       renderPage('configuracion');return;

@@ -221,7 +221,7 @@ function loadState(){
     if(!S.currencies.includes(S.currency))S.currency=S.currencies[0];
   }
   // Enforcement: recortar divisas si el plan activo no las permite
-  var _maxCursLoad=S.plan==='premium'?Infinity:S.plan==='pro'?3:1;
+  var _maxCursLoad=S.plan==='premium'?4:S.plan==='pro'?2:1;
   if(S.currencies&&S.currencies.length>_maxCursLoad){
     // Respetar baseCurrency al truncar; si no está en la lista, usar currencies[0]
     var _cLoad=S.currencies.slice();
