@@ -1141,7 +1141,7 @@ function renderDashboard(){
   if (plan !== 'gratis') {
     html += '<div style="margin-top:12px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
-      + '<span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Mis divisas</span>'
+      + '<div style="font-size:13px;font-weight:800;color:var(--text)">Mis divisas</div>'
       + addBtnHtml
       + '</div>'
       + '<div style="display:grid;grid-template-columns:'+gridCols+';gap:6px">'
@@ -1172,14 +1172,11 @@ function renderDashboard(){
     + '</div>';
 
   // Regla 50/30/20
-  html += '<div style="margin-top:10px;background:var(--surface);border:0.5px solid var(--border);'
-    + 'border-radius:20px;padding:13px">'
-    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">'
-    + '<span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Regla 50/30/20</span>'
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 7px">'
+    + '<div style="font-size:13px;font-weight:800;color:var(--text)">Regla 50/30/20</div>'
     + '<span style="font-size:11px;color:var(--text2)">'+new Date().toLocaleString('es',{month:'long'})+'</span>'
     + '</div>'
-    + renderRule502030()
-    + '</div>';
+    + renderRule502030();
 
   // Presupuesto
   var budContent = allBudgets.length
@@ -1196,20 +1193,18 @@ function renderDashboard(){
     : '<div style="font-size:13px;color:var(--text2)">Sin presupuestos activos · '
       + '<span style="color:var(--primary);cursor:pointer" onclick="navigate(\'presupuestos\')">Crear uno</span></div>';
 
-  html += '<div onclick="navigate(\'presupuestos\')" style="margin-top:10px;background:var(--surface);'
-    + 'border:0.5px solid var(--border);border-radius:20px;padding:13px;cursor:pointer">'
-    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:'
-    + (allBudgets.length?'10px':'0px')+'">'
-    + '<span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Presupuesto</span>'
-    + '<span style="font-size:12px;color:var(--primary);font-weight:500">Ver todos</span></div>'
-    + budContent + '</div>';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 7px">'
+    + '<div style="font-size:13px;font-weight:800;color:var(--text)">Presupuesto</div>'
+    + '<button class="btn-text" onclick="navigate(\'presupuestos\')" style="font-size:12px;color:var(--primary);font-weight:500">Ver todos</button>'
+    + '</div>'
+    + budContent;
 
   // Mi Día
   html += _renderMiDiaWidget();
 
   // Últimos movimientos — todas las divisas
-  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px">'
-    + '<span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Últimos movimientos</span>'
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 7px">'
+    + '<div style="font-size:13px;font-weight:800;color:var(--text)">Últimos movimientos</div>'
     + '<button class="btn-text" onclick="navigate(\'movimientos\')" style="font-size:12px;color:var(--primary);font-weight:500">Ver todos</button>'
     + '</div>';
 
