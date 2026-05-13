@@ -1075,7 +1075,7 @@ function renderDashboard(){
       minimumFractionDigits: 2, maximumFractionDigits: 2
     });
     var border = isActive ? '1.5px solid var(--primary)' : '0.5px solid var(--border)';
-    var bg = isActive ? 'var(--surface)' : 'var(--surface2)';
+    var bg = 'var(--surface)';
     var codeColor = isActive ? 'var(--primary)' : 'var(--text3)';
     var checkIcon = isActive
       ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
@@ -1085,7 +1085,7 @@ function renderDashboard(){
       ? '<div style="margin-top:7px;padding:4px 0;border-radius:6px;background:rgba(0,212,170,.1);'
         + 'text-align:center;font-size:10px;font-weight:600;color:var(--primary)">✦ Base</div>'
       : '';
-    curCardsHtml += '<div onclick="setCurrency(\''+cur+'\')" style="background:'+bg+';border:'+border+';border-radius:12px;padding:10px 8px;cursor:pointer">'
+    curCardsHtml += '<div onclick="setCurrency(\''+cur+'\')" style="background:'+bg+';border:'+border+';border-radius:12px;padding:10px 8px;cursor:pointer;box-shadow:var(--card-shadow)">'
       + '<div style="font-size:10px;font-weight:600;color:'+codeColor+';text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;display:flex;align-items:center;justify-content:space-between">'
       + '<span>'+cur+'</span>'+checkIcon
       + '</div>'
@@ -1179,8 +1179,8 @@ function renderDashboard(){
       + '</div></div>';
     // FX strip solo con 2+ divisas
     if (curs.length >= 2) {
-      html += '<div id="exchange-widget" style="margin-top:8px;background:var(--surface2);'
-        + 'border:0.5px solid var(--border);border-radius:12px;padding:9px 12px"></div>';
+      html += '<div id="exchange-widget" style="margin-top:8px;background:var(--surface);'
+        + 'border:0.5px solid var(--border);border-radius:12px;padding:9px 12px;box-shadow:var(--card-shadow)"></div>';
     }
   }
 
@@ -1313,7 +1313,13 @@ function _navDashMonth(dir){
   var _newMY=_d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0');
   if(_newMY>_curMY)return;
   S._dashMonth=(_newMY===_curMY)?'':_newMY;
-  if(S.currentPage==='dashboard'){renderPage('dashboard');_updateHeader('dashboard');}
+  if(S.currentPage==='dashboard'){
+    var _main=document.getElementById('main');
+    var _scrollY=_main?_main.scrollTop:0;
+    renderPage('dashboard');
+    _updateHeader('dashboard');
+    if(_main)_main.scrollTop=_scrollY;
+  }
 }
 function setBaseCurrency(cur){
   if(!S.currencies||!S.currencies.includes(cur))return;
