@@ -1137,8 +1137,8 @@ function renderDashboard(){
       + '</div>' : '')
     + '</div>';
 
-  // Sección Mis Divisas + FX strip (solo con 2+ divisas y plan que lo permite)
-  if (curs.length >= 2 && plan !== 'gratis') {
+  // Sección Mis Divisas — visible en Pro/Premium siempre (con 1 o más divisas)
+  if (plan !== 'gratis') {
     html += '<div style="margin-top:12px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
       + '<span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Mis divisas</span>'
@@ -1147,8 +1147,11 @@ function renderDashboard(){
       + '<div style="display:grid;grid-template-columns:'+gridCols+';gap:6px">'
       + curCardsHtml
       + '</div></div>';
-    html += '<div id="exchange-widget" style="margin-top:8px;background:var(--surface2);'
-      + 'border:0.5px solid var(--border);border-radius:12px;padding:9px 12px"></div>';
+    // FX strip solo con 2+ divisas
+    if (curs.length >= 2) {
+      html += '<div id="exchange-widget" style="margin-top:8px;background:var(--surface2);'
+        + 'border:0.5px solid var(--border);border-radius:12px;padding:9px 12px"></div>';
+    }
   }
 
   // Ingresos / Gastos / Ahorro — grilla 3 cols
