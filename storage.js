@@ -214,6 +214,13 @@ function loadState(){
   if(!S.exchangeRate)S.exchangeRate={PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''};
   if(!S.plan)S.plan='premium';
   if(!S.baseCurrency&&S.currencies&&S.currencies.length){S.baseCurrency=S.currencies[0];}
+  // Enforcement: recortar divisas si el plan activo no las permite
+  var _maxCursLoad=S.plan==='premium'?Infinity:S.plan==='pro'?3:1;
+  if(S.currencies&&S.currencies.length>_maxCursLoad){
+    S.currencies=S.currencies.slice(0,_maxCursLoad);
+    S.currency=S.currencies[0]||S.currency;
+    S.baseCurrency=S.currencies[0]||S.baseCurrency;
+  }
   // Tema: siempre light por defecto. Solo persiste si el usuario lo cambió en este dispositivo.
   var _uid2=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:(localStorage.getItem('_lastAuthUserId')||'');
   var _themeKey='_themeSet_'+(_uid2||'default');

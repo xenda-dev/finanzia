@@ -1137,8 +1137,8 @@ function renderDashboard(){
       + '</div>' : '')
     + '</div>';
 
-  // Sección Mis Divisas + FX strip (solo con 2+ divisas)
-  if (curs.length >= 2) {
+  // Sección Mis Divisas + FX strip (solo con 2+ divisas y plan que lo permite)
+  if (curs.length >= 2 && plan !== 'gratis') {
     html += '<div style="margin-top:12px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
       + '<span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Mis divisas</span>'
@@ -7285,7 +7285,7 @@ function showBS_currencies(){
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 16px 12px;border-bottom:1px solid var(--border)">'+
       '<span style="font-size:15px;font-weight:700;color:var(--text)">💱 Monedas activas</span>'+
       '<div style="display:flex;align-items:center;gap:8px">'+
-        '<span id="bs-cur-count" style="font-size:12px;color:var(--primary);font-weight:700;background:rgba(0,212,170,.12);padding:3px 10px;border-radius:50px">'+sel.length+'/2</span>'+
+        '<span id="bs-cur-count" style="font-size:12px;color:var(--primary);font-weight:700;background:rgba(0,212,170,.12);padding:3px 10px;border-radius:50px">'+sel.length+'/'+(S.plan==='premium'?'∞':S.plan==='pro'?'3':'1')+'</span>'+
         '<button onclick="_saveCurrencyBS(window._bsCurSel);closeBottomSheet()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:13px;width:28px;height:28px;border-radius:50%;background:var(--surface2)">✕</button>'+
       '</div>'+
     '</div>';
@@ -7326,19 +7326,24 @@ function showBS_currencies(){
 }
 function _toggleCurBS(code){
   var sel=window._bsCurSel||(window._bsCurSel=[]);
+  var _maxCurs=S.plan==='premium'?Infinity:S.plan==='pro'?3:1;
+  var _maxLbl=S.plan==='premium'?'∞':S.plan==='pro'?'3':'1';
   var idx=sel.indexOf(code);
   if(idx!==-1){
     sel.splice(idx,1);
   } else {
-    if(sel.length>=2){toast('Máximo 2 monedas');return;}
+    if(sel.length>=_maxCurs){
+      toast('🔒 Límite de tu plan ('+_maxLbl+' divisa'+((_maxCurs>1&&_maxCurs!==Infinity)||S.plan==='pro'?'s':'')+') · Cambia de plan para más');
+      return;
+    }
     sel.push(code);
-    if(sel.length===2){_saveCurrencyBS(sel);closeBottomSheet();return;}
+    if(_maxCurs!==Infinity&&sel.length>=_maxCurs){_saveCurrencyBS(sel);closeBottomSheet();return;}
   }
   // Re-render list and counter
   var q=document.getElementById('bs-cur-search')?document.getElementById('bs-cur-search').value:'';
   _filterCurBS(q);
   var cnt=document.getElementById('bs-cur-count');
-  if(cnt)cnt.textContent=sel.length+'/2';
+  if(cnt)cnt.textContent=sel.length+'/'+_maxLbl;
 }
 function _filterCurBS(q){
   var sel=window._bsCurSel||[];
@@ -7831,7 +7836,9 @@ function showCurrenciesPickerScreen(){
     }
   };
   closePickerScreen();
-  var cntHtml='<span id="picker-cur-count" style="font-size:12px;color:var(--primary);font-weight:700;background:rgba(0,212,170,.12);padding:3px 10px;border-radius:50px;white-space:nowrap">'+sel.length+'/2</span>';
+  var _pMaxCurs=S.plan==='premium'?Infinity:S.plan==='pro'?3:1;
+  var _pMaxLbl=S.plan==='premium'?'∞':S.plan==='pro'?'3':'1';
+  var cntHtml='<span id="picker-cur-count" style="font-size:12px;color:var(--primary);font-weight:700;background:rgba(0,212,170,.12);padding:3px 10px;border-radius:50px;white-space:nowrap">'+sel.length+'/'+_pMaxLbl+'</span>';
   var ov=document.createElement('div');
   ov.id='picker-screen-overlay';
   ov.style.cssText='position:fixed;inset:0;z-index:310;background:var(--surface);display:flex;flex-direction:column;overflow:hidden';
@@ -7850,15 +7857,20 @@ function showCurrenciesPickerScreen(){
 }
 function _togglePickerCur(code){
   var sel=window._pickerCurSel||(window._pickerCurSel=[]);
+  var _maxCurs=S.plan==='premium'?Infinity:S.plan==='pro'?3:1;
+  var _maxLbl=S.plan==='premium'?'∞':S.plan==='pro'?'3':'1';
   var idx=sel.indexOf(code);
   if(idx!==-1){
     sel.splice(idx,1);
   }else{
-    if(sel.length>=2){toast('Máximo 2 monedas');return;}
+    if(sel.length>=_maxCurs){
+      toast('🔒 Límite de tu plan ('+_maxLbl+' divisa'+(S.plan==='pro'?'s':'')+') · Cambia de plan para más');
+      return;
+    }
     sel.push(code);
   }
   var cnt=document.getElementById('picker-cur-count');
-  if(cnt)cnt.textContent=sel.length+'/2';
+  if(cnt)cnt.textContent=sel.length+'/'+_maxLbl;
   var q=document.getElementById('picker-search')?document.getElementById('picker-search').value:'';
   if(_pickerCtx&&_pickerCtx.render)_pickerCtx.render(q);
 }
@@ -8465,7 +8477,12 @@ function toggleCurrency(c,checked){
     renderPage('configuracion');return;
   }
   if(checked){
-    if(S.currencies.length>=2){toast('Solo puedes tener máximo 2 monedas activas. Desactiva una primero.');renderPage('configuracion');return;}
+    var _maxCursCfg=S.plan==='premium'?Infinity:S.plan==='pro'?3:1;
+    var _maxLblCfg=S.plan==='premium'?'∞':S.plan==='pro'?'3':'1';
+    if(S.currencies.length>=_maxCursCfg){
+      toast('🔒 Límite de tu plan ('+_maxLblCfg+' divisa'+(S.plan==='pro'?'s':'')+') · Cambia de plan para agregar más');
+      renderPage('configuracion');return;
+    }
     if(!S.currencies.includes(c))S.currencies.push(c);
   } else {
     S.currencies=S.currencies.filter(x=>x!==c);
