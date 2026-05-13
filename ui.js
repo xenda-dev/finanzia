@@ -1007,9 +1007,9 @@ function renderDashboard(){
   var savings = inc - exp;
   var savingsPct = inc > 0 ? Math.round(savings / inc * 100) : 0;
 
-  // Balance consolidado
+  // Balance consolidado en la moneda activa seleccionada
   var consolidated = curs.length > 1
-    ? getConsolidatedBalance()
+    ? getConsolidatedBalance(S.currency)
     : getTotalBalance();
 
   // Etiqueta balance
@@ -1127,7 +1127,7 @@ function renderDashboard(){
     + balLabel + '</div>'
     + '<div style="font-size:26px;font-weight:500;color:var(--text);letter-spacing:-.5px;line-height:1.1;font-variant-numeric:tabular-nums">'
     + fmt(consolidated)
-    + ' <span style="font-size:14px;color:var(--text2);font-weight:400">'+(base||S.currency)+'</span>'
+    + ' <span style="font-size:14px;color:var(--text2);font-weight:400">'+S.currency+'</span>'
     + '</div>'
     + (inc>0 ? '<div style="font-size:12px;margin-top:5px;display:flex;align-items:center;gap:5px">'
       + (savings>=0
@@ -1272,11 +1272,8 @@ function showUpgradePlanModal(feature){
   );
 }
 function openAddCurrencyModal(){
-  navigate('configuracion');
-  setTimeout(function(){
-    var el=document.querySelector('[data-section="currencies"]')||document.getElementById('currencies-section');
-    if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
-  },300);
+  if(typeof showCurrenciesPickerScreen==='function') showCurrenciesPickerScreen();
+  else navigate('configuracion');
 }
 function setPlan(plan){
   var valid={gratis:1,pro:1,premium:1};

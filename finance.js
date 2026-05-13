@@ -67,8 +67,9 @@ async function fetchExchangeRate(){
 
 function renderExchangeWidget(el){
   if(!el) return;
-  var base = S.baseCurrency || (S.currencies&&S.currencies[0]) || S.currency;
-  var curs = (S.currencies||[]).filter(function(c){ return c !== base; });
+  // Siempre referencia desde la moneda activa seleccionada
+  var selected = S.currency || S.baseCurrency || (S.currencies&&S.currencies[0]);
+  var curs = (S.currencies||[]).filter(function(c){ return c !== selected; });
   if(!curs.length) {
     el.innerHTML = '';
     el.style.display = 'none';
@@ -84,18 +85,18 @@ function renderExchangeWidget(el){
   var rateBase = r.base;
   var pairs = curs.map(function(cur) {
     var rate;
-    if(rateBase === base) {
-      rate = rates[cur] ? 1/rates[cur] : null;
+    if(rateBase === selected) {
+      rate = rates[cur] || null;
     } else if(rateBase === cur) {
-      rate = rates[base] || null;
+      rate = rates[selected] ? 1/rates[selected] : null;
     } else {
-      rate = (rates[base]&&rates[cur]) ? rates[cur]/rates[base] : null;
+      rate = (rates[selected]&&rates[cur]) ? rates[cur]/rates[selected] : null;
     }
     if(!rate) return null;
     var rStr = rate >= 1
       ? rate.toLocaleString('es',{maximumFractionDigits:4})
       : rate.toFixed(6);
-    return '1 '+base+' = <strong style="color:var(--primary)">'+rStr+' '+cur+'</strong>';
+    return '1 '+selected+' = <strong style="color:var(--primary)">'+rStr+' '+cur+'</strong>';
   }).filter(Boolean);
   el.style.display = '';
   el.innerHTML = '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px">'
@@ -405,8 +406,8 @@ function getBalance(accountId){
 function getTotalBalance(){
   return filterDeleted(S.accounts).filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency&&!a.excludeFromTotal).reduce((s,a)=>s+getBalance(a.id),0);
 }
-function getConsolidatedBalance(){
-  var base=S.baseCurrency||(S.currencies&&S.currencies[0])||S.currency;
+function getConsolidatedBalance(targetCur){
+  var base=targetCur||S.baseCurrency||(S.currencies&&S.currencies[0])||S.currency;
   if(!base)return 0;
   var rates=(S.exchangeRate&&S.exchangeRate.rates)||{};
   var rateBase=S.exchangeRate&&S.exchangeRate.base;
