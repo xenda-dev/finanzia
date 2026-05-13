@@ -1154,15 +1154,15 @@ function renderDashboard(){
   // Ingresos / Gastos / Ahorro — grilla 3 cols
   var savColor = savings >= 0 ? '#10B981' : 'var(--danger)';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">'
-    + '<div style="background:var(--surface2);border-radius:12px;padding:11px">'
+    + '<div style="background:var(--surface);border-radius:12px;padding:11px;border:0.5px solid var(--border)">'
     + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px">'
     + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/></svg>Ingresos</div>'
     + '<div style="font-size:16px;font-weight:500;color:#10B981;font-variant-numeric:tabular-nums">'+fmt(inc)+'</div></div>'
-    + '<div style="background:var(--surface2);border-radius:12px;padding:11px">'
+    + '<div style="background:var(--surface);border-radius:12px;padding:11px;border:0.5px solid var(--border)">'
     + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px">'
     + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/></svg>Gastos</div>'
     + '<div style="font-size:16px;font-weight:500;color:var(--danger);font-variant-numeric:tabular-nums">'+fmt(exp)+'</div></div>'
-    + '<div style="background:var(--surface2);border-radius:12px;padding:11px">'
+    + '<div style="background:var(--surface);border-radius:12px;padding:11px;border:0.5px solid var(--border)">'
     + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px">'
     + '<span style="font-size:13px">🐷</span>Ahorro</div>'
     + '<div style="font-size:16px;font-weight:500;color:'+savColor+';font-variant-numeric:tabular-nums">'+(savings>=0?'+':'')+fmt(savings)+'</div></div>'
@@ -1277,6 +1277,21 @@ function openAddCurrencyModal(){
     var el=document.querySelector('[data-section="currencies"]')||document.getElementById('currencies-section');
     if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
   },300);
+}
+function setPlan(plan){
+  var valid={gratis:1,pro:1,premium:1};
+  if(!valid[plan])return;
+  S.plan=plan;
+  var maxCurs=plan==='premium'?Infinity:plan==='pro'?3:1;
+  if(maxCurs!==Infinity&&S.currencies&&S.currencies.length>maxCurs){
+    S.currencies=S.currencies.slice(0,maxCurs);
+    S.currency=S.currencies[0]||S.currency;
+    S.baseCurrency=S.currencies[0]||S.baseCurrency;
+  }
+  saveState();
+  updateDrawerProfile();
+  if(S.currentPage==='dashboard')renderPage('dashboard');
+  toast('Plan '+(plan.charAt(0).toUpperCase()+plan.slice(1))+' activado');
 }
 
 // ════════════════════════════════════════════════════════════

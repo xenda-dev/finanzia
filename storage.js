@@ -249,6 +249,39 @@ function updateDrawerProfile(){
   var fillEl=document.getElementById('drawer-progress-fill');
   if(nameEl)nameEl.textContent=name;
   if(emailEl)emailEl.textContent=email;
+  // Badge de plan + switcher — inyectado dinámicamente como item grid row 3
+  var _planBadgeEl=document.getElementById('drawer-plan-badge');
+  if(!_planBadgeEl&&emailEl){
+    _planBadgeEl=document.createElement('div');
+    _planBadgeEl.id='drawer-plan-badge';
+    _planBadgeEl.style.gridColumn='2';
+    _planBadgeEl.style.gridRow='3';
+    _planBadgeEl.style.paddingBottom='2px';
+    emailEl.parentNode.insertBefore(_planBadgeEl,emailEl.nextSibling);
+  }
+  if(_planBadgeEl){
+    var _plan=S.plan||'gratis';
+    var _planMap={
+      gratis:{icon:'✦',label:'Plan Gratis',bg:'var(--surface2)',color:'var(--text2)'},
+      pro:   {icon:'★',label:'Plan Pro',   bg:'rgba(116,97,239,.12)',color:'#7461EF'},
+      premium:{icon:'∞',label:'Plan Premium',bg:'rgba(0,212,170,.12)',color:'var(--primary)'}
+    };
+    var _pb2=_planMap[_plan]||_planMap.gratis;
+    var _switcher=['gratis','pro','premium'].map(function(p){
+      var _pm=_planMap[p];
+      var _isActive=p===_plan;
+      var _bg=_isActive?_pm.bg:'transparent';
+      var _col=_isActive?_pm.color:'var(--text3)';
+      var _border=_isActive?'0.5px solid '+_pm.color:'0.5px solid var(--border)';
+      return '<button onclick="event.stopPropagation();if(typeof setPlan===\'function\')setPlan(\''+p+'\')" '
+        +'style="font-size:10px;padding:2px 6px;border-radius:100px;border:'+_border+';background:'+_bg+';color:'+_col+';cursor:pointer;font-family:var(--font);font-weight:500">'
+        +_pm.icon+'</button>';
+    }).join('');
+    _planBadgeEl.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:6px">'
+      +'<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:100px;background:'+_pb2.bg+';color:'+_pb2.color+'">'+_pb2.icon+' '+_pb2.label+'</span>'
+      +'<div style="display:flex;gap:3px">'+_switcher+'</div>'
+      +'</div>';
+  }
   if(avatarEl){
     avatarEl.style.background='linear-gradient(135deg,#00D4AA,#7461EF)';
     avatarEl.style.display='flex';
