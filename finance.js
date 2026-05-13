@@ -314,9 +314,11 @@ function fmtC(val,cur){
 }
 function setCurrency(c){
   S.currency=c;
+  S.baseCurrency=c;
   document.querySelectorAll('.cur-btn').forEach(b=>b.classList.toggle('active',b.dataset.cur===c));
   saveState();renderPage(S.currentPage);
   reformatNumFields();
+  fetchExchangeRate();
 }
 function refreshCurrencyToggle(){
   const toggle=document.getElementById('currency-toggle');

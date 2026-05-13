@@ -1080,14 +1080,11 @@ function renderDashboard(){
     var checkIcon = isActive
       ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
       : '';
-    // Pill inferior: solo visible en la card activa
-    var bottomEl = !isActive ? '' : (isBase
+    // Chip ✦ Base — solo en la card activa (activa = base siempre)
+    var bottomEl = isActive
       ? '<div style="margin-top:7px;padding:4px 0;border-radius:6px;background:rgba(0,212,170,.1);'
         + 'text-align:center;font-size:10px;font-weight:600;color:var(--primary)">✦ Base</div>'
-      : '<button onclick="event.stopPropagation();setBaseCurrency(\''+cur+'\')" '
-        + 'style="width:100%;margin-top:7px;padding:4px 0;border-radius:6px;'
-        + 'background:transparent;border:0.5px solid var(--border);'
-        + 'font-size:10px;color:var(--text3);cursor:pointer;font-family:var(--font)">☆ Definir base</button>');
+      : '';
     curCardsHtml += '<div onclick="setCurrency(\''+cur+'\')" style="background:'+bg+';border:'+border+';border-radius:12px;padding:10px 8px;cursor:pointer">'
       + '<div style="font-size:10px;font-weight:600;color:'+codeColor+';text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;display:flex;align-items:center;justify-content:space-between">'
       + '<span>'+cur+'</span>'+checkIcon
