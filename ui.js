@@ -1037,44 +1037,28 @@ function renderDashboard(){
     var fmtAmt = bal.toLocaleString(meta.locale || 'es', {
       minimumFractionDigits: 2, maximumFractionDigits: 2
     });
-    var converted = '';
-    if (!isBase && curs.length > 1) {
-      var conv = convertToBase(bal, cur);
-      var baseMeta = getCurrencyMeta(base);
-      var fmtConv = conv.toLocaleString(baseMeta.locale || 'es', {
-        minimumFractionDigits: 0, maximumFractionDigits: 0
-      });
-      var convStr = baseMeta.pos==='before'
-        ? '≈ '+baseMeta.sym+fmtConv+' '+base
-        : '≈ '+fmtConv+' '+base;
-      converted = '<div style="font-size:10px;color:var(--text3);margin-top:2px">'+convStr+'</div>';
-    }
-    if (isBase) {
-      converted = '<div style="font-size:10px;color:var(--primary);margin-top:2px;display:flex;align-items:center;gap:2px"><span>✦</span> Base</div>';
-    }
-    var border = isActive
-      ? '1.5px solid var(--primary)'
-      : '0.5px solid var(--border)';
+    var border = isActive ? '1.5px solid var(--primary)' : '0.5px solid var(--border)';
     var bg = isActive ? 'var(--surface)' : 'var(--surface2)';
     var codeColor = isActive ? 'var(--primary)' : 'var(--text3)';
     var checkIcon = isActive
       ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
       : '';
-    var baseBtn = (!isBase && curs.length >= 2)
-      ? '<button onclick="event.stopPropagation();setBaseCurrency(\''+cur+'\')" '
-        + 'title="Definir como divisa base" '
-        + 'style="font-size:12px;color:var(--text3);background:transparent;border:none;'
-        + 'cursor:pointer;padding:0 2px;font-family:var(--font);line-height:1;flex-shrink:0">☆</button>'
-      : '';
+    // Pill inferior: ✦ Base (indicador) o ☆ Definir base (botón tappable)
+    var bottomEl = isBase
+      ? '<div style="margin-top:7px;padding:4px 0;border-radius:6px;background:rgba(0,212,170,.1);'
+        + 'text-align:center;font-size:10px;font-weight:600;color:var(--primary)">✦ Base</div>'
+      : '<button onclick="event.stopPropagation();setBaseCurrency(\''+cur+'\')" '
+        + 'style="width:100%;margin-top:7px;padding:4px 0;border-radius:6px;'
+        + 'background:transparent;border:0.5px solid var(--border);'
+        + 'font-size:10px;color:var(--text3);cursor:pointer;font-family:var(--font)">☆ Definir base</button>';
     curCardsHtml += '<div onclick="setCurrency(\''+cur+'\')" style="background:'+bg+';border:'+border+';border-radius:12px;padding:10px 8px;cursor:pointer">'
       + '<div style="font-size:10px;font-weight:600;color:'+codeColor+';text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;display:flex;align-items:center;justify-content:space-between">'
-      + '<span>'+cur+'</span>'
-      + '<div style="display:flex;align-items:center;gap:3px">'+baseBtn+checkIcon+'</div>'
+      + '<span>'+cur+'</span>'+checkIcon
       + '</div>'
       + '<div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.3">'
       + (meta.pos==='before' ? meta.sym : '') + fmtAmt + (meta.pos==='after' ? ' '+meta.sym : '')
       + '</div>'
-      + converted
+      + bottomEl
       + '</div>';
   });
 
