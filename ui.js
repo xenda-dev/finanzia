@@ -1189,7 +1189,7 @@ function renderDashboard(){
     + '<div style="font-size:13px;font-weight:800;color:var(--text)">Presupuesto</div>'
     + '<button class="btn-text" onclick="navigate(\'presupuestos\')" style="font-size:12px;color:var(--primary);font-weight:500">Ver todos</button>'
     + '</div>'
-    + budContent;
+    + '<div class="card" style="margin-bottom:0">' + budContent + '</div>';
 
   // Mi Día
   html += _renderMiDiaWidget();
