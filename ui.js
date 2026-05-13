@@ -1234,7 +1234,7 @@ function renderDashboard(){
     + '<div class="card" style="margin-bottom:0">' + budContent + '</div>';
 
   // Mi Día
-  html += _renderMiDiaWidget();
+  html += '<div id="midiawgt">'+_renderMiDiaWidget()+'</div>';
 
   // Últimos movimientos — todas las divisas
   html += '<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 7px">'
@@ -1371,13 +1371,14 @@ function _renderMiDiaWidget(){
   },0)/props.length):0;
   var active=S._activeMiDiaPill||null;
 
-  // ── Pills — siempre flex:1 igual, ninguna cambia de tamaño
+  // ── Pills — mismo diseño que las demás cards del dashboard
   function pill(key,icon,label,val,pct,grad){
     var isOn=active===key;
     return '<div onclick="_toggleMiDiaPill(\''+key+'\')" '
-      +'style="flex:1;background:'+(isOn?'var(--surface)':'var(--surface2)')
-      +';border-radius:12px;border:'+(isOn?'1.5px solid var(--primary)':'0.5px solid var(--border)')
-      +';padding:10px 8px;cursor:pointer;text-align:center;transition:border .15s,background .15s">'
+      +'style="flex:1;background:var(--surface);border-radius:12px;'
+      +'border:'+(isOn?'1.5px solid var(--primary)':'0.5px solid var(--border)')+';'
+      +'box-shadow:var(--card-shadow);'
+      +'padding:10px 8px;cursor:pointer;text-align:center;transition:border .15s">'
       +'<div style="font-size:18px;margin-bottom:4px">'+icon+'</div>'
       +'<div style="font-size:11px;color:'+(isOn?'var(--primary)':'var(--text2)')
       +';font-weight:500;margin-bottom:3px">'+label+'</div>'
@@ -1391,12 +1392,7 @@ function _renderMiDiaWidget(){
   // ── Panel de detalle — ancho completo, debajo de las pills
   var detailHtml='';
   if(active==='tasks'){
-    var hdrRight='<div onclick="openNewTaskForm()" '
-      +'style="width:28px;height:28px;border-radius:8px;'
-      +'background:rgba(0,212,170,.1);border:0.5px solid rgba(0,212,170,.3);'
-      +'display:flex;align-items:center;justify-content:center;'
-      +'cursor:pointer;font-size:16px;color:var(--primary);flex-shrink:0">＋</div>'
-      +'<span onclick="navigate(\'tareas\')" '
+    var hdrRight='<span onclick="navigate(\'tareas\')" '
       +'style="font-size:12px;color:var(--primary);font-weight:500;cursor:pointer;white-space:nowrap">Ver todo</span>';
     var taskItems='';
     if(!tasks.length){
@@ -1424,13 +1420,12 @@ function _renderMiDiaWidget(){
           +'</div></div>';
       }).join('')+'<div style="height:1px"></div>';
     }
-    detailHtml='<div style="background:var(--surface);border:1px solid var(--primary);'
-      +'border-radius:14px;margin-top:8px;overflow:hidden">'
+    detailHtml='<div style="background:var(--surface);border:0.5px solid var(--border);'
+      +'border-radius:14px;margin-top:8px;overflow:hidden;box-shadow:var(--card-shadow)">'
       +'<div style="display:flex;align-items:center;gap:8px;padding:11px 14px;'
       +'border-bottom:0.5px solid var(--border)">'
-      +'<span style="font-size:16px">📋</span>'
-      +'<span style="font-size:13px;font-weight:500;color:var(--text);flex:1">Tareas de hoy</span>'
-      +'<span style="font-size:11px;color:var(--text2)">'+taskDone+' de '+tasks.length+' completadas</span>'
+      +'<span style="font-size:13px;font-weight:800;color:var(--text);flex:1">Tareas</span>'
+      +'<span style="font-size:11px;color:var(--text2)">'+taskDone+'/'+tasks.length+'</span>'
       +hdrRight+'</div>'
       +taskItems+'</div>';
   }
@@ -1461,13 +1456,12 @@ function _renderMiDiaWidget(){
           +'</div>';
       }).join('')+'<div style="height:1px"></div>';
     }
-    detailHtml='<div style="background:var(--surface);border:1px solid var(--primary);'
-      +'border-radius:14px;margin-top:8px;overflow:hidden">'
+    detailHtml='<div style="background:var(--surface);border:0.5px solid var(--border);'
+      +'border-radius:14px;margin-top:8px;overflow:hidden;box-shadow:var(--card-shadow)">'
       +'<div style="display:flex;align-items:center;gap:8px;padding:11px 14px;'
       +'border-bottom:0.5px solid var(--border)">'
-      +'<span style="font-size:16px">🔥</span>'
-      +'<span style="font-size:13px;font-weight:500;color:var(--text);flex:1">Hábitos de hoy</span>'
-      +'<span style="font-size:11px;color:var(--text2)">'+habitDone+' de '+habits.length+' registrados</span>'
+      +'<span style="font-size:13px;font-weight:800;color:var(--text);flex:1">Hábitos</span>'
+      +'<span style="font-size:11px;color:var(--text2)">'+habitDone+'/'+habits.length+'</span>'
       +hdrRight2+'</div>'
       +habitItems+'</div>';
   }
@@ -1499,12 +1493,11 @@ function _renderMiDiaWidget(){
           +'</div></div>';
       }).join('')+'<div style="height:1px"></div>';
     }
-    detailHtml='<div style="background:var(--surface);border:1px solid var(--primary);'
-      +'border-radius:14px;margin-top:8px;overflow:hidden">'
+    detailHtml='<div style="background:var(--surface);border:0.5px solid var(--border);'
+      +'border-radius:14px;margin-top:8px;overflow:hidden;box-shadow:var(--card-shadow)">'
       +'<div style="display:flex;align-items:center;gap:8px;padding:11px 14px;'
       +'border-bottom:0.5px solid var(--border)">'
-      +'<span style="font-size:16px">🎯</span>'
-      +'<span style="font-size:13px;font-weight:500;color:var(--text);flex:1">Propósitos</span>'
+      +'<span style="font-size:13px;font-weight:800;color:var(--text);flex:1">Propósitos</span>'
       +'<span style="font-size:11px;color:var(--text2)">Promedio '+propAvg+'%</span>'
       +hdrRight3+'</div>'
       +propItems+'</div>';
@@ -1524,7 +1517,9 @@ function _renderMiDiaWidget(){
 }
 function _toggleMiDiaPill(key){
   S._activeMiDiaPill=(S._activeMiDiaPill===key)?null:key;
-  renderPage('dashboard');
+  var el=document.getElementById('midiawgt');
+  if(el){el.innerHTML=_renderMiDiaWidget();}
+  else{renderPage('dashboard');}
 }
 function openNewTaskForm(){
   // _showCustomTaskBS → _showTmplTaskForm('Mi tarea','📋')
