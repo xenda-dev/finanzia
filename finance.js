@@ -93,9 +93,15 @@ function renderExchangeWidget(el){
       rate = (rates[selected]&&rates[cur]) ? rates[cur]/rates[selected] : null;
     }
     if(!rate) return null;
-    var rStr = rate >= 1
-      ? rate.toLocaleString('es',{maximumFractionDigits:4})
-      : rate.toFixed(6);
+    var rStr = rate>=1000
+      ? rate.toLocaleString('es',{maximumFractionDigits:0})
+      : rate>=10
+        ? rate.toLocaleString('es',{maximumFractionDigits:1})
+        : rate>=1
+          ? rate.toLocaleString('es',{maximumFractionDigits:2})
+          : rate>=0.01
+            ? rate.toFixed(4)
+            : rate.toFixed(6);
     return {cur:cur, rStr:rStr};
   }).filter(Boolean);
   if(!pairs.length){el.innerHTML='';el.style.display='none';return;}
