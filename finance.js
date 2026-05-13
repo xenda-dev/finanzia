@@ -42,7 +42,7 @@ async function getExchangeRates(base){
 async function fetchExchangeRate(){
   try{
     const curs=S.currencies||[];
-    if(curs.length<2){
+    if(curs.length<1){
       const el=document.getElementById('exchange-widget');
       if(el)renderExchangeWidget(el);
       return;
@@ -66,44 +66,46 @@ async function fetchExchangeRate(){
 }
 
 function renderExchangeWidget(el){
-  if(!el)return;
-  const curs=S.currencies||[];
-  if(curs.length<2){
-    el.innerHTML=`<div class="exchange-widget-row"><span style="font-size:14px">💱</span><span style="font-size:11px;color:var(--text2)">Para ver tipo de cambio, selecciona 2 monedas en <button onclick="navigate('configuracion')" style="background:none;border:none;color:var(--primary);font-weight:700;cursor:pointer;font-family:var(--font);font-size:11px">Configuración</button></span></div>`;
+  if(!el) return;
+  var base = S.baseCurrency || (S.currencies&&S.currencies[0]) || S.currency;
+  var curs = (S.currencies||[]).filter(function(c){ return c !== base; });
+  if(!curs.length) {
+    el.innerHTML = '';
+    el.style.display = 'none';
     return;
   }
-  const r=S.exchangeRate||{};
-  if(!r.rates||!r.base){
-    el.innerHTML=`<div class="exchange-widget-row"><span>💱</span><span style="font-size:12px;color:var(--text2)">⏳ Consultando tipo de cambio...</span></div>`;
+  var r = S.exchangeRate || {};
+  if(!r.rates || !r.base) {
+    el.style.display = '';
+    el.innerHTML = '<div style="font-size:11px;color:var(--text3);padding:2px 0">⏳ Consultando tipo de cambio...</div>';
     return;
   }
-  // Get the two selected currencies  
-  const cur1=S.currency;
-  const cur2=curs.find(c=>c!==cur1)||curs[0];
-  // Calculate rates from base
-  const base=r.base;
-  const rates=r.rates;
-  let rate1to2,rate2to1;
-  if(cur1===base){
-    rate1to2=rates[cur2]||1;
-  } else if(cur2===base){
-    rate1to2=1/(rates[cur1]||1);
-  } else {
-    // Cross rate
-    rate1to2=(rates[cur2]||1)/(rates[cur1]||1);
-  }
-  rate2to1=rate1to2?1/rate1to2:0;
-  const m1=getCurrencyMeta(cur1);
-  const m2=getCurrencyMeta(cur2);
-  const r1str=rate1to2>=1?rate1to2.toLocaleString('es',{maximumFractionDigits:4}):rate1to2.toFixed(6);
-  const r2str=rate2to1>=1?rate2to1.toLocaleString('es',{maximumFractionDigits:4}):rate2to1.toFixed(6);
-  el.innerHTML=`
-    <div class="exchange-widget-row">
-      <span style="font-size:13px">💱</span>
-      <span style="font-size:12px;color:var(--text)">1 <strong>${cur1}</strong> = <strong style="color:var(--primary)">${r1str} ${cur2}</strong></span>
-      <span style="font-size:10px;color:var(--text3);margin-left:4px">(1 ${cur2} = ${r2str} ${cur1})</span>
-    </div>
-    <div class="exchange-widget-time">${r.lastUpdated?'🕐 '+r.lastUpdated:'⏳ Sin datos'}${r._fromStaleCache?' · <span style="color:var(--warning);font-size:10px">Última tasa disponible</span>':''}</div>`;
+  var rates = r.rates;
+  var rateBase = r.base;
+  var pairs = curs.map(function(cur) {
+    var rate;
+    if(rateBase === base) {
+      rate = rates[cur] ? 1/rates[cur] : null;
+    } else if(rateBase === cur) {
+      rate = rates[base] || null;
+    } else {
+      rate = (rates[base]&&rates[cur]) ? rates[cur]/rates[base] : null;
+    }
+    if(!rate) return null;
+    var rStr = rate >= 1
+      ? rate.toLocaleString('es',{maximumFractionDigits:4})
+      : rate.toFixed(6);
+    return '1 '+base+' = <strong style="color:var(--primary)">'+rStr+' '+cur+'</strong>';
+  }).filter(Boolean);
+  el.style.display = '';
+  el.innerHTML = '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px">'
+    + pairs.map(function(p){ return '<span style="font-size:12px;color:var(--text2)">'+p+'</span>'; }).join('<span style="color:var(--border);font-size:12px">·</span>')
+    + '</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-top:3px;display:flex;align-items:center;gap:4px">'
+    + '<span style="width:5px;height:5px;border-radius:50%;background:#10B981;display:inline-block"></span>'
+    + (r.lastUpdated ? 'Actualizado ' + r.lastUpdated : '⏳ Actualizando...')
+    + (r._fromStaleCache ? ' · <span style="color:var(--warning)">Última tasa disponible</span>' : '')
+    + '</div>';
 }
 
 // ════════════════════════════════════════════════════════════
@@ -402,6 +404,53 @@ function getBalance(accountId){
 }
 function getTotalBalance(){
   return filterDeleted(S.accounts).filter(a=>a.type==='activo'&&(a.currency||S.currency)===S.currency&&!a.excludeFromTotal).reduce((s,a)=>s+getBalance(a.id),0);
+}
+function getConsolidatedBalance(){
+  var base=S.baseCurrency||(S.currencies&&S.currencies[0])||S.currency;
+  if(!base)return 0;
+  var rates=(S.exchangeRate&&S.exchangeRate.rates)||{};
+  var rateBase=S.exchangeRate&&S.exchangeRate.base;
+  var total=0;
+  filterDeleted(S.accounts).forEach(function(acc){
+    if(acc.type!=='activo')return;
+    var bal=getBalance(acc.id);
+    var cur=acc.currency||base;
+    if(cur===base){
+      total+=bal;
+    }else if(Object.keys(rates).length&&rateBase){
+      var toBase;
+      if(rateBase===base){
+        toBase=rates[cur]?bal/rates[cur]:bal;
+      }else if(rateBase===cur){
+        toBase=rates[base]?bal*rates[base]:bal;
+      }else{
+        var r1=rates[base]||1;
+        var r2=rates[cur]||1;
+        toBase=bal*(r1/r2);
+      }
+      total+=toBase;
+    }else{
+      total+=bal;
+    }
+  });
+  return total;
+}
+function getBalanceForCurrency(cur){
+  return filterDeleted(S.accounts)
+    .filter(function(a){return a.type==='activo'&&(a.currency||S.currencies[0])===cur;})
+    .reduce(function(s,a){return s+getBalance(a.id);},0);
+}
+function convertToBase(amount,fromCur){
+  var base=S.baseCurrency||(S.currencies&&S.currencies[0])||S.currency;
+  if(!base||fromCur===base)return amount;
+  var rates=(S.exchangeRate&&S.exchangeRate.rates)||{};
+  var rateBase=S.exchangeRate&&S.exchangeRate.base;
+  if(!rateBase||!Object.keys(rates).length)return amount;
+  if(rateBase===base)return rates[fromCur]?amount/rates[fromCur]:amount;
+  if(rateBase===fromCur)return rates[base]?amount*rates[base]:amount;
+  var r1=rates[base]||1;
+  var r2=rates[fromCur]||1;
+  return amount*(r1/r2);
 }
 function getNetWorth(){
   const _fa=filterDeleted(S.accounts);

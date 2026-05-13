@@ -997,64 +997,305 @@ function checkTipsNotif(){
 // DASHBOARD
 // ════════════════════════════════════════════════════════════
 function renderDashboard(){
-  var mt=getMonthTotals();
-  var inc=mt.inc,exp=mt.exp;
-  var bal=getTotalBalance();
-  var savings=inc-exp;
-  var totalGoalSavings=filterDeleted(S.goals).filter(function(g){return(g.currency||S.currency)===S.currency;}).reduce(function(s,g){return s+(parseFloat(g.current)||0);},0);
-  var budgets=filterDeleted(S.budgets).filter(function(b){return(b.currency||S.currency)===S.currency;}).slice(0,3);
-  var recentTxs=filterDeleted(S.transactions).filter(function(t){return t.currency===S.currency;}).sort(function(a,b){var dd=new Date(b.date)-new Date(a.date);if(dd!==0)return dd;return b.id>a.id?1:-1;}).slice(0,5);
-  var budgetHtml=budgets.length?budgets.map(function(b){
-    var spent=getBudgetSpent(b);
-    var pct=Math.min(100,b.amount>0?Math.round(spent/b.amount*100):0);
-    var cat=getCat(b.categoryId);
-    var color=pct>=90?'var(--danger)':pct>=70?'var(--warning)':'var(--primary)';
-    return '<div class="budget-item"><div class="budget-header"><span class="budget-name">'+(cat?cat.icon+' '+cat.name:'Sin cat.')+'</span><span class="budget-amounts">'+fmt(spent)+'/'+fmt(b.amount)+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:'+color+'"></div></div></div>';
-  }).join(''):'<div style="color:var(--text2);font-size:13px">Sin presupuestos</div>';
+  // ── Estado ────────────────────────────────────────
+  var plan = S.plan || 'gratis';
+  var curs = S.currencies || [];
+  var base = S.baseCurrency || (curs.length ? curs[0] : S.currency) || 'USD';
+  var maxCurs = plan==='premium' ? Infinity : plan==='pro' ? 3 : 1;
+  var mt = getMonthTotals();
+  var inc = mt.inc, exp = mt.exp;
+  var savings = inc - exp;
+  var savingsPct = inc > 0 ? Math.round(savings / inc * 100) : 0;
+
+  // Balance consolidado
+  var consolidated = curs.length > 1
+    ? getConsolidatedBalance()
+    : getTotalBalance();
+
+  // Etiqueta balance
+  var balLabel = curs.length > 1 ? 'Patrimonio total' : 'Balance total';
+
+  // Badge de plan
+  var planBadgeMap = {
+    gratis: {icon:'✦', label:'Plan Gratis', bg:'var(--surface2)', color:'var(--text2)'},
+    pro:    {icon:'★', label:'Plan Pro',    bg:'rgba(116,97,239,.12)', color:'#7461EF'},
+    premium:{icon:'∞', label:'Plan Premium',bg:'rgba(0,212,170,.12)', color:'var(--primary)'}
+  };
+  var pb = planBadgeMap[plan] || planBadgeMap.gratis;
+
+  // Grid de divisas
+  var curCount = curs.length;
+  var gridCols = curCount >= 3 ? 'repeat(3,1fr)' : '1fr 1fr';
+
+  // Cards de divisas HTML
+  var curCardsHtml = '';
+  curs.forEach(function(cur) {
+    var isBase = cur === base;
+    var isActive = cur === (S.currency || base);
+    var bal = getBalanceForCurrency(cur);
+    var meta = getCurrencyMeta(cur);
+    var fmtAmt = bal.toLocaleString(meta.locale || 'es', {
+      minimumFractionDigits: 2, maximumFractionDigits: 2
+    });
+    var converted = '';
+    if (!isBase && curs.length > 1) {
+      var conv = convertToBase(bal, cur);
+      var baseMeta = getCurrencyMeta(base);
+      var fmtConv = conv.toLocaleString(baseMeta.locale || 'es', {
+        minimumFractionDigits: 0, maximumFractionDigits: 0
+      });
+      var convStr = baseMeta.pos==='before'
+        ? '≈ '+baseMeta.sym+fmtConv+' '+base
+        : '≈ '+fmtConv+' '+base;
+      converted = '<div style="font-size:10px;color:var(--text3);margin-top:2px">'+convStr+'</div>';
+    }
+    if (isBase) {
+      converted = '<div style="font-size:10px;color:var(--text3);margin-top:2px">Base</div>';
+    }
+    var border = isActive
+      ? '1.5px solid var(--primary)'
+      : '0.5px solid var(--border)';
+    var bg = isActive ? 'var(--surface)' : 'var(--surface2)';
+    var codeColor = isActive ? 'var(--primary)' : 'var(--text3)';
+    var checkIcon = isActive
+      ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
+      : '';
+    curCardsHtml += '<div onclick="setCurrency(\''+cur+'\')" style="background:'+bg+';border:'+border+';border-radius:12px;padding:10px 8px;cursor:pointer">'
+      + '<div style="font-size:10px;font-weight:600;color:'+codeColor+';text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;display:flex;align-items:center;justify-content:space-between">'
+      + cur + checkIcon + '</div>'
+      + '<div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.3">'
+      + (meta.pos==='before' ? meta.sym : '') + fmtAmt + (meta.pos==='after' ? ' '+meta.sym : '')
+      + '</div>'
+      + converted
+      + '</div>';
+  });
+
+  // Botón agregar divisa
+  var addBtnHtml = '';
+  if (plan === 'gratis') {
+    addBtnHtml = '<button onclick="showUpgradePlanModal(\'divisas\')" '
+      + 'style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;'
+      + 'color:var(--text2);background:var(--surface2);border:0.5px solid var(--border);'
+      + 'border-radius:100px;padding:3px 9px;cursor:pointer;font-family:var(--font)">'
+      + '🔒 Agregar · Plan Pro</button>';
+  } else if (curs.length < maxCurs) {
+    var remaining = maxCurs === Infinity ? '' : ' · '+(maxCurs-curs.length)+' más';
+    addBtnHtml = '<button onclick="openAddCurrencyModal()" '
+      + 'style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;'
+      + 'color:var(--primary);background:rgba(0,212,170,.1);border:0.5px solid rgba(0,212,170,.3);'
+      + 'border-radius:100px;padding:3px 9px;cursor:pointer;font-family:var(--font)">'
+      + '＋ Agregar'+remaining+'</button>';
+  }
+
+  // Presupuestos — resumen
+  var allBudgets = filterDeleted(S.budgets);
+  var budgetTotal = allBudgets.reduce(function(s,b){ return s+(b.amount||0); }, 0);
+  var budgetSpent = allBudgets.reduce(function(s,b){ return s+getBudgetSpent(b); }, 0);
+  var budOk=0, budWarn=0, budOver=0;
+  allBudgets.forEach(function(b) {
+    var bp = getBudgetSpent(b);
+    var bpct = b.amount>0 ? Math.round(bp/b.amount*100) : 0;
+    if(bpct >= 100) budOver++;
+    else if(bpct >= 70) budWarn++;
+    else budOk++;
+  });
+  var budPct = budgetTotal > 0 ? Math.min(100, Math.round(budgetSpent/budgetTotal*100)) : 0;
+  var budBarColor = budPct>=100?'var(--danger)':budPct>=70?'var(--warning)':'var(--primary)';
+  var budDotsHtml = (budOk>0?'<span style="width:7px;height:7px;border-radius:50%;background:var(--primary);display:inline-block"></span>':'')
+    + (budWarn>0?'<span style="width:7px;height:7px;border-radius:50%;background:var(--warning);display:inline-block"></span>':'')
+    + (budOver>0?'<span style="width:7px;height:7px;border-radius:50%;background:var(--danger);display:inline-block"></span>':'');
+  var budStatusTxt = [];
+  if(budWarn>0) budStatusTxt.push(budWarn+' en riesgo');
+  if(budOver>0) budStatusTxt.push(budOver+' superado');
+
+  // Movimientos recientes — todas las divisas
+  var recentTxs = filterDeleted(S.transactions)
+    .sort(function(a,b){
+      var dd = new Date(b.date)-new Date(a.date);
+      return dd!==0?dd:(b.id>a.id?1:-1);
+    }).slice(0,4);
+
+  // ── HTML ─────────────────────────────────────────
+  setTimeout(function(){ _updateNotifBadge(); }, 0);
+  var html = '';
+
+  // Badge plan
+  html += '<div style="padding:8px 16px 0">'
+    + '<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;'
+    + 'padding:2px 9px;border-radius:100px;background:'+pb.bg+';color:'+pb.color+'">'
+    + pb.icon+' '+pb.label+'</span></div>';
+
+  // Card patrimonio
+  html += '<div style="margin:10px 0 0;background:var(--surface);border-radius:20px;'
+    + 'border:0.5px solid var(--border);padding:16px">'
+    + '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-bottom:4px">'
+    + '<span style="width:6px;height:6px;border-radius:50%;background:#10B981;display:inline-block"></span>'
+    + balLabel + '</div>'
+    + '<div style="font-size:26px;font-weight:500;color:var(--text);letter-spacing:-.5px;line-height:1.1;font-variant-numeric:tabular-nums">'
+    + fmt(consolidated)
+    + ' <span style="font-size:14px;color:var(--text2);font-weight:400">'+(base||S.currency)+'</span>'
+    + '</div>'
+    + (inc>0 ? '<div style="font-size:12px;margin-top:5px;display:flex;align-items:center;gap:5px">'
+      + (savings>=0
+        ? '<span style="color:#10B981;font-weight:500">▲ +'+savingsPct+'%</span>'
+        : '<span style="color:var(--danger);font-weight:500">▼ '+savingsPct+'%</span>')
+      + '<span style="color:var(--text3);font-size:11px">vs ingresos del mes</span>'
+      + '</div>' : '')
+    + '</div>';
+
+  // Sección Mis Divisas
+  html += '<div style="margin-top:12px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+    + '<span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Mis divisas</span>'
+    + addBtnHtml
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:'+gridCols+';gap:6px">'
+    + curCardsHtml
+    + '</div></div>';
+
+  // FX Strip (solo si 2+ divisas)
+  html += '<div id="exchange-widget" style="margin-top:8px;background:var(--surface2);'
+    + 'border:0.5px solid var(--border);border-radius:12px;padding:9px 12px;'
+    + (curs.length<2?'display:none':'') + '"></div>';
+
+  // Ingresos / Gastos
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">'
+    + '<div style="background:var(--surface2);border-radius:12px;padding:11px">'
+    + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/></svg>Ingresos</div>'
+    + '<div style="font-size:16px;font-weight:500;color:#10B981;font-variant-numeric:tabular-nums">'+fmt(inc)+'</div></div>'
+    + '<div style="background:var(--surface2);border-radius:12px;padding:11px">'
+    + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/></svg>Gastos</div>'
+    + '<div style="font-size:16px;font-weight:500;color:var(--danger);font-variant-numeric:tabular-nums">'+fmt(exp)+'</div></div>'
+    + '</div>';
+
+  // Ahorro del mes
+  var savColor = savings >= 0 ? '#10B981' : 'var(--danger)';
+  var savBg = savings >= 0 ? 'rgba(16,185,129,.1)' : 'rgba(239,68,68,.1)';
+  html += '<div style="margin-top:8px;background:var(--surface);border:0.5px solid var(--border);'
+    + 'border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between">'
+    + '<div style="display:flex;align-items:center;gap:9px">'
+    + '<div style="width:34px;height:34px;border-radius:50%;background:'+savBg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">🐷</div>'
+    + '<div><div style="font-size:11px;color:var(--text2)">Ahorro del mes</div>'
+    + '<div style="font-size:18px;font-weight:500;color:'+savColor+';font-variant-numeric:tabular-nums">'
+    + (savings>=0?'+':'')+fmt(savings)+'</div></div></div>'
+    + '<div style="text-align:right">'
+    + '<div style="font-size:14px;font-weight:500;color:'+savColor+'">'+Math.abs(savingsPct)+'%</div>'
+    + '<div style="font-size:11px;color:var(--text2)">de ingresos</div></div></div>';
+
+  // Regla 50/30/20
+  html += '<div style="margin-top:10px;background:var(--surface);border:0.5px solid var(--border);'
+    + 'border-radius:20px;padding:13px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">'
+    + '<span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Regla 50/30/20</span>'
+    + '<span style="font-size:11px;color:var(--text2)">'+new Date().toLocaleString('es',{month:'long'})+'</span>'
+    + '</div>'
+    + renderRule502030()
+    + '</div>';
+
+  // Presupuesto
+  var budContent = allBudgets.length
+    ? '<div style="display:flex;align-items:center;justify-content:space-between">'
+      + '<div><div style="font-size:14px;font-weight:500;color:var(--text);font-variant-numeric:tabular-nums">'
+      + fmt(budgetSpent)+' / '+fmt(budgetTotal)+'</div>'
+      + '<div style="font-size:12px;color:var(--text2);margin-top:1px">gastado este mes</div></div>'
+      + '<div style="text-align:right">'
+      + '<div style="display:flex;gap:4px;justify-content:flex-end;margin-bottom:3px">'+budDotsHtml+'</div>'
+      + '<div style="font-size:10px;color:var(--text2)">'+(budStatusTxt.length?budStatusTxt.join(' · '):'Todo en orden')+'</div>'
+      + '</div></div>'
+      + '<div style="height:5px;background:var(--surface2);border-radius:100px;overflow:hidden;margin-top:9px">'
+      + '<div style="height:100%;width:'+budPct+'%;background:'+budBarColor+';border-radius:100px"></div></div>'
+      + '<div style="font-size:11px;color:var(--text2);margin-top:7px;display:flex;align-items:center;gap:4px">'
+      + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>'
+      + 'Toca para ver todos los presupuestos</div>'
+    : '<div style="font-size:13px;color:var(--text2)">Sin presupuestos activos · '
+      + '<span style="color:var(--primary);cursor:pointer" onclick="navigate(\'presupuestos\')">Crear uno</span></div>';
+
+  html += '<div onclick="navigate(\'presupuestos\')" style="margin-top:10px;background:var(--surface);'
+    + 'border:0.5px solid var(--border);border-radius:20px;padding:13px;cursor:pointer">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:'
+    + (allBudgets.length?'10px':'0px')+'">'
+    + '<span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Presupuesto</span>'
+    + '<span style="font-size:12px;color:var(--primary);font-weight:500">Ver todos</span></div>'
+    + budContent + '</div>';
+
+  // Mi Día
+  html += _renderMiDiaWidget();
+
+  // Últimos movimientos — todas las divisas
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px">'
+    + '<span style="font-size:11px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase">Últimos movimientos</span>'
+    + '<button class="btn-text" onclick="navigate(\'movimientos\')" style="font-size:12px;color:var(--primary);font-weight:500">Ver todos</button>'
+    + '</div>';
+
+  if (recentTxs.length) {
+    html += recentTxs.map(function(tx) {
+      var txCur = tx.currency || S.currency;
+      var isBaseCur = txCur === base;
+      var baseRow = txRow(tx);
+      if (!isBaseCur && curs.length > 1) {
+        var rate = tx.exchangeRate || null;
+        var convAmt = rate
+          ? Math.abs(tx.amount) * rate
+          : convertToBase(Math.abs(tx.amount), txCur);
+        var baseMeta = getCurrencyMeta(base);
+        var convFmt = convAmt.toLocaleString(baseMeta.locale||'es',{minimumFractionDigits:0,maximumFractionDigits:0});
+        var convStr = (tx.amount<0?'≈ -':'≈ ')+(baseMeta.pos==='before'?baseMeta.sym:'')+convFmt+(baseMeta.pos==='after'?' '+baseMeta.sym:'');
+        var rateLabel = rate && tx.date
+          ? '<span style="font-size:9px;color:var(--text3);opacity:.7">tasa del '+tx.date+'</span>'
+          : '';
+        baseRow = '<div style="position:relative">' + baseRow
+          + '<div style="font-size:10px;color:var(--text2);text-align:right;margin-top:-6px;padding-right:2px;padding-bottom:4px">'
+          + convStr + (rateLabel?' '+rateLabel:'') + '</div></div>';
+      }
+      return baseRow;
+    }).join('');
+  } else {
+    html += '<div class="empty-state"><div class="empty-icon">📭</div>'
+      + '<div class="empty-title">Aquí vivirán tus movimientos</div>'
+      + '<div class="empty-desc">¡Registra el primero con el botón ＋!</div></div>';
+  }
+
+  // Nota histórica (solo si hay 2+ divisas y hay transacciones en divisas no base)
+  var hasNonBaseTx = recentTxs.some(function(tx){ return (tx.currency||S.currency)!==base; });
+  if (curs.length > 1 && hasNonBaseTx) {
+    html += '<div style="margin-top:8px;background:var(--surface2);border-radius:12px;'
+      + 'padding:8px 12px;display:flex;align-items:flex-start;gap:7px">'
+      + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+      + '<span style="font-size:11px;color:var(--text2);line-height:1.5">'
+      + 'Las conversiones históricas usan la tasa del día en que se realizaron.</span></div>';
+  }
+
+  return html;
+}
+function showUpgradePlanModal(feature){
+  var featureMap={divisas:'usar más divisas'};
+  var label=featureMap[feature]||'esta función';
+  _showHtmlBS('🔒 Actualiza tu plan',
+    '<div style="text-align:center;padding:8px 0 16px">'
+    +'<div style="font-size:32px;margin-bottom:12px">🔒</div>'
+    +'<div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px">Actualiza tu plan</div>'
+    +'<div style="font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:16px">'
+    +'Para '+label+' necesitas el plan Pro o Premium.</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px">'
+    +'<button onclick="closeBottomSheet();navigate(\'configuracion\')" '
+    +'style="width:100%;padding:13px;border-radius:12px;background:var(--secondary);'
+    +'color:white;font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:var(--font)">'
+    +'Ver planes</button>'
+    +'<button onclick="closeBottomSheet()" '
+    +'style="width:100%;padding:11px;border-radius:12px;background:transparent;'
+    +'color:var(--text2);font-size:14px;border:0.5px solid var(--border);cursor:pointer;font-family:var(--font)">'
+    +'Ahora no</button>'
+    +'</div></div>'
+  );
+}
+function openAddCurrencyModal(){
+  navigate('configuracion');
   setTimeout(function(){
-    var _pays=filterDeleted(S.scheduledPayments||[]);
-    _updateNotifBadge();
-  },0);
-  return '<div id="exchange-widget" style="display:none"></div>'
-    +'<div class="balance-card">'
-    +'<div style="font-size:9px;color:rgba(255,255,255,.45);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Balance total · '+S.currency+'</div>'
-    +'<div style="font-size:20px;font-weight:900;color:white;margin-bottom:10px;letter-spacing:-.5px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(bal)+'</div>'
-    +'<div style="display:flex;gap:6px">'
-    +'<div style="flex:1;background:rgba(255,255,255,.07);border-radius:10px;padding:6px 8px;min-width:0"><div style="font-size:8px;color:rgba(255,255,255,.4);font-weight:600;white-space:nowrap">↑ Ingresos mes</div><div style="font-size:11px;font-weight:800;color:#00D4AA;margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(inc)+'</div></div>'
-    +'<div style="flex:1;background:rgba(255,255,255,.07);border-radius:10px;padding:6px 8px;min-width:0"><div style="font-size:8px;color:rgba(255,255,255,.4);font-weight:600;white-space:nowrap">↓ Gastos mes</div><div style="font-size:11px;font-weight:800;color:#F87171;margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(exp)+'</div></div>'
-    +'<div style="flex:1;background:rgba(255,255,255,.07);border-radius:10px;padding:6px 8px;min-width:0"><div style="font-size:8px;color:rgba(255,255,255,.4);font-weight:600;white-space:nowrap">💾 Ahorro mes</div><div style="font-size:11px;font-weight:800;color:#A78BFA;margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(savings)+'</div></div>'
-    +'</div>'
-    +'</div>'
-    +'<div style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);margin-top:10px;margin-bottom:10px;display:flex;align-items:stretch;overflow:hidden">'
-    +'<div style="flex:1;padding:10px 12px;min-width:0">'
-    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
-    +'<div style="width:30px;height:30px;border-radius:9px;background:rgba(0,212,170,.1);display:flex;align-items:center;justify-content:center;font-size:14px">💱</div>'
-    +'<div><div style="font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.4px">Tipo de cambio</div>'
-    +'<div style="font-size:9px;color:var(--text3)" id="fx-dash-time">—</div></div>'
-    +'</div>'
-    +'<div style="display:flex;align-items:baseline;gap:3px;flex-wrap:nowrap">'
-    +'<span style="font-size:11px;font-weight:700;color:var(--text2);flex-shrink:0" id="fx-dash-from">—</span>'
-    +'<span style="font-size:11px;color:var(--border);flex-shrink:0">&nbsp;=&nbsp;</span>'
-    +'<span style="font-size:13px;font-weight:900;color:var(--text);font-variant-numeric:tabular-nums;flex-shrink:0" id="fx-dash-val">—</span>'
-    +'<span style="font-size:11px;font-weight:700;color:var(--primary);flex-shrink:0">&nbsp;<span id="fx-dash-cur">—</span></span>'
-    +'</div>'
-    +'</div>'
-    +'<div style="width:0.5px;background:var(--border);margin:8px 0;flex-shrink:0"></div>'
-    +'<div style="padding:8px 10px;display:flex;flex-direction:column;gap:5px;justify-content:center;min-width:70px" id="fx-dash-selector"></div>'
-    +'</div>'
-    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">'
-    +'<div class="kpi-card" onclick="openModal(\'balanceDistribution\',{})" style="overflow:hidden;text-align:center;padding:10px 4px"><div style="font-size:14px">💎</div><div class="kpi-label" style="font-size:8px;margin-top:2px">Disponible</div><div class="kpi-val" style="font-size:10px;color:var(--primary);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(Math.max(0,bal-totalGoalSavings))+'</div></div>'
-    +'<div class="kpi-card" onclick="navigate(\'metas\')" style="overflow:hidden;text-align:center;padding:10px 4px"><div style="font-size:14px">🎯</div><div class="kpi-label" style="font-size:8px;margin-top:2px">Ahorrado</div><div class="kpi-val" style="font-size:10px;color:var(--success);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(totalGoalSavings)+'</div></div>'
-    +'<div class="kpi-card" onclick="navigate(\'deudas\')" style="overflow:hidden;text-align:center;padding:10px 4px"><div style="font-size:14px">💸</div><div class="kpi-label" style="font-size:8px;margin-top:2px">Deudas</div><div class="kpi-val" style="font-size:10px;color:var(--danger);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(filterDeleted(S.accounts).filter(function(a){return a.type==='pasivo'&&(a.currency||S.currency)===S.currency;}).reduce(function(s,a){return s+Math.abs(getBalance(a.id));},0))+'</div></div>'
-    +'<div class="kpi-card" onclick="navigate(\'cuentas\')" style="overflow:hidden;text-align:center;padding:10px 4px"><div style="font-size:14px">💳</div><div class="kpi-label" style="font-size:8px;margin-top:2px">Cuentas</div><div class="kpi-val" style="font-size:10px;white-space:nowrap">'+filterDeleted(S.accounts).filter(function(a){return a.type==='activo'&&(a.currency||S.currency)===S.currency;}).length+'</div></div>'
-    +'</div>'
-    +_renderMiDiaWidget()
-    +'<div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px"><div style="font-size:13px;font-weight:800;color:var(--text)">📐 Regla 50/30/20</div></div>'
-    +'<div style="margin-top:0">'+renderRule502030()+'</div>'
-    +'<div class="section-header"><div class="section-title">📊 Presupuestos</div><button class="btn-text" onclick="navigate(\'presupuestos\')">Ver todos</button></div>'
-    +'<div class="card">'+budgetHtml+'</div>'
-    +'<div class="section-header"><div class="section-title">📋 Movimientos recientes</div><button class="btn-text" onclick="navigate(\'movimientos\')">Ver todos</button></div>'
-    +(recentTxs.length?recentTxs.map(txRow).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">Aquí vivirán tus movimientos</div><div class="empty-desc">¡Registra el primero con el botón ＋!</div></div>');
+    var el=document.querySelector('[data-section="currencies"]')||document.getElementById('currencies-section');
+    if(el)el.scrollIntoView({behavior:'smooth',block:'center'});
+  },300);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -8410,7 +8651,20 @@ function saveTx(){
   if(!date){_savingTx=false;toast('Selecciona una fecha');return;}
   const id=document.getElementById('tx-id')?.value;
   const existing=id?S.transactions.find(t=>t.id===id):null;
-  const tx={id:existing?existing.id:uid(),type,amount,currency:document.getElementById('tx-currency')?.value||S.currency,date,description:document.getElementById('tx-desc')?.value||''};
+  var _txCur=document.getElementById('tx-currency')?.value||S.currency;
+  var _txBase=S.baseCurrency||(S.currencies&&S.currencies[0])||S.currency;
+  var _txExRate=null;
+  if(_txCur===_txBase){_txExRate=1;}
+  else{
+    var _txRates=(S.exchangeRate&&S.exchangeRate.rates)||{};
+    var _txRateBase=S.exchangeRate&&S.exchangeRate.base;
+    if(_txRateBase&&Object.keys(_txRates).length){
+      if(_txRateBase===_txBase){_txExRate=_txRates[_txCur]?1/_txRates[_txCur]:null;}
+      else if(_txRateBase===_txCur){_txExRate=_txRates[_txBase]||null;}
+      else{_txExRate=(_txRates[_txBase]&&_txRates[_txCur])?_txRates[_txBase]/_txRates[_txCur]:null;}
+    }
+  }
+  const tx={id:existing?existing.id:uid(),type,amount,currency:_txCur,date,description:document.getElementById('tx-desc')?.value||'',exchangeRate:_txExRate};
   if(type==='transferencia'){
     tx.accountId=resolveAccId(document.getElementById('tx-from-acc')?.value||'');
     tx.toAccountId=resolveAccId(document.getElementById('tx-to-acc')?.value||'');
