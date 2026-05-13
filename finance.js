@@ -512,8 +512,8 @@ function getMonthTotals(period){
   return{inc,exp};
 }
 
-function getBudgetSpent(b){
-  const now=new Date();
+function getBudgetSpent(b,refDate){
+  const now=refDate||new Date();
   return filterDeleted(S.transactions).filter(t=>t.type==='gasto'&&t.categoryId===b.categoryId&&
     (!b.subcategoryId||t.subcategoryId===b.subcategoryId)&&
     t.currency===(b.currency||S.currency)&&
@@ -545,8 +545,14 @@ function updateSubs(catId,targetId,selectedSubId){
 // ════════════════════════════════════════════════════════════
 // REGLA 50/30/20
 // ════════════════════════════════════════════════════════════
-function renderRule502030(){
-  const{inc}=getMonthTotals();
+function renderRule502030(refDate){
+  var _ref=refDate||new Date();
+  var _rFrom=new Date(_ref.getFullYear(),_ref.getMonth(),1,0,0,0);
+  var _rTo=new Date(_ref.getFullYear(),_ref.getMonth()+1,0,23,59,59);
+  var _rAllTxs=filterDeleted(S.transactions).filter(function(t){
+    var d=new Date(t.date);return t.currency===S.currency&&d>=_rFrom&&d<=_rTo;
+  });
+  const inc=_rAllTxs.filter(function(t){return t.type==='ingreso'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
   if(inc<=0)return`<div class="card" style="margin-bottom:12px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
       <div class="card-title" style="margin:0">📊 Regla 50/30/20</div>
@@ -555,10 +561,7 @@ function renderRule502030(){
   </div>`;
 
   // Classify transactions by nature
-  const txs=filterDeleted(S.transactions).filter(t=>{
-    const d=new Date(t.date);const now=new Date();
-    return t.currency===S.currency&&t.type==='gasto'&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
-  });
+  const txs=_rAllTxs.filter(t=>t.type==='gasto');
   let nec=0,des=0,aho=0;
   txs.forEach(t=>{
     const cat=getCat(t.categoryId);

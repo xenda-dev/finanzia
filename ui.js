@@ -1116,13 +1116,13 @@ function renderDashboard(){
       + '＋ Agregar'+remaining+'</button>';
   }
 
-  // Presupuestos — resumen
+  // Presupuestos — resumen filtrado por mes seleccionado
   var allBudgets = filterDeleted(S.budgets);
   var budgetTotal = allBudgets.reduce(function(s,b){ return s+(b.amount||0); }, 0);
-  var budgetSpent = allBudgets.reduce(function(s,b){ return s+getBudgetSpent(b); }, 0);
+  var budgetSpent = allBudgets.reduce(function(s,b){ return s+getBudgetSpent(b,_dashFrom); }, 0);
   var budOk=0, budWarn=0, budOver=0;
   allBudgets.forEach(function(b) {
-    var bp = getBudgetSpent(b);
+    var bp = getBudgetSpent(b,_dashFrom);
     var bpct = b.amount>0 ? Math.round(bp/b.amount*100) : 0;
     if(bpct >= 100) budOver++;
     else if(bpct >= 70) budWarn++;
@@ -1210,7 +1210,7 @@ function renderDashboard(){
     + '<div style="font-size:13px;font-weight:800;color:var(--text)">Regla 50/30/20</div>'
     + '<span style="font-size:11px;color:var(--text2)">'+_ruleMonthLbl+'</span>'
     + '</div>'
-    + renderRule502030();
+    + renderRule502030(_dashFrom);
 
   // Presupuesto
   var budContent = allBudgets.length
