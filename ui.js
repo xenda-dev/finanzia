@@ -1353,13 +1353,16 @@ function setPlan(plan){
 // ════════════════════════════════════════════════════════════
 function _renderMiDiaWidget(){
   var today=todayStr();
-  var tasks=filterDeleted(S.tasks||[]).filter(function(t){return t.date===today;});
+  var tasks=filterDeleted(S.tasks||[])
+    .filter(function(t){return t.date===today;});
   var taskDone=tasks.filter(function(t){return t.done;}).length;
   var taskPct=tasks.length>0?Math.round(taskDone/tasks.length*100):0;
-  var habits=filterDeleted(S.objectives||[]).filter(function(o){return o.tipo==='habito';});
+  var habits=filterDeleted(S.objectives||[])
+    .filter(function(o){return o.tipo==='habito';});
   var habitDone=habits.filter(function(h){return h.lastLog===today;}).length;
   var habitPct=habits.length>0?Math.round(habitDone/habits.length*100):0;
-  var props=filterDeleted(S.objectives||[]).filter(function(o){return o.tipo==='proposito';});
+  var props=filterDeleted(S.objectives||[])
+    .filter(function(o){return o.tipo==='proposito';});
   var propAvg=props.length>0?Math.round(props.reduce(function(s,o){
     var p=o.params||{};
     var cur=parseFloat(p.pagesRead||p.actual||p.current||p.pct||0);
@@ -1367,85 +1370,166 @@ function _renderMiDiaWidget(){
     return s+(tot>0?cur/tot*100:0);
   },0)/props.length):0;
   var active=S._activeMiDiaPill||null;
-  function pill(key,icon,label,val,pct,color){
-    var isActive=active===key;
-    var pillContent='<div style="font-size:14px">'+icon+'</div>'
-      +'<div style="font-size:8px;color:var(--text2);font-weight:600;margin-top:2px">'+label+'</div>'
-      +'<div style="font-size:12px;font-weight:900;color:var(--text)">'+val+'</div>'
-      +'<div style="width:100%;height:3px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:3px">'
-      +'<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:99px"></div>'
-      +'</div>';
-    var expandContent='';
-    if(isActive){
-      if(key==='tasks'){
-        if(!tasks.length){
-          expandContent='<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0;border-top:0.5px solid var(--border);margin-top:6px">Sin tareas hoy · <span style="color:var(--primary);cursor:pointer" onclick="navigate(\'plantillas\')">Agregar</span></div>';
-        }else{
-          expandContent='<div style="border-top:0.5px solid var(--border);margin-top:6px;padding-top:4px">'
-            +tasks.map(function(t){
-              return '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border);cursor:pointer" onclick="toggleTask(\''+t.id+'\')">'
-                +'<div style="width:16px;height:16px;border-radius:4px;border:1.5px solid '+(t.done?'var(--primary)':'var(--border)')+';background:'+(t.done?'rgba(0,212,170,.15)':'none')+';flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px">'+(t.done?'✓':'')+'</div>'
-                +'<div style="flex:1;font-size:11px;font-weight:600;color:'+(t.done?'var(--text3)':'var(--text)')+';'+(t.done?'text-decoration:line-through':'')+'">'+t.title+'</div>'
-                +'</div>';
-            }).join('')
-            +'</div>';
-        }
-      }else if(key==='habits'){
-        if(!habits.length){
-          expandContent='<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0;border-top:0.5px solid var(--border);margin-top:6px">Sin hábitos · <span style="color:var(--primary);cursor:pointer" onclick="navigate(\'objetivos\')">Crear</span></div>';
-        }else{
-          expandContent='<div style="border-top:0.5px solid var(--border);margin-top:6px;padding-top:4px">'
-            +habits.map(function(h){
-              var done=h.lastLog===today;
-              return '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border)">'
-                +'<span style="font-size:13px">'+(h.emoji||'🔥')+'</span>'
-                +'<div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+h.name+'</div><div style="font-size:9px;color:var(--text3)">🔥 '+(h.streak||0)+' días</div></div>'
-                +'<button onclick="logHabit(\''+h.id+'\','+(done?'false':'true')+')" style="width:24px;height:24px;border-radius:6px;border:none;cursor:pointer;font-size:12px;background:'+(done?'rgba(0,212,170,.15)':'rgba(0,0,0,.05)')+';">'+(done?'✅':'⭕')+'</button>'
-                +'</div>';
-            }).join('')
-            +'</div>';
-        }
-      }else if(key==='objetivos'){
-        if(!props.length){
-          expandContent='<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0;border-top:0.5px solid var(--border);margin-top:6px">Sin propósitos · <span style="color:var(--primary);cursor:pointer" onclick="navigate(\'objetivos\')">Crear</span></div>';
-        }else{
-          expandContent='<div style="border-top:0.5px solid var(--border);margin-top:6px;padding-top:4px">'
-            +props.map(function(o){
-              var p=o.params||{};
-              var cur=parseFloat(p.pagesRead||p.actual||p.current||p.pct||0);
-              var tot=parseFloat(p.totalPages||p.meta||p.target||100);
-              var pct2=tot>0?Math.round(cur/tot*100):0;
-              var col=pct2>=75?'#00D4AA':pct2>=50?'#3B82F6':pct2>=25?'#F59E0B':'#EF4444';
-              return '<div style="padding:5px 0;border-bottom:0.5px solid var(--border)">'
-                +'<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">'
-                +'<span style="font-size:13px">'+(o.emoji||'🎯')+'</span>'
-                +'<div style="flex:1;font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+o.name+'</div>'
-                +'<span style="font-size:10px;font-weight:800;color:'+col+'">'+pct2+'%</span>'
-                +'</div>'
-                +'<div style="height:3px;background:var(--surface2);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct2+'%;background:'+col+';border-radius:99px"></div></div>'
-                +'</div>';
-            }).join('')
-            +'</div>';
-        }
-      }
-    }
-    return '<div onclick="_toggleMiDiaPill(\''+key+'\')" style="flex:'+(isActive?'2':'1')+';background:var(--surface);border-radius:12px;border:'+(isActive?'1.5px solid var(--primary)':'0.5px solid var(--border)')+';padding:8px 8px '+(isActive?'10px':'8px')+';min-width:0;cursor:pointer;transition:flex .2s,border .15s">'
-      +pillContent
-      +expandContent
-      +'</div>';
+
+  // ── Pills — siempre flex:1 igual, ninguna cambia de tamaño
+  function pill(key,icon,label,val,pct,grad){
+    var isOn=active===key;
+    return '<div onclick="_toggleMiDiaPill(\''+key+'\')" '
+      +'style="flex:1;background:'+(isOn?'var(--surface)':'var(--surface2)')
+      +';border-radius:12px;border:'+(isOn?'1.5px solid var(--primary)':'0.5px solid var(--border)')
+      +';padding:10px 8px;cursor:pointer;text-align:center;transition:border .15s,background .15s">'
+      +'<div style="font-size:18px;margin-bottom:4px">'+icon+'</div>'
+      +'<div style="font-size:11px;color:'+(isOn?'var(--primary)':'var(--text2)')
+      +';font-weight:500;margin-bottom:3px">'+label+'</div>'
+      +'<div style="font-size:14px;font-weight:600;color:var(--text)">'+val+'</div>'
+      +'<div style="height:4px;background:var(--surface2);border-radius:99px;'
+      +'overflow:hidden;margin-top:5px">'
+      +'<div style="height:100%;width:'+pct+'%;background:'+grad+';border-radius:99px"></div>'
+      +'</div></div>';
   }
-  return '<div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 7px">'
-    +'<div style="font-size:13px;font-weight:800;color:var(--text)">Mi día</div>'
+
+  // ── Panel de detalle — ancho completo, debajo de las pills
+  var detailHtml='';
+  if(active==='tasks'){
+    var hdrRight='<div onclick="openNewTaskForm()" '
+      +'style="width:28px;height:28px;border-radius:8px;'
+      +'background:rgba(0,212,170,.1);border:0.5px solid rgba(0,212,170,.3);'
+      +'display:flex;align-items:center;justify-content:center;'
+      +'cursor:pointer;font-size:16px;color:var(--primary);flex-shrink:0">＋</div>'
+      +'<span onclick="navigate(\'tareas\')" '
+      +'style="font-size:12px;color:var(--primary);font-weight:500;cursor:pointer;white-space:nowrap">Ver todo</span>';
+    var taskItems='';
+    if(!tasks.length){
+      taskItems='<div style="padding:16px 14px;font-size:13px;color:var(--text2);text-align:center">'
+        +'Sin tareas hoy · <span style="color:var(--primary);cursor:pointer" '
+        +'onclick="openNewTaskForm()">Agregar</span></div>';
+    }else{
+      taskItems=tasks.map(function(t){
+        var isDone=t.done;
+        return '<div onclick="toggleTask(\''+t.id+'\')" '
+          +'style="display:flex;align-items:center;gap:10px;padding:11px 14px;'
+          +'border-bottom:0.5px solid var(--border);cursor:pointer">'
+          +'<div style="width:20px;height:20px;border-radius:6px;flex-shrink:0;'
+          +'display:flex;align-items:center;justify-content:center;font-size:11px;'
+          +'border:1.5px solid '+(isDone?'var(--primary)':'var(--border)')+';'
+          +'background:'+(isDone?'rgba(0,212,170,.15)':'none')+';'
+          +'color:'+(isDone?'var(--primary)':'transparent')+';transition:all .15s">'
+          +(isDone?'✓':'')+'</div>'
+          +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:13px;font-weight:500;'
+          +'color:'+(isDone?'var(--text2)':'var(--text)')+';'
+          +(isDone?'text-decoration:line-through;':'')
+          +'white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t.title+'</div>'
+          +(t.category?'<div style="font-size:11px;color:var(--text3);margin-top:1px">'+t.category+'</div>':'')
+          +'</div></div>';
+      }).join('')+'<div style="height:1px"></div>';
+    }
+    detailHtml='<div style="background:var(--surface);border:1px solid var(--primary);'
+      +'border-radius:14px;margin-top:8px;overflow:hidden">'
+      +'<div style="display:flex;align-items:center;gap:8px;padding:11px 14px;'
+      +'border-bottom:0.5px solid var(--border)">'
+      +'<span style="font-size:16px">📋</span>'
+      +'<span style="font-size:13px;font-weight:500;color:var(--text);flex:1">Tareas de hoy</span>'
+      +'<span style="font-size:11px;color:var(--text2)">'+taskDone+' de '+tasks.length+' completadas</span>'
+      +hdrRight+'</div>'
+      +taskItems+'</div>';
+  }
+
+  if(active==='habits'){
+    var hdrRight2='<span onclick="navigate(\'objetivos\')" '
+      +'style="font-size:12px;color:var(--primary);font-weight:500;cursor:pointer;white-space:nowrap">Ver todo</span>';
+    var habitItems='';
+    if(!habits.length){
+      habitItems='<div style="padding:16px 14px;font-size:13px;color:var(--text2);text-align:center">'
+        +'Sin hábitos · <span style="color:var(--primary);cursor:pointer" '
+        +'onclick="navigate(\'objetivos\')">Crear</span></div>';
+    }else{
+      habitItems=habits.map(function(h){
+        var isDone=h.lastLog===today;
+        return '<div style="display:flex;align-items:center;gap:10px;'
+          +'padding:11px 14px;border-bottom:0.5px solid var(--border)">'
+          +'<span style="font-size:20px;flex-shrink:0">'+(h.emoji||'🔥')+'</span>'
+          +'<div style="flex:1;min-width:0">'
+          +'<div style="font-size:13px;font-weight:500;color:var(--text);'
+          +'white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+h.name+'</div>'
+          +'<div style="font-size:11px;color:var(--text3);margin-top:1px">🔥 '+(h.streak||0)+' días de racha</div>'
+          +'</div>'
+          +'<button onclick="event.stopPropagation();logHabit(\''+h.id+'\','+(isDone?'false':'true')+')" '
+          +'style="width:32px;height:32px;border-radius:8px;border:none;cursor:pointer;font-size:16px;flex-shrink:0;'
+          +'background:'+(isDone?'rgba(0,212,170,.12)':'var(--surface2)')+'">'
+          +(isDone?'✅':'⭕')+'</button>'
+          +'</div>';
+      }).join('')+'<div style="height:1px"></div>';
+    }
+    detailHtml='<div style="background:var(--surface);border:1px solid var(--primary);'
+      +'border-radius:14px;margin-top:8px;overflow:hidden">'
+      +'<div style="display:flex;align-items:center;gap:8px;padding:11px 14px;'
+      +'border-bottom:0.5px solid var(--border)">'
+      +'<span style="font-size:16px">🔥</span>'
+      +'<span style="font-size:13px;font-weight:500;color:var(--text);flex:1">Hábitos de hoy</span>'
+      +'<span style="font-size:11px;color:var(--text2)">'+habitDone+' de '+habits.length+' registrados</span>'
+      +hdrRight2+'</div>'
+      +habitItems+'</div>';
+  }
+
+  if(active==='objetivos'){
+    var hdrRight3='<span onclick="navigate(\'objetivos\')" '
+      +'style="font-size:12px;color:var(--primary);font-weight:500;cursor:pointer;white-space:nowrap">Ver todo</span>';
+    var propItems='';
+    if(!props.length){
+      propItems='<div style="padding:16px 14px;font-size:13px;color:var(--text2);text-align:center">'
+        +'Sin propósitos · <span style="color:var(--primary);cursor:pointer" '
+        +'onclick="navigate(\'objetivos\')">Crear</span></div>';
+    }else{
+      propItems=props.map(function(o){
+        var p=o.params||{};
+        var cur=parseFloat(p.pagesRead||p.actual||p.current||p.pct||0);
+        var tot=parseFloat(p.totalPages||p.meta||p.target||100);
+        var pct2=tot>0?Math.round(cur/tot*100):0;
+        var col=pct2>=75?'#00D4AA':pct2>=50?'#3B82F6':pct2>=25?'#F59E0B':'#EF4444';
+        return '<div style="padding:11px 14px;border-bottom:0.5px solid var(--border)">'
+          +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+          +'<span style="font-size:16px">'+(o.emoji||'🎯')+'</span>'
+          +'<span style="font-size:13px;font-weight:500;color:var(--text);flex:1;'
+          +'white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+o.name+'</span>'
+          +'<span style="font-size:12px;font-weight:600;color:'+col+'">'+pct2+'%</span>'
+          +'</div>'
+          +'<div style="height:5px;background:var(--surface2);border-radius:99px;overflow:hidden">'
+          +'<div style="height:100%;width:'+pct2+'%;background:'+col+';border-radius:99px"></div>'
+          +'</div></div>';
+      }).join('')+'<div style="height:1px"></div>';
+    }
+    detailHtml='<div style="background:var(--surface);border:1px solid var(--primary);'
+      +'border-radius:14px;margin-top:8px;overflow:hidden">'
+      +'<div style="display:flex;align-items:center;gap:8px;padding:11px 14px;'
+      +'border-bottom:0.5px solid var(--border)">'
+      +'<span style="font-size:16px">🎯</span>'
+      +'<span style="font-size:13px;font-weight:500;color:var(--text);flex:1">Propósitos</span>'
+      +'<span style="font-size:11px;color:var(--text2)">Promedio '+propAvg+'%</span>'
+      +hdrRight3+'</div>'
+      +propItems+'</div>';
+  }
+
+  return '<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px">'
+    +'<span style="font-size:13px;font-weight:800;color:var(--text)">Mi día</span>'
+    +'<span style="font-size:11px;color:var(--text2)">'
+    +new Date().toLocaleDateString('es',{day:'numeric',month:'long'})+'</span>'
     +'</div>'
-    +'<div style="display:flex;gap:7px;align-items:flex-start;margin-bottom:14px">'
+    +'<div style="display:flex;gap:7px;margin-bottom:0">'
     +pill('tasks','📋','Tareas',taskDone+'/'+tasks.length,taskPct,'linear-gradient(90deg,#00D4AA,#7461EF)')
     +pill('habits','🔥','Hábitos',habitDone+'/'+habits.length,habitPct,'linear-gradient(90deg,#F59E0B,#EF4444)')
     +pill('objetivos','🎯','Propósitos',propAvg+'%',propAvg,'linear-gradient(90deg,#7461EF,#00D4AA)')
-    +'</div>';
+    +'</div>'
+    +detailHtml;
 }
 function _toggleMiDiaPill(key){
   S._activeMiDiaPill=(S._activeMiDiaPill===key)?null:key;
   renderPage('dashboard');
+}
+function openNewTaskForm(){
+  // _showCustomTaskBS → _showTmplTaskForm('Mi tarea','📋')
+  // que ya pre-llena la fecha con todayStr()
+  _showCustomTaskBS();
 }
 // ════════════════════════════════════════════════════════════
 // NOTIF BS — CAMPANILLA
@@ -1614,9 +1698,13 @@ function logProgress(id,val){
 function logHabit(id,done){
   var o=filterDeleted(S.objectives||[]).find(function(x){return x.id===id;});
   if(!o)return;
-  saveObjective(Object.assign({},o,{streak:done?(parseInt(o.streak||0)+1):0,lastLog:done?todayStr():o.lastLog}));
-  closeBottomSheet();
-  renderPage('objetivos');
+  var prevStreak=parseInt(o.streak||0);
+  saveObjective(Object.assign({},o,{
+    streak:done?(prevStreak+1):Math.max(0,prevStreak-1),
+    lastLog:done?todayStr():''
+  }));
+  if(typeof closeBottomSheet==='function')closeBottomSheet();
+  renderPage('dashboard');
 }
 function renderObjetivos(){
   var tab=S._objTab||'todos';
