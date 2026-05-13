@@ -165,6 +165,7 @@ let S = {
   plan: 'gratis',
   baseCurrency: '',
   _activeMiDiaPill: null,
+  _dashMonth: '',
 };
 
 function loadState(){
@@ -393,6 +394,7 @@ async function saveUserData(userId,data){
   delete toSave._taskTab;
   delete toSave._objTab;
   delete toSave._activeMiDiaPill;
+  delete toSave._dashMonth;
   delete toSave._tmplSearch;
   // Blindaje final: garantizar updated_at en todos los items antes de persistir
   var _STAMP_KEYS2=['transactions','accounts','subscriptions','budgets','goals',

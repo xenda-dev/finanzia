@@ -230,7 +230,19 @@ function _updateHeader(page){
       hRow2.style.display='block';
       var _h=new Date().getHours();
       var _saludo=_h<12?'Buenos d\u00edas \uD83D\uDC4B':_h<19?'Buenas tardes \u2600\uFE0F':'Buenas noches \uD83C\uDF19';
-      if(hGreeting)hGreeting.textContent=_saludo;
+      // Selector de mes
+      var _nowH=new Date();
+      var _curMYH=_nowH.getFullYear()+'-'+String(_nowH.getMonth()+1).padStart(2,'0');
+      var _selMYH=S._dashMonth||_curMYH;
+      var _selDH=new Date(_selMYH+'-01');
+      var _mLblH=_selDH.toLocaleString('es',{month:'long',year:'numeric'});
+      var _isNowH=(_selMYH===_curMYH);
+      var _monthNav='<div style="display:flex;align-items:center;gap:4px">'
+        +'<button onclick="_navDashMonth(-1)" style="width:22px;height:22px;border-radius:7px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:13px;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit">\u2039</button>'
+        +'<span style="font-size:11px;font-weight:600;color:var(--text);min-width:76px;text-align:center">'+_mLblH+'</span>'
+        +'<button onclick="_navDashMonth(1)" style="width:22px;height:22px;border-radius:7px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:13px;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit;opacity:'+(_isNowH?'0.25':'1')+(_isNowH?';pointer-events:none':'')+'">\u203A</button>'
+        +'</div>';
+      if(hGreeting)hGreeting.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between">'+_saludo+_monthNav+'</div>';
       if(hBigTitle)hBigTitle.textContent=getFirstName(window._currentUser)||'';
       if(hSubtitle){hSubtitle.style.display='none';hSubtitle.textContent='';}
     }else{
@@ -1002,18 +1014,33 @@ function renderDashboard(){
   var curs = S.currencies || [];
   var base = S.baseCurrency || (curs.length ? curs[0] : S.currency) || 'USD';
   var maxCurs = plan==='premium' ? Infinity : plan==='pro' ? 3 : 1;
-  var mt = getMonthTotals();
-  var inc = mt.inc, exp = mt.exp;
+
+  // Mes seleccionado
+  var _nowD = new Date();
+  var _curMY = _nowD.getFullYear()+'-'+String(_nowD.getMonth()+1).padStart(2,'0');
+  var _selMY = S._dashMonth || _curMY;
+  var _selParts = _selMY.split('-');
+  var _dashFrom = new Date(parseInt(_selParts[0]), parseInt(_selParts[1])-1, 1, 0, 0, 0);
+  var _dashTo = new Date(parseInt(_selParts[0]), parseInt(_selParts[1]), 0, 23, 59, 59);
+  var _isPastMonth = (_selMY !== _curMY);
+
+  // Ingresos / gastos del mes seleccionado (filtrado inline)
+  var _dashTxs = filterDeleted(S.transactions).filter(function(t){
+    var d = new Date(t.date);
+    return t.currency===S.currency && d>=_dashFrom && d<=_dashTo;
+  });
+  var inc = _dashTxs.filter(function(t){return t.type==='ingreso'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
+  var exp = _dashTxs.filter(function(t){return t.type==='gasto'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
   var savings = inc - exp;
   var savingsPct = inc > 0 ? Math.round(savings / inc * 100) : 0;
 
-  // Balance consolidado en la moneda activa seleccionada
+  // Patrimonio siempre en moneda base (saldo acumulado, no filtrable por mes)
   var consolidated = curs.length > 1
-    ? getConsolidatedBalance(S.currency)
+    ? getConsolidatedBalance(base)
     : getTotalBalance();
 
-  // Etiqueta balance
-  var balLabel = curs.length > 1 ? 'Patrimonio total' : 'Balance total';
+  // Etiqueta balance — siempre "Patrimonio total"
+  var balLabel = 'Patrimonio total';
 
   // Badge de plan
   var planBadgeMap = {
@@ -1100,8 +1127,12 @@ function renderDashboard(){
   if(budWarn>0) budStatusTxt.push(budWarn+' en riesgo');
   if(budOver>0) budStatusTxt.push(budOver+' superado');
 
-  // Movimientos recientes — todas las divisas
+  // Movimientos recientes — filtrados por mes seleccionado
   var recentTxs = filterDeleted(S.transactions)
+    .filter(function(t){
+      var d = new Date(t.date);
+      return d>=_dashFrom && d<=_dashTo;
+    })
     .sort(function(a,b){
       var dd = new Date(b.date)-new Date(a.date);
       return dd!==0?dd:(b.id>a.id?1:-1);
@@ -1112,14 +1143,14 @@ function renderDashboard(){
   var html = '';
 
   // Card patrimonio
-  html += '<div style="margin:10px 0 0;background:var(--surface);border-radius:20px;'
+  html += '<div style="margin:0 0 0;background:var(--surface);border-radius:20px;'
     + 'border:0.5px solid var(--border);padding:16px">'
     + '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-bottom:4px">'
     + '<span style="width:6px;height:6px;border-radius:50%;background:#10B981;display:inline-block"></span>'
     + balLabel + '</div>'
     + '<div style="font-size:26px;font-weight:500;color:var(--text);letter-spacing:-.5px;line-height:1.1;font-variant-numeric:tabular-nums">'
-    + fmt(consolidated)
-    + ' <span style="font-size:14px;color:var(--text2);font-weight:400">'+S.currency+'</span>'
+    + fmt(consolidated, base)
+    + ' <span style="font-size:14px;color:var(--text2);font-weight:400">'+base+'</span>'
     + '</div>'
     + (inc>0 ? '<div style="font-size:12px;margin-top:5px;display:flex;align-items:center;gap:5px">'
       + (savings>=0
@@ -1163,10 +1194,12 @@ function renderDashboard(){
     + '<div style="font-size:16px;font-weight:500;color:'+savColor+';font-variant-numeric:tabular-nums">'+(savings>=0?'+':'')+fmt(savings)+'</div></div>'
     + '</div>';
 
-  // Regla 50/30/20
+  // Regla 50/30/20 (siempre mes actual — función no modificable)
   html += '<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 7px">'
     + '<div style="font-size:13px;font-weight:800;color:var(--text)">Regla 50/30/20</div>'
-    + '<span style="font-size:11px;color:var(--text2)">'+new Date().toLocaleString('es',{month:'long'})+'</span>'
+    + '<span style="font-size:11px;color:var(--text2)">'
+    + (_isPastMonth ? '<span style="color:var(--warning);font-size:10px">mes actual · </span>' : '')
+    + new Date().toLocaleString('es',{month:'long'})+'</span>'
     + '</div>'
     + renderRule502030();
 
@@ -1264,6 +1297,17 @@ function showUpgradePlanModal(feature){
 function openAddCurrencyModal(){
   if(typeof showCurrenciesPickerScreen==='function') showCurrenciesPickerScreen();
   else navigate('configuracion');
+}
+function _navDashMonth(dir){
+  var now=new Date();
+  var _curMY=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  var _selMY=S._dashMonth||_curMY;
+  var _parts=_selMY.split('-');
+  var _d=new Date(parseInt(_parts[0]),parseInt(_parts[1])-1+dir,1);
+  var _newMY=_d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0');
+  if(_newMY>_curMY)return;
+  S._dashMonth=(_newMY===_curMY)?'':_newMY;
+  if(S.currentPage==='dashboard'){renderPage('dashboard');_updateHeader('dashboard');}
 }
 function setBaseCurrency(cur){
   if(!S.currencies||!S.currencies.includes(cur))return;
