@@ -1280,9 +1280,14 @@ function setPlan(plan){
   S.plan=plan;
   var maxCurs=plan==='premium'?Infinity:plan==='pro'?3:1;
   if(maxCurs!==Infinity&&S.currencies&&S.currencies.length>maxCurs){
-    S.currencies=S.currencies.slice(0,maxCurs);
-    S.currency=S.currencies[0]||S.currency;
-    S.baseCurrency=S.currencies[0]||S.baseCurrency;
+    // Respetar baseCurrency al truncar; si no está en la lista, usar currencies[0]
+    var _keepCurs=S.currencies.slice();
+    if(S.baseCurrency&&_keepCurs.includes(S.baseCurrency)){
+      _keepCurs=[S.baseCurrency].concat(_keepCurs.filter(function(c){return c!==S.baseCurrency;}));
+    }
+    S.currencies=_keepCurs.slice(0,maxCurs);
+    S.currency=S.currencies[0];
+    S.baseCurrency=S.currencies[0];
   }
   saveState();
   updateDrawerProfile();

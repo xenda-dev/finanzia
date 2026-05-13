@@ -222,9 +222,14 @@ function loadState(){
   // Enforcement: recortar divisas si el plan activo no las permite
   var _maxCursLoad=S.plan==='premium'?Infinity:S.plan==='pro'?3:1;
   if(S.currencies&&S.currencies.length>_maxCursLoad){
-    S.currencies=S.currencies.slice(0,_maxCursLoad);
-    S.currency=S.currencies[0]||S.currency;
-    S.baseCurrency=S.currencies[0]||S.baseCurrency;
+    // Respetar baseCurrency al truncar; si no está en la lista, usar currencies[0]
+    var _cLoad=S.currencies.slice();
+    if(S.baseCurrency&&_cLoad.includes(S.baseCurrency)){
+      _cLoad=[S.baseCurrency].concat(_cLoad.filter(function(c){return c!==S.baseCurrency;}));
+    }
+    S.currencies=_cLoad.slice(0,_maxCursLoad);
+    S.currency=S.currencies[0];
+    S.baseCurrency=S.currencies[0];
   }
   // Tema: siempre light por defecto. Solo persiste si el usuario lo cambió en este dispositivo.
   var _uid2=typeof _currentUser!=='undefined'&&_currentUser&&_currentUser.id?_currentUser.id:(localStorage.getItem('_lastAuthUserId')||'');
