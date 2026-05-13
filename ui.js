@@ -8013,11 +8013,14 @@ function _togglePickerCur(code){
 }
 function _savePickerCurrencies(){
   S.currencies=(window._pickerCurSel||[]).slice();
-  if(S.currencies.length>0)S.currency=S.currencies[0];
+  if(S.currencies.length>0){
+    S.currency=S.currencies[0];
+    if(!S.baseCurrency||!S.currencies.includes(S.baseCurrency))S.baseCurrency=S.currencies[0];
+  }
   saveState();
   refreshCurrencyToggle();
   closePickerScreen();
-  renderPage('configuracion');
+  navigate(S.currentPage||'dashboard');
   toast('Monedas guardadas ✓');
 }
 
