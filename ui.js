@@ -1217,7 +1217,7 @@ function renderDashboard(){
     ? '<div style="display:flex;align-items:center;justify-content:space-between">'
       + '<div><div style="font-size:14px;font-weight:500;color:var(--text);font-variant-numeric:tabular-nums">'
       + fmt(budgetSpent)+' / '+fmt(budgetTotal)+'</div>'
-      + '<div style="font-size:12px;color:var(--text2);margin-top:1px">gastado este mes</div></div>'
+      + '<div style="font-size:12px;color:var(--text2);margin-top:1px">'+(_isPastMonth?'gastado en '+_ruleMonthLbl:'gastado este mes')+'</div></div>'
       + '<div style="text-align:right">'
       + '<div style="display:flex;gap:4px;justify-content:flex-end;margin-bottom:3px">'+budDotsHtml+'</div>'
       + '<div style="font-size:10px;color:var(--text2)">'+(budStatusTxt.length?budStatusTxt.join(' · '):'Todo en orden')+'</div>'
