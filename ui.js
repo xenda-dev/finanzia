@@ -227,30 +227,27 @@ function _updateHeader(page){
     }else if(isDash){
       var _mpEl2=document.getElementById('page-mi-perfil');
       if(_mpEl2){_mpEl2.style.height='';_mpEl2.style.overflowY='';}
-      // Dashboard: saludo+nombre en row1 (hTitle), mes nav centrado, row2 oculto
-      hRow2.style.display='none';
+      // Row 2: saludo + nombre (igual que siempre)
+      hRow2.style.display='block';
       var _h=new Date().getHours();
       var _saludo=_h<12?'Buenos d\u00edas \uD83D\uDC4B':_h<19?'Buenas tardes \u2600\uFE0F':'Buenas noches \uD83C\uDF19';
-      var _nombre=getFirstName(window._currentUser)||'';
-      // Selector de mes
+      if(hGreeting)hGreeting.textContent=_saludo;
+      if(hBigTitle)hBigTitle.textContent=getFirstName(window._currentUser)||'';
+      if(hSubtitle){hSubtitle.style.display='none';hSubtitle.textContent='';}
+      // hTitle (row 1): selector de mes centrado
       var _nowH=new Date();
       var _curMYH=_nowH.getFullYear()+'-'+String(_nowH.getMonth()+1).padStart(2,'0');
       var _selMYH=S._dashMonth||_curMYH;
       var _selDH=new Date(_selMYH+'-01');
       var _mLblH=_selDH.toLocaleString('es',{month:'long',year:'numeric'});
       var _isNowH=(_selMYH===_curMYH);
-      var _monthNav='<div style="display:flex;align-items:center;gap:4px;flex-shrink:0">'
-        +'<button onclick="_navDashMonth(-1)" style="width:26px;height:26px;border-radius:8px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:15px;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit">\u2039</button>'
-        +'<span style="font-size:11px;font-weight:700;color:var(--text);min-width:80px;text-align:center">'+_mLblH+'</span>'
-        +'<button onclick="_navDashMonth(1)" style="width:26px;height:26px;border-radius:8px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:15px;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit;opacity:'+(_isNowH?'0.25':'1')+(_isNowH?';pointer-events:none':'')+'">\u203A</button>'
-        +'</div>';
       if(hTitle){
-        hTitle.style.cssText='display:flex;align-items:center;justify-content:space-between;flex:1;overflow:visible;min-width:0;gap:8px';
-        hTitle.innerHTML='<div style="min-width:0;line-height:1.2">'
-          +'<div style="font-size:10px;color:var(--text2);font-weight:500;white-space:nowrap">'+_saludo+'</div>'
-          +'<div style="font-size:16px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_nombre+'</div>'
-          +'</div>'
-          +_monthNav;
+        hTitle.style.cssText='display:flex;align-items:center;justify-content:center;flex:1;overflow:visible';
+        hTitle.innerHTML='<div style="display:flex;align-items:center;gap:5px">'
+          +'<button onclick="_navDashMonth(-1)" style="width:26px;height:26px;border-radius:8px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:15px;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit">\u2039</button>'
+          +'<span style="font-size:12px;font-weight:700;color:var(--text);min-width:90px;text-align:center">'+_mLblH+'</span>'
+          +'<button onclick="_navDashMonth(1)" style="width:26px;height:26px;border-radius:8px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:15px;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit;opacity:'+(_isNowH?'0.25':'1')+(_isNowH?';pointer-events:none':'')+'">\u203A</button>'
+          +'</div>';
       }
     }else{
       var _mpEl3=document.getElementById('page-mi-perfil');
@@ -1201,12 +1198,11 @@ function renderDashboard(){
     + '<div style="font-size:16px;font-weight:500;color:'+savColor+';font-variant-numeric:tabular-nums">'+(savings>=0?'+':'')+fmt(savings)+'</div></div>'
     + '</div>';
 
-  // Regla 50/30/20 (siempre mes actual — función no modificable)
+  // Regla 50/30/20
+  var _ruleMonthLbl = new Date(_selMY+'-01').toLocaleString('es',{month:'long'});
   html += '<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 7px">'
     + '<div style="font-size:13px;font-weight:800;color:var(--text)">Regla 50/30/20</div>'
-    + '<span style="font-size:11px;color:var(--text2)">'
-    + (_isPastMonth ? '<span style="color:var(--warning);font-size:10px">mes actual · </span>' : '')
-    + new Date().toLocaleString('es',{month:'long'})+'</span>'
+    + '<span style="font-size:11px;color:var(--text2)">'+_ruleMonthLbl+'</span>'
     + '</div>'
     + renderRule502030();
 
@@ -1215,7 +1211,7 @@ function renderDashboard(){
     ? '<div style="display:flex;align-items:center;justify-content:space-between">'
       + '<div><div style="font-size:14px;font-weight:500;color:var(--text);font-variant-numeric:tabular-nums">'
       + fmt(budgetSpent)+' / '+fmt(budgetTotal)+'</div>'
-      + '<div style="font-size:12px;color:var(--text2);margin-top:1px">gastado'+(_isPastMonth?' <span style="color:var(--warning);font-size:10px">· mes actual</span>':' este mes')+'</div></div>'
+      + '<div style="font-size:12px;color:var(--text2);margin-top:1px">gastado este mes</div></div>'
       + '<div style="text-align:right">'
       + '<div style="display:flex;gap:4px;justify-content:flex-end;margin-bottom:3px">'+budDotsHtml+'</div>'
       + '<div style="font-size:10px;color:var(--text2)">'+(budStatusTxt.length?budStatusTxt.join(' · '):'Todo en orden')+'</div>'
