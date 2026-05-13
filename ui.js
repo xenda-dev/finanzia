@@ -1042,7 +1042,12 @@ function renderDashboard(){
   var inc = _dashTxs.filter(function(t){return t.type==='ingreso'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
   var exp = _dashTxs.filter(function(t){return t.type==='gasto'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
   var savings = inc - exp;
-  var savingsPct = inc > 0 ? Math.round(savings / inc * 100) : 0;
+  // Variación del patrimonio vs mes anterior:
+  // patrimonio inicio de mes ≈ consolidated - savings del mes
+  var _patPrev = consolidated - savings;
+  var patChangePct = (_patPrev !== 0)
+    ? Math.round(Math.abs(savings) / Math.abs(_patPrev) * 100)
+    : 0;
 
   // Patrimonio siempre en moneda base (saldo acumulado, no filtrable por mes)
   var consolidated = curs.length > 1
@@ -1163,11 +1168,11 @@ function renderDashboard(){
     + fmt(consolidated,base)
     + ' <span style="font-size:13px;color:var(--text2);font-weight:400">'+base+'</span>'
     + '</div>'
-    + (inc>0?'<div style="font-size:11px;margin-top:5px;display:flex;align-items:center;gap:4px">'
+    + (_patPrev!==0&&patChangePct>0?'<div style="font-size:11px;margin-top:5px;display:flex;align-items:center;gap:4px">'
       +(savings>=0
-        ?'<span style="color:#10B981;font-weight:500">▲ +'+savingsPct+'%</span>'
-        :'<span style="color:var(--danger);font-weight:500">▼ '+savingsPct+'%</span>')
-      +'<span style="color:var(--text3);font-size:10px">vs mes ant.</span>'
+        ?'<span style="color:#10B981;font-weight:500">▲ +'+patChangePct+'%</span>'
+        :'<span style="color:var(--danger);font-weight:500">▼ -'+patChangePct+'%</span>')
+      +'<span style="color:var(--text3);font-size:10px">vs mes anterior</span>'
       +'</div>':'')
     +'</div>'
     // ── Separador vertical

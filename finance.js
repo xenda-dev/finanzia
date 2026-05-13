@@ -96,13 +96,20 @@ function renderExchangeWidget(el){
     var rStr = rate >= 1
       ? rate.toLocaleString('es',{maximumFractionDigits:4})
       : rate.toFixed(6);
-    return '1 '+selected+' = <strong style="color:var(--primary)">'+rStr+' '+cur+'</strong>';
+    return {cur:cur, rStr:rStr};
   }).filter(Boolean);
+  if(!pairs.length){el.innerHTML='';el.style.display='none';return;}
+  var cols = Math.min(3, pairs.length);
   el.style.display = '';
-  el.innerHTML = '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px">'
-    + pairs.map(function(p){ return '<span style="font-size:12px;color:var(--text2)">'+p+'</span>'; }).join('<span style="color:var(--border);font-size:12px">·</span>')
+  el.innerHTML = '<div style="display:grid;grid-template-columns:repeat('+cols+',1fr);gap:8px;margin-bottom:5px">'
+    + pairs.map(function(p){
+        return '<div>'
+          +'<div style="font-size:9px;color:var(--text3);font-weight:500;margin-bottom:2px;white-space:nowrap">1 '+selected+' =</div>'
+          +'<div style="font-size:13px;font-weight:700;color:var(--primary);white-space:nowrap">'+p.rStr+' '+p.cur+'</div>'
+          +'</div>';
+      }).join('')
     + '</div>'
-    + '<div style="font-size:10px;color:var(--text3);margin-top:3px;display:flex;align-items:center;gap:4px">'
+    + '<div style="font-size:10px;color:var(--text3);display:flex;align-items:center;gap:4px">'
     + '<span style="width:5px;height:5px;border-radius:50%;background:#10B981;display:inline-block"></span>'
     + (r.lastUpdated ? 'Actualizado ' + r.lastUpdated : '⏳ Actualizando...')
     + (r._fromStaleCache ? ' · <span style="color:var(--warning)">Última tasa disponible</span>' : '')
