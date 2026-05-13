@@ -214,6 +214,11 @@ function loadState(){
   if(!S.exchangeRate)S.exchangeRate={PLN_COP:1200,COP_PLN:0.000833,lastUpdated:''};
   if(!S.plan)S.plan='premium';
   if(!S.baseCurrency&&S.currencies&&S.currencies.length){S.baseCurrency=S.currencies[0];}
+  // Si baseCurrency no está en las divisas activas, corregir
+  if(S.baseCurrency&&S.currencies&&S.currencies.length&&!S.currencies.includes(S.baseCurrency)){
+    S.baseCurrency=S.currencies[0];
+    if(!S.currencies.includes(S.currency))S.currency=S.currencies[0];
+  }
   // Enforcement: recortar divisas si el plan activo no las permite
   var _maxCursLoad=S.plan==='premium'?Infinity:S.plan==='pro'?3:1;
   if(S.currencies&&S.currencies.length>_maxCursLoad){

@@ -47,7 +47,7 @@ async function fetchExchangeRate(){
       if(el)renderExchangeWidget(el);
       return;
     }
-    const base=curs[0];
+    const base=S.baseCurrency||curs[0];
     const result = await getExchangeRates(base);
     if(result.rates && Object.keys(result.rates).length){
       if(!S.exchangeRate)S.exchangeRate={};

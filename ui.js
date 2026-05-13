@@ -1050,7 +1050,7 @@ function renderDashboard(){
       converted = '<div style="font-size:10px;color:var(--text3);margin-top:2px">'+convStr+'</div>';
     }
     if (isBase) {
-      converted = '<div style="font-size:10px;color:var(--text3);margin-top:2px">Base</div>';
+      converted = '<div style="font-size:10px;color:var(--primary);margin-top:2px;display:flex;align-items:center;gap:2px"><span>✦</span> Base</div>';
     }
     var border = isActive
       ? '1.5px solid var(--primary)'
@@ -1060,9 +1060,17 @@ function renderDashboard(){
     var checkIcon = isActive
       ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
       : '';
+    var baseBtn = (!isBase && curs.length >= 2)
+      ? '<button onclick="event.stopPropagation();setBaseCurrency(\''+cur+'\')" '
+        + 'title="Definir como divisa base" '
+        + 'style="font-size:12px;color:var(--text3);background:transparent;border:none;'
+        + 'cursor:pointer;padding:0 2px;font-family:var(--font);line-height:1;flex-shrink:0">☆</button>'
+      : '';
     curCardsHtml += '<div onclick="setCurrency(\''+cur+'\')" style="background:'+bg+';border:'+border+';border-radius:12px;padding:10px 8px;cursor:pointer">'
       + '<div style="font-size:10px;font-weight:600;color:'+codeColor+';text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;display:flex;align-items:center;justify-content:space-between">'
-      + cur + checkIcon + '</div>'
+      + '<span>'+cur+'</span>'
+      + '<div style="display:flex;align-items:center;gap:3px">'+baseBtn+checkIcon+'</div>'
+      + '</div>'
       + '<div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.3">'
       + (meta.pos==='before' ? meta.sym : '') + fmtAmt + (meta.pos==='after' ? ' '+meta.sym : '')
       + '</div>'
@@ -1272,6 +1280,15 @@ function showUpgradePlanModal(feature){
 function openAddCurrencyModal(){
   if(typeof showCurrenciesPickerScreen==='function') showCurrenciesPickerScreen();
   else navigate('configuracion');
+}
+function setBaseCurrency(cur){
+  if(!S.currencies||!S.currencies.includes(cur))return;
+  S.baseCurrency=cur;
+  S.currency=cur;
+  saveState();
+  fetchExchangeRate();
+  if(S.currentPage==='dashboard')renderPage('dashboard');
+  toast('✦ '+cur+' establecida como divisa base');
 }
 function setPlan(plan){
   var valid={gratis:1,pro:1,premium:1};
