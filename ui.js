@@ -234,19 +234,25 @@ function _updateHeader(page){
       if(hGreeting)hGreeting.textContent=_saludo;
       if(hBigTitle)hBigTitle.textContent=getFirstName(window._currentUser)||'';
       if(hSubtitle){hSubtitle.style.display='none';hSubtitle.textContent='';}
-      // hTitle (row 1): selector de mes centrado
+      // hTitle (row 1): vac\u00EDo para dashboard
+      if(hTitle){hTitle.style.display='none';hTitle.innerHTML='';}
+      // Selector de mes en row2, misma l\u00EDnea que el nombre (hBigTitle)
       var _nowH=new Date();
       var _curMYH=_nowH.getFullYear()+'-'+String(_nowH.getMonth()+1).padStart(2,'0');
       var _selMYH=S._dashMonth||_curMYH;
       var _selDH=new Date(_selMYH+'-01');
       var _mLblH=_selDH.toLocaleString('es',{month:'long',year:'numeric'});
       var _isNowH=(_selMYH===_curMYH);
-      if(hTitle){
-        hTitle.style.cssText='display:flex;align-items:center;justify-content:center;flex:1;overflow:visible';
-        hTitle.innerHTML='<div style="display:flex;align-items:center;gap:5px">'
-          +'<button onclick="_navDashMonth(-1)" style="width:26px;height:26px;border-radius:8px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:15px;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit">\u2039</button>'
-          +'<span style="font-size:12px;font-weight:700;color:var(--text);min-width:90px;text-align:center">'+_mLblH+'</span>'
-          +'<button onclick="_navDashMonth(1)" style="width:26px;height:26px;border-radius:8px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:15px;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit;opacity:'+(_isNowH?'0.25':'1')+(_isNowH?';pointer-events:none':'')+'">\u203A</button>'
+      var _monthSel='<div style="display:flex;align-items:center;gap:5px;flex-shrink:0">'
+        +'<button onclick="_navDashMonth(-1)" style="width:28px;height:28px;border-radius:9px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:16px;font-weight:400;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit">\u2039</button>'
+        +'<span style="font-size:12px;font-weight:600;color:var(--text2);min-width:86px;text-align:center">'+_mLblH+'</span>'
+        +'<button onclick="_navDashMonth(1)" style="width:28px;height:28px;border-radius:9px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:16px;font-weight:400;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit;opacity:'+(_isNowH?'0.25':'1')+(_isNowH?';pointer-events:none':'')+'">\u203A</button>'
+        +'</div>';
+      if(hBigTitle){
+        var _nombre=getFirstName(window._currentUser)||'';
+        hBigTitle.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
+          +'<span>'+_nombre+'</span>'
+          +_monthSel
           +'</div>';
       }
     }else{
@@ -1148,7 +1154,7 @@ function renderDashboard(){
 
   // Card patrimonio
   html += '<div style="margin:-8px 0 0;background:var(--surface);border-radius:20px;'
-    + 'border:0.5px solid var(--border);padding:16px">'
+    + 'border:0.5px solid var(--border);padding:16px;box-shadow:var(--card-shadow)">'
     + '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-bottom:4px">'
     + '<span style="width:6px;height:6px;border-radius:50%;background:#10B981;display:inline-block"></span>'
     + balLabel + '</div>'
@@ -1184,15 +1190,15 @@ function renderDashboard(){
   // Ingresos / Gastos / Ahorro — grilla 3 cols
   var savColor = savings >= 0 ? '#10B981' : 'var(--danger)';
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">'
-    + '<div style="background:var(--surface);border-radius:12px;padding:11px;border:0.5px solid var(--border)">'
+    + '<div style="background:var(--surface);border-radius:12px;padding:11px;border:0.5px solid var(--border);box-shadow:var(--card-shadow)">'
     + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px">'
     + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/></svg>Ingresos</div>'
     + '<div style="font-size:16px;font-weight:500;color:#10B981;font-variant-numeric:tabular-nums">'+fmt(inc)+'</div></div>'
-    + '<div style="background:var(--surface);border-radius:12px;padding:11px;border:0.5px solid var(--border)">'
+    + '<div style="background:var(--surface);border-radius:12px;padding:11px;border:0.5px solid var(--border);box-shadow:var(--card-shadow)">'
     + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px">'
     + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/></svg>Gastos</div>'
     + '<div style="font-size:16px;font-weight:500;color:var(--danger);font-variant-numeric:tabular-nums">'+fmt(exp)+'</div></div>'
-    + '<div style="background:var(--surface);border-radius:12px;padding:11px;border:0.5px solid var(--border)">'
+    + '<div style="background:var(--surface);border-radius:12px;padding:11px;border:0.5px solid var(--border);box-shadow:var(--card-shadow)">'
     + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px">'
     + '<span style="font-size:13px">🐷</span>Ahorro</div>'
     + '<div style="font-size:16px;font-weight:500;color:'+savColor+';font-variant-numeric:tabular-nums">'+(savings>=0?'+':'')+fmt(savings)+'</div></div>'

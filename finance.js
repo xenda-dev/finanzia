@@ -550,7 +550,6 @@ function renderRule502030(){
   if(inc<=0)return`<div class="card" style="margin-bottom:12px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
       <div class="card-title" style="margin:0">📊 Regla 50/30/20</div>
-      <div style="font-size:10px;color:var(--text3)">este mes</div>
     </div>
     <div style="font-size:12px;color:var(--text2);padding:8px 0">Registra ingresos este mes para ver tu distribución ideal vs. real.</div>
   </div>`;
