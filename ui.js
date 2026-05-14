@@ -1104,6 +1104,12 @@ function renderDashboard(){
     var flag = _CUR_FLAGS[cur] || '';
     var border = isActive ? '1.5px solid var(--primary)' : '0.5px solid var(--border)';
     var codeColor = isActive ? 'var(--primary)' : 'var(--text2)';
+    var _bal = getBalanceForCurrency(cur);
+    var _absB = Math.abs(_bal);
+    var _meta = getCurrencyMeta(cur);
+    var _balStr = _absB >= 1000000
+      ? (_bal<0?'-':'')+(_absB/1000000).toFixed(1).replace(/\.0$/,'')+'M'
+      : (_bal<0?'-':'')+new Intl.NumberFormat(_meta.locale||'es',{useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0}).format(_absB);
     curPillsHtml += '<div onclick="setCurrency(\''+cur+'\')" '
       +'style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:100px;'
       +'background:var(--surface);border:'+border+';box-shadow:var(--card-shadow);cursor:pointer;overflow:hidden;min-width:0">'
@@ -1111,7 +1117,7 @@ function renderDashboard(){
       +'<span style="width:6px;height:6px;border-radius:50%;background:'+(isActive?'#10B981':'var(--border)')+';flex-shrink:0"></span>'
       +'<span style="font-size:11px;font-weight:600;text-transform:uppercase;color:'+codeColor+';flex-shrink:0">'+cur+'</span>'
       +'<span style="width:0.5px;height:12px;background:var(--border);flex-shrink:0"></span>'
-      +'<span style="font-size:11px;font-weight:600;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+fmt(getBalanceForCurrency(cur),cur)+'</span>'
+      +'<span style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;flex-shrink:0">'+_balStr+'</span>'
       +'</div>';
   });
   // Wrapper según número de divisas
