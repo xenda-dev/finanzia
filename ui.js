@@ -1171,12 +1171,12 @@ function renderDashboard(){
     }).slice(0,4);
 
   // KPI data — filtrados por S.currency (visión operativa por moneda activa)
-  // Disponible: solo cuentas activo en la moneda activa
-  var kpiDisponible = getTotalBalance(); // ya filtra por S.currency internamente
-  // Ahorrado: solo metas en la moneda activa
+  // Ahorrado: metas en la moneda activa
   var kpiAhorrado = filterDeleted(S.goals)
     .filter(function(g){return (g.currency||S.currency)===S.currency;})
     .reduce(function(s,g){return s+(parseFloat(g.current)||0);},0);
+  // Disponible: saldo libre = cuentas activo − metas (mínimo 0)
+  var kpiDisponible = Math.max(0, getTotalBalance() - kpiAhorrado);
   // Deudas: solo cuentas pasivo en la moneda activa
   var kpiDeudas = filterDeleted(S.accounts)
     .filter(function(a){return a.type==='pasivo'&&(a.currency||S.currency)===S.currency;})
