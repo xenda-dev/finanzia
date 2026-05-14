@@ -1117,11 +1117,11 @@ function renderDashboard(){
   // Pro/Premium: siempre muestra pills + botón agregar si hay cupo
   var pillsWrapper = (plan==='gratis'&&curs.length<=1)
     ? ''
-    : curs.length===2
-      ? '<div style="display:flex;gap:7px">'+curPillsHtml+'</div>'
-      : curs.length>=3
-        ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">'+curPillsHtml+'</div>'
-        : '<div style="display:flex;gap:7px">'+curPillsHtml+'</div>';
+    : curs.length===1
+      ? '<div style="display:inline-flex">'+curPillsHtml+'</div>'
+      : curs.length===2
+        ? '<div style="display:flex;gap:7px">'+curPillsHtml+'</div>'
+        : '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">'+curPillsHtml+'</div>';
 
   // Botón agregar divisa
   var addBtnHtml = '';
