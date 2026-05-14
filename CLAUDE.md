@@ -38,6 +38,55 @@
 > **Pendiente:** puntos
 > ```
 
+### Sesión 9 — 2026-05-14 (cierre del día)
+**Archivos modificados:** `ui.js`, `finance.js`, `storage.js`
+
+**Qué se hizo:**
+- **Sprint C — Dashboard completo**: `renderDashboard()` reescrita desde cero con: card patrimonio split (balance izq + KPIs der), sección "Mis Divisas" (pills con bandera+punto+código+balance), FX strip en grilla dinámica, grilla Ingresos/Gastos/Ahorro (3 cols), Regla 50/30/20, Presupuesto, Mi Día widget, Últimos movimientos.
+- **Selector de mes** `‹ mes ›` en header dashboard misma fila que el nombre. Filtra TODA la data del dashboard (Ingresos, Gastos, Ahorro, Regla, Presupuesto, Movimientos). Sin scroll al cambiar mes.
+- **Pills de divisas**: estilo pill `border-radius:100px` con bandera emoji, punto verde (base) / gris (otras), código divisa, separador y balance. Layout: 1→full, 2→flex fila, 3-4→grid 2x2.
+- **Límites de plan actualizados**: Gratis=1 divisa, Pro=2, Premium=4. Aplicado en todos los selectores, contadores y restricciones.
+- **`setCurrency(c)`**: ahora también actualiza `S.baseCurrency` — tocar una pill cambia base Y activa, todo el dashboard (incluyendo patrimonio) refleja la moneda seleccionada.
+- **`setBaseCurrency(cur)`**: función nueva. **`setPlan(plan)`**: función nueva con switcher ✦★∞ inyectado en drawer (row 3 del grid, sin tocar index.html).
+- **Badge de plan en drawer**: inyectado dinámicamente con switcher de plan para testing.
+- **Fórmulas financieras corregidas**:
+  - Patrimonio = activos_cuentas − deudas(todas divisas→base) + inversiones
+  - Disponible KPI = `getTotalBalance()` solo en `S.currency` activa
+  - Ahorrado/Deudas/Cuentas KPI = solo en `S.currency` activa
+  - Metas NO se suman al patrimonio (dinero ya en cuentas activo — no doble conteo)
+  - `_patPrev` corregido: orden de definición de variables corregido (NaN bug)
+  - `debtTotal`: incluye TODOS los pasivos de cualquier moneda convertidos a base
+  - `investmentsTotal`: suma `currentValue||capital` de S.investments → base
+- **`renderExchangeWidget`**: grilla dinámica `repeat(N,1fr)` según pares. Separador de miles con regex (garantizado en Android, ej. 1.050 COP).
+- **`renderRule502030(refDate)` y `getBudgetSpent(b, refDate)`**: parámetro opcional de fecha para filtrar por mes del selector.
+- **`_renderMiDiaWidget` rediseñado**: pills siempre `flex:1` iguales, panel de detalle full-width debajo. Sin scroll al tap (actualiza solo `#midiawgt`). Diseño uniforme con demás cards.
+- **`logHabit()` 3 bugs corregidos**: desmarcar→streak-1 (no destruir a 0), lastLog='' al desmarcar, navega a dashboard no objetivos.
+- **`openNewTaskForm()`**: nueva función → llama `_showCustomTaskBS()` con fecha hoy.
+- **`_savePickerCurrencies`**: usa `navigate(S.currentPage)` → vuelve a página anterior con header correcto (bug: iba siempre a configuración con header incorrecto).
+- **Restricciones de plan reales**: `toggleCurrency`, `_toggleCurBS`, `_togglePickerCur` con límites dinámicos por plan.
+- **`loadState()` safety net**: recorta divisas respetando `baseCurrency` al bajar de plan.
+- **Títulos de sección uniformes**: `font-size:13px;font-weight:800;color:var(--text)` igual que "Mi día" en Regla, Presupuesto, Últimos movimientos.
+- **Regla 50/30/20**: "este mes" removido del estado sin-ingresos.
+
+**Decisiones de Jorge:**
+- Gratis=1, Pro=2, Premium=4 divisas.
+- Tap en currency card = establece AMBAS (activa Y base) — todo cambia a esa moneda.
+- KPIs (Disponible/Ahorrado/Deudas/Cuentas) muestran SOLO la moneda activa (visión operativa por divisa, no conversiones).
+- Patrimonio sigue siendo global (convierte todo a base para visión de riqueza total).
+- Metas no se suman al patrimonio — el dinero ya está en cuentas activo (sin doble conteo).
+- % patrimonio = variación real vs mes anterior (`savings / abs(patrimony - savings)`).
+- Movimientos recientes en dashboard: todos del mes seleccionado, sin filtro de moneda.
+- `fmtC` revertido — números completos siempre (sin formato compacto 89.5M).
+- Landing page: pendiente actualizar tabla de planes con diferencias de divisas.
+
+**Pendiente:**
+- **Landing page**: actualizar sección de planes (finanzia.xenda.co/landing) con los nuevos límites: Gratis=1 divisa, Pro=2, Premium=4 — y las diferencias entre planes.
+- Sprint D: Movimientos — diseño Claude Design pendiente. Feature "foreign currency transaction" (cobro en EUR, pago con cuenta COP).
+- Bug sync sesión 8 pendiente: `saveState()` gate `_supabaseSynced` bloquea sync de preferencias críticas.
+- i18n completo, Emiliano IA real, Monetización SaaS.
+
+---
+
 ### Sesión 8 — 2026-05-01 (cierre del día)
 **Archivos modificados:** `ui.js`, `storage.js`, `auth.js`, `app.js`, `index.html`, `sw.js`, `finance.js`
 
