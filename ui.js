@@ -2224,10 +2224,16 @@ function txRow(t){
   const cls=t.type==='ingreso'?'inc':t.type==='gasto'?'exp':'tra';
   const name=t.type==='transferencia'?`${getAcc(t.accountId)?.name||'?'} → ${getAcc(t.toAccountId)?.name||'?'}`:(cat?cat.name:'Sin categoría');
   const subName=sub?sub.name:(acc?acc.name:'');
+  const _base=S.baseCurrency||(S.currencies&&S.currencies[0])||S.currency;
+  const _showConv=t.currency!==_base&&t.type!=='transferencia';
+  const _convAmt=_showConv?(t.exchangeRate?(parseFloat(t.amount)||0)*t.exchangeRate:convertToBase(parseFloat(t.amount)||0,t.currency)):0;
   return`<div class="tx-item" onclick="openModal('viewTx',{id:'${t.id}'})">
     <div class="tx-icon" style="background:${color}22">${icon}</div>
     <div class="tx-info"><div class="tx-name">${name}</div><div class="tx-sub">${subName?subName+' · ':''}${fmtDate(t.date)}${t.paymentMethod?' · '+t.paymentMethod:''}</div></div>
-    <div class="tx-amount ${cls}">${sign}${fmt(t.amount,t.currency)}</div>
+    <div style="text-align:right;flex-shrink:0">
+      <div class="tx-amount ${cls}">${sign}${fmt(t.amount,t.currency)}</div>
+      ${_showConv?`<div style="font-size:10px;color:var(--text3);margin-top:1px;white-space:nowrap">≈ ${sign}${fmt(_convAmt,_base)}</div>`:''}
+    </div>
   </div>`;
 }
 
@@ -2236,7 +2242,8 @@ function txRow(t){
 // ════════════════════════════════════════════════════════════
 function renderMovimientos(){
   const f=S.movFilter;
-  let txs=[...filterDeleted(S.transactions)].filter(t=>t.currency===S.currency).sort((a,b)=>{const dd=new Date(b.date)-new Date(a.date);if(dd!==0)return dd;return b.id>a.id?1:-1;});
+  const _mvBase=S.baseCurrency||(S.currencies&&S.currencies[0])||S.currency;
+  let txs=[...filterDeleted(S.transactions)].sort((a,b)=>{const dd=new Date(b.date)-new Date(a.date);if(dd!==0)return dd;return b.id>a.id?1:-1;});
   if(f.tab!=='todos')txs=txs.filter(t=>t.type===f.tab);
   if(f.search){const q=f.search.toLowerCase();txs=txs.filter(t=>{const cat=getCat(t.categoryId);const acc=getAcc(t.accountId);return(cat&&cat.name.toLowerCase().includes(q))||(acc&&acc.name.toLowerCase().includes(q))||(t.description&&t.description.toLowerCase().includes(q));});}
   if(f.dateFrom)txs=txs.filter(t=>t.date>=f.dateFrom);
@@ -2245,7 +2252,12 @@ function renderMovimientos(){
   if(f.accountId)txs=txs.filter(t=>t.accountId===f.accountId||t.toAccountId===f.accountId);
   if(f.payMethod)txs=txs.filter(t=>t.paymentMethod===f.payMethod);
   const hasFilters=f.dateFrom||f.dateTo||f.catId||f.accountId||f.payMethod;
-  const total=txs.reduce((s,t)=>{const v=parseFloat(t.amount)||0;return t.type==='ingreso'?s+v:t.type==='gasto'?s-v:s;},0);
+  const total=txs.reduce((s,t)=>{
+    if(t.type==='transferencia')return s;
+    var amt=parseFloat(t.amount)||0;
+    var amtBase=t.currency===_mvBase?amt:(t.exchangeRate?amt*t.exchangeRate:convertToBase(amt,t.currency));
+    return t.type==='ingreso'?s+amtBase:s-amtBase;
+  },0);
   return`
     <div class="search-bar">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -2256,7 +2268,7 @@ function renderMovimientos(){
     <div class="chip-row" style="margin-bottom:10px">
       ${['todos','ingreso','gasto','transferencia'].map(tab=>`<button class="chip ${f.tab===tab?'active':''}" onclick="S.movFilter.tab='${tab}';renderPage('movimientos')">${tab==='todos'?'Todos':tab==='ingreso'?'Ingresos':tab==='gasto'?'Gastos':'Transferencias'}</button>`).join('')}
     </div>
-    ${txs.length>0?`<div style="font-size:12px;color:var(--text2);margin-bottom:10px">${txs.length} movimientos · Balance: <span style="color:${total>=0?'var(--success)':'var(--danger)'};font-weight:700">${fmt(total)}</span></div>`:''}
+    ${txs.length>0?`<div style="font-size:12px;color:var(--text2);margin-bottom:10px">${txs.length} movimientos · Balance: <span style="color:${total>=0?'var(--success)':'var(--danger)'};font-weight:700">${fmt(total,_mvBase)}</span></div>`:''}
     ${txs.length?txs.map(txRow).join(''):'<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Nada con ese filtro</div><div class="empty-desc">Prueba cambiando la búsqueda</div></div>'}
   `;
 }
@@ -8938,11 +8950,15 @@ function buildViewTxModal(data){
   const cat=getCat(tx.categoryId);const sub=getSub(tx.subcategoryId);const acc=getAcc(tx.accountId);const toAcc=getAcc(tx.toAccountId);
   const sign=tx.type==='ingreso'?'+':tx.type==='gasto'?'−':'↔';
   const color=tx.type==='ingreso'?'var(--success)':tx.type==='gasto'?'var(--danger)':'var(--secondary)';
+  const _vtBase=S.baseCurrency||(S.currencies&&S.currencies[0])||S.currency;
+  const _vtShowConv=tx.currency!==_vtBase&&tx.type!=='transferencia';
+  const _vtConvAmt=_vtShowConv?(tx.exchangeRate?(parseFloat(tx.amount)||0)*tx.exchangeRate:convertToBase(parseFloat(tx.amount)||0,tx.currency)):0;
   return`<div class="modal-header"><div class="modal-title">Detalle</div><button class="modal-close" onclick="closeModal()">×</button></div>
   <div class="modal-body">
     <div style="text-align:center;padding:16px 0 20px">
       <div style="font-size:44px;margin-bottom:8px">${tx.type==='transferencia'?'↔️':(cat?cat.icon:'📦')}</div>
       <div style="font-size:30px;font-weight:800;color:${color}">${sign}${fmt(tx.amount,tx.currency)}</div>
+      ${_vtShowConv?`<div style="font-size:14px;color:var(--text2);margin-top:4px">≈ ${sign}${fmt(_vtConvAmt,_vtBase)}</div>`:''}
       <div style="font-size:13px;color:var(--text2);margin-top:4px">${tx.type==='transferencia'?'Transferencia':(cat?cat.icon+' '+cat.name:'Sin categoría')}</div>
     </div>
     <div class="card">
