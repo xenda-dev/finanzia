@@ -1042,19 +1042,37 @@ function renderDashboard(){
   var inc = _dashTxs.filter(function(t){return t.type==='ingreso'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
   var exp = _dashTxs.filter(function(t){return t.type==='gasto'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
   var savings = inc - exp;
-  // Variación del patrimonio vs mes anterior:
-  // patrimonio inicio de mes ≈ consolidated - savings del mes
-  var _patPrev = consolidated - savings;
-  var patChangePct = (_patPrev !== 0)
-    ? Math.round(Math.abs(savings) / Math.abs(_patPrev) * 100)
-    : 0;
 
-  // Patrimonio siempre en moneda base (saldo acumulado, no filtrable por mes)
+  // ── Cálculos de patrimonio (no filtrables por mes — saldo acumulado) ──
+  // Activos líquidos: suma de todas las cuentas activo convertidas a base
   var consolidated = curs.length > 1
     ? getConsolidatedBalance(base)
     : getTotalBalance();
 
-  // Etiqueta balance — siempre "Patrimonio total"
+  // Deudas: TODOS los pasivos en cualquier moneda, convertidos a base
+  var debtTotal = filterDeleted(S.accounts)
+    .filter(function(a){return a.type==='pasivo';})
+    .reduce(function(s,a){
+      return s+convertToBase(Math.abs(getBalance(a.id)),a.currency||S.currency);
+    },0);
+
+  // Inversiones: valor actual (o capital) de cada inversión, convertido a base
+  var investmentsTotal = filterDeleted(S.investments||[])
+    .reduce(function(s,inv){
+      var val=parseFloat(inv.currentValue)||parseFloat(inv.capital)||0;
+      return s+convertToBase(val,inv.currency||S.currency);
+    },0);
+
+  // Patrimonio neto = activos - deudas + inversiones
+  var patrimony = consolidated - debtTotal + investmentsTotal;
+
+  // Variación del patrimonio vs mes anterior (inicio de mes ≈ patrimony - savings)
+  var _patPrev = patrimony - savings;
+  var patChangePct = (_patPrev !== 0)
+    ? Math.round(Math.abs(savings) / Math.abs(_patPrev) * 100)
+    : 0;
+
+  // Etiqueta balance
   var balLabel = 'Patrimonio total';
 
   // Badge de plan
@@ -1139,18 +1157,15 @@ function renderDashboard(){
       return dd!==0?dd:(b.id>a.id?1:-1);
     }).slice(0,4);
 
-  // KPI data
-  var _bal = getTotalBalance();
-  // Todas las metas convertidas a la moneda base (fix disponible en todas las divisas)
+  // KPI data — usa variables ya calculadas arriba (consolidated, debtTotal, investmentsTotal)
+  // totalGoalSavings: informativo — dinero comprometido en metas (ya está en cuentas activo)
   var totalGoalSavings = filterDeleted(S.goals)
     .reduce(function(s,g){
-      return s+convertToBase(parseFloat(g.current)||0, g.currency||S.currency);
+      return s+convertToBase(parseFloat(g.current)||0,g.currency||S.currency);
     },0);
-  var debtTotal = filterDeleted(S.accounts)
-    .filter(function(a){return a.type==='pasivo'&&(a.currency||S.currency)===S.currency;})
-    .reduce(function(s,a){return s+Math.abs(getBalance(a.id));},0);
+  // Cuentas activas: total todas las monedas
   var activeAccCount = filterDeleted(S.accounts)
-    .filter(function(a){return a.type==='activo'&&(a.currency||S.currency)===S.currency;})
+    .filter(function(a){return a.type==='activo';})
     .length;
 
   // ── HTML ─────────────────────────────────────────
@@ -1166,9 +1181,9 @@ function renderDashboard(){
     + '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-bottom:4px">'
     + '<span style="width:6px;height:6px;border-radius:50%;background:#10B981;display:inline-block;flex-shrink:0"></span>'
     + balLabel+'</div>'
-    + '<div style="font-size:22px;font-weight:500;color:var(--text);letter-spacing:-.5px;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
-    + fmtC(consolidated,base)
-    + ' <span style="font-size:12px;color:var(--text2);font-weight:400">'+base+'</span>'
+    + '<div style="font-size:20px;font-weight:500;color:var(--text);letter-spacing:-.5px;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+    + fmt(patrimony,base)
+    + ' <span style="font-size:11px;color:var(--text2);font-weight:400">'+base+'</span>'
     + '</div>'
     + (_patPrev!==0&&patChangePct>0?'<div style="font-size:11px;margin-top:5px;display:flex;align-items:center;gap:4px">'
       +(savings>=0
@@ -1184,15 +1199,15 @@ function renderDashboard(){
     +'<div onclick="openModal(\'balanceDistribution\',{})" style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
     +'<span style="font-size:13px;width:18px;text-align:center">💎</span>'
     +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Disponible</div>'
-    +'<div style="font-size:12px;font-weight:600;color:var(--primary);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmtC(Math.max(0,consolidated-totalGoalSavings),base)+'</div></div></div>'
+    +'<div style="font-size:12px;font-weight:600;color:var(--primary);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(consolidated,base)+'</div></div></div>'
     +'<div onclick="navigate(\'metas\')" style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
     +'<span style="font-size:13px;width:18px;text-align:center">🎯</span>'
     +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Ahorrado</div>'
-    +'<div style="font-size:12px;font-weight:600;color:var(--secondary);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmtC(totalGoalSavings)+'</div></div></div>'
+    +'<div style="font-size:12px;font-weight:600;color:var(--secondary);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(totalGoalSavings,base)+'</div></div></div>'
     +'<div onclick="navigate(\'deudas\')" style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
     +'<span style="font-size:13px;width:18px;text-align:center">💸</span>'
     +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Deudas</div>'
-    +'<div style="font-size:12px;font-weight:600;color:var(--danger);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmtC(debtTotal)+'</div></div></div>'
+    +'<div style="font-size:12px;font-weight:600;color:var(--danger);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(debtTotal,base)+'</div></div></div>'
     +'<div onclick="navigate(\'cuentas\')" style="display:flex;align-items:center;gap:6px;padding:5px 0;cursor:pointer">'
     +'<span style="font-size:13px;width:18px;text-align:center">💳</span>'
     +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Cuentas</div>'
@@ -1222,15 +1237,15 @@ function renderDashboard(){
     + '<div style="background:var(--surface);border-radius:12px;padding:11px;border:0.5px solid var(--border);box-shadow:var(--card-shadow)">'
     + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px">'
     + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/></svg>Ingresos</div>'
-    + '<div style="font-size:15px;font-weight:500;color:#10B981;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmtC(inc)+'</div></div>'
+    + '<div style="font-size:15px;font-weight:500;color:#10B981;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(inc)+'</div></div>'
     + '<div style="background:var(--surface);border-radius:12px;padding:11px;border:0.5px solid var(--border);box-shadow:var(--card-shadow)">'
     + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px">'
     + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/></svg>Gastos</div>'
-    + '<div style="font-size:15px;font-weight:500;color:var(--danger);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmtC(exp)+'</div></div>'
+    + '<div style="font-size:15px;font-weight:500;color:var(--danger);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(exp)+'</div></div>'
     + '<div style="background:var(--surface);border-radius:12px;padding:11px;border:0.5px solid var(--border);box-shadow:var(--card-shadow)">'
     + '<div style="font-size:11px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px">'
     + '<span style="font-size:13px">🐷</span>Ahorro</div>'
-    + '<div style="font-size:15px;font-weight:500;color:'+savColor+';font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(savings>=0?'+':'')+fmtC(savings)+'</div></div>'
+    + '<div style="font-size:15px;font-weight:500;color:'+savColor+';font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(savings>=0?'+':'')+fmt(savings)+'</div></div>'
     + '</div>';
 
 

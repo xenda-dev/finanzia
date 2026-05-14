@@ -93,15 +93,19 @@ function renderExchangeWidget(el){
       rate = (rates[selected]&&rates[cur]) ? rates[cur]/rates[selected] : null;
     }
     if(!rate) return null;
-    var rStr = rate>=1000
-      ? rate.toLocaleString('es',{maximumFractionDigits:0})
-      : rate>=10
-        ? rate.toLocaleString('es',{maximumFractionDigits:1})
-        : rate>=1
-          ? rate.toLocaleString('es',{maximumFractionDigits:2})
-          : rate>=0.01
-            ? rate.toFixed(4)
-            : rate.toFixed(6);
+    var rStr;
+    if(rate>=1000){
+      // Separador de miles con punto (español) — regex garantizado en todos los dispositivos
+      rStr=Math.round(rate).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+    }else if(rate>=10){
+      rStr=rate.toFixed(1).replace('.',',');
+    }else if(rate>=1){
+      rStr=rate.toFixed(2).replace('.',',');
+    }else if(rate>=0.01){
+      rStr=rate.toFixed(4).replace('.',',');
+    }else{
+      rStr=rate.toFixed(6).replace('.',',');
+    }
     return {cur:cur, rStr:rStr};
   }).filter(Boolean);
   if(!pairs.length){el.innerHTML='';el.style.display='none';return;}
