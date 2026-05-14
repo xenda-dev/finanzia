@@ -1308,27 +1308,7 @@ function renderDashboard(){
     + '</div>';
 
   if (recentTxs.length) {
-    html += recentTxs.map(function(tx) {
-      var txCur = tx.currency || S.currency;
-      var isBaseCur = txCur === base;
-      var baseRow = txRow(tx);
-      if (!isBaseCur && curs.length > 1) {
-        var rate = tx.exchangeRate || null;
-        var convAmt = rate
-          ? Math.abs(tx.amount) * rate
-          : convertToBase(Math.abs(tx.amount), txCur);
-        var baseMeta = getCurrencyMeta(base);
-        var convFmt = convAmt.toLocaleString(baseMeta.locale||'es',{minimumFractionDigits:0,maximumFractionDigits:0});
-        var convStr = (tx.amount<0?'≈ -':'≈ ')+(baseMeta.pos==='before'?baseMeta.sym:'')+convFmt+(baseMeta.pos==='after'?' '+baseMeta.sym:'');
-        var rateLabel = rate && tx.date
-          ? '<span style="font-size:9px;color:var(--text3);opacity:.7">tasa del '+tx.date+'</span>'
-          : '';
-        baseRow = '<div style="position:relative">' + baseRow
-          + '<div style="font-size:10px;color:var(--text2);text-align:right;margin-top:-6px;padding-right:2px;padding-bottom:4px">'
-          + convStr + (rateLabel?' '+rateLabel:'') + '</div></div>';
-      }
-      return baseRow;
-    }).join('');
+    html += recentTxs.map(txRow).join('');
   } else {
     html += '<div class="empty-state"><div class="empty-icon">📭</div>'
       + '<div class="empty-title">Aquí vivirán tus movimientos</div>'
