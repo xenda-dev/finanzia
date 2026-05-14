@@ -7132,7 +7132,7 @@ function renderConfiguracion(){
       cfgRow('rgba(245,158,11,.12)',svgCal,'Inicio de semana',wkLabel,'showBS_week()',false,false),
       cfgRow('rgba(0,212,170,.12)',svgCur,'Monedas activas',curLabel,'showCurrenciesPickerScreen()',false,false),
       cfgRow('rgba(116,97,239,.12)',svgDateFmt,'Formato de fecha',(S.dateFormat||'DD/MM/YYYY'),'showBS_dateFmt()',false,false),
-      cfgRow('rgba(16,185,129,.12)',svgTimeFmt,'Formato de hora',((S.timeFormat||'24h')==='24h'?'24 horas':'12 horas')+' · Se aplica en listas y tareas','showBS_timeFmt()',true,false)
+      cfgRow('rgba(16,185,129,.12)',svgTimeFmt,'Formato de hora',((S.timeFormat||'24h')==='24h'?'24 horas':'12 horas'),'showBS_timeFmt()',true,false)
     ])
     // Apariencia
     +secLbl('Apariencia')
