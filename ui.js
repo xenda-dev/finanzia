@@ -11,8 +11,10 @@ function applyThemeMode(){
   if(btn)btn.textContent=effective==='dark'?'☀️':'🌙';
 }
 function buildNumFormatCaps(){
-  var opts=[['auto','Automático'],['2','Con decimales'],['0','Sin decimales']];
-  var cur=S.numFormat||'auto';
+  var cur=(!S.numFormat||S.numFormat==='auto')?'2':S.numFormat;
+  var meta=getCurrencyMeta(S.currency||(S.currencies&&S.currencies[0])||'USD');
+  function ex(d){try{return new Intl.NumberFormat(meta.locale,{useGrouping:true,minimumFractionDigits:d,maximumFractionDigits:d}).format(1500);}catch(e){return d===2?'1.500,00':'1.500';}}
+  var opts=[['2',ex(2)],['0',ex(0)]];
   return opts.map(function(o){
     var isOn=cur===o[0];
     return '<button onclick="setNumFormat(\''+o[0]+'\')" style="flex:1;padding:8px 4px;border-radius:50px;border:none;background:'+(isOn?'var(--primary)':'transparent')+';color:'+(isOn?'white':'var(--text2)')+';font-size:12px;font-weight:'+(isOn?'700':'500')+';cursor:pointer;font-family:var(--font);transition:.15s">'+o[1]+'</button>';
@@ -7129,7 +7131,7 @@ function renderConfiguracion(){
       cfgRow('rgba(59,130,246,.12)',svgLang,'Idioma',langCurrent?langCurrent.flag+' '+langCurrent.label:'Seleccionar','showLangPickerScreen()',false,false),
       cfgRow('rgba(245,158,11,.12)',svgCal,'Inicio de semana',wkLabel,'showBS_week()',false,false),
       cfgRow('rgba(0,212,170,.12)',svgCur,'Monedas activas',curLabel,'showCurrenciesPickerScreen()',false,false),
-      cfgRow('rgba(116,97,239,.12)',svgDateFmt,'Formato de fecha',(S.dateFormat||'DD/MM/YYYY')+' · Se aplica en listas y reportes','showBS_dateFmt()',false,false),
+      cfgRow('rgba(116,97,239,.12)',svgDateFmt,'Formato de fecha',(S.dateFormat||'DD/MM/YYYY'),'showBS_dateFmt()',false,false),
       cfgRow('rgba(16,185,129,.12)',svgTimeFmt,'Formato de hora',((S.timeFormat||'24h')==='24h'?'24 horas':'12 horas')+' · Se aplica en listas y tareas','showBS_timeFmt()',true,false)
     ])
     // Apariencia
@@ -7142,7 +7144,6 @@ function renderConfiguracion(){
           +'<div style="font-size:13px;font-weight:700;color:var(--text)">Formato de moneda</div>'
         +'</div>'
         +'<div style="background:var(--surface);border:1.5px solid var(--border);border-radius:50px;padding:3px;display:flex;gap:2px">'+fmtSegs+'</div>'
-        +'<div style="font-size:11px;color:var(--text2);margin-top:6px">Ejemplo: <strong>'+buildNumFormatExample()+'</strong></div>'
       +'</div>'
     ])
     // Sistema
