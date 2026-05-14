@@ -1107,9 +1107,7 @@ function renderDashboard(){
     var _bal = getBalanceForCurrency(cur);
     var _absB = Math.abs(_bal);
     var _meta = getCurrencyMeta(cur);
-    var _balStr = _absB >= 1000000
-      ? (_bal<0?'-':'')+(_absB/1000000).toFixed(1).replace(/\.0$/,'')+'M'
-      : (_bal<0?'-':'')+new Intl.NumberFormat(_meta.locale||'es',{useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0}).format(_absB);
+    var _balStr = (_bal<0?'-':'')+new Intl.NumberFormat(_meta.locale||'es',{useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0}).format(_absB);
     curPillsHtml += '<div onclick="setCurrency(\''+cur+'\')" '
       +'style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:100px;'
       +'background:var(--surface);border:'+border+';box-shadow:var(--card-shadow);cursor:pointer;overflow:hidden;min-width:0">'
