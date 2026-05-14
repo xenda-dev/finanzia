@@ -1068,10 +1068,21 @@ function renderDashboard(){
   // Patrimonio neto = activos - deudas + inversiones
   var patrimony = consolidated - debtTotal + investmentsTotal;
 
-  // Variación del patrimonio vs mes anterior (inicio de mes ≈ patrimony - savings)
-  var _patPrev = patrimony - savings;
+  // Flujo neto del mes en moneda base (todas las divisas) para % vs mes anterior
+  var _savingsBase = filterDeleted(S.transactions).filter(function(t){
+    var d=new Date(t.date);
+    return d>=_dashFrom&&d<=_dashTo&&!isInternalTransaction(t);
+  }).reduce(function(s,t){
+    var amt=parseFloat(t.amount)||0;
+    if(t.type==='ingreso')return s+convertToBase(amt,t.currency||base);
+    if(t.type==='gasto')return s-convertToBase(amt,t.currency||base);
+    return s;
+  },0);
+
+  // Variación del patrimonio vs mes anterior (inicio de mes ≈ patrimony - savingsBase)
+  var _patPrev = patrimony - _savingsBase;
   var patChangePct = (_patPrev !== 0)
-    ? Math.round(Math.abs(savings) / Math.abs(_patPrev) * 100)
+    ? Math.round(Math.abs(_savingsBase) / Math.abs(_patPrev) * 100)
     : 0;
 
   // Etiqueta balance
@@ -1170,10 +1181,12 @@ function renderDashboard(){
   var kpiDeudas = filterDeleted(S.accounts)
     .filter(function(a){return a.type==='pasivo'&&(a.currency||S.currency)===S.currency;})
     .reduce(function(s,a){return s+Math.abs(getBalance(a.id));},0);
-  // Cuentas: solo cuentas activo en la moneda activa
-  var kpiCuentas = filterDeleted(S.accounts)
-    .filter(function(a){return a.type==='activo'&&(a.currency||S.currency)===S.currency;})
-    .length;
+  var kpiInvertido = filterDeleted(S.investments||[])
+    .filter(function(inv){return (inv.currency||S.currency)===S.currency;})
+    .reduce(function(s,inv){
+      var val=parseFloat(inv.currentValue)||parseFloat(inv.capital)||0;
+      return s+val;
+    },0);
 
   // ── HTML ─────────────────────────────────────────
   setTimeout(function(){ _updateNotifBadge(); }, 0);
@@ -1193,7 +1206,7 @@ function renderDashboard(){
     + ' <span style="font-size:11px;color:var(--text2);font-weight:400">'+base+'</span>'
     + '</div>'
     + (_patPrev!==0&&patChangePct>0?'<div style="font-size:11px;margin-top:5px;display:flex;align-items:center;gap:4px">'
-      +(savings>=0
+      +(_savingsBase>=0
         ?'<span style="color:#10B981;font-weight:500">▲ +'+patChangePct+'%</span>'
         :'<span style="color:var(--danger);font-weight:500">▼ -'+patChangePct+'%</span>')
       +'<span style="color:var(--text3);font-size:10px">vs mes anterior</span>'
@@ -1211,14 +1224,14 @@ function renderDashboard(){
     +'<span style="font-size:13px;width:18px;text-align:center">🎯</span>'
     +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Ahorrado</div>'
     +'<div style="font-size:12px;font-weight:600;color:var(--secondary);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(kpiAhorrado)+'</div></div></div>'
-    +'<div onclick="navigate(\'deudas\')" style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
+    +'<div onclick="navigate(\'inversiones\')" style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
+    +'<span style="font-size:13px;width:18px;text-align:center">📈</span>'
+    +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Invertido</div>'
+    +'<div style="font-size:12px;font-weight:600;color:#3B82F6;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(kpiInvertido)+'</div></div></div>'
+    +'<div onclick="navigate(\'deudas\')" style="display:flex;align-items:center;gap:6px;padding:5px 0;cursor:pointer">'
     +'<span style="font-size:13px;width:18px;text-align:center">💸</span>'
     +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Deudas</div>'
     +'<div style="font-size:12px;font-weight:600;color:var(--danger);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(kpiDeudas)+'</div></div></div>'
-    +'<div onclick="navigate(\'cuentas\')" style="display:flex;align-items:center;gap:6px;padding:5px 0;cursor:pointer">'
-    +'<span style="font-size:13px;width:18px;text-align:center">💳</span>'
-    +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Cuentas</div>'
-    +'<div style="font-size:12px;font-weight:600;color:#3B82F6;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+kpiCuentas+' cuentas</div></div></div>'
     +'</div>'
     +'</div>';
 
