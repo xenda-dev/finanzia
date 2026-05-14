@@ -2206,7 +2206,7 @@ function txRow(t){
   const subName=sub?sub.name:(acc?acc.name:'');
   const _base=S.baseCurrency||(S.currencies&&S.currencies[0])||S.currency;
   const _showConv=t.currency!==_base&&t.type!=='transferencia';
-  const _convAmt=_showConv?(t.exchangeRate?(parseFloat(t.amount)||0)*t.exchangeRate:convertToBase(parseFloat(t.amount)||0,t.currency)):0;
+  const _convAmt=_showConv?convertToBase(parseFloat(t.amount)||0,t.currency):0;
   return`<div class="tx-item" onclick="openModal('viewTx',{id:'${t.id}'})">
     <div class="tx-icon" style="background:${color}22">${icon}</div>
     <div class="tx-info"><div class="tx-name">${name}</div><div class="tx-sub">${subName?subName+' · ':''}${fmtDate(t.date)}${t.paymentMethod?' · '+t.paymentMethod:''}</div></div>
@@ -2235,7 +2235,7 @@ function renderMovimientos(){
   const total=txs.reduce((s,t)=>{
     if(t.type==='transferencia')return s;
     var amt=parseFloat(t.amount)||0;
-    var amtBase=t.currency===_mvBase?amt:(t.exchangeRate?amt*t.exchangeRate:convertToBase(amt,t.currency));
+    var amtBase=t.currency===_mvBase?amt:convertToBase(amt,t.currency);
     return t.type==='ingreso'?s+amtBase:s-amtBase;
   },0);
   return`
@@ -8932,7 +8932,7 @@ function buildViewTxModal(data){
   const color=tx.type==='ingreso'?'var(--success)':tx.type==='gasto'?'var(--danger)':'var(--secondary)';
   const _vtBase=S.baseCurrency||(S.currencies&&S.currencies[0])||S.currency;
   const _vtShowConv=tx.currency!==_vtBase&&tx.type!=='transferencia';
-  const _vtConvAmt=_vtShowConv?(tx.exchangeRate?(parseFloat(tx.amount)||0)*tx.exchangeRate:convertToBase(parseFloat(tx.amount)||0,tx.currency)):0;
+  const _vtConvAmt=_vtShowConv?convertToBase(parseFloat(tx.amount)||0,tx.currency):0;
   return`<div class="modal-header"><div class="modal-title">Detalle</div><button class="modal-close" onclick="closeModal()">×</button></div>
   <div class="modal-body">
     <div style="text-align:center;padding:16px 0 20px">
