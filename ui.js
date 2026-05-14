@@ -1113,14 +1113,15 @@ function renderDashboard(){
       +'<span style="font-size:12px;font-weight:700;text-transform:uppercase;color:'+codeColor+'">'+cur+'</span>'
       +'</div>';
   });
-  // Plan Gratis: sin pills (solo 1 divisa, no hay nada que seleccionar)
-  // Plan Pro: 2 pills al 50/50
-  // Plan Premium: grid 2x2
-  var pillsWrapper = curs.length<=1
+  // Plan Gratis: sin pills (1 divisa fija, no hay selector ni botón agregar)
+  // Pro/Premium: siempre muestra pills + botón agregar si hay cupo
+  var pillsWrapper = (plan==='gratis'&&curs.length<=1)
     ? ''
     : curs.length===2
       ? '<div style="display:flex;gap:7px">'+curPillsHtml+'</div>'
-      : '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">'+curPillsHtml+'</div>';
+      : curs.length>=3
+        ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">'+curPillsHtml+'</div>'
+        : '<div style="display:flex;gap:7px">'+curPillsHtml+'</div>';
 
   // Botón agregar divisa
   var addBtnHtml = '';
