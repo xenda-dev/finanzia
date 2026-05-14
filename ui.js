@@ -1104,17 +1104,20 @@ function renderDashboard(){
     var flag = _CUR_FLAGS[cur] || '';
     var border = isActive ? '1.5px solid var(--primary)' : '0.5px solid var(--border)';
     var codeColor = isActive ? 'var(--primary)' : 'var(--text2)';
+    var pillFlex = curs.length===2 ? 'flex:1;justify-content:center;' : '';
     curPillsHtml += '<div onclick="setCurrency(\''+cur+'\')" '
       +'style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:100px;'
-      +'background:var(--surface);border:'+border+';box-shadow:var(--card-shadow);cursor:pointer">'
+      +'background:var(--surface);border:'+border+';box-shadow:var(--card-shadow);cursor:pointer;'+pillFlex+'">'
       +(flag?'<span style="font-size:16px;line-height:1">'+flag+'</span>':'')
       +'<span style="width:6px;height:6px;border-radius:50%;background:'+(isActive?'#10B981':'var(--border)')+'"></span>'
       +'<span style="font-size:12px;font-weight:700;text-transform:uppercase;color:'+codeColor+'">'+cur+'</span>'
       +'</div>';
   });
-  // Wrapper según número de divisas
+  // Plan Gratis: sin pills (solo 1 divisa, no hay nada que seleccionar)
+  // Plan Pro: 2 pills al 50/50
+  // Plan Premium: grid 2x2
   var pillsWrapper = curs.length<=1
-    ? '<div style="display:flex">'+curPillsHtml+'</div>'
+    ? ''
     : curs.length===2
       ? '<div style="display:flex;gap:7px">'+curPillsHtml+'</div>'
       : '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">'+curPillsHtml+'</div>';
