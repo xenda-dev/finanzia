@@ -1157,15 +1157,20 @@ function renderDashboard(){
       return dd!==0?dd:(b.id>a.id?1:-1);
     }).slice(0,4);
 
-  // KPI data — usa variables ya calculadas arriba (consolidated, debtTotal, investmentsTotal)
-  // totalGoalSavings: informativo — dinero comprometido en metas (ya está en cuentas activo)
-  var totalGoalSavings = filterDeleted(S.goals)
-    .reduce(function(s,g){
-      return s+convertToBase(parseFloat(g.current)||0,g.currency||S.currency);
-    },0);
-  // Cuentas activas: total todas las monedas
-  var activeAccCount = filterDeleted(S.accounts)
-    .filter(function(a){return a.type==='activo';})
+  // KPI data — filtrados por S.currency (visión operativa por moneda activa)
+  // Disponible: solo cuentas activo en la moneda activa
+  var kpiDisponible = getTotalBalance(); // ya filtra por S.currency internamente
+  // Ahorrado: solo metas en la moneda activa
+  var kpiAhorrado = filterDeleted(S.goals)
+    .filter(function(g){return (g.currency||S.currency)===S.currency;})
+    .reduce(function(s,g){return s+(parseFloat(g.current)||0);},0);
+  // Deudas: solo cuentas pasivo en la moneda activa
+  var kpiDeudas = filterDeleted(S.accounts)
+    .filter(function(a){return a.type==='pasivo'&&(a.currency||S.currency)===S.currency;})
+    .reduce(function(s,a){return s+Math.abs(getBalance(a.id));},0);
+  // Cuentas: solo cuentas activo en la moneda activa
+  var kpiCuentas = filterDeleted(S.accounts)
+    .filter(function(a){return a.type==='activo'&&(a.currency||S.currency)===S.currency;})
     .length;
 
   // ── HTML ─────────────────────────────────────────
@@ -1199,19 +1204,19 @@ function renderDashboard(){
     +'<div onclick="openModal(\'balanceDistribution\',{})" style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
     +'<span style="font-size:13px;width:18px;text-align:center">💎</span>'
     +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Disponible</div>'
-    +'<div style="font-size:12px;font-weight:600;color:var(--primary);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(consolidated,base)+'</div></div></div>'
+    +'<div style="font-size:12px;font-weight:600;color:var(--primary);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(kpiDisponible)+'</div></div></div>'
     +'<div onclick="navigate(\'metas\')" style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
     +'<span style="font-size:13px;width:18px;text-align:center">🎯</span>'
     +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Ahorrado</div>'
-    +'<div style="font-size:12px;font-weight:600;color:var(--secondary);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(totalGoalSavings,base)+'</div></div></div>'
+    +'<div style="font-size:12px;font-weight:600;color:var(--secondary);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(kpiAhorrado)+'</div></div></div>'
     +'<div onclick="navigate(\'deudas\')" style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
     +'<span style="font-size:13px;width:18px;text-align:center">💸</span>'
     +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Deudas</div>'
-    +'<div style="font-size:12px;font-weight:600;color:var(--danger);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(debtTotal,base)+'</div></div></div>'
+    +'<div style="font-size:12px;font-weight:600;color:var(--danger);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+fmt(kpiDeudas)+'</div></div></div>'
     +'<div onclick="navigate(\'cuentas\')" style="display:flex;align-items:center;gap:6px;padding:5px 0;cursor:pointer">'
     +'<span style="font-size:13px;width:18px;text-align:center">💳</span>'
     +'<div style="flex:1;min-width:0"><div style="font-size:9px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.04em;line-height:1">Cuentas</div>'
-    +'<div style="font-size:12px;font-weight:600;color:#3B82F6;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+activeAccCount+' cuentas</div></div></div>'
+    +'<div style="font-size:12px;font-weight:600;color:#3B82F6;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+kpiCuentas+' cuentas</div></div></div>'
     +'</div>'
     +'</div>';
 
