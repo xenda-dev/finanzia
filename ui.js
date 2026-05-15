@@ -4167,7 +4167,7 @@ function renderPresupuestos(){
       var bRem=b.amount-bSpent;
       var bRemTxt=bRem>=0?fmt(bRem)+' disponible':fmt(Math.abs(bRem))+' excedido';
       var bRemColor=bRem>=0?'var(--success)':'var(--danger)';
-      html+='<div onclick="openModal(\'budget\',{id:\''+b.id+'\'})" style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);border-left:3px solid '+bCatColor+';box-shadow:var(--card-shadow);padding:14px;margin-bottom:10px;cursor:pointer">'
+      html+='<div onclick="openEditExpenseBudgetSheet(\''+b.id+'\')" style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);border-left:3px solid '+bCatColor+';box-shadow:var(--card-shadow);padding:14px;margin-bottom:10px;cursor:pointer">'
         +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'
         +'<div style="width:40px;height:40px;border-radius:12px;background:'+bCatColor+'22;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+(cat?cat.icon:'📦')+'</div>'
         +'<div style="flex:1;font-size:15px;font-weight:700;color:var(--text)">'+(sub?sub.name:(cat?cat.name:'Sin categoría'))+'</div>'
@@ -4430,6 +4430,43 @@ function _deleteIncomeBudget(id){
     S.incomeBudgets=softDelete(S.incomeBudgets,id);
     var month=S._budgetMonth||new Date().toISOString().slice(0,7);
     S.incomeBudget=filterDeleted(S.incomeBudgets).filter(function(b){return b.month===month;}).reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0);
+    saveState();closeBottomSheet();renderPage('presupuestos');
+  });
+}
+
+// ── Sheet editar gasto (S.budgets) ──
+function openEditExpenseBudgetSheet(id){
+  var b=filterDeleted(S.budgets||[]).find(function(x){return x.id===id;});
+  if(!b){toast('No encontrado');return;}
+  var cat=getCat(b.categoryId);var sub=getSub(b.subcategoryId);
+  var bCatColor=b.color||(cat?cat.color:'#64748B')||'#64748B';
+  var bNature=cat?cat.nature:'deseos';
+  var natureLabel=bNature==='necesidades'?'Necesidades':bNature==='ahorros'?'Ahorros':'Deseos';
+  var natureBg=bNature==='necesidades'?'rgba(59,130,246,.1)':bNature==='ahorros'?'rgba(0,212,170,.1)':'rgba(116,97,239,.1)';
+  var natureColor=bNature==='necesidades'?'#3B82F6':bNature==='ahorros'?'var(--primary)':'var(--secondary)';
+  var html='<div style="padding-bottom:8px">'
+    +'<div style="background:var(--surface2);border-radius:14px;padding:14px;margin-bottom:20px;display:flex;align-items:center;gap:12px">'
+    +'<div style="width:44px;height:44px;border-radius:12px;background:'+bCatColor+'22;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">'+(cat?cat.icon:'📦')+'</div>'
+    +'<div><div style="font-size:11px;color:var(--text2);margin-bottom:2px">'+natureLabel+'</div>'
+    +'<div style="font-size:16px;font-weight:700;color:var(--text)">'+(sub?sub.name:(cat?cat.name:'Sin categoría'))+'</div></div>'
+    +'</div>'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px">Límite de gasto para este mes</div>'
+    +'<input type="text" inputmode="decimal" id="eexp-val" class="form-input" style="font-size:26px;font-weight:800;font-family:var(--font);text-align:right;margin-bottom:20px" placeholder="0" value="'+(b.amount?fmtRTLValue(b.amount,S.currency):'')+'" oninput="numInput(this)">'
+    +'<button onclick="_deleteExpBudget(\''+id+'\')" style="width:100%;padding:14px;border-radius:100px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:var(--danger);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);margin-bottom:10px">🗑 Eliminar presupuesto</button>'
+    +'<button onclick="_saveExpBudget(\''+id+'\')" style="width:100%;padding:14px;border-radius:100px;border:none;background:var(--primary);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Guardar cambios</button>'
+    +'</div>';
+  _showHtmlBS('Editar presupuesto',html);
+}
+function _saveExpBudget(id){
+  var v=parseNumSubs(document.getElementById('eexp-val')?.value,S.currency)||0;
+  var idx=S.budgets.findIndex(function(b){return b.id===id;});
+  if(idx<0)return;
+  S.budgets[idx]=stampItem(Object.assign({},S.budgets[idx],{amount:v}));
+  saveState();closeBottomSheet();renderPage('presupuestos');
+}
+function _deleteExpBudget(id){
+  confirmDialog('🗑️','¿Eliminar presupuesto?','',function(){
+    S.budgets=softDelete(S.budgets,id);
     saveState();closeBottomSheet();renderPage('presupuestos');
   });
 }

@@ -493,7 +493,7 @@ function mergeById(localArr, remoteArr){
 var MERGE_BY_ID_KEYS=[
   'transactions','accounts','subscriptions',
   'budgets','goals','categories','subcategories','scheduledPayments','shoppingLists','investments',
-  'tasks','objectives','notifications'
+  'tasks','objectives','notifications','incomeBudgets'
 ];
 
 async function syncFromSupabase(userId){
