@@ -4035,6 +4035,23 @@ function renderBudgetGroups(budgets){
   }).join('');
 }
 function renderPresupuestos(){
+  // Reconciliar S.budgets con localStorage para recuperar items
+  // que el sync de Supabase pudo haber borrado de memoria
+  try{
+    var _lsRaw=localStorage.getItem('finanziaState3');
+    if(_lsRaw){
+      var _lsData=JSON.parse(_lsRaw);
+      if(_lsData.budgets&&Array.isArray(_lsData.budgets)&&_lsData.budgets.length>(S.budgets||[]).length){
+        var _memIds=new Set((S.budgets||[]).map(function(b){return b.id;}));
+        _lsData.budgets.forEach(function(b){
+          if(b&&b.id&&!b.deleted&&!_memIds.has(b.id)){
+            if(!S.budgets)S.budgets=[];
+            S.budgets.push(b);
+          }
+        });
+      }
+    }
+  }catch(e){}
   if(!S._budgetMonth)S._budgetMonth=new Date().toISOString().slice(0,7);
   var _bm=S._budgetMonth;
   var _bParts=_bm.split('-');
