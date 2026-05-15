@@ -1267,7 +1267,7 @@ function renderDashboard(){
 
 
   // Regla 50/30/20
-  html += '<div style="background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);padding:14px;margin-bottom:12px">'
+  html += '<div style="background:var(--surface);border-radius:18px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);padding:14px;margin:16px 0 12px">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
     + '<div style="font-size:13px;font-weight:800;color:var(--text)">Regla 50/30/20</div>'
     + getRuleStatusPill(_dashFrom)
