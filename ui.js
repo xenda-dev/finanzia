@@ -257,6 +257,27 @@ function _updateHeader(page){
           +_monthSel
           +'</div>';
       }
+    }else if(page==='presupuestos'){
+      var _mpEl3b=document.getElementById('page-mi-perfil');
+      if(_mpEl3b){_mpEl3b.style.height='';_mpEl3b.style.overflowY='';}
+      if(hTitle){hTitle.style.display='block';hTitle.textContent='Presupuestos';}
+      if(hControls)hControls.style.display='none';
+      // Selector de mes en row2
+      var _pbm=S._budgetMonth||new Date().toISOString().slice(0,7);
+      var _pbp=_pbm.split('-');
+      var _pbFrom=new Date(parseInt(_pbp[0]),parseInt(_pbp[1])-1,1);
+      var _pbDays=new Date(parseInt(_pbp[0]),parseInt(_pbp[1]),0).getDate();
+      var _pbRange='1 al '+_pbDays+' de '+_pbFrom.toLocaleString('es',{month:'long'})+' \u00b7 '+_pbFrom.getFullYear();
+      var _pbCur=new Date().toISOString().slice(0,7);
+      var _pbIsNow=(_pbm===_pbCur);
+      hRow2.style.display='block';
+      if(hGreeting)hGreeting.innerHTML='&nbsp;';
+      if(hBigTitle)hBigTitle.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:4px">'
+        +'<button onclick="presupuestoMesAnterior()" style="width:28px;height:28px;border-radius:9px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:16px;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit">\u2039</button>'
+        +'<span style="font-size:12px;font-weight:500;color:var(--text2);text-align:center;flex:1">'+_pbRange+'</span>'
+        +'<button onclick="presupuestoMesSiguiente()" style="width:28px;height:28px;border-radius:9px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:16px;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit;opacity:'+(_pbIsNow?'0.25':'1')+(_pbIsNow?';pointer-events:none':'')+'" >\u203a</button>'
+        +'</div>';
+      if(hSubtitle){hSubtitle.style.display='none';hSubtitle.textContent='';}
     }else{
       var _mpEl3=document.getElementById('page-mi-perfil');
       if(_mpEl3){_mpEl3.style.height='';_mpEl3.style.overflowY='';}
@@ -272,6 +293,9 @@ function _updateHeader(page){
       hSpacer.style.display='block';
       hSpacer.innerHTML='<button onclick="openProfilePage()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,0,0,.08);background:rgba(255,255,255,.75);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>';
       if(hControls)hControls.style.display='none';
+    }else if(page==='presupuestos'){
+      hSpacer.style.display='block';
+      hSpacer.innerHTML='<button onclick="openBudgetOptions()" style="width:34px;height:34px;border-radius:10px;border:0.5px solid rgba(0,0,0,.08);background:rgba(255,255,255,.75);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;font-weight:700;line-height:1">⋯</button>';
     }else{
       hSpacer.innerHTML='';
     }
@@ -4036,19 +4060,10 @@ function renderPresupuestos(){
   var expPct=expBudgetTotal>0?Math.min(100,Math.round(expReal/expBudgetTotal*100)):0;
   var expColor=expPct>=100?'var(--danger)':expPct>=80?'var(--warning)':'var(--success)';
 
-  // Iconos lapiz y chevron
+  // Icono lapiz
   var _svgPencil='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-  var _svgChevL='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
-  var _svgChevR='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
 
-  // ── Selector de mes ──
-  var html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:0 2px">'
-    +'<button onclick="presupuestoMesAnterior()" style="width:32px;height:32px;border-radius:10px;border:0.5px solid var(--border);background:var(--surface);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer">'+_svgChevL+'</button>'
-    +'<div style="font-size:12px;color:var(--text2);font-weight:500;text-align:center">'+_bRange+'</div>'
-    +'<div style="display:flex;gap:6px">'
-    +(_isCurrentMonth?'<div style="width:32px"></div>':'<button onclick="presupuestoMesSiguiente()" style="width:32px;height:32px;border-radius:10px;border:0.5px solid var(--border);background:var(--surface);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer">'+_svgChevR+'</button>')
-    +'<button onclick="openBudgetOptions()" style="width:32px;height:32px;border-radius:10px;border:0.5px solid var(--border);background:var(--surface);color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:700">⋯</button>'
-    +'</div></div>';
+  var html='<div style="background:var(--surface);min-height:100%;padding:16px 14px calc(var(--nav-h)+24px)">';
 
   // ── Cards superiores ──
   var _mkSummaryCard=function(onclick,emoji,emojiBg,lbl,total,real,pct,fillColor,subLbl,statusTxt,statusColor){
@@ -4085,7 +4100,7 @@ function renderPresupuestos(){
 
   if(!hasInc&&!hasExp){
     html+='<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Sin presupuestos todavía</div><div class="empty-desc">Toca ＋ Agregar para crear tu primer presupuesto</div></div>';
-    return html;
+    return html+'</div>';
   }
 
   // ── Grupo ingresos ──
@@ -4146,7 +4161,7 @@ function renderPresupuestos(){
     });
   }
 
-  return html;
+  return html+'</div>';
 }
 
 // ── Navegación de mes ──
@@ -4155,7 +4170,7 @@ function presupuestoMesAnterior(){
   var p=S._budgetMonth.split('-');
   var d=new Date(parseInt(p[0]),parseInt(p[1])-2,1);
   S._budgetMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-  renderPage('presupuestos');
+  renderPage('presupuestos');_updateHeader('presupuestos');
 }
 function presupuestoMesSiguiente(){
   if(!S._budgetMonth)S._budgetMonth=new Date().toISOString().slice(0,7);
@@ -4165,7 +4180,7 @@ function presupuestoMesSiguiente(){
   var cur=new Date().toISOString().slice(0,7);
   if(next>cur)return;
   S._budgetMonth=next;
-  renderPage('presupuestos');
+  renderPage('presupuestos');_updateHeader('presupuestos');
 }
 
 // ── Sheet ingreso general ──
