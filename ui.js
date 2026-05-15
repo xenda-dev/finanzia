@@ -3977,81 +3977,7 @@ function showBS_fcDay(inputId,lblId,title,updateNextPay){
 // ════════════════════════════════════════════════════════════
 // PRESUPUESTOS
 // ════════════════════════════════════════════════════════════
-function renderBudgetGroups(budgets){
-  var groups={};
-  budgets.forEach(function(b){
-    var catId=b.categoryId||'none';
-    if(!groups[catId])groups[catId]=[];
-    groups[catId].push(b);
-  });
-  return Object.keys(groups).map(function(catId){
-    var grpBudgets=groups[catId];
-    var cat=getCat(catId);
-    var totalAmt=grpBudgets.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0);
-    var totalSpent=grpBudgets.reduce(function(s,b){return s+getBudgetSpent(b);},0);
-    var totalPct=Math.min(100,totalAmt>0?Math.round(totalSpent/totalAmt*100):0);
-    var color=totalPct>=90?'var(--danger)':totalPct>=70?'var(--warning)':'var(--primary)';
-    var bColor=grpBudgets[0].color||'var(--primary)';
-    var hasMultiple=grpBudgets.length>1||(grpBudgets.length===1&&grpBudgets[0].subcategoryId);
-    var gId='bgrp-'+catId;
-    var q="'";
-    var onclickMain=hasMultiple
-      ?'document.getElementById('+q+gId+q+').classList.toggle('+q+'hidden'+q+');this.querySelector('+q+'.bgrp-arrow'+q+').textContent=document.getElementById('+q+gId+q+').classList.contains('+q+'hidden'+q+')?'+q+'▶'+q+':'+q+'▼'+q
-      :'openModal('+q+'budget'+q+',{id:'+q+grpBudgets[0].id+q+'})';
-    var h='<div class="card" style="border-left:4px solid '+bColor+';margin-bottom:12px">'
-      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer" onclick="'+onclickMain+'">'
-      +'<div style="width:40px;height:40px;border-radius:10px;background:'+bColor+'22;display:flex;align-items:center;justify-content:center;font-size:20px">'+(cat?cat.icon:'📦')+'</div>'
-      +'<div style="flex:1">'
-      +'<div style="font-size:14px;font-weight:700">'+(cat?cat.name:'Sin categoría')+'</div>'
-      +'<div style="font-size:11px;color:var(--text2)">'+grpBudgets.length+' presupuesto'+(grpBudgets.length>1?'s':'')+' · '+(grpBudgets[0].currency||S.currency)+'</div>'
-      +'</div>'
-      +'<div style="display:flex;align-items:center;gap:8px">'
-      +'<span class="badge" style="background:'+color+'22;color:'+color+'">'+totalPct+'%</span>'
-      +(hasMultiple?'<span class="bgrp-arrow" style="color:var(--text3);font-size:12px">▶</span>':'')
-      +'</div></div>'
-      +'<div class="progress-bar" style="height:8px;margin-bottom:8px"><div class="progress-fill" style="width:'+totalPct+'%;background:'+color+'"></div></div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11px;text-align:center;margin-bottom:'+(hasMultiple?'8':'0')+'px">'
-      +'<div><div style="color:var(--text2)">Gastado</div><div style="font-weight:700;color:var(--danger)">'+fmt(totalSpent)+'</div></div>'
-      +'<div><div style="color:var(--text2)">Restante</div><div style="font-weight:700;color:'+(totalAmt-totalSpent>=0?'var(--success)':'var(--danger)')+'">'+fmt(Math.max(0,totalAmt-totalSpent))+'</div></div>'
-      +'<div><div style="color:var(--text2)">Límite</div><div style="font-weight:700">'+fmt(totalAmt)+'</div></div>'
-      +'</div>';
-    if(hasMultiple){
-      h+='<div id="'+gId+'" class="hidden" style="border-top:1px solid var(--border);padding-top:8px">';
-      grpBudgets.forEach(function(b){
-        var sub=getSub(b.subcategoryId);
-        var bSpent=getBudgetSpent(b);
-        var bPct=Math.min(100,b.amount>0?Math.round(bSpent/b.amount*100):0);
-        var bColor2=bPct>=90?'var(--danger)':bPct>=70?'var(--warning)':'var(--primary)';
-        h+='<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openModal('+q+'budget'+q+',{id:'+q+b.id+q+'})">'
-          +'<span style="font-size:12px;flex:1;color:var(--text2)">'+(sub?sub.icon+' '+sub.name:'General')+'</span>'
-          +'<span style="font-size:11px;color:var(--text2)">'+fmt(bSpent)+'/'+fmt(b.amount)+'</span>'
-          +'<span class="badge" style="background:'+bColor2+'22;color:'+bColor2+';font-size:10px">'+bPct+'%</span>'
-          +'</div>';
-      });
-      h+='</div>';
-    }
-    h+='</div>';
-    return h;
-  }).join('');
-}
 function renderPresupuestos(){
-  // Reconciliar S.budgets con localStorage para recuperar items
-  // que el sync de Supabase pudo haber borrado de memoria
-  try{
-    var _lsRaw=localStorage.getItem('finanziaState3');
-    if(_lsRaw){
-      var _lsData=JSON.parse(_lsRaw);
-      if(_lsData.budgets&&Array.isArray(_lsData.budgets)&&_lsData.budgets.length>(S.budgets||[]).length){
-        var _memIds=new Set((S.budgets||[]).map(function(b){return b.id;}));
-        _lsData.budgets.forEach(function(b){
-          if(b&&b.id&&!b.deleted&&!_memIds.has(b.id)){
-            if(!S.budgets)S.budgets=[];
-            S.budgets.push(b);
-          }
-        });
-      }
-    }
-  }catch(e){}
   if(!S._budgetMonth)S._budgetMonth=new Date().toISOString().slice(0,7);
   var _bm=S._budgetMonth;
   var _bParts=_bm.split('-');
@@ -4083,6 +4009,7 @@ function renderPresupuestos(){
   var expCatBudgets=_allBudgets.filter(function(b){
     if(b.type==='ingreso'||b.type==='ingreso_general'||b.type==='gasto_general')return false;
     if((b.currency||S.currency)!==S.currency)return false;
+    if(b.month&&b.month!==_bm)return false;
     if(_bm===_curMY)return true; // mes actual: mostrar todos
     // Meses pasados: solo si hubo gasto o fue creado ese mes
     var bCreated=b.created_at?b.created_at.slice(0,7):'';
@@ -4421,7 +4348,7 @@ function _absConfirmSub(){
   if(c.isGasto){
     var cat=getCat(c.catId);
     if(!S.budgets)S.budgets=[];
-    S.budgets.push(stampItem({categoryId:c.catId,subcategoryId:c.subId||'',amount:amount,currency:S.currency,color:cat?cat.color:'var(--primary)'}));
+    S.budgets.push(stampItem({categoryId:c.catId,subcategoryId:c.subId||'',amount:amount,currency:S.currency,color:cat?cat.color:'var(--primary)',month:S._budgetMonth||new Date().toISOString().slice(0,7)}));
     saveState();closeBottomSheet();renderPage('presupuestos');
   } else {
     saveNewIncomeBudget(c.catId,c.subId,c.subName,c.emoji,c.incomeType,amount);
@@ -4590,7 +4517,9 @@ function _reiniciarPresupuesto(){
   confirmDialog('🔄','¿Reiniciar presupuesto?','Se eliminarán todos los presupuestos de este mes.',function(){
     if(!S.budgets)S.budgets=[];
     filterDeleted(S.budgets).filter(function(b){
-      return (b.type==='ingreso'||b.type==='ingreso_general'||b.type==='gasto_general')&&b.month===month;
+      if((b.type==='ingreso'||b.type==='ingreso_general'||b.type==='gasto_general')&&b.month===month)return true;
+      if(!b.type&&b.month&&b.month===month)return true;
+      return false;
     }).forEach(function(b){S.budgets=softDelete(S.budgets,b.id);});
     saveState();closeBottomSheet();renderPage('presupuestos');
   });
