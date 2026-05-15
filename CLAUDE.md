@@ -38,6 +38,43 @@
 > **Pendiente:** puntos
 > ```
 
+### Sesión 10 — 2026-05-15 (cierre del día)
+**Archivos modificados:** `ui.js`, `finance.js`, `storage.js`, `styles.css`, `index.html`
+
+**Qué se hizo:**
+- **Drawer**: quitado grupo "Mi día" del drawer (solo accesible desde dashboard). Espaciado `margin-top:16px` antes de "Cerrar sesión".
+- **Configuración**: quitadas leyendas "Se aplica en..." de Formato de fecha/hora. Selector formato moneda: eliminado "Automático", opciones muestran números reales según locale activo. Inputs numéricos usan `numInput/fmtRTLValue/parseNumSubs` (mismo estándar que Herramientas).
+- **Dashboard — KPIs patrimonio**: "Cuentas" reemplazado por "Invertido" (inversiones en moneda activa). Orden: Disponible, Ahorrado, Invertido, Deudas. `kpiDisponible = max(0, cuentas - metas)`. % vs mes anterior usa `_savingsBase` (todas las divisas → base) — ya no depende de la moneda activa.
+- **Pills "Mis Divisas"**: rediseñadas como selector puro (bandera + punto + código, sin balance). Gratis: ocultas con 1 divisa. Pro/Premium: grid `1fr 1fr` siempre. Premium 3-4: grid 2×2.
+- **Movimientos**: quita filtro `t.currency === S.currency` — muestra todas las divisas. `txRow` añade línea `≈ X COP` usando `convertToBase()` cuando tx es en moneda diferente a base. Modal de detalle también muestra equivalente. `buildViewTxModal` y balance de lista en moneda base.
+- **Regla 50/30/20 dashboard**: rediseño completo — 3 tarjetas (Necesidades/Deseos/Ahorros) con barra, badge %, tip contextual, pill de estado en header. `S.incomeBudget` como base de cálculo si existe. `_getMonthlyIncomeBudget()` calcula en tiempo real desde `S.budgets`. `getRuleStatusPill()` separado para el header. Pill en fila del título.
+- **Pantalla Presupuestos — rediseño completo**:
+  - Selector de mes ‹/›/⋯ en el nav (header row2), fondo blanco.
+  - Cards resumen Ingresos/Gastos con barra de progreso, estado y lápiz.
+  - Grupos 💰 Ingresos (por mes) y 💸 Gastos con badge naturaleza, semáforo, porcentaje 2 decimales.
+  - Sheets: ingreso general (preview 50/30/20), gasto general (preview % del ingreso), agregar (chooser → accordion categorías por tipo → monto), editar (diseño con info card + label uppercase + input grande + botones cápsula).
+  - Todos los inputs numéricos con `numInput/fmtRTLValue/parseNumSubs`.
+  - Opciones ⋯: copiar al mes siguiente, reiniciar, exportar.
+- **Bug sync Supabase presupuestos (raíz)**: `syncFromSupabase` llama `renderPage()` y podía pisar `S.incomeBudgets` con datos remotos viejos. Solución definitiva: **todos los presupuestos de ingreso migrados a `S.budgets`** con campo `type:'ingreso'/'ingreso_general'/'gasto_general'`. `S.budgets` está en `MERGE_BY_ID_KEYS` desde el día 1 → sync correcto garantizado. Reconciliación localStorage→memoria al inicio de `renderPresupuestos()`.
+- **Delete presupuestos**: `filter(b => b.id !== id)` en lugar de `softDelete` (evita que Supabase sync restaure items). `closeBottomSheet()` antes del confirm + setTimeout 150ms (evita que confirm quede detrás del BS). Guard `_absConfirmSaving` contra doble tap.
+- **`#confirm-root` z-index**: `400 → 10004` (encima del BS en 9999).
+- **`incomeBudgets` en `MERGE_BY_ID_KEYS`**: protección contra sync que vaciaba el arreglo.
+
+**Decisiones de Jorge:**
+- Pills Mis Divisas: solo selector visual, sin balance numérico.
+- Disponible KPI = cuentas − metas (mínimo 0). Metas deben estar respaldadas por cuentas.
+- Presupuestos individuales de ingreso: en `S.budgets` con campo `type` (no en campo nuevo `incomeBudgets`).
+- Delete presupuestos: eliminación directa con `filter()`, no soft-delete.
+- Filtro gastos por mes: mes actual muestra todos; meses pasados solo si hubo gasto real.
+
+**Pendiente:**
+- Sprint D: Movimientos — diseño Claude Design pendiente. Feature "foreign currency transaction".
+- Bug sync sesión 8: `saveState()` gate `_supabaseSynced` sigue activo (pendiente sesión dedicada).
+- Landing page: actualizar tabla de planes (divisas Gratis=1, Pro=2, Premium=4).
+- i18n completo, Emiliano IA real, Monetización SaaS.
+
+---
+
 ### Sesión 9 — 2026-05-14 (cierre del día)
 **Archivos modificados:** `ui.js`, `finance.js`, `storage.js`
 
