@@ -4450,12 +4450,20 @@ function _saveEditIncomeBudget(id){
   saveState();closeBottomSheet();renderPage('presupuestos');
 }
 function _deleteIncomeBudget(id){
-  confirmDialog('🗑️','¿Eliminar este ingreso?','',function(){
-    S.incomeBudgets=softDelete(S.incomeBudgets,id);
-    var month=S._budgetMonth||new Date().toISOString().slice(0,7);
-    S.incomeBudget=filterDeleted(S.incomeBudgets).filter(function(b){return b.month===month;}).reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0);
-    saveState();closeBottomSheet();renderPage('presupuestos');
-  });
+  closeBottomSheet();
+  setTimeout(function(){
+    confirmDialog('🗑️','¿Eliminar este ingreso?','',function(){
+      if(!S.incomeBudgets)S.incomeBudgets=[];
+      var _c=window._pBudgetMap&&window._pBudgetMap[id];
+      if(_c&&_c.data&&!S.incomeBudgets.find(function(b){return b.id===id&&!b.deleted;})){
+        S.incomeBudgets.push(Object.assign({},_c.data));
+      }
+      S.incomeBudgets=softDelete(S.incomeBudgets,id);
+      var month=S._budgetMonth||new Date().toISOString().slice(0,7);
+      _syncIncomeBudget(month);
+      saveState();renderPage('presupuestos');
+    });
+  },150);
 }
 
 // ── Sheet editar gasto (S.budgets) ──
@@ -4495,10 +4503,18 @@ function _saveExpBudget(id){
   saveState();closeBottomSheet();renderPage('presupuestos');
 }
 function _deleteExpBudget(id){
-  confirmDialog('🗑️','¿Eliminar presupuesto?','',function(){
-    S.budgets=softDelete(S.budgets,id);
-    saveState();closeBottomSheet();renderPage('presupuestos');
-  });
+  closeBottomSheet();
+  setTimeout(function(){
+    confirmDialog('🗑️','¿Eliminar presupuesto?','',function(){
+      if(!S.budgets)S.budgets=[];
+      var _c=window._pBudgetMap&&window._pBudgetMap[id];
+      if(_c&&_c.data&&!S.budgets.find(function(b){return b.id===id&&!b.deleted;})){
+        S.budgets.push(Object.assign({},_c.data));
+      }
+      S.budgets=softDelete(S.budgets,id);
+      saveState();renderPage('presupuestos');
+    });
+  },150);
 }
 
 // ── Opciones presupuesto ──

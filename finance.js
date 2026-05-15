@@ -562,6 +562,17 @@ function updateSubs(catId,targetId,selectedSubId){
 }
 
 // ════════════════════════════════════════════════════════════
+// ── Helper: ingreso presupuestado del mes desde incomeBudgets ──
+function _getMonthlyIncomeBudget(month){
+  var _all=filterDeleted(S.incomeBudgets||[]).filter(function(b){return b.month===month;});
+  var _det=_all.filter(function(b){return b.categoryId!=='__income__'&&b.categoryId!=='__expense__';});
+  var _gen=_all.find(function(b){return b.categoryId==='__income__';});
+  var fromItems=_det.length>0
+    ?_det.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0)
+    :parseFloat(_gen&&_gen.amount)||0;
+  return fromItems>0?fromItems:parseFloat(S.incomeBudget)||0;
+}
+
 // REGLA 50/30/20
 // ════════════════════════════════════════════════════════════
 function getRuleStatusPill(refDate){
@@ -572,7 +583,8 @@ function getRuleStatusPill(refDate){
     var d=new Date(t.date);return t.currency===S.currency&&d>=_rFrom&&d<=_rTo;
   });
   var inc=_txs.filter(function(t){return t.type==='ingreso'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
-  var incBase=(S.incomeBudget&&parseFloat(S.incomeBudget)>0)?parseFloat(S.incomeBudget):inc;
+  var _pillMY=_ref.getFullYear()+'-'+String(_ref.getMonth()+1).padStart(2,'0');
+  var incBase=_getMonthlyIncomeBudget(_pillMY)||inc;
   if(incBase<=0)return '';
   var nec=0,des=0,aho=0;
   _txs.filter(function(t){return t.type==='gasto';}).forEach(function(t){
@@ -609,9 +621,11 @@ function renderRule502030(refDate){
     else if(nature==='ahorros')aho+=amt;
   });
 
-  // Base de ingresos: presupuesto si existe, si no ingreso real
-  var incBase=(S.incomeBudget&&parseFloat(S.incomeBudget)>0)?parseFloat(S.incomeBudget):inc;
-  var hasBudget=incBase!==inc&&incBase>0;
+  // Base de ingresos: calculado en tiempo real desde incomeBudgets del mes
+  var _ruleMY=_ref.getFullYear()+'-'+String(_ref.getMonth()+1).padStart(2,'0');
+  var _budgetInc=_getMonthlyIncomeBudget(_ruleMY);
+  var incBase=_budgetInc>0?_budgetInc:inc;
+  var hasBudget=_budgetInc>0&&_budgetInc!==inc;
 
   if(inc<=0&&!hasBudget){
     return '<div style="font-size:13px;color:var(--text2);padding:8px 0">Configura tu presupuesto de ingreso o registra ingresos este mes para ver tu distribución 50/30/20.</div>';
