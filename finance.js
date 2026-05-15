@@ -564,6 +564,30 @@ function updateSubs(catId,targetId,selectedSubId){
 // ════════════════════════════════════════════════════════════
 // REGLA 50/30/20
 // ════════════════════════════════════════════════════════════
+function getRuleStatusPill(refDate){
+  var _ref=refDate||new Date();
+  var _rFrom=new Date(_ref.getFullYear(),_ref.getMonth(),1,0,0,0);
+  var _rTo=new Date(_ref.getFullYear(),_ref.getMonth()+1,0,23,59,59);
+  var _txs=filterDeleted(S.transactions).filter(function(t){
+    var d=new Date(t.date);return t.currency===S.currency&&d>=_rFrom&&d<=_rTo;
+  });
+  var inc=_txs.filter(function(t){return t.type==='ingreso'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
+  var incBase=(S.incomeBudget&&parseFloat(S.incomeBudget)>0)?parseFloat(S.incomeBudget):inc;
+  if(incBase<=0)return '';
+  var nec=0,des=0,aho=0;
+  _txs.filter(function(t){return t.type==='gasto';}).forEach(function(t){
+    var cat=getCat(t.categoryId);var nature=cat?cat.nature:'deseos';var amt=parseFloat(t.amount)||0;
+    if(nature==='necesidades')nec+=amt;else if(nature==='deseos')des+=amt;else if(nature==='ahorros')aho+=amt;
+  });
+  var necOK=nec<=incBase*0.5,desOK=des<=incBase*0.3,ahoOK=aho>=incBase*0.2;
+  var issues=(!necOK?1:0)+(!desOK?1:0)+(!ahoOK?1:0);
+  var bg,color,txt;
+  if(issues===0){bg='rgba(16,185,129,.1)';color='var(--success)';txt='✓ En orden';}
+  else if(issues===1){bg='rgba(245,158,11,.1)';color='var(--warning)';txt='⚠ En seguimiento';}
+  else{bg='rgba(239,68,68,.1)';color='var(--danger)';txt='🚨 Desbalanceado';}
+  return '<span style="display:inline-flex;align-items:center;font-size:11px;font-weight:500;'
+    +'padding:3px 10px;border-radius:100px;background:'+bg+';color:'+color+'">'+txt+'</span>';
+}
 function renderRule502030(refDate){
   var _ref=refDate||new Date();
   var _rFrom=new Date(_ref.getFullYear(),_ref.getMonth(),1,0,0,0);
@@ -629,12 +653,6 @@ function renderRule502030(refDate){
   }
 
   var html='';
-
-  // Pill de estado
-  html+='<div style="display:flex;justify-content:flex-end;margin-bottom:10px">'
-    +'<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;'
-    +'padding:3px 10px;border-radius:100px;background:'+pillBg+';color:'+pillColor+';">'
-    +pillTxt+'</span></div>';
 
   // Header ingreso
   var incRealStr=fmt(inc);

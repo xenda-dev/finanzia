@@ -1267,10 +1267,9 @@ function renderDashboard(){
 
 
   // Regla 50/30/20
-  var _ruleMonthLbl = new Date(_selMY+'-01').toLocaleString('es',{month:'long'});
   html += '<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 7px">'
     + '<div style="font-size:13px;font-weight:800;color:var(--text)">Regla 50/30/20</div>'
-    + '<span style="font-size:11px;color:var(--text2)">'+_ruleMonthLbl+'</span>'
+    + getRuleStatusPill(_dashFrom)
     + '</div>'
     + renderRule502030(_dashFrom);
 
