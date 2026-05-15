@@ -272,10 +272,13 @@ function _updateHeader(page){
       var _pbIsNow=(_pbm===_pbCur);
       hRow2.style.display='block';
       if(hGreeting)hGreeting.innerHTML='&nbsp;';
-      if(hBigTitle)hBigTitle.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:4px">'
-        +'<button onclick="presupuestoMesAnterior()" style="width:28px;height:28px;border-radius:9px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:16px;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit">\u2039</button>'
-        +'<span style="font-size:12px;font-weight:500;color:var(--text2);text-align:center;flex:1">'+_pbRange+'</span>'
-        +'<button onclick="presupuestoMesSiguiente()" style="width:28px;height:28px;border-radius:9px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:16px;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit;opacity:'+(_pbIsNow?'0.25':'1')+(_pbIsNow?';pointer-events:none':'')+'" >\u203a</button>'
+      // Fondo blanco en el page element
+      var _pbPageEl=document.getElementById('page-presupuestos');
+      if(_pbPageEl)_pbPageEl.style.background='var(--surface)';
+      if(hBigTitle)hBigTitle.innerHTML='<div style="display:flex;align-items:center;justify-content:center;gap:6px">'
+        +'<button onclick="presupuestoMesAnterior()" style="width:26px;height:26px;border-radius:8px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:15px;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit">\u2039</button>'
+        +'<span style="font-size:12px;font-weight:500;color:var(--text2)">'+_pbRange+'</span>'
+        +'<button onclick="presupuestoMesSiguiente()" style="width:26px;height:26px;border-radius:8px;border:0.5px solid var(--border);background:rgba(255,255,255,.75);cursor:pointer;font-size:15px;color:var(--text);display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit;opacity:'+(_pbIsNow?'0.25':'1')+(_pbIsNow?';pointer-events:none':'')+'" >\u203a</button>'
         +'</div>';
       if(hSubtitle){hSubtitle.style.display='none';hSubtitle.textContent='';}
     }else{
@@ -4053,7 +4056,7 @@ function renderPresupuestos(){
 
   // Totales presupuesto
   var _incItems=filterDeleted(S.incomeBudgets||[]).filter(function(b){return b.month===_bm;});
-  var incBudgetTotal=_incItems.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0)||parseFloat(S.incomeBudget)||0;
+  var incBudgetTotal=_incItems.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0);
   var budgets=filterDeleted(S.budgets).filter(function(b){return(b.currency||S.currency)===S.currency;});
   var expBudgetTotal=budgets.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0)||parseFloat(S.expenseBudgetGeneral)||0;
   var incPct=incBudgetTotal>0?Math.min(100,Math.round(incReal/incBudgetTotal*100)):0;
@@ -4199,7 +4202,7 @@ function openIncomeBudgetSheet(){
   var html='<div style="padding-bottom:8px">'
     +'<div style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:16px">Total que esperas ganar este mes. Si tienes fuentes detalladas abajo, la suma de esas reemplaza este valor.</div>'
     +'<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Ingreso esperado para este mes</label>'
-    +'<input type="number" id="incbs-val" class="form-input" style="font-size:26px;font-weight:800;font-family:var(--font);text-align:center" placeholder="0.00" value="'+(cur||'')+'" oninput="document.getElementById(\'incbs-prev\').innerHTML=_incBsPreview(this.value)">'
+    +'<input type="text" inputmode="decimal" id="incbs-val" class="form-input" style="font-size:26px;font-weight:800;font-family:var(--font);text-align:right" placeholder="0" value="'+(cur?fmtRTLValue(cur,S.currency):'')+'" oninput="numInput(this);document.getElementById(\'incbs-prev\').innerHTML=_incBsPreview(this.value)">'
     +'<div id="incbs-prev">'+_preview(cur)+'</div>'
     +'<button onclick="saveIncomeBudgetGeneral()" class="btn btn-primary" style="width:100%;margin-top:16px">Guardar</button>'
     +'</div>';
@@ -4207,7 +4210,7 @@ function openIncomeBudgetSheet(){
   _showHtmlBS('Ingreso del mes',html);
 }
 function saveIncomeBudgetGeneral(){
-  var v=parseFloat(document.getElementById('incbs-val')?.value)||0;
+  var v=parseNumSubs(document.getElementById('incbs-val')?.value,S.currency)||0;
   S.incomeBudget=v;
   saveState();
   closeBottomSheet();
@@ -4231,7 +4234,7 @@ function openExpenseBudgetSheet(){
   };
   var html='<div style="padding-bottom:8px">'
     +'<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Límite de gasto esperado para este mes</label>'
-    +'<input type="number" id="expbs-val" class="form-input" style="font-size:26px;font-weight:800;font-family:var(--font);text-align:center" placeholder="0.00" value="'+(cur||'')+'" oninput="document.getElementById(\'expbs-prev\').innerHTML=_expBsPreview(this.value)">'
+    +'<input type="text" inputmode="decimal" id="expbs-val" class="form-input" style="font-size:26px;font-weight:800;font-family:var(--font);text-align:right" placeholder="0" value="'+(cur?fmtRTLValue(cur,S.currency):'')+'" oninput="numInput(this);document.getElementById(\'expbs-prev\').innerHTML=_expBsPreview(this.value)">'
     +'<div id="expbs-prev">'+_preview(cur)+'</div>'
     +'<button onclick="saveExpenseBudgetGeneral()" class="btn btn-primary" style="width:100%;margin-top:16px">Guardar</button>'
     +'</div>';
@@ -4239,7 +4242,7 @@ function openExpenseBudgetSheet(){
   _showHtmlBS('Límite de gastos',html);
 }
 function saveExpenseBudgetGeneral(){
-  var v=parseFloat(document.getElementById('expbs-val')?.value)||0;
+  var v=parseNumSubs(document.getElementById('expbs-val')?.value,S.currency)||0;
   S.expenseBudgetGeneral=v;
   saveState();
   closeBottomSheet();
@@ -4261,11 +4264,12 @@ function openAddBudgetSheet(){
           +'<span style="font-size:13px;color:var(--text)">'+sub.name+'</span>'
           +'</div>';
       }).join('');
+      var _svgRight='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
       return '<div style="margin-bottom:2px">'
         +'<div onclick="_absToggleCat(\''+cat.id+'\')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
         +'<div style="width:32px;height:32px;border-radius:9px;background:'+catColor+'22;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+cat.icon+'</div>'
         +'<div style="flex:1;font-size:13px;font-weight:600;color:var(--text)">'+cat.name+'</div>'
-        +'<span id="abs-arr-'+cat.id+'" style="color:var(--text3);font-size:11px;transition:transform .15s">▶</span>'
+        +'<span id="abs-arr-'+cat.id+'">'+_svgRight+'</span>'
         +'</div>'
         +'<div id="abs-subs-'+cat.id+'" style="display:none;padding-left:4px">'+subsHtml+'</div>'
         +'</div>';
@@ -4294,12 +4298,10 @@ function openAddBudgetSheet(){
     +'</div></div>'
     // Step 2A: ingresos
     +'<div id="abs-step2a" style="display:none">'
-    +'<button onclick="_absGoStep(\'abs-step1\')" style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--primary);background:none;border:none;cursor:pointer;font-family:var(--font);padding:4px 0 12px">← Atrás</button>'
     +'<div id="abs-2a-content">'+incAccordion+'</div>'
     +'</div>'
     // Step 2B: gastos
     +'<div id="abs-step2b" style="display:none">'
-    +'<button onclick="_absGoStep(\'abs-step1\')" style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--primary);background:none;border:none;cursor:pointer;font-family:var(--font);padding:4px 0 12px">← Atrás</button>'
     +'<div id="abs-2b-content">'+expAccordion+'</div>'
     +'</div>';
   _showHtmlBS('¿Qué presupuestas?',html);
@@ -4316,7 +4318,9 @@ function _absToggleCat(catId){
   if(!el)return;
   var open=el.style.display==='block';
   el.style.display=open?'none':'block';
-  if(arr)arr.textContent=open?'▶':'▼';
+  if(arr)arr.innerHTML=open
+    ?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
+    :'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>';
 }
 function _absSelectSub(catId,subId,subName,emoji,incomeType,isGasto){
   window._absCurrentSub={catId:catId,subId:subId,subName:subName,emoji:emoji,incomeType:incomeType,isGasto:isGasto};
@@ -4331,7 +4335,7 @@ function _absSelectSub(catId,subId,subName,emoji,incomeType,isGasto){
     +'<button onclick="_absResetContent()" style="margin-left:auto;font-size:12px;color:var(--primary);background:none;border:none;cursor:pointer;font-family:var(--font)">Cambiar</button>'
     +'</div>'
     +'<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">'+lbl+'</label>'
-    +'<input type="number" id="abs-amount" class="form-input" style="font-size:22px;font-weight:700;font-family:var(--font);text-align:center;margin-bottom:16px" placeholder="0.00">'
+    +'<input type="text" inputmode="decimal" id="abs-amount" class="form-input" style="font-size:22px;font-weight:700;font-family:var(--font);text-align:right;margin-bottom:16px" placeholder="0" oninput="numInput(this)">'
     +'<button onclick="_absConfirmSub()" class="btn btn-primary" style="width:100%">Guardar</button>';
 }
 function _absResetContent(){
@@ -4340,7 +4344,7 @@ function _absResetContent(){
 }
 function _absConfirmSub(){
   var c=window._absCurrentSub;if(!c)return;
-  var amount=parseFloat(document.getElementById('abs-amount')?.value)||0;
+  var amount=parseNumSubs(document.getElementById('abs-amount')?.value,S.currency)||0;
   if(!amount||amount<=0){toast('Ingresa un monto válido');return;}
   if(c.isGasto){
     var cat=getCat(c.catId);
@@ -4370,7 +4374,7 @@ function openEditIncomeBudgetSheet(id){
     +'<div style="font-size:11px;color:var(--text2)">'+(item.incomeType==='secundario'?'Ingreso secundario':'Ingreso principal')+'</div>'
     +'</div></div>'
     +'<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Ingreso esperado para este mes</label>'
-    +'<input type="number" id="einc-val" class="form-input" style="font-size:22px;font-weight:700;font-family:var(--font);text-align:center;margin-bottom:16px" placeholder="0.00" value="'+(item.amount||'')+'">'
+    +'<input type="text" inputmode="decimal" id="einc-val" class="form-input" style="font-size:22px;font-weight:700;font-family:var(--font);text-align:right;margin-bottom:16px" placeholder="0" value="'+(item.amount?fmtRTLValue(item.amount,S.currency):'')+'" oninput="numInput(this)">'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
     +'<button onclick="_deleteIncomeBudget(\''+id+'\')" class="btn btn-danger">Eliminar</button>'
     +'<button onclick="_saveEditIncomeBudget(\''+id+'\')" class="btn btn-primary">Guardar</button>'
@@ -4378,7 +4382,7 @@ function openEditIncomeBudgetSheet(id){
   _showHtmlBS('Editar ingreso',html);
 }
 function _saveEditIncomeBudget(id){
-  var v=parseFloat(document.getElementById('einc-val')?.value)||0;
+  var v=parseNumSubs(document.getElementById('einc-val')?.value,S.currency)||0;
   var idx=S.incomeBudgets.findIndex(function(b){return b.id===id;});
   if(idx<0)return;
   S.incomeBudgets[idx]=stampItem(Object.assign({},S.incomeBudgets[idx],{amount:v}));
