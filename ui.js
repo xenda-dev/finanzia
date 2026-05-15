@@ -4297,67 +4297,68 @@ function saveExpenseBudgetGeneral(){
 }
 
 // ── Sheet agregar presupuesto ──
-function openAddBudgetSheet(){
-  var _incCats=filterDeleted(S.categories).filter(function(c){return c.type==='ingreso';});
-  var _expCats=filterDeleted(S.categories).filter(function(c){return c.type==='gasto';});
-  var _mkAccordion=function(cats,isGasto){
-    return cats.map(function(cat){
-      var subs=filterDeleted(S.subcategories).filter(function(s){return s.categoryId===cat.id;});
-      var catColor=cat.color||'#64748B';
-      var subsHtml=subs.map(function(sub){
-        var args='\''+cat.id+'\',\''+sub.id+'\',\''+sub.name.replace(/'/g,'\\\'') +'\',\''+( sub.icon||cat.icon||'📦').replace(/'/g,'\\\'') +'\',\''+(cat.incomeType||'principal')+'\',' +(isGasto?'true':'false');
-        return '<div onclick="_absSelectSub('+args+')" style="display:flex;align-items:center;gap:8px;padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border);cursor:pointer">'
-          +'<span style="font-size:15px">'+(sub.icon||cat.icon||'📦')+'</span>'
-          +'<span style="font-size:13px;color:var(--text)">'+sub.name+'</span>'
-          +'</div>';
-      }).join('');
-      var _svgRight='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
-      return '<div style="margin-bottom:2px">'
-        +'<div onclick="_absToggleCat(\''+cat.id+'\')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
-        +'<div style="width:32px;height:32px;border-radius:9px;background:'+catColor+'22;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+cat.icon+'</div>'
-        +'<div style="flex:1;font-size:13px;font-weight:600;color:var(--text)">'+cat.name+'</div>'
-        +'<span id="abs-arr-'+cat.id+'">'+_svgRight+'</span>'
-        +'</div>'
-        +'<div id="abs-subs-'+cat.id+'" style="display:none;padding-left:4px">'+subsHtml+'</div>'
+function _buildCatAccordion(cats,isGasto){
+  var svgR='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
+  return cats.map(function(cat){
+    var subs=filterDeleted(S.subcategories).filter(function(s){return s.categoryId===cat.id;});
+    var catColor=cat.color||'#64748B';
+    var subsHtml=subs.map(function(sub){
+      var sName=(sub.name||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      var sIcon=(sub.icon||cat.icon||'📦').replace(/'/g,"\\'");
+      var iType=isGasto?'deseos':(cat.incomeType||'principal');
+      var gFlag=isGasto?'true':'false';
+      return '<div onclick="_absSub(\''+cat.id+'\',\''+sub.id+'\',\''+sName+'\',\''+sIcon+'\',\''+iType+'\','+gFlag+')" '
+        +'style="display:flex;align-items:center;gap:8px;padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border);cursor:pointer">'
+        +'<span style="font-size:15px">'+(sub.icon||cat.icon||'📦')+'</span>'
+        +'<span style="font-size:13px;color:var(--text)">'+(sub.name||'')+'</span>'
         +'</div>';
     }).join('');
-  };
-  var _incPrin=_incCats.filter(function(c){return !c.incomeType||c.incomeType==='principal';});
-  var _incSec=_incCats.filter(function(c){return c.incomeType==='secundario';});
-  var incAccordion='';
-  if(_incPrin.length)incAccordion+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--primary);margin:12px 0 4px">⭐ Ingresos principales</div>'+_mkAccordion(_incPrin,false);
-  if(_incSec.length)incAccordion+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--secondary);margin:12px 0 4px">➕ Ingresos secundarios</div>'+_mkAccordion(_incSec,false);
-  var expAccordion=_mkAccordion(_expCats,true);
-  var html=''
-    // Step 1: chooser
-    +'<div id="abs-step1">'
+    return '<div>'
+      +'<div onclick="_absToggleCat(\''+cat.id+'\')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
+      +'<div style="width:32px;height:32px;border-radius:9px;background:'+catColor+'22;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+(cat.icon||'📦')+'</div>'
+      +'<div style="flex:1;font-size:13px;font-weight:600;color:var(--text)">'+(cat.name||'')+'</div>'
+      +'<span id="abs-arr-'+cat.id+'">'+svgR+'</span>'
+      +'</div>'
+      +'<div id="abs-subs-'+cat.id+'" style="display:none;padding-left:4px">'+subsHtml+'</div>'
+      +'</div>';
+  }).join('');
+}
+function openAddBudgetSheet(){
+  var html='<div id="abs-step1">'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">'
-    +'<div onclick="_absGoStep(\'abs-step2a\')" style="background:rgba(0,212,170,.08);border:1.5px solid rgba(0,212,170,.25);border-radius:16px;padding:20px 12px;text-align:center;cursor:pointer">'
+    +'<div onclick="_absShowIncome()" style="background:rgba(0,212,170,.08);border:1.5px solid rgba(0,212,170,.25);border-radius:16px;padding:20px 12px;text-align:center;cursor:pointer">'
     +'<div style="font-size:30px;margin-bottom:8px">💰</div>'
     +'<div style="font-size:14px;font-weight:700;color:var(--text)">Ingreso</div>'
     +'<div style="font-size:11px;color:var(--text2);margin-top:4px">Fuente de ingreso esperado</div>'
     +'</div>'
-    +'<div onclick="_absGoStep(\'abs-step2b\')" style="background:rgba(239,68,68,.06);border:1.5px solid rgba(239,68,68,.2);border-radius:16px;padding:20px 12px;text-align:center;cursor:pointer">'
+    +'<div onclick="_absShowExpense()" style="background:rgba(239,68,68,.06);border:1.5px solid rgba(239,68,68,.2);border-radius:16px;padding:20px 12px;text-align:center;cursor:pointer">'
     +'<div style="font-size:30px;margin-bottom:8px">💸</div>'
     +'<div style="font-size:14px;font-weight:700;color:var(--text)">Gasto</div>'
     +'<div style="font-size:11px;color:var(--text2);margin-top:4px">Límite de gasto por categoría</div>'
-    +'</div>'
-    +'</div></div>'
-    // Step 2A: ingresos
-    +'<div id="abs-step2a" style="display:none">'
-    +'<div id="abs-2a-content">'+incAccordion+'</div>'
-    +'</div>'
-    // Step 2B: gastos
-    +'<div id="abs-step2b" style="display:none">'
-    +'<div id="abs-2b-content">'+expAccordion+'</div>'
-    +'</div>';
+    +'</div></div></div>'
+    +'<div id="abs-step2" style="display:none"></div>';
   _showHtmlBS('¿Qué presupuestas?',html);
 }
-function _absGoStep(stepId){
-  ['abs-step1','abs-step2a','abs-step2b'].forEach(function(id){
-    var el=document.getElementById(id);
-    if(el)el.style.display=id===stepId?'block':'none';
-  });
+function _absShowIncome(){
+  var incCats=filterDeleted(S.categories).filter(function(c){return c.type==='ingreso';});
+  var prin=incCats.filter(function(c){return !c.incomeType||c.incomeType==='principal';});
+  var sec=incCats.filter(function(c){return c.incomeType==='secundario';});
+  var acc='';
+  if(prin.length)acc+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--primary);margin:12px 0 4px">⭐ Ingresos principales</div>'+_buildCatAccordion(prin,false);
+  if(sec.length)acc+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--secondary);margin:12px 0 4px">➕ Ingresos secundarios</div>'+_buildCatAccordion(sec,false);
+  var el=document.getElementById('abs-step2');
+  if(!el)return;
+  el.innerHTML=acc;
+  el.style.display='block';
+  document.getElementById('abs-step1').style.display='none';
+}
+function _absShowExpense(){
+  var expCats=filterDeleted(S.categories).filter(function(c){return c.type==='gasto';});
+  var el=document.getElementById('abs-step2');
+  if(!el)return;
+  el.innerHTML=_buildCatAccordion(expCats,true);
+  el.style.display='block';
+  document.getElementById('abs-step1').style.display='none';
 }
 function _absToggleCat(catId){
   var el=document.getElementById('abs-subs-'+catId);
@@ -4369,17 +4370,16 @@ function _absToggleCat(catId){
     ?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
     :'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>';
 }
-function _absSelectSub(catId,subId,subName,emoji,incomeType,isGasto){
+function _absSub(catId,subId,subName,emoji,incomeType,isGasto){
   window._absCurrentSub={catId:catId,subId:subId,subName:subName,emoji:emoji,incomeType:incomeType,isGasto:isGasto};
-  var contId=isGasto?'abs-2b-content':'abs-2a-content';
-  var el=document.getElementById(contId);
+  var el=document.getElementById('abs-step2');
   if(!el)return;
   var lbl=isGasto?'Límite de gasto esperado para este mes':'Ingreso esperado para este mes';
   var accentColor=isGasto?'rgba(239,68,68,.08)':'rgba(0,212,170,.08)';
   el.innerHTML='<div style="background:'+accentColor+';border-radius:12px;padding:12px;margin-bottom:16px;display:flex;align-items:center;gap:10px">'
     +'<span style="font-size:22px">'+emoji+'</span>'
     +'<span style="font-size:14px;font-weight:700;color:var(--text)">'+subName+'</span>'
-    +'<button onclick="_absResetContent()" style="margin-left:auto;font-size:12px;color:var(--primary);background:none;border:none;cursor:pointer;font-family:var(--font)">Cambiar</button>'
+    +'<button onclick="openAddBudgetSheet()" style="margin-left:auto;font-size:12px;color:var(--primary);background:none;border:none;cursor:pointer;font-family:var(--font)">Cambiar</button>'
     +'</div>'
     +'<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">'+lbl+'</label>'
     +'<input type="text" inputmode="decimal" id="abs-amount" class="form-input" style="font-size:22px;font-weight:700;font-family:var(--font);text-align:right;margin-bottom:16px" placeholder="0" oninput="numInput(this)">'
