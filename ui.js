@@ -4389,12 +4389,17 @@ function _absResetContent(){
   closeBottomSheet();
   openAddBudgetSheet();
 }
+var _absConfirmSaving=false;
 function _absConfirmSub(){
-  var c=window._absCurrentSub;if(!c)return;
+  if(_absConfirmSaving)return;
+  _absConfirmSaving=true;
+  setTimeout(function(){_absConfirmSaving=false;},2000);
+  var c=window._absCurrentSub;if(!c){_absConfirmSaving=false;return;}
   var amount=parseNumSubs(document.getElementById('abs-amount')?.value,S.currency)||0;
-  if(!amount||amount<=0){toast('Ingresa un monto válido');return;}
+  if(!amount||amount<=0){toast('Ingresa un monto válido');_absConfirmSaving=false;return;}
   if(c.isGasto){
     var cat=getCat(c.catId);
+    if(!S.budgets)S.budgets=[];
     S.budgets.push(stampItem({categoryId:c.catId,subcategoryId:c.subId||'',amount:amount,currency:S.currency,color:cat?cat.color:'var(--primary)'}));
     saveState();closeBottomSheet();renderPage('presupuestos');
   } else {
@@ -4458,13 +4463,14 @@ function _saveEditIncomeBudget(id){
 function _deleteIncomeBudget(id){
   closeBottomSheet();
   setTimeout(function(){
-    confirmDialog('🗑️','¿Eliminar este ingreso?','',function(){
-      if(!S.incomeBudgets)S.incomeBudgets=[];
-      S.incomeBudgets=softDelete(S.incomeBudgets,id);
+    confirmDialog('🗑️','¿Eliminar este presupuesto de ingreso?','Esta acción no se puede deshacer.',function(){
+      S.incomeBudgets=(S.incomeBudgets||[]).filter(function(b){return b.id!==id;});
       if(window._pBudgetMap)delete window._pBudgetMap[id];
       var month=S._budgetMonth||new Date().toISOString().slice(0,7);
       _syncIncomeBudget(month);
-      saveState();renderPage('presupuestos');
+      saveState();
+      toast('Eliminado ✓');
+      renderPage('presupuestos');
     });
   },150);
 }
@@ -4508,11 +4514,12 @@ function _saveExpBudget(id){
 function _deleteExpBudget(id){
   closeBottomSheet();
   setTimeout(function(){
-    confirmDialog('🗑️','¿Eliminar presupuesto?','',function(){
-      if(!S.budgets)S.budgets=[];
-      S.budgets=softDelete(S.budgets,id);
+    confirmDialog('🗑️','¿Eliminar este presupuesto de gasto?','Esta acción no se puede deshacer.',function(){
+      S.budgets=(S.budgets||[]).filter(function(b){return b.id!==id;});
       if(window._pBudgetMap)delete window._pBudgetMap[id];
-      saveState();renderPage('presupuestos');
+      saveState();
+      toast('Eliminado ✓');
+      renderPage('presupuestos');
     });
   },150);
 }
