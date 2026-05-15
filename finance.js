@@ -698,7 +698,7 @@ function renderRule502030(refDate){
       +'<div style="font-size:20px;margin-bottom:5px">'+emoji+'</div>'
       +'<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;'
       +'color:var(--text2);margin-bottom:6px">'+name+'</div>'
-      +'<div style="font-family:var(--font);font-size:17px;font-weight:800;line-height:1.1;color:'+valColor+';">'
+      +'<div style="font-family:var(--font);font-size:13px;font-weight:800;line-height:1.2;color:'+valColor+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">'
       +fmt(real)+'</div>'
       +'<div style="font-size:9px;color:var(--text3);margin-bottom:6px;margin-top:1px">'
       +(isAhorros?'ahorrado':'gastado')+'</div>'
