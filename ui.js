@@ -4065,9 +4065,11 @@ function renderPresupuestos(){
     :parseFloat(_incGenItem&&_incGenItem.amount)||0;
   var budgets=filterDeleted(S.budgets).filter(function(b){
     if((b.currency||S.currency)!==S.currency)return false;
-    // Solo mostrar si fue creado en o antes del mes seleccionado
-    if(b.created_at){var bCreated=b.created_at.slice(0,7);return bCreated<=_bm;}
-    return true;
+    if(_bm===_curMY)return true; // mes actual: mostrar todos
+    // Meses pasados: solo si hubo gasto o fue creado ese mes
+    var bCreated=b.created_at?b.created_at.slice(0,7):'';
+    if(bCreated&&bCreated===_bm)return true;
+    return getBudgetSpent(b,_bFromDate)>0;
   });
   // Gasto: total de presupuestos de categoría, si no hay usa el general del mes
   var expBudgetTotal=budgets.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0)
@@ -4422,11 +4424,15 @@ function openEditIncomeBudgetSheet(id){
   if(!item){toast('No encontrado: '+id);return;}
   var iBg=item.incomeType==='secundario'?'rgba(116,97,239,.1)':'rgba(0,212,170,.1)';
   var iLabel=item.incomeType==='secundario'?'Ingresos secundarios':'Ingresos principales';
+  var _iSub=item.subcategoryId?getSub(item.subcategoryId):null;
+  var _iCat=item.categoryId?getCat(item.categoryId):null;
+  var _iName=item.name||(_iSub&&_iSub.name)||(_iCat&&_iCat.name)||'Sin nombre';
+  var _iEmoji=item.emoji||(_iSub&&_iSub.icon)||(_iCat&&_iCat.icon)||'💼';
   var html='<div style="padding-bottom:8px">'
     +'<div style="background:var(--surface2);border-radius:14px;padding:14px;margin-bottom:20px;display:flex;align-items:center;gap:12px">'
-    +'<div style="width:44px;height:44px;border-radius:12px;background:'+iBg+';display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">'+(item.emoji||'💼')+'</div>'
+    +'<div style="width:44px;height:44px;border-radius:12px;background:'+iBg+';display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">'+_iEmoji+'</div>'
     +'<div><div style="font-size:11px;color:var(--text2);margin-bottom:2px">'+iLabel+'</div>'
-    +'<div style="font-size:16px;font-weight:700;color:var(--text)">'+item.name+'</div></div>'
+    +'<div style="font-size:16px;font-weight:700;color:var(--text)">'+_iName+'</div></div>'
     +'</div>'
     +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px">Ingreso esperado para este mes</div>'
     +'<input type="text" inputmode="decimal" id="einc-val" class="form-input" style="font-size:26px;font-weight:800;font-family:var(--font);text-align:right;margin-bottom:20px" placeholder="0" value="'+(item.amount?fmtRTLValue(item.amount,S.currency):'')+'" oninput="numInput(this)">'
@@ -4454,11 +4460,8 @@ function _deleteIncomeBudget(id){
   setTimeout(function(){
     confirmDialog('🗑️','¿Eliminar este ingreso?','',function(){
       if(!S.incomeBudgets)S.incomeBudgets=[];
-      var _c=window._pBudgetMap&&window._pBudgetMap[id];
-      if(_c&&_c.data&&!S.incomeBudgets.find(function(b){return b.id===id&&!b.deleted;})){
-        S.incomeBudgets.push(Object.assign({},_c.data));
-      }
       S.incomeBudgets=softDelete(S.incomeBudgets,id);
+      if(window._pBudgetMap)delete window._pBudgetMap[id];
       var month=S._budgetMonth||new Date().toISOString().slice(0,7);
       _syncIncomeBudget(month);
       saveState();renderPage('presupuestos');
@@ -4507,11 +4510,8 @@ function _deleteExpBudget(id){
   setTimeout(function(){
     confirmDialog('🗑️','¿Eliminar presupuesto?','',function(){
       if(!S.budgets)S.budgets=[];
-      var _c=window._pBudgetMap&&window._pBudgetMap[id];
-      if(_c&&_c.data&&!S.budgets.find(function(b){return b.id===id&&!b.deleted;})){
-        S.budgets.push(Object.assign({},_c.data));
-      }
       S.budgets=softDelete(S.budgets,id);
+      if(window._pBudgetMap)delete window._pBudgetMap[id];
       saveState();renderPage('presupuestos');
     });
   },150);
