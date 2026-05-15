@@ -571,101 +571,153 @@ function renderRule502030(refDate){
   var _rAllTxs=filterDeleted(S.transactions).filter(function(t){
     var d=new Date(t.date);return t.currency===S.currency&&d>=_rFrom&&d<=_rTo;
   });
-  const inc=_rAllTxs.filter(function(t){return t.type==='ingreso'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
-  if(inc<=0)return`<div class="card" style="margin-bottom:12px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <div class="card-title" style="margin:0">📊 Regla 50/30/20</div>
-    </div>
-    <div style="font-size:12px;color:var(--text2);padding:8px 0">Registra ingresos este mes para ver tu distribución ideal vs. real.</div>
-  </div>`;
+  var inc=_rAllTxs.filter(function(t){return t.type==='ingreso'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
 
   // Classify transactions by nature
-  const txs=_rAllTxs.filter(t=>t.type==='gasto');
-  let nec=0,des=0,aho=0;
-  txs.forEach(t=>{
-    const cat=getCat(t.categoryId);
-    const nature=cat?cat.nature:'deseos';
-    const amt=parseFloat(t.amount)||0;
+  var txs=_rAllTxs.filter(function(t){return t.type==='gasto';});
+  var nec=0,des=0,aho=0;
+  txs.forEach(function(t){
+    var cat=getCat(t.categoryId);
+    var nature=cat?cat.nature:'deseos';
+    var amt=parseFloat(t.amount)||0;
     if(nature==='necesidades')nec+=amt;
     else if(nature==='deseos')des+=amt;
     else if(nature==='ahorros')aho+=amt;
   });
 
-  const idealNec=inc*0.5, idealDes=inc*0.3, idealAho=inc*0.2;
-  const rows=[
-    {label:'🔴 NECESIDADES',ideal:idealNec,real:nec,idealPct:50,color:'#EF4444'},
-    {label:'🟡 DESEOS',ideal:idealDes,real:des,idealPct:30,color:'#F59E0B'},
-    {label:'🟢 AHORROS',ideal:idealAho,real:aho,idealPct:20,color:'#10B981'},
-  ];
+  // Base de ingresos: presupuesto si existe, si no ingreso real
+  var incBase=(S.incomeBudget&&parseFloat(S.incomeBudget)>0)?parseFloat(S.incomeBudget):inc;
+  var hasBudget=incBase!==inc&&incBase>0;
 
-  const rowsHtml=rows.map(r=>{
-    const realPct=inc>0?Math.round(r.real/inc*100):0;
-    const diff=r.ideal-r.real;
-    const over=diff<0;
-    const obsLabel=over?`⚠ +${fmt(Math.abs(diff))}`:diff===0?'✓ Exacto':`✓ −${fmt(diff)}`;
-    const obsColor=over?'var(--danger)':'var(--success)';
-    const barPct=Math.min(100,r.ideal>0?Math.round(r.real/r.ideal*100):0);
-    const barColor=over?'var(--danger)':realPct>=r.idealPct*0.9?'var(--success)':'var(--warning)';
-    return`<div style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:12px;font-weight:700">${r.label}</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;text-align:center">
-        <div>
-          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">IDEAL</div>
-          <div style="font-size:12px;font-weight:700;color:var(--text)">${r.idealPct}%</div>
-          <div style="font-size:10px;color:var(--text2)">${fmt(r.ideal)}</div>
-        </div>
-        <div>
-          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">REAL</div>
-          <div style="font-size:12px;font-weight:700;color:${r.color}">${realPct}%</div>
-          <div style="font-size:10px;color:var(--text2)">${fmt(r.real)}</div>
-        </div>
-        <div>
-          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">OBSERVACIÓN</div>
-          <div style="font-size:11px;font-weight:700;color:${obsColor}">${obsLabel}</div>
-          <div style="font-size:10px;color:var(--text2)">${over?'Excedido':'Disponible'}</div>
-        </div>
-      </div>
-      <div style="height:8px;background:var(--surface3);border-radius:99px;overflow:hidden">
-        <div style="height:100%;border-radius:99px;background:${barColor};width:${barPct}%;transition:width .4s"></div>
-      </div>
-    </div>`;
-  }).join('');
+  if(inc<=0&&!hasBudget){
+    return '<div style="font-size:13px;color:var(--text2);padding:8px 0">Configura tu presupuesto de ingreso o registra ingresos este mes para ver tu distribución 50/30/20.</div>';
+  }
 
-  const necPct=inc>0?Math.round(nec/inc*100):0;
-  const desPct=inc>0?Math.round(des/inc*100):0;
-  const ahoPct=inc>0?Math.round(aho/inc*100):0;
-  const necOK=necPct<=50,desOK=desPct<=30,ahoOK=ahoPct>=20;
+  var idealNec=incBase*0.5;
+  var idealDes=incBase*0.3;
+  var idealAho=incBase*0.2;
+  var necOK=nec<=idealNec;
+  var desOK=des<=idealDes;
+  var ahoOK=aho>=idealAho;
 
-  const collapsedHtml=`<div style="display:flex;gap:12px;align-items:center;margin-top:4px">
-    <div style="display:flex;align-items:center;gap:4px"><span style="color:${necOK?'var(--success)':'var(--danger)'}">🔴</span><span style="font-size:11px;font-weight:700;color:${necOK?'var(--success)':'var(--danger)'}">${necPct}%</span></div>
-    <div style="display:flex;align-items:center;gap:4px"><span style="color:${desOK?'var(--success)':'var(--warning)'}">🟡</span><span style="font-size:11px;font-weight:700;color:${desOK?'var(--success)':'var(--warning)'}">${desPct}%</span></div>
-    <div style="display:flex;align-items:center;gap:4px"><span style="color:${ahoOK?'var(--success)':'var(--danger)'}">🟢</span><span style="font-size:11px;font-weight:700;color:${ahoOK?'var(--success)':'var(--danger)'}">${ahoPct}%</span></div>
-    <span style="font-size:10px;color:var(--text3);margin-left:4px">${necOK&&desOK&&ahoOK?'✓ Todo OK':'⚠ Revisar'}</span>
-  </div>`;
+  // Pill de estado general
+  var issues=[];
+  if(!necOK)issues.push('necesidades');
+  if(!desOK)issues.push('deseos');
+  if(!ahoOK)issues.push('ahorros');
 
-  return`<div class="card" style="margin-bottom:12px">
-    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleRule502030()">
-      <div class="card-title" style="margin:0">📊 Regla 50/30/20</div>
-      <span id="rule-arrow" style="color:var(--text3);font-size:12px;transition:transform .2s">▼</span>
-    </div>
-    <div id="rule-collapsed" style="display:none">${collapsedHtml}</div>
-    <div id="rule-expanded">
-      <div style="font-size:10px;color:var(--text3);margin:4px 0 12px">Ingresos del mes: <strong style="color:var(--text)">${fmt(inc)}</strong></div>
-      ${rowsHtml}
-    </div>
-  </div>`;
-}
-function toggleRule502030(){
-  const exp=document.getElementById('rule-expanded');
-  const col=document.getElementById('rule-collapsed');
-  const arrow=document.getElementById('rule-arrow');
-  if(!exp||!col)return;
-  const isOpen=exp.style.display!=='none';
-  exp.style.display=isOpen?'none':'block';
-  col.style.display=isOpen?'flex':'none';
-  if(arrow)arrow.style.transform=isOpen?'rotate(-90deg)':'';
+  var pillBg,pillColor,pillTxt;
+  if(issues.length===0){
+    pillBg='rgba(16,185,129,.1)';pillColor='var(--success)';pillTxt='✓ Todo en orden';
+  } else if(issues.length===1){
+    pillBg='rgba(245,158,11,.1)';pillColor='var(--warning)';pillTxt='⚠ Revisar '+issues[0];
+  } else {
+    pillBg='rgba(239,68,68,.1)';pillColor='var(--danger)';pillTxt='🚨 Muy desbalanceado';
+  }
+
+  // Tip contextual
+  var tipTxt='';
+  if(issues.length===0){
+    tipTxt='¡Vas muy bien! Tu distribución está dentro de los rangos ideales. Sigue así.';
+  } else if(!necOK){
+    var excNec=Math.round((nec-idealNec)/incBase*100);
+    tipTxt='Tus necesidades están '+excNec+'% por encima del ideal. Revisa gastos fijos como transporte o servicios.';
+  } else if(!ahoOK){
+    tipTxt='Tu ahorro está por debajo del 20% ideal. Intenta transferir al menos '+fmt(idealAho-aho)+' más este mes.';
+  } else {
+    tipTxt='Tus deseos superan el 30% ideal. Reduce gastos variables para balancear.';
+  }
+
+  var html='';
+
+  // Pill de estado
+  html+='<div style="display:flex;justify-content:flex-end;margin-bottom:10px">'
+    +'<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;'
+    +'padding:3px 10px;border-radius:100px;background:'+pillBg+';color:'+pillColor+';">'
+    +pillTxt+'</span></div>';
+
+  // Header ingreso
+  var incRealStr=fmt(inc);
+  var incBaseStr=fmt(incBase);
+  var incPct=incBase>0?Math.round(inc/incBase*100):100;
+  html+='<div style="background:var(--surface2);border:.5px solid var(--border);border-radius:12px;'
+    +'padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">'
+    +'<div style="display:flex;align-items:center;gap:8px">'
+    +'<div style="width:28px;height:28px;border-radius:8px;background:rgba(0,212,170,.1);display:flex;'
+    +'align-items:center;justify-content:center;font-size:14px;flex-shrink:0">💰</div>'
+    +'<div>'
+    +'<div style="font-size:11px;color:var(--text2)">'+(hasBudget?'Ingreso presupuestado':'Ingresos del mes')+'</div>'
+    +'<div style="font-size:14px;font-weight:600;color:var(--text)">'+incBaseStr+'</div>'
+    +'</div></div>'
+    +(hasBudget
+      ?'<div style="text-align:right">'
+        +'<div style="font-size:10px;color:var(--text3)">Recibido hasta hoy</div>'
+        +'<div style="font-size:13px;font-weight:600;color:'+(inc>=incBase?'var(--success)':'var(--text)')+'">'+incRealStr+'</div>'
+        +'<div style="font-size:10px;color:var(--text2)">'+incPct+'% del presupuesto</div>'
+        +'</div>'
+      :'')
+    +'</div>';
+
+  // makeCard — función local
+  var makeCard=function(emoji,name,real,ideal,color,bg,isAhorros){
+    var barPct=ideal>0?Math.min(100,Math.round(real/ideal*100)):0;
+    var ok=isAhorros?real>=ideal:real<=ideal;
+    var fillColor=ok?color:'var(--danger)';
+    var valColor=ok?color:'var(--danger)';
+    var rem=ideal-real;
+    var remTxt,remColor;
+    if(isAhorros){
+      if(ok){remTxt='¡Meta lograda!';remColor='var(--success)';}
+      else{remTxt=fmt(Math.abs(rem))+' faltan';remColor='var(--danger)';}
+    } else {
+      if(ok){remTxt=fmt(rem)+' restantes';remColor='var(--success)';}
+      else{remTxt=fmt(Math.abs(rem))+' excedido';remColor='var(--danger)';}
+    }
+    var statusTxt=ok?barPct+'% usado':(isAhorros?barPct+'% de meta':'+'+(barPct-100)+'% del límite');
+    var statusBg=ok?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)';
+    var statusColor=ok?'var(--success)':'var(--danger)';
+    return '<div style="background:'+bg+';border-radius:16px;padding:11px 8px;text-align:center">'
+      +'<div style="font-size:20px;margin-bottom:5px">'+emoji+'</div>'
+      +'<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;'
+      +'color:var(--text2);margin-bottom:6px">'+name+'</div>'
+      +'<div style="font-family:var(--font);font-size:17px;font-weight:800;line-height:1.1;color:'+valColor+';">'
+      +fmt(real)+'</div>'
+      +'<div style="font-size:9px;color:var(--text3);margin-bottom:6px;margin-top:1px">'
+      +(isAhorros?'ahorrado':'gastado')+'</div>'
+      +'<div style="height:5px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden;margin-bottom:5px">'
+      +'<div style="height:100%;width:'+barPct+'%;background:'+fillColor+';border-radius:99px;transition:width .4s"></div></div>'
+      +'<div style="font-size:9px;font-weight:600;color:var(--text2)">'
+      +(isAhorros?'meta ':'de ')+fmt(ideal)+'</div>'
+      +'<div style="font-size:10px;font-weight:600;margin-top:3px;color:'+remColor+'">'+remTxt+'</div>'
+      +'<div style="display:inline-block;font-size:9px;font-weight:600;padding:2px 7px;border-radius:100px;'
+      +'margin-top:4px;background:'+statusBg+';color:'+statusColor+'">'+statusTxt+'</div>'
+      +'</div>';
+  };
+
+  // 3 tarjetas
+  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">'
+    +makeCard('🏠','Necesidades',nec,idealNec,'#378ADD','#EBF4FF',false)
+    +makeCard('🎉','Deseos',des,idealDes,'#7461EF','#F0EEFE',false)
+    +makeCard('🐷','Ahorros',aho,idealAho,'var(--primary)','#E8FBF5',true)
+    +'</div>';
+
+  // Tip contextual
+  html+='<div style="background:var(--surface2);border:.5px solid var(--border);border-radius:12px;'
+    +'padding:10px 12px;display:flex;gap:8px;align-items:flex-start;margin-bottom:10px">'
+    +'<span style="font-size:16px;flex-shrink:0;margin-top:1px">💡</span>'
+    +'<span style="font-size:12px;color:var(--text2);line-height:1.5">'+tipTxt+'</span></div>';
+
+  // Resumen inferior
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;'
+    +'border-top:.5px solid var(--border)">'
+    +'<div style="font-size:12px;color:var(--text2)">Mes: <strong style="color:var(--text);font-weight:500">'
+    +new Date().toLocaleString('es',{month:'long',year:'numeric'})
+    +'</strong></div>'
+    +'<button onclick="navigate(\'herramientas\')" style="font-size:11px;color:var(--primary);'
+    +'font-weight:500;cursor:pointer;background:none;border:none;font-family:var(--font)">Ver análisis →</button>'
+    +'</div>';
+
+  return html;
 }
 
 // ════════════════════════════════════════════════════════════
