@@ -4054,11 +4054,19 @@ function renderPresupuestos(){
   var incReal=_bTxs.filter(function(t){return t.type==='ingreso'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
   var expReal=_bTxs.filter(function(t){return t.type==='gasto'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
 
-  // Totales presupuesto
-  var _incItems=filterDeleted(S.incomeBudgets||[]).filter(function(b){return b.month===_bm;});
-  var incBudgetTotal=_incItems.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0);
+  // Totales presupuesto — entradas por mes
+  var _allMonthItems=filterDeleted(S.incomeBudgets||[]).filter(function(b){return b.month===_bm;});
+  var _incGenItem=_allMonthItems.find(function(b){return b.categoryId==='__income__';});
+  var _expGenItem=_allMonthItems.find(function(b){return b.categoryId==='__expense__';});
+  var _incItems=_allMonthItems.filter(function(b){return b.categoryId!=='__income__'&&b.categoryId!=='__expense__';});
+  // Si hay items detallados de ingreso, suman el total; si no, usa el general del mes
+  var incBudgetTotal=_incItems.length>0
+    ?_incItems.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0)
+    :parseFloat(_incGenItem&&_incGenItem.amount)||0;
   var budgets=filterDeleted(S.budgets).filter(function(b){return(b.currency||S.currency)===S.currency;});
-  var expBudgetTotal=budgets.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0)||parseFloat(S.expenseBudgetGeneral)||0;
+  // Gasto: total de presupuestos de categoría, si no hay usa el general del mes
+  var expBudgetTotal=budgets.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0)
+    ||parseFloat(_expGenItem&&_expGenItem.amount)||0;
   var incPct=incBudgetTotal>0?Math.min(100,Math.round(incReal/incBudgetTotal*100)):0;
   var expPct=expBudgetTotal>0?Math.min(100,Math.round(expReal/expBudgetTotal*100)):0;
   var expColor=expPct>=100?'var(--danger)':expPct>=80?'var(--warning)':'var(--success)';
@@ -4116,7 +4124,7 @@ function renderPresupuestos(){
       var iPct=item.amount>0?Math.min(100,Math.round(itemReal/item.amount*100)):0;
       var iBg=item.incomeType==='secundario'?'rgba(116,97,239,.1)':'rgba(0,212,170,.1)';
       var iRem=item.amount-itemReal;
-      html+='<div onclick="openEditIncomeBudgetSheet(\''+item.id+'\')" style="background:var(--surface);border-radius:14px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);padding:12px;margin-bottom:8px;cursor:pointer">'
+      html+='<div data-iid="'+item.id+'" onclick="openEditIncomeBudgetSheet(this.dataset.iid)" style="background:var(--surface);border-radius:14px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);padding:12px;margin-bottom:8px;cursor:pointer">'
         +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
         +'<div style="width:36px;height:36px;border-radius:10px;background:'+iBg+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+(item.emoji||'💼')+'</div>'
         +'<div style="flex:1;min-width:0">'
@@ -4188,9 +4196,11 @@ function presupuestoMesSiguiente(){
 
 // ── Sheet ingreso general ──
 function openIncomeBudgetSheet(){
-  var cur=parseFloat(S.incomeBudget)||0;
+  var _bm=S._budgetMonth||new Date().toISOString().slice(0,7);
+  var _genItem=filterDeleted(S.incomeBudgets||[]).find(function(b){return b.categoryId==='__income__'&&b.month===_bm;});
+  var cur=parseFloat(_genItem&&_genItem.amount)||parseFloat(S.incomeBudget)||0;
   var _preview=function(v){
-    var n=parseFloat(v)||0;
+    var n=parseNumSubs(v,S.currency)||0;
     return '<div style="background:var(--surface2);border-radius:12px;padding:10px 12px;margin-top:12px">'
       +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:8px">Distribución 50/30/20</div>'
       +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center">'
@@ -4204,14 +4214,18 @@ function openIncomeBudgetSheet(){
     +'<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Ingreso esperado para este mes</label>'
     +'<input type="text" inputmode="decimal" id="incbs-val" class="form-input" style="font-size:26px;font-weight:800;font-family:var(--font);text-align:right" placeholder="0" value="'+(cur?fmtRTLValue(cur,S.currency):'')+'" oninput="numInput(this);document.getElementById(\'incbs-prev\').innerHTML=_incBsPreview(this.value)">'
     +'<div id="incbs-prev">'+_preview(cur)+'</div>'
-    +'<button onclick="saveIncomeBudgetGeneral()" class="btn btn-primary" style="width:100%;margin-top:16px">Guardar</button>'
+    +'<button onclick="saveIncomeBudgetGeneral()" class="btn btn-primary" style="width:100%;margin-top:16px;border-radius:100px">Guardar</button>'
     +'</div>';
   window._incBsPreview=_preview;
   _showHtmlBS('Ingreso del mes',html);
 }
 function saveIncomeBudgetGeneral(){
   var v=parseNumSubs(document.getElementById('incbs-val')?.value,S.currency)||0;
-  S.incomeBudget=v;
+  var month=S._budgetMonth||new Date().toISOString().slice(0,7);
+  var idx=(S.incomeBudgets||[]).findIndex(function(b){return b.categoryId==='__income__'&&b.month===month&&!b.deleted;});
+  if(idx>=0){S.incomeBudgets[idx]=stampItem(Object.assign({},S.incomeBudgets[idx],{amount:v}));}
+  else{if(!S.incomeBudgets)S.incomeBudgets=[];S.incomeBudgets.push(stampItem({categoryId:'__income__',subcategoryId:'',name:'Ingreso general',emoji:'💰',incomeType:'principal',amount:v,month:month}));}
+  S.incomeBudget=v; // compatibilidad con regla 50/30/20
   saveState();
   closeBottomSheet();
   renderPage('presupuestos');
@@ -4219,31 +4233,38 @@ function saveIncomeBudgetGeneral(){
 
 // ── Sheet gasto general ──
 function openExpenseBudgetSheet(){
-  var cur=parseFloat(S.expenseBudgetGeneral)||0;
-  var inc=parseFloat(S.incomeBudget)||0;
+  var _bm=S._budgetMonth||new Date().toISOString().slice(0,7);
+  var _expItem=filterDeleted(S.incomeBudgets||[]).find(function(b){return b.categoryId==='__expense__'&&b.month===_bm;});
+  var cur=parseFloat(_expItem&&_expItem.amount)||parseFloat(S.expenseBudgetGeneral)||0;
+  var _incItem=filterDeleted(S.incomeBudgets||[]).find(function(b){return b.categoryId==='__income__'&&b.month===_bm;});
+  var inc=parseFloat(_incItem&&_incItem.amount)||parseFloat(S.incomeBudget)||0;
   var _preview=function(v){
-    var n=parseFloat(v)||0;
+    var n=parseNumSubs(v,S.currency)||0;
     var pct=inc>0?Math.round(n/inc*100):0;
-    var disp=inc>0?inc-n:0;
+    var disp=inc-n;
     return '<div style="background:var(--surface2);border-radius:12px;padding:10px 12px;margin-top:12px">'
       +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">'
       +'<div><div style="font-size:9px;color:var(--text3)">Límite</div><div style="font-size:13px;font-weight:700;color:var(--danger)">'+fmt(n)+'</div></div>'
-      +'<div><div style="font-size:9px;color:var(--text3)">Del ingreso</div><div style="font-size:13px;font-weight:700;color:var(--text)">'+pct+'%</div></div>'
-      +'<div><div style="font-size:9px;color:var(--text3)">Disponible</div><div style="font-size:13px;font-weight:700;color:var(--success)">'+fmt(disp)+'</div></div>'
+      +'<div><div style="font-size:9px;color:var(--text3)">Del ingreso</div><div style="font-size:13px;font-weight:700;color:var(--text)">'+(inc>0?pct+'%':'—')+'</div></div>'
+      +'<div><div style="font-size:9px;color:var(--text3)">Disponible</div><div style="font-size:13px;font-weight:700;color:'+(disp>=0?'var(--success)':'var(--danger)')+'">'+fmt(disp)+'</div></div>'
       +'</div></div>';
   };
   var html='<div style="padding-bottom:8px">'
     +'<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Límite de gasto esperado para este mes</label>'
     +'<input type="text" inputmode="decimal" id="expbs-val" class="form-input" style="font-size:26px;font-weight:800;font-family:var(--font);text-align:right" placeholder="0" value="'+(cur?fmtRTLValue(cur,S.currency):'')+'" oninput="numInput(this);document.getElementById(\'expbs-prev\').innerHTML=_expBsPreview(this.value)">'
     +'<div id="expbs-prev">'+_preview(cur)+'</div>'
-    +'<button onclick="saveExpenseBudgetGeneral()" class="btn btn-primary" style="width:100%;margin-top:16px">Guardar</button>'
+    +'<button onclick="saveExpenseBudgetGeneral()" class="btn btn-primary" style="width:100%;margin-top:16px;border-radius:100px">Guardar</button>'
     +'</div>';
   window._expBsPreview=_preview;
   _showHtmlBS('Límite de gastos',html);
 }
 function saveExpenseBudgetGeneral(){
   var v=parseNumSubs(document.getElementById('expbs-val')?.value,S.currency)||0;
-  S.expenseBudgetGeneral=v;
+  var month=S._budgetMonth||new Date().toISOString().slice(0,7);
+  var idx=(S.incomeBudgets||[]).findIndex(function(b){return b.categoryId==='__expense__'&&b.month===month&&!b.deleted;});
+  if(idx>=0){S.incomeBudgets[idx]=stampItem(Object.assign({},S.incomeBudgets[idx],{amount:v}));}
+  else{if(!S.incomeBudgets)S.incomeBudgets=[];S.incomeBudgets.push(stampItem({categoryId:'__expense__',subcategoryId:'',name:'Límite gasto',emoji:'💸',incomeType:'',amount:v,month:month}));}
+  S.expenseBudgetGeneral=v; // compatibilidad backwards
   saveState();
   closeBottomSheet();
   renderPage('presupuestos');
@@ -4431,9 +4452,9 @@ function copiarPresupuestoSiguienteMes(){
 }
 function _reiniciarPresupuesto(){
   var month=S._budgetMonth||new Date().toISOString().slice(0,7);
-  confirmDialog('🔄','¿Reiniciar presupuesto?','Se eliminarán los ingresos de este mes.',function(){
+  confirmDialog('🔄','¿Reiniciar presupuesto?','Se eliminarán todos los presupuestos de este mes.',function(){
     filterDeleted(S.incomeBudgets||[]).filter(function(b){return b.month===month;}).forEach(function(b){S.incomeBudgets=softDelete(S.incomeBudgets,b.id);});
-    S.incomeBudget=0;saveState();closeBottomSheet();renderPage('presupuestos');
+    saveState();closeBottomSheet();renderPage('presupuestos');
   });
 }
 
