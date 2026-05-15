@@ -4063,7 +4063,12 @@ function renderPresupuestos(){
   var incBudgetTotal=_incItems.length>0
     ?_incItems.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0)
     :parseFloat(_incGenItem&&_incGenItem.amount)||0;
-  var budgets=filterDeleted(S.budgets).filter(function(b){return(b.currency||S.currency)===S.currency;});
+  var budgets=filterDeleted(S.budgets).filter(function(b){
+    if((b.currency||S.currency)!==S.currency)return false;
+    // Solo mostrar si fue creado en o antes del mes seleccionado
+    if(b.created_at){var bCreated=b.created_at.slice(0,7);return bCreated<=_bm;}
+    return true;
+  });
   // Gasto: total de presupuestos de categoría, si no hay usa el general del mes
   var expBudgetTotal=budgets.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0)
     ||parseFloat(_expGenItem&&_expGenItem.amount)||0;
@@ -4243,7 +4248,7 @@ function saveIncomeBudgetGeneral(){
   var idx=(S.incomeBudgets||[]).findIndex(function(b){return b.categoryId==='__income__'&&b.month===month&&!b.deleted;});
   if(idx>=0){S.incomeBudgets[idx]=stampItem(Object.assign({},S.incomeBudgets[idx],{amount:v}));}
   else{if(!S.incomeBudgets)S.incomeBudgets=[];S.incomeBudgets.push(stampItem({categoryId:'__income__',subcategoryId:'',name:'Ingreso general',emoji:'💰',incomeType:'principal',amount:v,month:month}));}
-  S.incomeBudget=v; // compatibilidad con regla 50/30/20
+  _syncIncomeBudget(month);
   saveState();
   closeBottomSheet();
   renderPage('presupuestos');
@@ -4397,9 +4402,17 @@ function _absConfirmSub(){
 function saveNewIncomeBudget(catId,subId,subName,emoji,incomeType,amount){
   var month=S._budgetMonth||new Date().toISOString().slice(0,7);
   S.incomeBudgets.push(stampItem({categoryId:catId,subcategoryId:subId||'',name:subName,emoji:emoji,incomeType:incomeType||'principal',amount:parseFloat(amount)||0,month:month}));
-  // Actualizar S.incomeBudget como suma del mes
-  S.incomeBudget=filterDeleted(S.incomeBudgets).filter(function(b){return b.month===month;}).reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0);
+  _syncIncomeBudget(month);
   saveState();closeBottomSheet();renderPage('presupuestos');
+}
+// Mantiene S.incomeBudget sincronizado con la lógica de incBudgetTotal
+function _syncIncomeBudget(month){
+  var _all=filterDeleted(S.incomeBudgets||[]).filter(function(b){return b.month===month;});
+  var _det=_all.filter(function(b){return b.categoryId!=='__income__'&&b.categoryId!=='__expense__';});
+  var _gen=_all.find(function(b){return b.categoryId==='__income__';});
+  S.incomeBudget=_det.length>0
+    ?_det.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0)
+    :parseFloat(_gen&&_gen.amount)||0;
 }
 
 // ── Sheet editar ingreso ──
@@ -4433,7 +4446,7 @@ function _saveEditIncomeBudget(id){
   }
   S.incomeBudgets[idx]=stampItem(Object.assign({},S.incomeBudgets[idx],{amount:v}));
   var month=S._budgetMonth||new Date().toISOString().slice(0,7);
-  S.incomeBudget=filterDeleted(S.incomeBudgets).filter(function(b){return b.month===month;}).reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0);
+  _syncIncomeBudget(month);
   saveState();closeBottomSheet();renderPage('presupuestos');
 }
 function _deleteIncomeBudget(id){
