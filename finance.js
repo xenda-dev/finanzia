@@ -562,11 +562,11 @@ function updateSubs(catId,targetId,selectedSubId){
 }
 
 // ════════════════════════════════════════════════════════════
-// ── Helper: ingreso presupuestado del mes desde incomeBudgets ──
+// ── Helper: ingreso presupuestado del mes desde S.budgets (type field) ──
 function _getMonthlyIncomeBudget(month){
-  var _all=filterDeleted(S.incomeBudgets||[]).filter(function(b){return b.month===month;});
-  var _det=_all.filter(function(b){return b.categoryId!=='__income__'&&b.categoryId!=='__expense__';});
-  var _gen=_all.find(function(b){return b.categoryId==='__income__';});
+  var _all=filterDeleted(S.budgets||[]).filter(function(b){return b.month===month;});
+  var _det=_all.filter(function(b){return b.type==='ingreso';});
+  var _gen=_all.find(function(b){return b.type==='ingreso_general';});
   var fromItems=_det.length>0
     ?_det.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0)
     :parseFloat(_gen&&_gen.amount)||0;
