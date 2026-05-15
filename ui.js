@@ -4008,32 +4008,414 @@ function renderBudgetGroups(budgets){
   }).join('');
 }
 function renderPresupuestos(){
+  if(!S._budgetMonth)S._budgetMonth=new Date().toISOString().slice(0,7);
+  var _bm=S._budgetMonth;
+  var _bParts=_bm.split('-');
+  var _bFrom=new Date(parseInt(_bParts[0]),parseInt(_bParts[1])-1,1,0,0,0);
+  var _bTo=new Date(parseInt(_bParts[0]),parseInt(_bParts[1]),0,23,59,59);
+  var _bFromDate=_bFrom;
+  var _bLbl=_bFrom.toLocaleString('es',{month:'long',year:'numeric'});
+  var _daysInMonth=_bTo.getDate();
+  var _bRange='1 al '+_daysInMonth+' de '+_bFrom.toLocaleString('es',{month:'long'})+' · '+_bFrom.getFullYear();
+  var _curMY=new Date().toISOString().slice(0,7);
+  var _isCurrentMonth=(_bm===_curMY);
+
+  // Transacciones del mes
+  var _bTxs=filterDeleted(S.transactions).filter(function(t){
+    var d=new Date(t.date);return t.currency===S.currency&&d>=_bFrom&&d<=_bTo;
+  });
+  var incReal=_bTxs.filter(function(t){return t.type==='ingreso'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
+  var expReal=_bTxs.filter(function(t){return t.type==='gasto'&&!isInternalTransaction(t);}).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
+
+  // Totales presupuesto
+  var _incItems=filterDeleted(S.incomeBudgets||[]).filter(function(b){return b.month===_bm;});
+  var incBudgetTotal=_incItems.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0)||parseFloat(S.incomeBudget)||0;
   var budgets=filterDeleted(S.budgets).filter(function(b){return(b.currency||S.currency)===S.currency;});
-  var totalLimit=budgets.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0);
-  var totalSpent=budgets.reduce(function(s,b){return s+getBudgetSpent(b);},0);
-  var totalPct=totalLimit>0?Math.min(100,Math.round(totalSpent/totalLimit*100)):0;
-  var totalColor=totalPct>=90?'var(--danger)':totalPct>=70?'var(--warning)':'var(--primary)';
-  var html='';
-  if(budgets.length){
-    html+='<div class="card" style="margin-bottom:12px">'
-      +'<div class="card-title">Resumen total de presupuestos</div>'
-      +'<div style="display:flex;justify-content:space-between;margin-bottom:8px">'
-      +'<div><div style="font-size:12px;color:var(--text2)">Gastado</div><div style="font-size:18px;font-weight:800;color:var(--danger)">'+fmt(totalSpent)+'</div></div>'
-      +'<div style="text-align:right"><div style="font-size:12px;color:var(--text2)">Límite total</div><div style="font-size:18px;font-weight:800">'+fmt(totalLimit)+'</div></div>'
-      +'</div>'
-      +'<div class="progress-bar" style="height:10px;margin-bottom:6px"><div class="progress-fill" style="width:'+totalPct+'%;background:'+totalColor+'"></div></div>'
-      +'<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2)">'
-      +'<span>Usado: <strong style="color:'+totalColor+'">'+totalPct+'%</strong></span>'
-      +'<span>Restante: <strong style="color:'+(totalLimit-totalSpent>=0?'var(--success)':'var(--danger)')+'">'+fmt(Math.max(0,totalLimit-totalSpent))+'</strong></span>'
-      +'</div></div>';
-  }
-  html+='<div style="display:flex;justify-content:flex-end;margin-bottom:12px">'
-    +'<button class="btn btn-primary btn-sm" onclick="openModal(\'budget\',{})">+ '+(t('newBudget')||'Nuevo presupuesto')+'</button>'
+  var expBudgetTotal=budgets.reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0)||parseFloat(S.expenseBudgetGeneral)||0;
+  var incPct=incBudgetTotal>0?Math.min(100,Math.round(incReal/incBudgetTotal*100)):0;
+  var expPct=expBudgetTotal>0?Math.min(100,Math.round(expReal/expBudgetTotal*100)):0;
+  var expColor=expPct>=100?'var(--danger)':expPct>=80?'var(--warning)':'var(--success)';
+
+  // Iconos lapiz y chevron
+  var _svgPencil='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  var _svgChevL='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
+  var _svgChevR='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
+
+  // ── Selector de mes ──
+  var html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:0 2px">'
+    +'<button onclick="presupuestoMesAnterior()" style="width:32px;height:32px;border-radius:10px;border:0.5px solid var(--border);background:var(--surface);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer">'+_svgChevL+'</button>'
+    +'<div style="font-size:12px;color:var(--text2);font-weight:500;text-align:center">'+_bRange+'</div>'
+    +'<div style="display:flex;gap:6px">'
+    +(_isCurrentMonth?'<div style="width:32px"></div>':'<button onclick="presupuestoMesSiguiente()" style="width:32px;height:32px;border-radius:10px;border:0.5px solid var(--border);background:var(--surface);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer">'+_svgChevR+'</button>')
+    +'<button onclick="openBudgetOptions()" style="width:32px;height:32px;border-radius:10px;border:0.5px solid var(--border);background:var(--surface);color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:700">⋯</button>'
+    +'</div></div>';
+
+  // ── Cards superiores ──
+  var _mkSummaryCard=function(onclick,emoji,emojiBg,lbl,total,real,pct,fillColor,subLbl,statusTxt,statusColor){
+    var barW=pct+'%';
+    var totalTxt=total>0?fmt(total):'Sin definir';
+    var totalStyle=total>0?'font-size:20px;font-weight:800;color:var(--text);font-family:var(--font)':'font-size:14px;font-weight:600;color:var(--text3)';
+    return '<div onclick="'+onclick+'" style="background:var(--surface);border-radius:16px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);padding:12px;cursor:pointer;position:relative">'
+      +'<div style="position:absolute;top:10px;right:10px;color:var(--text3)">'+_svgPencil+'</div>'
+      +'<div style="width:30px;height:30px;border-radius:9px;background:'+emojiBg+';display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:8px">'+emoji+'</div>'
+      +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:4px">'+lbl+'</div>'
+      +'<div style="'+totalStyle+';margin-bottom:2px">'+totalTxt+'</div>'
+      +'<div style="font-size:11px;color:var(--text2);margin-bottom:8px">'+subLbl+'</div>'
+      +'<div class="progress-bar" style="height:5px;margin-bottom:6px"><div class="progress-fill" style="width:'+barW+';background:'+fillColor+'"></div></div>'
+      +'<div style="font-size:11px;color:'+statusColor+'">'+statusTxt+'</div>'
+      +'</div>';
+  };
+  var incStatusTxt=incBudgetTotal>0?fmt(incBudgetTotal-incReal)+' pendientes':'—';
+  var expStatusTxt=expBudgetTotal>0?(expReal<=expBudgetTotal?fmt(expBudgetTotal-expReal)+' disponibles':fmt(expReal-expBudgetTotal)+' excedido'):'—';
+  var expStatusColor=expBudgetTotal>0?(expReal<=expBudgetTotal?'var(--success)':'var(--danger)'):'var(--text3)';
+
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">'
+    +_mkSummaryCard('openIncomeBudgetSheet()','💰','rgba(0,212,170,.1)','Ingresos',incBudgetTotal,incReal,incPct,'var(--primary)',fmt(incReal)+' recibidos',incStatusTxt,'var(--text2)')
+    +_mkSummaryCard('openExpenseBudgetSheet()','💸','rgba(239,68,68,.08)','Gastos',expBudgetTotal,expReal,expPct,expColor,fmt(expReal)+' gastados',expStatusTxt,expStatusColor)
     +'</div>';
-  html+=!budgets.length
-    ?'<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Sin presupuestos todavía</div><div class="empty-desc">Crear uno es el primer paso para controlar tus gastos 📊</div></div>'
-    :renderBudgetGroups(budgets);
+
+  // ── Sección presupuestos ──
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
+    +'<div style="font-size:13px;font-weight:800;color:var(--text)">Presupuestos</div>'
+    +'<button onclick="openAddBudgetSheet()" style="font-size:12px;font-weight:700;color:var(--primary);background:rgba(0,212,170,.1);border:0.5px solid rgba(0,212,170,.3);border-radius:100px;padding:4px 12px;cursor:pointer;font-family:var(--font)">＋ Agregar</button>'
+    +'</div>';
+
+  var hasInc=_incItems.length>0;
+  var hasExp=budgets.length>0;
+
+  if(!hasInc&&!hasExp){
+    html+='<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Sin presupuestos todavía</div><div class="empty-desc">Toca ＋ Agregar para crear tu primer presupuesto</div></div>';
+    return html;
+  }
+
+  // ── Grupo ingresos ──
+  if(hasInc){
+    html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--primary);margin-bottom:8px">💰 Ingresos</div>';
+    _incItems.forEach(function(item){
+      var itemReal=_bTxs.filter(function(t){
+        return t.type==='ingreso'&&t.categoryId===item.categoryId&&(!item.subcategoryId||t.subcategoryId===item.subcategoryId);
+      }).reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
+      var iPct=item.amount>0?Math.min(100,Math.round(itemReal/item.amount*100)):0;
+      var iBg=item.incomeType==='secundario'?'rgba(116,97,239,.1)':'rgba(0,212,170,.1)';
+      var iRem=item.amount-itemReal;
+      html+='<div onclick="openEditIncomeBudgetSheet(\''+item.id+'\')" style="background:var(--surface);border-radius:14px;border:0.5px solid var(--border);box-shadow:var(--card-shadow);padding:12px;margin-bottom:8px;cursor:pointer">'
+        +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
+        +'<div style="width:36px;height:36px;border-radius:10px;background:'+iBg+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+(item.emoji||'💼')+'</div>'
+        +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:13px;font-weight:700;color:var(--text)">'+item.name+'</div>'
+        +'<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:100px;background:'+iBg+';color:'+(item.incomeType==='secundario'?'var(--secondary)':'var(--primary)')+'">'+( item.incomeType==='secundario'?'Secundario':'Principal')+'</span>'
+        +'</div>'
+        +'<div style="text-align:right;flex-shrink:0">'
+        +'<div style="font-size:13px;font-weight:700;color:var(--text)">'+fmt(itemReal)+'</div>'
+        +'<div style="font-size:10px;color:var(--text3)">de '+fmt(item.amount)+'</div>'
+        +'</div></div>'
+        +'<div class="progress-bar" style="height:5px;margin-bottom:5px"><div class="progress-fill" style="width:'+iPct+'%;background:var(--primary)"></div></div>'
+        +'<div style="font-size:11px;color:'+(iRem>=0?'var(--text2)':'var(--danger)')+'">'+iPct+'% recibido'+(iRem<0?' · '+fmt(Math.abs(iRem))+' extra':'')+'</div>'
+        +'</div>';
+    });
+  }
+
+  // ── Grupo gastos ──
+  if(hasExp){
+    html+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--danger);margin-bottom:8px;'+(hasInc?'margin-top:16px;':'')+'">💸 Gastos</div>';
+    budgets.forEach(function(b){
+      var cat=getCat(b.categoryId);var sub=getSub(b.subcategoryId);
+      var bSpent=getBudgetSpent(b,_bFromDate);
+      var bPct=Math.min(100,b.amount>0?Math.round(bSpent/b.amount*100):0);
+      var bColor=bPct>=100?'var(--danger)':bPct>=80?'var(--warning)':'var(--success)';
+      var bCatColor=b.color||(cat?cat.color:'#64748B')||'#64748B';
+      var bNature=cat?cat.nature:'deseos';
+      var natureLabel=bNature==='necesidades'?'Necesidades':bNature==='ahorros'?'Ahorros':'Deseos';
+      var natureBg=bNature==='necesidades'?'rgba(59,130,246,.1)':bNature==='ahorros'?'rgba(0,212,170,.1)':'rgba(116,97,239,.1)';
+      var natureColor=bNature==='necesidades'?'#3B82F6':bNature==='ahorros'?'var(--primary)':'var(--secondary)';
+      var bRem=b.amount-bSpent;
+      html+='<div onclick="openModal(\'budget\',{id:\''+b.id+'\'})" style="background:var(--surface);border-radius:14px;border:0.5px solid var(--border);border-left:3px solid '+bCatColor+';box-shadow:var(--card-shadow);padding:12px;margin-bottom:8px;cursor:pointer">'
+        +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
+        +'<div style="width:36px;height:36px;border-radius:10px;background:'+bCatColor+'22;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+(cat?cat.icon:'📦')+'</div>'
+        +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:13px;font-weight:700;color:var(--text)">'+(sub?sub.name:(cat?cat.name:'Sin categoría'))+'</div>'
+        +'<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:100px;background:'+natureBg+';color:'+natureColor+'">'+natureLabel+'</span>'
+        +'</div>'
+        +'<div style="text-align:right;flex-shrink:0">'
+        +'<div style="font-size:13px;font-weight:700;color:var(--danger)">'+fmt(bSpent)+'</div>'
+        +'<div style="font-size:10px;color:var(--text3)">de '+fmt(b.amount)+'</div>'
+        +'</div></div>'
+        +'<div class="progress-bar" style="height:5px;margin-bottom:5px"><div class="progress-fill" style="width:'+bPct+'%;background:'+bColor+'"></div></div>'
+        +'<div style="font-size:11px;color:'+(bRem>=0?'var(--success)':'var(--danger)')+'">'+bPct+'% usado · '+(bRem>=0?fmt(bRem)+' disponible':fmt(Math.abs(bRem))+' excedido')+'</div>'
+        +'</div>';
+    });
+  }
+
   return html;
+}
+
+// ── Navegación de mes ──
+function presupuestoMesAnterior(){
+  if(!S._budgetMonth)S._budgetMonth=new Date().toISOString().slice(0,7);
+  var p=S._budgetMonth.split('-');
+  var d=new Date(parseInt(p[0]),parseInt(p[1])-2,1);
+  S._budgetMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  renderPage('presupuestos');
+}
+function presupuestoMesSiguiente(){
+  if(!S._budgetMonth)S._budgetMonth=new Date().toISOString().slice(0,7);
+  var p=S._budgetMonth.split('-');
+  var d=new Date(parseInt(p[0]),parseInt(p[1]),1);
+  var next=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  var cur=new Date().toISOString().slice(0,7);
+  if(next>cur)return;
+  S._budgetMonth=next;
+  renderPage('presupuestos');
+}
+
+// ── Sheet ingreso general ──
+function openIncomeBudgetSheet(){
+  var cur=parseFloat(S.incomeBudget)||0;
+  var _preview=function(v){
+    var n=parseFloat(v)||0;
+    return '<div style="background:var(--surface2);border-radius:12px;padding:10px 12px;margin-top:12px">'
+      +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:8px">Distribución 50/30/20</div>'
+      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center">'
+      +'<div><div style="font-size:16px">🏠</div><div style="font-size:9px;color:var(--text3)">Necesidades</div><div style="font-size:12px;font-weight:700;color:#3B82F6">'+fmt(n*0.5)+'</div></div>'
+      +'<div><div style="font-size:16px">🎉</div><div style="font-size:9px;color:var(--text3)">Deseos</div><div style="font-size:12px;font-weight:700;color:var(--secondary)">'+fmt(n*0.3)+'</div></div>'
+      +'<div><div style="font-size:16px">🐷</div><div style="font-size:9px;color:var(--text3)">Ahorros</div><div style="font-size:12px;font-weight:700;color:var(--primary)">'+fmt(n*0.2)+'</div></div>'
+      +'</div></div>';
+  };
+  var html='<div style="padding-bottom:8px">'
+    +'<div style="font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:16px">Total que esperas ganar este mes. Si tienes fuentes detalladas abajo, la suma de esas reemplaza este valor.</div>'
+    +'<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Ingreso esperado para este mes</label>'
+    +'<input type="number" id="incbs-val" class="form-input" style="font-size:26px;font-weight:800;font-family:var(--font);text-align:center" placeholder="0.00" value="'+(cur||'')+'" oninput="document.getElementById(\'incbs-prev\').innerHTML=_incBsPreview(this.value)">'
+    +'<div id="incbs-prev">'+_preview(cur)+'</div>'
+    +'<button onclick="saveIncomeBudgetGeneral()" class="btn btn-primary" style="width:100%;margin-top:16px">Guardar</button>'
+    +'</div>';
+  window._incBsPreview=_preview;
+  _showHtmlBS('Ingreso del mes',html);
+}
+function saveIncomeBudgetGeneral(){
+  var v=parseFloat(document.getElementById('incbs-val')?.value)||0;
+  S.incomeBudget=v;
+  saveState();
+  closeBottomSheet();
+  renderPage('presupuestos');
+}
+
+// ── Sheet gasto general ──
+function openExpenseBudgetSheet(){
+  var cur=parseFloat(S.expenseBudgetGeneral)||0;
+  var inc=parseFloat(S.incomeBudget)||0;
+  var _preview=function(v){
+    var n=parseFloat(v)||0;
+    var pct=inc>0?Math.round(n/inc*100):0;
+    var disp=inc>0?inc-n:0;
+    return '<div style="background:var(--surface2);border-radius:12px;padding:10px 12px;margin-top:12px">'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center">'
+      +'<div><div style="font-size:9px;color:var(--text3)">Límite</div><div style="font-size:13px;font-weight:700;color:var(--danger)">'+fmt(n)+'</div></div>'
+      +'<div><div style="font-size:9px;color:var(--text3)">Del ingreso</div><div style="font-size:13px;font-weight:700;color:var(--text)">'+pct+'%</div></div>'
+      +'<div><div style="font-size:9px;color:var(--text3)">Disponible</div><div style="font-size:13px;font-weight:700;color:var(--success)">'+fmt(disp)+'</div></div>'
+      +'</div></div>';
+  };
+  var html='<div style="padding-bottom:8px">'
+    +'<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Límite de gasto esperado para este mes</label>'
+    +'<input type="number" id="expbs-val" class="form-input" style="font-size:26px;font-weight:800;font-family:var(--font);text-align:center" placeholder="0.00" value="'+(cur||'')+'" oninput="document.getElementById(\'expbs-prev\').innerHTML=_expBsPreview(this.value)">'
+    +'<div id="expbs-prev">'+_preview(cur)+'</div>'
+    +'<button onclick="saveExpenseBudgetGeneral()" class="btn btn-primary" style="width:100%;margin-top:16px">Guardar</button>'
+    +'</div>';
+  window._expBsPreview=_preview;
+  _showHtmlBS('Límite de gastos',html);
+}
+function saveExpenseBudgetGeneral(){
+  var v=parseFloat(document.getElementById('expbs-val')?.value)||0;
+  S.expenseBudgetGeneral=v;
+  saveState();
+  closeBottomSheet();
+  renderPage('presupuestos');
+}
+
+// ── Sheet agregar presupuesto ──
+function openAddBudgetSheet(){
+  var _incCats=filterDeleted(S.categories).filter(function(c){return c.type==='ingreso';});
+  var _expCats=filterDeleted(S.categories).filter(function(c){return c.type==='gasto';});
+  var _mkAccordion=function(cats,isGasto){
+    return cats.map(function(cat){
+      var subs=filterDeleted(S.subcategories).filter(function(s){return s.categoryId===cat.id;});
+      var catColor=cat.color||'#64748B';
+      var subsHtml=subs.map(function(sub){
+        var args='\''+cat.id+'\',\''+sub.id+'\',\''+sub.name.replace(/'/g,'\\\'') +'\',\''+( sub.icon||cat.icon||'📦').replace(/'/g,'\\\'') +'\',\''+(cat.incomeType||'principal')+'\',' +(isGasto?'true':'false');
+        return '<div onclick="_absSelectSub('+args+')" style="display:flex;align-items:center;gap:8px;padding:9px 0 9px 10px;border-bottom:0.5px solid var(--border);cursor:pointer">'
+          +'<span style="font-size:15px">'+(sub.icon||cat.icon||'📦')+'</span>'
+          +'<span style="font-size:13px;color:var(--text)">'+sub.name+'</span>'
+          +'</div>';
+      }).join('');
+      return '<div style="margin-bottom:2px">'
+        +'<div onclick="_absToggleCat(\''+cat.id+'\')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
+        +'<div style="width:32px;height:32px;border-radius:9px;background:'+catColor+'22;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+cat.icon+'</div>'
+        +'<div style="flex:1;font-size:13px;font-weight:600;color:var(--text)">'+cat.name+'</div>'
+        +'<span id="abs-arr-'+cat.id+'" style="color:var(--text3);font-size:11px;transition:transform .15s">▶</span>'
+        +'</div>'
+        +'<div id="abs-subs-'+cat.id+'" style="display:none;padding-left:4px">'+subsHtml+'</div>'
+        +'</div>';
+    }).join('');
+  };
+  var _incPrin=_incCats.filter(function(c){return !c.incomeType||c.incomeType==='principal';});
+  var _incSec=_incCats.filter(function(c){return c.incomeType==='secundario';});
+  var incAccordion='';
+  if(_incPrin.length)incAccordion+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--primary);margin:12px 0 4px">⭐ Ingresos principales</div>'+_mkAccordion(_incPrin,false);
+  if(_incSec.length)incAccordion+='<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--secondary);margin:12px 0 4px">➕ Ingresos secundarios</div>'+_mkAccordion(_incSec,false);
+  var expAccordion=_mkAccordion(_expCats,true);
+  var html=''
+    // Step 1: chooser
+    +'<div id="abs-step1">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">'
+    +'<div onclick="_absGoStep(\'abs-step2a\')" style="background:rgba(0,212,170,.08);border:1.5px solid rgba(0,212,170,.25);border-radius:16px;padding:20px 12px;text-align:center;cursor:pointer">'
+    +'<div style="font-size:30px;margin-bottom:8px">💰</div>'
+    +'<div style="font-size:14px;font-weight:700;color:var(--text)">Ingreso</div>'
+    +'<div style="font-size:11px;color:var(--text2);margin-top:4px">Fuente de ingreso esperado</div>'
+    +'</div>'
+    +'<div onclick="_absGoStep(\'abs-step2b\')" style="background:rgba(239,68,68,.06);border:1.5px solid rgba(239,68,68,.2);border-radius:16px;padding:20px 12px;text-align:center;cursor:pointer">'
+    +'<div style="font-size:30px;margin-bottom:8px">💸</div>'
+    +'<div style="font-size:14px;font-weight:700;color:var(--text)">Gasto</div>'
+    +'<div style="font-size:11px;color:var(--text2);margin-top:4px">Límite de gasto por categoría</div>'
+    +'</div>'
+    +'</div></div>'
+    // Step 2A: ingresos
+    +'<div id="abs-step2a" style="display:none">'
+    +'<button onclick="_absGoStep(\'abs-step1\')" style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--primary);background:none;border:none;cursor:pointer;font-family:var(--font);padding:4px 0 12px">← Atrás</button>'
+    +'<div id="abs-2a-content">'+incAccordion+'</div>'
+    +'</div>'
+    // Step 2B: gastos
+    +'<div id="abs-step2b" style="display:none">'
+    +'<button onclick="_absGoStep(\'abs-step1\')" style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--primary);background:none;border:none;cursor:pointer;font-family:var(--font);padding:4px 0 12px">← Atrás</button>'
+    +'<div id="abs-2b-content">'+expAccordion+'</div>'
+    +'</div>';
+  _showHtmlBS('¿Qué presupuestas?',html);
+}
+function _absGoStep(stepId){
+  ['abs-step1','abs-step2a','abs-step2b'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.style.display=id===stepId?'block':'none';
+  });
+}
+function _absToggleCat(catId){
+  var el=document.getElementById('abs-subs-'+catId);
+  var arr=document.getElementById('abs-arr-'+catId);
+  if(!el)return;
+  var open=el.style.display==='block';
+  el.style.display=open?'none':'block';
+  if(arr)arr.textContent=open?'▶':'▼';
+}
+function _absSelectSub(catId,subId,subName,emoji,incomeType,isGasto){
+  window._absCurrentSub={catId:catId,subId:subId,subName:subName,emoji:emoji,incomeType:incomeType,isGasto:isGasto};
+  var contId=isGasto?'abs-2b-content':'abs-2a-content';
+  var el=document.getElementById(contId);
+  if(!el)return;
+  var lbl=isGasto?'Límite de gasto esperado para este mes':'Ingreso esperado para este mes';
+  var accentColor=isGasto?'rgba(239,68,68,.08)':'rgba(0,212,170,.08)';
+  el.innerHTML='<div style="background:'+accentColor+';border-radius:12px;padding:12px;margin-bottom:16px;display:flex;align-items:center;gap:10px">'
+    +'<span style="font-size:22px">'+emoji+'</span>'
+    +'<span style="font-size:14px;font-weight:700;color:var(--text)">'+subName+'</span>'
+    +'<button onclick="_absResetContent()" style="margin-left:auto;font-size:12px;color:var(--primary);background:none;border:none;cursor:pointer;font-family:var(--font)">Cambiar</button>'
+    +'</div>'
+    +'<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">'+lbl+'</label>'
+    +'<input type="number" id="abs-amount" class="form-input" style="font-size:22px;font-weight:700;font-family:var(--font);text-align:center;margin-bottom:16px" placeholder="0.00">'
+    +'<button onclick="_absConfirmSub()" class="btn btn-primary" style="width:100%">Guardar</button>';
+}
+function _absResetContent(){
+  closeBottomSheet();
+  openAddBudgetSheet();
+}
+function _absConfirmSub(){
+  var c=window._absCurrentSub;if(!c)return;
+  var amount=parseFloat(document.getElementById('abs-amount')?.value)||0;
+  if(!amount||amount<=0){toast('Ingresa un monto válido');return;}
+  if(c.isGasto){
+    var cat=getCat(c.catId);
+    S.budgets.push(stampItem({categoryId:c.catId,subcategoryId:c.subId||'',amount:amount,currency:S.currency,color:cat?cat.color:'var(--primary)'}));
+    saveState();closeBottomSheet();renderPage('presupuestos');
+  } else {
+    saveNewIncomeBudget(c.catId,c.subId,c.subName,c.emoji,c.incomeType,amount);
+  }
+}
+function saveNewIncomeBudget(catId,subId,subName,emoji,incomeType,amount){
+  var month=S._budgetMonth||new Date().toISOString().slice(0,7);
+  S.incomeBudgets.push(stampItem({categoryId:catId,subcategoryId:subId||'',name:subName,emoji:emoji,incomeType:incomeType||'principal',amount:parseFloat(amount)||0,month:month}));
+  // Actualizar S.incomeBudget como suma del mes
+  S.incomeBudget=filterDeleted(S.incomeBudgets).filter(function(b){return b.month===month;}).reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0);
+  saveState();closeBottomSheet();renderPage('presupuestos');
+}
+
+// ── Sheet editar ingreso ──
+function openEditIncomeBudgetSheet(id){
+  var item=filterDeleted(S.incomeBudgets||[]).find(function(b){return b.id===id;});
+  if(!item)return;
+  var iBg=item.incomeType==='secundario'?'rgba(116,97,239,.1)':'rgba(0,212,170,.1)';
+  var html='<div style="padding-bottom:8px">'
+    +'<div style="background:'+iBg+';border-radius:12px;padding:12px;margin-bottom:16px;display:flex;align-items:center;gap:10px">'
+    +'<span style="font-size:22px">'+(item.emoji||'💼')+'</span>'
+    +'<div><div style="font-size:14px;font-weight:700;color:var(--text)">'+item.name+'</div>'
+    +'<div style="font-size:11px;color:var(--text2)">'+(item.incomeType==='secundario'?'Ingreso secundario':'Ingreso principal')+'</div>'
+    +'</div></div>'
+    +'<label style="font-size:12px;font-weight:600;color:var(--text2);display:block;margin-bottom:6px">Ingreso esperado para este mes</label>'
+    +'<input type="number" id="einc-val" class="form-input" style="font-size:22px;font-weight:700;font-family:var(--font);text-align:center;margin-bottom:16px" placeholder="0.00" value="'+(item.amount||'')+'">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    +'<button onclick="_deleteIncomeBudget(\''+id+'\')" class="btn btn-danger">Eliminar</button>'
+    +'<button onclick="_saveEditIncomeBudget(\''+id+'\')" class="btn btn-primary">Guardar</button>'
+    +'</div></div>';
+  _showHtmlBS('Editar ingreso',html);
+}
+function _saveEditIncomeBudget(id){
+  var v=parseFloat(document.getElementById('einc-val')?.value)||0;
+  var idx=S.incomeBudgets.findIndex(function(b){return b.id===id;});
+  if(idx<0)return;
+  S.incomeBudgets[idx]=stampItem(Object.assign({},S.incomeBudgets[idx],{amount:v}));
+  var month=S._budgetMonth||new Date().toISOString().slice(0,7);
+  S.incomeBudget=filterDeleted(S.incomeBudgets).filter(function(b){return b.month===month;}).reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0);
+  saveState();closeBottomSheet();renderPage('presupuestos');
+}
+function _deleteIncomeBudget(id){
+  confirmDialog('🗑️','¿Eliminar este ingreso?','',function(){
+    S.incomeBudgets=softDelete(S.incomeBudgets,id);
+    var month=S._budgetMonth||new Date().toISOString().slice(0,7);
+    S.incomeBudget=filterDeleted(S.incomeBudgets).filter(function(b){return b.month===month;}).reduce(function(s,b){return s+(parseFloat(b.amount)||0);},0);
+    saveState();closeBottomSheet();renderPage('presupuestos');
+  });
+}
+
+// ── Opciones presupuesto ──
+function openBudgetOptions(){
+  var html='<div style="padding-bottom:8px">'
+    +'<div onclick="copiarPresupuestoSiguienteMes()" style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
+    +'<div style="width:36px;height:36px;border-radius:10px;background:rgba(0,212,170,.1);display:flex;align-items:center;justify-content:center;font-size:18px">📋</div>'
+    +'<div><div style="font-size:14px;font-weight:600;color:var(--text)">Copiar al mes siguiente</div><div style="font-size:11px;color:var(--text2)">Usa este presupuesto el próximo mes</div></div>'
+    +'</div>'
+    +'<div onclick="_reiniciarPresupuesto()" style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:0.5px solid var(--border);cursor:pointer">'
+    +'<div style="width:36px;height:36px;border-radius:10px;background:rgba(239,68,68,.08);display:flex;align-items:center;justify-content:center;font-size:18px">🔄</div>'
+    +'<div><div style="font-size:14px;font-weight:600;color:var(--text)">Reiniciar presupuesto</div><div style="font-size:11px;color:var(--text2)">Elimina los ingresos de este mes</div></div>'
+    +'</div>'
+    +'<div onclick="toast(\'Exportación próximamente\');closeBottomSheet()" style="display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer">'
+    +'<div style="width:36px;height:36px;border-radius:10px;background:rgba(116,97,239,.1);display:flex;align-items:center;justify-content:center;font-size:18px">📤</div>'
+    +'<div><div style="font-size:14px;font-weight:600;color:var(--text)">Exportar resumen</div><div style="font-size:11px;color:var(--text2)">Próximamente disponible</div></div>'
+    +'</div>'
+    +'</div>';
+  _showHtmlBS('Opciones',html);
+}
+function copiarPresupuestoSiguienteMes(){
+  var month=S._budgetMonth||new Date().toISOString().slice(0,7);
+  var p=month.split('-');
+  var d=new Date(parseInt(p[0]),parseInt(p[1]),1);
+  var nextMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  var items=filterDeleted(S.incomeBudgets||[]).filter(function(b){return b.month===month;});
+  items.forEach(function(b){
+    var exists=filterDeleted(S.incomeBudgets).find(function(x){return x.month===nextMonth&&x.categoryId===b.categoryId&&x.subcategoryId===b.subcategoryId;});
+    if(!exists)S.incomeBudgets.push(stampItem({categoryId:b.categoryId,subcategoryId:b.subcategoryId,name:b.name,emoji:b.emoji,incomeType:b.incomeType,amount:b.amount,month:nextMonth}));
+  });
+  saveState();closeBottomSheet();toast('Copiado al siguiente mes ✓');
+}
+function _reiniciarPresupuesto(){
+  var month=S._budgetMonth||new Date().toISOString().slice(0,7);
+  confirmDialog('🔄','¿Reiniciar presupuesto?','Se eliminarán los ingresos de este mes.',function(){
+    filterDeleted(S.incomeBudgets||[]).filter(function(b){return b.month===month;}).forEach(function(b){S.incomeBudgets=softDelete(S.incomeBudgets,b.id);});
+    S.incomeBudget=0;saveState();closeBottomSheet();renderPage('presupuestos');
+  });
 }
 
 function renderMetas(){

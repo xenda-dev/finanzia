@@ -158,6 +158,7 @@ let S = {
   numFormat:'auto', currencies:[], profile:{name:'',email:'',photo:'',profession:''},
   shoppingLists:[], investments:[], subscriptions:[], accounts:[], transactions:[], categories:[], subcategories:[],
   budgets:[], goals:[], scheduledPayments:[], tasks:[], objectives:[],
+  incomeBudgets:[], expenseBudgetGeneral:0, incomeBudget:0,
   movFilter:{tab:'todos',search:'',dateFrom:'',dateTo:'',catId:'',accountId:'',payMethod:''},
   analysisPeriod:'Mensual', analysisPeriodSub:'anual',
   analysisYear:new Date().getFullYear(),
@@ -244,6 +245,9 @@ function loadState(){
   }
   // language and weekStart stay empty until user chooses
   // currencies stay empty until user sets up profile
+  if(!S.incomeBudgets)S.incomeBudgets=[];
+  if(!S.expenseBudgetGeneral)S.expenseBudgetGeneral=0;
+  if(!S.incomeBudget)S.incomeBudget=0;
   if(typeof applyThemeMode==='function')applyThemeMode();
   // Update drawer profile
   updateDrawerProfile();
@@ -395,6 +399,7 @@ async function saveUserData(userId,data){
   delete toSave._objTab;
   delete toSave._activeMiDiaPill;
   delete toSave._dashMonth;
+  delete toSave._budgetMonth;
   delete toSave._tmplSearch;
   // Blindaje final: garantizar updated_at en todos los items antes de persistir
   var _STAMP_KEYS2=['transactions','accounts','subscriptions','budgets','goals',
